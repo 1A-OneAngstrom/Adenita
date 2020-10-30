@@ -5,7 +5,7 @@
 - Qt 5.12.5
 - CMake (Version 3.15 or above)
 - Visual Studio
-- Boost library
+- Boost library (version 1.69 or above)
 - Rapidjson
 - SAMSON SDK 1.0.0 or above
 
