@@ -598,7 +598,7 @@ void DASBackToTheAtom::CreateBonds(ADNPointer<ADNPart> origami)
           if (lst.size() == 1) {
             atC = *lst.begin();
             SBPointer<SBBond> bond = new SBBond(at(), atC());
-            if (at->IsInBackbone()) {
+            if (at->IsInADNBackbone()) {
               bb->addChild(bond());
             }
             else {
@@ -717,7 +717,7 @@ void DASBackToTheAtom::PopulateNucleotideWithAllAtoms(ADNPointer<ADNPart> origam
   auto atoms = nt_left->GetAtoms();
   SB_FOR(ADNPointer<ADNAtom> atom, atoms) {
     NucleotideGroup g = NucleotideGroup::SideChain;
-    if (atom->IsInBackbone()) g = NucleotideGroup::Backbone;
+    if (atom->IsInADNBackbone()) g = NucleotideGroup::Backbone;
 
     ADNPointer<ADNAtom> newAtom = CopyAtom(atom);
     origami->RegisterAtom(nt, g, newAtom);
@@ -755,7 +755,7 @@ std::tuple<SBPosition3, SBPosition3, SBPosition3> DASBackToTheAtom::CalculateCen
   SB_FOR(ADNPointer<ADNAtom> n, ntAtoms) {
     ublas::vector<double> ac_blas = ADNAuxiliary::SBPositionToUblas(n->GetPosition());
     ADNVectorMath::AddRowToMatrix(positions, ac_blas);
-    if (n->IsInBackbone()) {
+    if (n->IsInADNBackbone()) {
       ADNVectorMath::AddRowToMatrix(positions_bb, ac_blas);
     }
     else {
@@ -789,7 +789,7 @@ std::tuple<SBPosition3, SBPosition3, SBPosition3> DASBackToTheAtom::CalculateCen
     ublas::vector<double> ac_blas = mass * ADNAuxiliary::SBPositionToUblas(n->GetPosition());
     totalMass += mass;
     ADNVectorMath::AddRowToMatrix(positions, ac_blas);
-    if (n->IsInBackbone()) {
+    if (n->IsInADNBackbone()) {
       ADNVectorMath::AddRowToMatrix(positions_bb, ac_blas);
       totalBBMass += mass;
     }
@@ -854,7 +854,7 @@ void DASBackToTheAtom::SetReferenceFrame(NtPair pair) {
     if (a->GetName() == "C3'") {
       c3_prime_left_std = ADNAuxiliary::SBPositionToVector(a->GetPosition());
     }
-    if (!a->IsInBackbone()) {
+    if (!a->IsInADNBackbone()) {
       sidechain_indices.push_back(idx);
     }
     ++idx;
@@ -871,7 +871,7 @@ void DASBackToTheAtom::SetReferenceFrame(NtPair pair) {
     if (a->GetName() == "C3'") {
       c3_prime_right_std = ADNAuxiliary::SBPositionToVector(a->GetPosition());
     }
-    if (!a->IsInBackbone()) {
+    if (!a->IsInADNBackbone()) {
       sidechain_indices.push_back(idx);
     }
     ++idx;

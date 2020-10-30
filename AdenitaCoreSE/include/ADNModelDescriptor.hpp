@@ -25,58 +25,78 @@ SB_CLASS_BEGIN(ADNAtom);
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNAtom, NtGroup, "Nucleotide group", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(SBPosition3 const&, ADNAtom, Position, "Position", "Adenita");
 
-    SB_ATTRIBUTE_READ_WRITE(bool const&, ADNAtom, Aromaticity, "Aromaticity", "Chemistry");
-    SB_ATTRIBUTE_READ_ONLY(SBQuantity::dimensionless, ADNAtom, Electronegativity, "Electronegativity", "Chemistry");
-    SB_ATTRIBUTE_READ_WRITE(bool const&, ADNAtom, Resonance, "Resonance", "Chemistry");
 
-    SB_ATTRIBUTE_READ_ONLY(SBQuantity::mass, ADNAtom, AtomicWeight, "Atomic weight", "Element");
+	SB_ATTRIBUTE_READ_WRITE(SBElement::Type, ADNAtom, ElementType, "Element", "Element");
+	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, ElementName, "Element name", "Element");
+	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, ElementSymbol, "Element symbol", "Element");
+	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, Period, "Period", "Element");
+	SB_ATTRIBUTE_READ_ONLY(unsigned int, ADNAtom, Group, "Group", "Element");
     SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, Block, "Block", "Element");
-    SB_ATTRIBUTE_READ_WRITE(SBElement::Type, ADNAtom, ElementType, "Element", "Element");
-    SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, ElementName, "Element name", "Element");
-    SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, ElementSymbol, "Element symbol", "Element");
-    SB_ATTRIBUTE_READ_ONLY(unsigned int, ADNAtom, Group, "Group", "Element");
-    SB_ATTRIBUTE_READ_WRITE(short const&, ADNAtom, Hybridization, "Hybridization", "Element");
-    SB_ATTRIBUTE_READ_WRITE(int const&, ADNAtom, OxydationState, "Oxydation state", "Element");
-    SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, Period, "Period", "Element");
+	SB_ATTRIBUTE_READ_ONLY(SBQuantity::mass, ADNAtom, AtomicWeight, "Atomic weight", "Element");
+    SB_ATTRIBUTE_READ_WRITE(SBAtom::Hybridization const&, ADNAtom, Hybridization, "Hybridization", "Element");
+    SB_ATTRIBUTE_READ_WRITE(int const&, ADNAtom, OxidationState, "Oxydation state", "Element");
     SB_ATTRIBUTE_READ_WRITE(bool const&, ADNAtom, WaterFlag, "Water flag", "Element");
+	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, MetalSubcategoryString, "Subcategory", "Element");
 
-    SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, ADNAtom, MoleculeName, "Molecule name", "Identity");
-    SB_ATTRIBUTE_READ_WRITE(std::string const&, ADNAtom, Name, "Name", "Identity");
-    SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, ADNAtom, SubstructureName, "Substructure name", "Identity");
+	SB_ATTRIBUTE_READ_WRITE(bool const&, ADNAtom, Resonance, "Resonance", "Chemistry");
+	SB_ATTRIBUTE_READ_WRITE(bool const&, ADNAtom, Aromaticity, "Aromaticity", "Chemistry");
+	SB_ATTRIBUTE_READ_ONLY(SBQuantity::dimensionless, ADNAtom, Electronegativity, "Electronegativity", "Chemistry");
+	
+	SB_ATTRIBUTE_READ_ONLY(SBQuantity::length, ADNAtom, CovalentRadius, "Covalent radius", "Structure");
+	SB_ATTRIBUTE_READ_ONLY(SBQuantity::length, ADNAtom, VanDerWaalsRadius, "Van der Waals radius", "Structure");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(SBAtom::Geometry const&, ADNAtom, Geometry, "Geometry", "Structure");
+	SB_ATTRIBUTE_READ_WRITE(SBPosition3 const&, ADNAtom, Position, "Position", "Structure");
+	SB_ATTRIBUTE_READ_WRITE(bool, ADNAtom, MobilityFlag, "Mobile", "Structure");
 
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNAtom, ThisNode, "Itself", "Node");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNAtom, Parent, "Parent", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNAtom, Selected, "Selected", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNAtom, SelectionFlag, "Selection Flag", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNAtom, VisibilityFlag, "Visibility Flag", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNAtom, Visible, "Visible", "Node");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(const std::string&, ADNAtom, Name, "Name", "Identity");
+	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, MoleculeName, "Molecule name", "Identity");
+	
+
+	SB_ATTRIBUTE_READ_ONLY(bool, ADNAtom, Selected, "Selected", "Node");
+	SB_ATTRIBUTE_READ_ONLY(bool, ADNAtom, Visible, "Visible", "Node");
+	SB_ATTRIBUTE_READ_WRITE(bool, ADNAtom, SelectionFlag, "Selection flag", "Node");
+	SB_ATTRIBUTE_READ_WRITE(bool, ADNAtom, VisibilityFlag, "Visibility flag", "Node");
+	SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNAtom, Parent, "Parent", "Node");
+	SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNAtom, ThisNode, "Itself", "Node");
+	//SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNAtom, NextNode, "Next", "Node");
+	//SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNAtom, PreviousNode, "Previous", "Node");
 
     SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, ADNAtom, Comment, "Comment", "Other");
     SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, ADNAtom, StatusBit, "Status bit", "Other");
 
-    SB_ATTRIBUTE_READ_WRITE_CLEAR(char const&, ADNAtom, AltLocation, "Alt. location", "Protein");
-    SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, ADNAtom, Chain, "Chain", "Protein");
-    SB_ATTRIBUTE_READ_WRITE_CLEAR(int const&, ADNAtom, ChainID, "Chain ID", "Protein");
-    SB_ATTRIBUTE_READ_WRITE_CLEAR(int const&, ADNAtom, FormalCharge, "Formal charge", "Protein");
-    SB_ATTRIBUTE_READ_WRITE_CLEAR(char const&, ADNAtom, InsertionCode, "Insertion code", "Protein");
-    SB_ATTRIBUTE_READ_WRITE_CLEAR(SBQuantity::dimensionless const&, ADNAtom, Occupancy, "Occupancy", "Protein");
-    SB_ATTRIBUTE_READ_WRITE_CLEAR(float const&, ADNAtom, PartialCharge, "Partial charge", "Protein");
-    SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, ADNAtom, RecordType, "Record type", "Protein");
-    SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, ADNAtom, ResidueName, "Residue name", "Protein");
-    SB_ATTRIBUTE_READ_WRITE_CLEAR(int const&, ADNAtom, ResidueSequenceNumber, "Residue sequence number", "Protein");
-    SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, ADNAtom, Segment, "Segment", "Protein");
-    SB_ATTRIBUTE_READ_WRITE_CLEAR(int const&, ADNAtom, SerialNumber, "Serial number", "Protein");
-    SB_ATTRIBUTE_READ_WRITE_CLEAR(int const&, ADNAtom, SubstructureSequenceNumber, "Substructure sequence number", "Protein");
-    SB_ATTRIBUTE_READ_WRITE_CLEAR(double const&, ADNAtom, TemperatureFactor, "Temperature factor", "Protein");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(const char&, ADNAtom, AltLocation, "Alt. location", "Protein");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(const char&, ADNAtom, InsertionCode, "Insertion code", "Protein");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(const int&, ADNAtom, SerialNumber, "Serial number", "Protein");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(const SBQuantity::dimensionless&, ADNAtom, Occupancy, "Occupancy", "Protein");
 
-    SB_ATTRIBUTE_READ_ONLY(SBQuantity::length, ADNAtom, CovalentRadius, "Covalent radius", "Structure");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNAtom, MobilityFlag, "Mobile", "Structure");
-    SB_ATTRIBUTE_READ_WRITE(SBPosition3 const&, ADNAtom, Position, "Position", "Structure");
-    SB_ATTRIBUTE_READ_ONLY(SBQuantity::length, ADNAtom, VanDerWaalsRadius, "Van der Waals radius", "Structure");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(double const&, ADNAtom, TemperatureFactor, "Temperature factor", "Protein");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(float const&, ADNAtom, PartialCharge, "Partial charge", "Protein");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(int const&, ADNAtom, FormalCharge, "Formal charge", "Protein");
 
-    SB_ATTRIBUTE_READ_WRITE_CLEAR(int const&, ADNAtom, CustomType, "Custom type", "Typization");
-    SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, ADNAtom, SYBYLType, "SYBYL type", "Typization");
+	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, SubstructureName, "Substructure name", "Protein");
+	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, SubstructureSequenceNumberString, "Substructure sequence number", "Protein");
 
+
+
+	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, ChainIDString, "Chain ID", "Protein");
+	SB_CONST_FUNCTION_0(int, ADNAtom, getChainID);
+	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, ChainName, "Chain name", "Protein");
+
+	SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, ADNAtom, RecordType, "Record type", "Protein");
+
+	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, ResidueName, "Residue name", "Protein");
+	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, ResidueTypeString, "Residue type", "Protein");
+	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, ResidueSequenceNumberString, "Residue sequence number", "Protein");
+	SB_CONST_FUNCTION_0(int, ADNAtom, getResidueSequenceNumber);
+
+	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, SegmentName, "Segment name", "Protein");
+
+	SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, ADNAtom, Comment, "Comment", "Other");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, ADNAtom, StatusBit, "Status bit", "Other");
+
+	SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, ADNAtom, SYBYLType, "SYBYL type", "Typization");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(int const&, ADNAtom, CustomType, "Custom type", "Typization");
+	
   SB_INTERFACE_END;
 
 SB_CLASS_END(ADNAtom);

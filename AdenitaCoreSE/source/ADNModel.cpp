@@ -52,7 +52,7 @@ SBNode * ADNAtom::getNtGroup() const
   return getParent();
 }
 
-bool ADNAtom::IsInBackbone() 
+bool ADNAtom::IsInADNBackbone()
 {
   return isFromNucleicAcidBackbone();
 }

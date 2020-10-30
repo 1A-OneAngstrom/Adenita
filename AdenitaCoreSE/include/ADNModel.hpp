@@ -84,7 +84,7 @@ public:
   SBNode* getNt() const;
   SBNode* getNtGroup() const;
 
-  bool IsInBackbone();
+  bool IsInADNBackbone();
 };
 
 SB_REGISTER_TARGET_TYPE(ADNAtom, "ADNAtom", "292377CD-F926-56E9-52AB-D6B623C3A104");

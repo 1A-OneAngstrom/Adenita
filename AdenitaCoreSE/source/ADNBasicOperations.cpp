@@ -181,7 +181,7 @@ ADNPointer<ADNPart> ADNBasicOperations::MergeParts(ADNPointer<ADNPart> part1, AD
       SB_FOR(ADNPointer<ADNAtom> atom, atoms) {
         part2->DeregisterAtom(atom, false);
         NucleotideGroup g = NucleotideGroup::SideChain;
-        if (atom->IsInBackbone()) g = NucleotideGroup::Backbone;
+        if (atom->IsInADNBackbone()) g = NucleotideGroup::Backbone;
         part->RegisterAtom(nt, g, atom);
       }
 
@@ -565,7 +565,7 @@ void ADNBasicOperations::MoveStrand(ADNPointer<ADNPart> oldPart, ADNPointer<ADNP
     auto atoms = nt->GetAtoms();
     SB_FOR(ADNPointer<ADNAtom> at, atoms) {
       NucleotideGroup g = NucleotideGroup::Backbone;
-      if (!at->IsInBackbone()) g = NucleotideGroup::SideChain;
+      if (!at->IsInADNBackbone()) g = NucleotideGroup::SideChain;
       oldPart->DeregisterAtom(at);
       part->RegisterAtom(nt, g, at);
     }
