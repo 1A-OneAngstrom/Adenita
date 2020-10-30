@@ -15,12 +15,12 @@ endif()
 
 IF( UNIX )
 	IF( DEBUG ) 
-		PROJECT (SAMSON-Elements-debug )
+		PROJECT ( Adenita-debug )
 	ELSE( DEBUG ) 
-		PROJECT ( SAMSON-Elements-release )
+		PROJECT ( Adenita-release )
 	ENDIF( DEBUG )
 ELSE( UNIX )
-	PROJECT ( SAMSON-Elements )
+	PROJECT ( Adenita )
 ENDIF( UNIX )
 
 ADD_DEFINITIONS(-D SAMSON_BASE_BUILD)
@@ -199,13 +199,19 @@ FIND_PACKAGE ( OpenGL )
 
 # BOOST
 MESSAGE( "Adding boost path...")
-MESSAGE( "     BOOST_PATH            = ${BOOST_PATH} ")
-INCLUDE_DIRECTORIES ( ${BOOST_PATH} )
+find_package(Boost)
+IF (Boost_FOUND)
+	MESSAGE( "    BOOST_PATH            = ${BOOST_PATH} ")
+	MESSAGE( "    Boost_VERSION         = ${Boost_VERSION_STRING} ")
+	MESSAGE( "    Boost_INCLUDE_DIRS    = ${Boost_INCLUDE_DIRS} ")
+	MESSAGE( "    Boost_LIBRARY_DIRS    = ${Boost_LIBRARY_DIRS} ")
+	INCLUDE_DIRECTORIES ( ${Boost_INCLUDE_DIRS} )
+ENDIF (Boost_FOUND)
 
 # RAPIDJSON
-MESSAGE( "Adding rapidjson path...")
-MESSAGE( "     RAPIDJSON_PATH            = ${RAPIDJSON_PATH} ")
-INCLUDE_DIRECTORIES ( ${RAPIDJSON_PATH} )
+#MESSAGE( "Adding rapidjson path...")
+#MESSAGE( "     RAPIDJSON_PATH            = ${RAPIDJSON_PATH} ")
+#INCLUDE_DIRECTORIES ( ${RAPIDJSON_PATH} )
 
 ##########################
 # SAMSON Element folders #
