@@ -403,7 +403,7 @@ void DASCadnano::CreateConformations(ADNPointer<ADNPart> nanorobot)
 {
   std::string name = nanorobot->GetName();
   SBNodeIndexer nodeIndexer;
-  nanorobot->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNAtom")) && (SBNode::GetElementUUID() == SBUUID("DDA2A078-1AB6-96BA-0D14-EE1717632D7A")));
+  nanorobot->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNAtom")) && (SBNode::GetElementUUID() == SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
 
   conformation3D_ = new SBMStructuralModelConformation(name + " 3D", nodeIndexer);
   conformation2D_ = new SBMStructuralModelConformation(name + " 2D", nodeIndexer);

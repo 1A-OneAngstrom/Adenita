@@ -24,7 +24,7 @@ SEDeleteEditorGUI* SEDeleteEditor::getPropertyWidget() const { return static_cas
 
 SEAdenitaCoreSEApp* SEDeleteEditor::getAdenitaApp() const
 {
-  return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID("DDA2A078-1AB6-96BA-0D14-EE1717632D7A")));
+  return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
 }
 
 SBCContainerUUID SEDeleteEditor::getUUID() const { return SBCContainerUUID("BA1E9F38-0280-6871-D979-D314FBC98758"); }
