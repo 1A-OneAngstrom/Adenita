@@ -603,6 +603,8 @@ void ADNDisplayHelper::displayOrthoPlane(SBVector3 vec, SBPosition3 shift)
     200,100
   };
 
+  unsigned int flagData[] = { 0,0,0,0,0,0,0 };
+
   float * colorData = new float[4 * nVertices];
 
   for (unsigned int i = 0; i < 4 * nVertices; i++) {
@@ -611,6 +613,7 @@ void ADNDisplayHelper::displayOrthoPlane(SBVector3 vec, SBPosition3 shift)
 
     ++i;
   }
+
   /*
   colorData[0] = 1.0f;
   colorData[1] = 0.0f;
@@ -652,7 +655,8 @@ void ADNDisplayHelper::displayOrthoPlane(SBVector3 vec, SBPosition3 shift)
     nVertices,
     indexData,
     vertexPositions,
-    colorData
+    colorData,
+	flagData
     );
 
 }
