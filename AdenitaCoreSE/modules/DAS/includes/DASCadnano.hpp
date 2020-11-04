@@ -17,7 +17,7 @@
 
 
 using namespace std;
-using namespace rapidjson;
+//using namespace rapidjson;
 
 double const bp_rise_ = ADNConstants::BP_RISE; // nm
 double const dh_diameter_ = ADNConstants::DH_DIAMETER; // nm
@@ -96,8 +96,8 @@ private:
   ADNPointer<ADNConformation> conformation1D_;
 
   void ParseJSON(std::string filename);
-  void ParseCadnanoFormat3(Document& d);
-  void ParseCadnanoLegacy(Document& d);
+  void ParseCadnanoFormat3(rapidjson::Document& d);
+  void ParseCadnanoLegacy(rapidjson::Document& d);
 
   ADNPointer<ADNPart> CreateCadnanoModel();
   void CreateEdgeMap(ADNPointer<ADNPart> nanorobot);

@@ -4,13 +4,13 @@ void DASCadnano::ParseJSON(std::string filename)
 {
   FILE* fp = fopen(filename.c_str(), "rb");
   char readBuffer[65536];
-  FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-  Document d;
+  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+  rapidjson::Document d;
   d.ParseStream(is);
 
   // check for save version
   double versionValue = 0.0;
-  if (Value* version = Pointer("/format").Get(d)) {
+  if (rapidjson::Value* version = rapidjson::Pointer("/format").Get(d)) {
     versionValue = version->GetDouble();
   }
 
@@ -24,30 +24,30 @@ void DASCadnano::ParseJSON(std::string filename)
   fclose(fp);
 }
 
-void DASCadnano::ParseCadnanoFormat3(Document & d)
+void DASCadnano::ParseCadnanoFormat3(rapidjson::Document & d)
 {
   ADNLogger::LogError(std::string("Cadnano format 3.0 not yet supported."));
 }
 
-void DASCadnano::ParseCadnanoLegacy(Document& d)
+void DASCadnano::ParseCadnanoLegacy(rapidjson::Document& d)
 {
   json_.name_ = d["name"].GetString();
-  Value& vstrandsVal = d["vstrands"];
+  rapidjson::Value& vstrandsVal = d["vstrands"];
 
   int totalCount = -1;
   for (unsigned int i = 0; i < vstrandsVal.Size(); i++) {
 
-    Value& vstrandVal = vstrandsVal[i];
+	  rapidjson::Value& vstrandVal = vstrandsVal[i];
     Vstrand vstrand;
     
     vstrand.num_ = vstrandVal["num"].GetInt();
     vstrand.col_ = vstrandVal["col"].GetInt();
     vstrand.row_ = vstrandVal["row"].GetInt();
 
-    Value& scafVals = vstrandVal["scaf"];
+	rapidjson::Value& scafVals = vstrandVal["scaf"];
     int count = 0;
     for (unsigned int k = 0; k < scafVals.Size(); k++) {
-      Value& a = scafVals[k];
+      rapidjson::Value& a = scafVals[k];
       vec4 elem;
       elem.n0 = a[0].GetInt();
       elem.n1 = a[1].GetInt();
@@ -66,10 +66,10 @@ void DASCadnano::ParseCadnanoLegacy(Document& d)
     totalCount = count;  // all vhelix have the same count
     vstrand.totalLength_ = totalCount;
 
-    Value& stapVals = vstrandVal["stap"];
+	rapidjson::Value& stapVals = vstrandVal["stap"];
     count = 0;
     for (unsigned int k = 0; k < stapVals.Size(); k++) {
-      Value& a = stapVals[k];
+      rapidjson::Value& a = stapVals[k];
       vec4 elem;
       elem.n0 = a[0].GetInt();
       elem.n1 = a[1].GetInt();
@@ -88,14 +88,14 @@ void DASCadnano::ParseCadnanoLegacy(Document& d)
       ++count;
     }
 
-    const Value& loopVals = vstrandVal["loop"];
+    const rapidjson::Value& loopVals = vstrandVal["loop"];
     count = 0;
     for (unsigned int k = 0; k < loopVals.Size(); k++) {
       vstrand.loops_.insert(std::make_pair(count, loopVals[k].GetInt()));
       ++count;
     }
 
-    const Value& skipVals = vstrandVal["skip"];
+    const rapidjson::Value& skipVals = vstrandVal["skip"];
     count = 0;
     for (unsigned int k = 0; k < skipVals.Size(); k++) {
       vstrand.skips_.insert(std::make_pair(count, skipVals[k].GetInt()));

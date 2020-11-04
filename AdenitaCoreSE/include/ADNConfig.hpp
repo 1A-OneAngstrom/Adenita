@@ -13,9 +13,9 @@
 #include <iostream>
 
 
-using namespace rapidjson;
+//using namespace rapidjson;
 
-typedef GenericValue<UTF8<>, CrtAllocator> Val;
+typedef rapidjson::GenericValue<rapidjson::UTF8<>, rapidjson::CrtAllocator> Val;
 
 enum SEConfigMode {
   DEBUG_LOG = 0,
@@ -148,14 +148,14 @@ private:
     + std::to_string(SAMSON::getVersionNumber().getMinorVersionNumber()) + "." + std::to_string(SAMSON::getVersionNumber().getPatchVersionNumber());
   const std::string DEBUG_CONFIGPATH = SAMSON::getUserDataPath() + "/" + SAMSON_VERSION + "/adenita_debug_settings.json";
   const std::string DEFAULT_CONFIGPATH = SAMSON::getUserDataPath() + "/" + SAMSON_VERSION + "/adenita_settings.json";
-  GenericDocument<UTF8<>, CrtAllocator> setting_;
-  Document debugSetting_;
+  rapidjson::GenericDocument<rapidjson::UTF8<>, rapidjson::CrtAllocator> setting_;
+  rapidjson::Document debugSetting_;
   QFileSystemWatcher configFileWatcher_;
   QFileSystemWatcher debugConfigFileWatcher_;
 
   void loadConfig();
   void loadDebugConfig();
-  void writeDoubleArray(Writer<StringBuffer> & writer, std::string key, double * arr, int length);
+  void writeDoubleArray(rapidjson::Writer<rapidjson::StringBuffer> & writer, std::string key, double * arr, int length);
   void readDoubleArray(Val & val, double * arr, int length);
   void writeDocumentToJson();
 };

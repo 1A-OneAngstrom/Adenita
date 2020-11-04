@@ -24,15 +24,15 @@ public:
 	/// \name Constructors and destructors
 	//@{
 
-	SEAdenitaCoreSEAppGUI(SEAdenitaCoreSEApp* t);																									///< Constructs a GUI for the app
-	virtual ~SEAdenitaCoreSEAppGUI();																										///< Destructs the GUI of the app
+	SEAdenitaCoreSEAppGUI(SEAdenitaCoreSEApp* t);																						///< Constructs a GUI for the app
+	virtual ~SEAdenitaCoreSEAppGUI();																									///< Destructs the GUI of the app
 
 	//@}
 
 	/// \name App
 	//@{
 
-	SEAdenitaCoreSEApp*												getApp() const;															///< Returns a pointer to the app
+	SEAdenitaCoreSEApp*											getApp() const;															///< Returns a pointer to the app
 
 	//@}
 
@@ -52,77 +52,80 @@ public:
 	///\name Settings
 	//@{
 
-	void														loadSettings(SBGSettings* settings);										///< Load GUI settings
-	void														saveSettings(SBGSettings* settings);										///< Save GUI settings
+	void														loadSettings(SBGSettings* settings);									///< Load GUI settings
+	void														saveSettings(SBGSettings* settings);									///< Save GUI settings
 
 	//@}
 
-
-
-  // get selected scaffold
-  std::string GetScaffoldFilename();
+	// get selected scaffold
+	std::string													GetScaffoldFilename();
 
 public slots:
 
-  void onChangeSelector(int idx);
-  // Main
-  void onLoadFile();
-  void onSaveAll();
-  void onSaveSelection();
-  void onExport();
-  void onSetScaffold();
-  void onCreateBasePair();
-  void onGenerateSequence();
-  void onSettings();
-  void onSetStart();
-  void onCalculateBindingProperties();
-  // Editors
-  void onBreakEditor();
-  void onConnectEditor();
-  void onDeleteEditor();
-  void onDNATwistEditor();
-  void onMergePartsEditor();
-  void onCreateStrandEditor();
-  void onNanotubeCreatorEditor();
-  void onLatticeCreatorEditor();
-  void onWireframeEditor();
-  void onTaggingEditor();
-  void onTwisterEditor();
-  // Debug
-  void onAddNtThreeP();
-  void onCenterPart();
-  void onCatenanes();
-  void onKinetoplast();
-  void onTestNeighbors();
-  void onOxDNAImport();
-  void onFromDatagraph();
-  void onHighlightXOs();
-  void onHighlightPosXOs();
-  void onExportToCanDo();
-  void onFixDesigns();
+	void														onChangeSelector(int idx);
+
+	// Main
+	void														onLoadFile();
+	void														onSaveAll();
+	void														onSaveSelection();
+	void														onExport();
+	void														onSetScaffold();
+	void														onCreateBasePair();
+	void														onGenerateSequence();
+	void														onSettings();
+	void														onSetStart();
+	void														onCalculateBindingProperties();
+
+	// Editors
+	void														onBreakEditor();
+	void														onConnectEditor();
+	void														onDeleteEditor();
+	void														onDNATwistEditor();
+	void														onMergePartsEditor();
+	void														onCreateStrandEditor();
+	void														onNanotubeCreatorEditor();
+	void														onLatticeCreatorEditor();
+	void														onWireframeEditor();
+	void														onTaggingEditor();
+	void														onTwisterEditor();
+
+	// Debug
+	void														onAddNtThreeP();
+	void														onCenterPart();
+	void														onCatenanes();
+	void														onKinetoplast();
+	void														onTestNeighbors();
+	void														onOxDNAImport();
+	void														onFromDatagraph();
+	void														onHighlightXOs();
+	void														onHighlightPosXOs();
+	void														onExportToCanDo();
+	void														onFixDesigns();
 
 private slots:
-  void CheckForLoadedParts();
+
+	void														checkForLoadedParts();
 
 private:
-  void SetupUI();
-  std::string IsJsonCadnano(QString filename);
-  void HighlightEditor(QToolButton* b);
 
-  std::vector<QToolButton*> menuButtons_;
-  std::vector<QToolButton*> editSequencesButtons_;
-  std::vector<QToolButton*> modelingButtons_;
-  std::vector<QToolButton*> creatorsButtons_;
-  std::vector<QPushButton*> debugButtons_;
+	void														setupUI();
+	std::string													IsJsonCadnano(QString filename);
+	void														HighlightEditor(QToolButton* b);
 
-  std::vector<QToolButton*> GetMenuButtons();
-  std::vector<QToolButton*> GetEditSequencesButtons();
-  std::vector<QToolButton*> GetModelingButtons();
-  std::vector<QToolButton*> GetCreatorsButtons();
-  std::vector<QPushButton*> GetDebugButtons();
+	std::vector<QToolButton*>									menuButtons_;
+	std::vector<QToolButton*>									editSequencesButtons_;
+	std::vector<QToolButton*>									modelingButtons_;
+	std::vector<QToolButton*>									creatorsButtons_;
+	std::vector<QPushButton*>									debugButtons_;
 
-	Ui::SEAdenitaCoreSEAppGUIClass									ui;
+	std::vector<QToolButton*>									GetMenuButtons();
+	std::vector<QToolButton*>									GetEditSequencesButtons();
+	std::vector<QToolButton*>									GetModelingButtons();
+	std::vector<QToolButton*>									GetCreatorsButtons();
+	std::vector<QPushButton*>									GetDebugButtons();
 
-  QToolButton* highlightedEditor_ = nullptr;
+	Ui::SEAdenitaCoreSEAppGUIClass								ui;
+
+	QToolButton*												highlightedEditor_ = nullptr;
+
 };
-
