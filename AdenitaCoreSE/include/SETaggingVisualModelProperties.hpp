@@ -24,8 +24,8 @@ public:
 	/// \name Constructors and destructors
 	//@{
 
-	SETaggingVisualModelProperties();																								///< Constructs a widget to show the properties of the visual model
-	virtual ~SETaggingVisualModelProperties();																						///< Destructs the widget
+	SETaggingVisualModelProperties();																									///< Constructs a widget to show the properties of the visual model
+	virtual ~SETaggingVisualModelProperties();																							///< Destructs the widget
 
 	//@}
 
@@ -73,8 +73,8 @@ public:
 private:
 
 	friend class SETaggingVisualModel;
-	Ui::SETaggingVisualModelPropertiesClass							ui;
-	SBPointer<SETaggingVisualModel>									visualModel;
+	Ui::SETaggingVisualModelPropertiesClass						ui;
+	SBPointer<SETaggingVisualModel>								visualModel;
 
 	SBPointer<Observer>											observer;
 

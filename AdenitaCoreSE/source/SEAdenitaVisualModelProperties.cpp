@@ -9,6 +9,7 @@ SEAdenitaVisualModelProperties::SEAdenitaVisualModelProperties() {
 	ui.setupUi( this );
 	observer = new Observer(this);
 	ui.gboHighlight->hide();
+
 }
 
 SEAdenitaVisualModelProperties::~SEAdenitaVisualModelProperties() {
@@ -22,7 +23,7 @@ SEAdenitaVisualModelProperties::~SEAdenitaVisualModelProperties() {
 
 void SEAdenitaVisualModelProperties::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == 0 ) return;
+	if ( settings == nullptr ) return;
 	
 	// SAMSON Element generator pro tip: complete this function so this property window can save its GUI state from one session to the next
 
@@ -30,7 +31,7 @@ void SEAdenitaVisualModelProperties::loadSettings( SBGSettings *settings ) {
 
 void SEAdenitaVisualModelProperties::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == 0 ) return;
+	if ( settings == nullptr ) return;
 
 	// SAMSON Element generator pro tip: complete this function so this property window can save its GUI state from one session to the next
 
@@ -73,21 +74,25 @@ QString SEAdenitaVisualModelProperties::getCitation() const {
 
 	// SAMSON Element generator pro tip: modify this function to add citation information
 
-  return ADNAuxiliary::AdenitaCitation();
+	return ADNAuxiliary::AdenitaCitation();
+
 }
 
 bool SEAdenitaVisualModelProperties::setup() {
 
 	SBNodeIndexer nodeIndexer;
-  SB_FOR(SBNode* node, *SAMSON::getActiveDocument()->getSelectedNodes()) {
-    node->getNodes(nodeIndexer, SBNode::GetClass() == std::string("SEAdenitaVisualModel") && SBNode::GetElement() == std::string("SEAdenitaCoreSE") && SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID));
-  }
+	SB_FOR(SBNode* node, *SAMSON::getActiveDocument()->getSelectedNodes()) {
+
+		node->getNodes(nodeIndexer, SBNode::GetClass() == std::string("SEAdenitaVisualModel") && SBNode::GetElement() == std::string("SEAdenitaCoreSE") && SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID));
+
+	}
+
 	if (nodeIndexer.size() == 1) {
 
 		visualModel = static_cast<SEAdenitaVisualModel*>((nodeIndexer)[0]);
 		visualModel->connectBaseSignalToSlot(observer(), SB_SLOT(&SEAdenitaVisualModelProperties::Observer::onBaseEvent));
 		visualModel->connectVisualSignalToSlot(observer(), SB_SLOT(&SEAdenitaVisualModelProperties::Observer::onVisualEvent));
-    connect(ui.hslScale, SIGNAL(sliderMoved(int)), this, SLOT(onSliderScaleChanged(int)));
+		connect(ui.hslScale, SIGNAL(sliderMoved(int)), this, SLOT(onSliderScaleChanged(int)));
 
 		return true;
 
@@ -106,112 +111,121 @@ bool SEAdenitaVisualModelProperties::setup(SBNode* node) {
 	visualModel = static_cast<SEAdenitaVisualModel*>(node);
 	visualModel->connectBaseSignalToSlot(observer(), SB_SLOT(&SEAdenitaVisualModelProperties::Observer::onBaseEvent));
 	visualModel->connectVisualSignalToSlot(observer(), SB_SLOT(&SEAdenitaVisualModelProperties::Observer::onVisualEvent));
-  connect(ui.hslScale, SIGNAL(sliderMoved(int)), this, SLOT(onSliderScaleChanged(int)));
+	connect(ui.hslScale, SIGNAL(sliderMoved(int)), this, SLOT(onSliderScaleChanged(int)));
 
 	return true;
 
 }
 
-void SEAdenitaVisualModelProperties::onSliderScaleChanged(int val)
-{
-  double scale = (double)val / 10.0f;
-  visualModel->changeScale(scale, true);
-  ui.lblScale->setText(QString::number(scale));
-  SAMSON::requestViewportUpdate();
+void SEAdenitaVisualModelProperties::onSliderScaleChanged(int val) {
+
+	double scale = (double)val / 10.0f;
+	visualModel->setScale(scale);// , true);
+	ui.lblScale->setText(QString::number(scale));
+	//SAMSON::requestViewportUpdate();
 
 }
 
-void SEAdenitaVisualModelProperties::onSliderVisibilityChanged(int val)
-{
-  visualModel->changeVisibility(val / 100.0f);
-  SAMSON::requestViewportUpdate();
+void SEAdenitaVisualModelProperties::onSliderVisibilityChanged(int val) {
+
+	visualModel->setVisibility(val / 100.0f);
+	SAMSON::requestViewportUpdate();
 
 }
 
-void SEAdenitaVisualModelProperties::onSpinboxVisibilityChanged(double val)
-{
-  visualModel->changeVisibility(val / 100.0f);
-  SAMSON::requestViewportUpdate();
-}
+void SEAdenitaVisualModelProperties::onSpinboxVisibilityChanged(double val) {
 
-void SEAdenitaVisualModelProperties::onSliderDimensionChanged(int val)
-{
-  float dim = (float)val / 100.0f;
-  visualModel->changeDimension(dim);
-  ui.lblDimension->setText(QString::number(dim));
-  SAMSON::requestViewportUpdate();
+	visualModel->setVisibility(val / 100.0f);
+	SAMSON::requestViewportUpdate();
 
 }
 
-void SEAdenitaVisualModelProperties::onPropertyColorsChanged(int propertyIdx)
-{
-  visualModel->changePropertyColors(propertyIdx, ui.cbbPropertyColorSchemes->currentIndex());
-  SAMSON::requestViewportUpdate();
+void SEAdenitaVisualModelProperties::onSliderDimensionChanged(int val) {
+
+	float dim = (float)val / 100.0f;
+	visualModel->setDimension(dim);
+	ui.lblDimension->setText(QString::number(dim));
+	//SAMSON::requestViewportUpdate();
+
 }
 
-void SEAdenitaVisualModelProperties::onHighlightChanged(int highlightIdx)
-{
-  visualModel->changeHighlight(highlightIdx);
-  if (highlightIdx == 4) {
-	  ui.gboHighlight->show();
-  }
-  else {
-	  ui.gboHighlight->hide();
-  }
+void SEAdenitaVisualModelProperties::onPropertyColorsChanged(int propertyIdx) {
+
+	visualModel->changePropertyColors(propertyIdx, ui.cbbPropertyColorSchemes->currentIndex());
+	//SAMSON::requestViewportUpdate();
+
+}
+
+void SEAdenitaVisualModelProperties::onHighlightChanged(int highlightIdx) {
+
+	visualModel->setHighlightCurrentIndex(highlightIdx);
+	if (highlightIdx == 4)
+		ui.gboHighlight->show();
+	else
+		ui.gboHighlight->hide();
   
-  SAMSON::requestViewportUpdate();
+	//SAMSON::requestViewportUpdate();
 
 }
 
-void SEAdenitaVisualModelProperties::onPropertyColorSchemeChanged(int colorSchemeIdx)
-{
-  visualModel->changePropertyColors(ui.cbbPropertyColors->currentIndex(), colorSchemeIdx);
-  SAMSON::requestViewportUpdate();
+void SEAdenitaVisualModelProperties::onPropertyColorSchemeChanged(int colorSchemeIdx) {
+
+	visualModel->changePropertyColors(ui.cbbPropertyColors->currentIndex(), colorSchemeIdx);
+	//SAMSON::requestViewportUpdate();
+
 }
 
-void SEAdenitaVisualModelProperties::onSingleStrandColorSchemeChanged(int index)
-{
-  visualModel->setSingleStrandColors(index);
-  SAMSON::requestViewportUpdate();
+void SEAdenitaVisualModelProperties::onSingleStrandColorSchemeChanged(int index) {
+
+	visualModel->setSingleStrandColorsCurrentIndex(index);
+	//SAMSON::requestViewportUpdate();
+
 }
 
-void SEAdenitaVisualModelProperties::onNucleotideColorSchemeChanged(int index)
-{
-  visualModel->setNucleotideColors(index);
-  SAMSON::requestViewportUpdate();
+void SEAdenitaVisualModelProperties::onNucleotideColorSchemeChanged(int index) {
+
+	visualModel->setNucleotideColorsCurrentIndex(index);
+	//SAMSON::requestViewportUpdate();
+
 }
 
-void SEAdenitaVisualModelProperties::onDoubleStrandColorSchemeChanged(int index)
-{
-  visualModel->setDoubleStrandColors(index);
-  SAMSON::requestViewportUpdate();
+void SEAdenitaVisualModelProperties::onDoubleStrandColorSchemeChanged(int index) {
+
+	visualModel->setDoubleStrandColorsCurrentIndex(index);
+	//AMSON::requestViewportUpdate();
+
 }
 
-void SEAdenitaVisualModelProperties::onShowBasePairing(bool show)
-{
-  visualModel->showBasePairing(show);
+void SEAdenitaVisualModelProperties::onShowBasePairing(bool show) {
+
+	visualModel->setShowBasePairingFlag(show);
+
 }
 
-void SEAdenitaVisualModelProperties::onMinLenChanged(QString text)
-{
+void SEAdenitaVisualModelProperties::onMinLenChanged(QString text) {
+
 	unsigned int val = text.toUInt();
-	visualModel->setHighlightMinLen(val);
+	visualModel->setHighlightMinLength(val);
+
 }
 
-void SEAdenitaVisualModelProperties::onMaxLenChanged(QString text)
-{
+void SEAdenitaVisualModelProperties::onMaxLenChanged(QString text) {
+
 	unsigned int val = text.toUInt();
-	visualModel->setHighlightMaxLen(val);
+	visualModel->setHighlightMaxLength(val);
+
 }
 
-void SEAdenitaVisualModelProperties::onNotWithinRangeChanged(bool c)
-{
-  visualModel->setNotWithinRange(c);
+void SEAdenitaVisualModelProperties::onNotWithinRangeChanged(bool c) {
+	
+	visualModel->setNotWithinRange(c);
+
 }
 
-void SEAdenitaVisualModelProperties::onNotScaffoldChanged(bool c)
-{
-  visualModel->setNotScaffold(c);
+void SEAdenitaVisualModelProperties::onNotScaffoldChanged(bool c) {
+
+	visualModel->setNotScaffold(c);
+
 }
 
 SEAdenitaVisualModelProperties::Observer::Observer(SEAdenitaVisualModelProperties* properties) { this->properties = properties; }

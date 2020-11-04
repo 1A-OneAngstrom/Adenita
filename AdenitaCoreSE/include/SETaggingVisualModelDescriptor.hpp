@@ -12,7 +12,7 @@
 SB_CLASS_BEGIN(SETaggingVisualModel);
 
 	SB_CLASS_TYPE(SBCClass::VisualModel);
-	SB_CLASS_DESCRIPTION("SETaggingVisualModel : SAMSON Element generator pro tip: modify me");
+	SB_CLASS_DESCRIPTION("Tagging Visual Model");
 
 	SB_FACTORY_BEGIN;
 

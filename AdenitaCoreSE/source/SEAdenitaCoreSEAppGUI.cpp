@@ -21,13 +21,15 @@
 #include <QTimer>
 #include "SEAdenitaCoreSEAppGUIFlowLayout.hpp"
 
+
 SEAdenitaCoreSEAppGUI::SEAdenitaCoreSEAppGUI( SEAdenitaCoreSEApp* t ) : SBGApp( t ) {
 
-  SetupUI();
+	SetupUI();
 
-  QTimer *timer = new QTimer(this);
-  connect(timer, SIGNAL(timeout()), this, SLOT(CheckForLoadedParts()));
-  timer->start();
+	QTimer *timer = new QTimer(this);
+	connect(timer, SIGNAL(timeout()), this, SLOT(CheckForLoadedParts()));
+	timer->start();
+
 }
 
 SEAdenitaCoreSEAppGUI::~SEAdenitaCoreSEAppGUI() {
@@ -38,7 +40,7 @@ SEAdenitaCoreSEApp* SEAdenitaCoreSEAppGUI::getApp() const { return static_cast<S
 
 void SEAdenitaCoreSEAppGUI::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your app can save its GUI state from one session to the next
 
@@ -46,29 +48,30 @@ void SEAdenitaCoreSEAppGUI::loadSettings( SBGSettings *settings ) {
 
 void SEAdenitaCoreSEAppGUI::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 
 	// SAMSON Element generator pro tip: complete this function so your app can save its GUI state from one session to the next
 
 }
 
-std::string SEAdenitaCoreSEAppGUI::GetScaffoldFilename()
-{
-  SEConfig& c = SEConfig::GetInstance();
+std::string SEAdenitaCoreSEAppGUI::GetScaffoldFilename() {
 
-  std::string filename = "";
-  ADNAuxiliary::ScaffoldSeq type = ADNAuxiliary::ScaffoldSeq(c.scaffType);
-  if (type == ADNAuxiliary::m13mp18) {
-    filename = SB_ELEMENT_PATH + "/Data/m13mp18.fasta";
-  }
-  else if (type == ADNAuxiliary::p7249) {
-    filename = SB_ELEMENT_PATH + "/Data/p7249.fasta";
-  }
-  else if (type == ADNAuxiliary::Custom) {
-    filename = c.scaffCustomFilename;
-  }
+	SEConfig& c = SEConfig::GetInstance();
 
-  return filename;
+	std::string filename = "";
+	ADNAuxiliary::ScaffoldSeq type = ADNAuxiliary::ScaffoldSeq(c.scaffType);
+	if (type == ADNAuxiliary::m13mp18) {
+		filename = SB_ELEMENT_PATH + "/Data/m13mp18.fasta";
+	}
+	else if (type == ADNAuxiliary::p7249) {
+		filename = SB_ELEMENT_PATH + "/Data/p7249.fasta";
+	}
+	else if (type == ADNAuxiliary::Custom) {
+		filename = c.scaffCustomFilename;
+	}
+
+	return filename;
+
 }
 
 void SEAdenitaCoreSEAppGUI::onLoadFile()
@@ -154,14 +157,13 @@ void SEAdenitaCoreSEAppGUI::onLoadFile()
 
 }
 
-void SEAdenitaCoreSEAppGUI::onSaveAll()
-{
-  SEAdenitaCoreSEApp* t = getApp();
+void SEAdenitaCoreSEAppGUI::onSaveAll() {
 
-  QString filename = QFileDialog::getSaveFileName(this, tr("Save the workspace"), QDir::currentPath(), tr("Adenita workspace (*.adn)"));
-  if (!filename.isEmpty()) {
-    t->SaveFile(filename);
-  }
+	SEAdenitaCoreSEApp* t = getApp();
+
+	QString filename = QFileDialog::getSaveFileName(this, tr("Save the workspace"), QDir::currentPath(), tr("Adenita workspace (*.adn)"));
+	if (!filename.isEmpty()) t->SaveFile(filename);
+
 }
 
 void SEAdenitaCoreSEAppGUI::onExport()
@@ -366,23 +368,23 @@ void SEAdenitaCoreSEAppGUI::onSaveSelection()
 
 void SEAdenitaCoreSEAppGUI::onSetScaffold()
 {
-  std::string filename = GetScaffoldFilename();
-  SEAdenitaCoreSEApp *t = getApp();
-  t->SetScaffoldSequence(filename);
+	std::string filename = GetScaffoldFilename();
+	SEAdenitaCoreSEApp *t = getApp();
+	t->SetScaffoldSequence(filename);
 }
 
 void SEAdenitaCoreSEAppGUI::onAddNtThreeP()
 {
-  SEAdenitaCoreSEApp *t = getApp();
-  int numNt = 1;
-  t->AddNtThreeP(numNt);
+	SEAdenitaCoreSEApp *t = getApp();
+	int numNt = 1;
+	t->AddNtThreeP(numNt);
 }
 
 void SEAdenitaCoreSEAppGUI::onCenterPart()
 {
-  SEAdenitaCoreSEApp *t = getApp();
-  t->CenterPart();
-  SAMSON::getActiveCamera()->center();
+	SEAdenitaCoreSEApp *t = getApp();
+	t->CenterPart();
+	SAMSON::getActiveCamera()->center();
 }
 
 void SEAdenitaCoreSEAppGUI::onCatenanes()
@@ -562,61 +564,61 @@ void SEAdenitaCoreSEAppGUI::onCalculateBindingProperties()
 
 void SEAdenitaCoreSEAppGUI::onSetStart()
 {
-  SEAdenitaCoreSEApp* t = getApp();
-  t->SetStart();
+	SEAdenitaCoreSEApp* t = getApp();
+	t->SetStart();
 }
 
 void SEAdenitaCoreSEAppGUI::onTestNeighbors()
 {
-  SEAdenitaCoreSEApp* t = getApp();
-  t->TestNeighbors();
+	SEAdenitaCoreSEApp* t = getApp();
+	t->TestNeighbors();
 }
 
 void SEAdenitaCoreSEAppGUI::onOxDNAImport()
 {
-  QString topoFile = QFileDialog::getOpenFileName(this, tr("Select a topology file"), QDir::currentPath(), tr("(OxDNA topology *.*)"));
-  QString configFile = QFileDialog::getOpenFileName(this, tr("Select a configuration file"), QDir::currentPath(), tr("(OxDNA configuration *.*)"));
-  SEAdenitaCoreSEApp* t = getApp();
-  t->ImportFromOxDNA(topoFile.toStdString(), configFile.toStdString());
+	QString topoFile = QFileDialog::getOpenFileName(this, tr("Select a topology file"), QDir::currentPath(), tr("(OxDNA topology *.*)"));
+	QString configFile = QFileDialog::getOpenFileName(this, tr("Select a configuration file"), QDir::currentPath(), tr("(OxDNA configuration *.*)"));
+	SEAdenitaCoreSEApp* t = getApp();
+	t->ImportFromOxDNA(topoFile.toStdString(), configFile.toStdString());
 }
 
 void SEAdenitaCoreSEAppGUI::onFromDatagraph()
 {
-  SEAdenitaCoreSEApp* t = getApp();
-  t->FromDatagraph();
+	SEAdenitaCoreSEApp* t = getApp();
+	t->FromDatagraph();
 }
 
 void SEAdenitaCoreSEAppGUI::onHighlightXOs()
 {
-  SEAdenitaCoreSEApp* t = getApp();
-  t->HighlightXOs();
+	SEAdenitaCoreSEApp* t = getApp();
+	t->HighlightXOs();
 }
 
 void SEAdenitaCoreSEAppGUI::onHighlightPosXOs()
 {
-  SEAdenitaCoreSEApp* t = getApp();
-  t->HighlightPosXOs();
+	SEAdenitaCoreSEApp* t = getApp();
+	t->HighlightPosXOs();
 }
 
 void SEAdenitaCoreSEAppGUI::onExportToCanDo()
 {
-  QString filename = QFileDialog::getSaveFileName(this, tr("Choose a filename"), QDir::currentPath(), tr("(CanDo .cndo)"));
-  if (!filename.isEmpty()) {
-    SEAdenitaCoreSEApp* t = getApp();
-    t->ExportToCanDo(filename);
-  }
+	QString filename = QFileDialog::getSaveFileName(this, tr("Choose a filename"), QDir::currentPath(), tr("(CanDo .cndo)"));
+	if (!filename.isEmpty()) {
+		SEAdenitaCoreSEApp* t = getApp();
+		t->ExportToCanDo(filename);
+	}
 }
 
 void SEAdenitaCoreSEAppGUI::onFixDesigns()
 {
-  SEAdenitaCoreSEApp* t = getApp();
-  t->FixDesigns();
+	SEAdenitaCoreSEApp* t = getApp();
+	t->FixDesigns();
 }
 
 void SEAdenitaCoreSEAppGUI::onCreateBasePair()
 {
-  SEAdenitaCoreSEApp* t = getApp();
-  t->CreateBasePair();
+	SEAdenitaCoreSEApp* t = getApp();
+	t->CreateBasePair();
 }
 
 void SEAdenitaCoreSEAppGUI::onGenerateSequence()
@@ -658,85 +660,85 @@ void SEAdenitaCoreSEAppGUI::onGenerateSequence()
 
 void SEAdenitaCoreSEAppGUI::onSettings()
 {
-  SEAdenitaCoreSettingsGUI diag(this);
-  diag.exec();
+	SEAdenitaCoreSettingsGUI diag(this);
+	diag.exec();
 }
 
 void SEAdenitaCoreSEAppGUI::onBreakEditor()
 {
-  SEBreakEditor* be = static_cast<SEBreakEditor*>(SAMSON::getEditor(SBCContainerUUID("CFACD1E5-FCD1-916F-2CF7-4B60979F1A77"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
-  SAMSON::setActiveEditor(be);
-  HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SEBreakEditor* be = static_cast<SEBreakEditor*>(SAMSON::getEditor(SBCContainerUUID("CFACD1E5-FCD1-916F-2CF7-4B60979F1A77"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SAMSON::setActiveEditor(be);
+	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 }
 
 void SEAdenitaCoreSEAppGUI::onConnectEditor()
 {
-  SEConnectSSDNAEditor* c = static_cast<SEConnectSSDNAEditor*>(SAMSON::getEditor(SBCContainerUUID("48FDCE78-A55E-FDA2-237E-319202E56080"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
-  SAMSON::setActiveEditor(c);
-  HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SEConnectSSDNAEditor* c = static_cast<SEConnectSSDNAEditor*>(SAMSON::getEditor(SBCContainerUUID("48FDCE78-A55E-FDA2-237E-319202E56080"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SAMSON::setActiveEditor(c);
+	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 }
 
 void SEAdenitaCoreSEAppGUI::onDeleteEditor()
 {
-  SEDeleteEditor* c = static_cast<SEDeleteEditor*>(SAMSON::getEditor(SBCContainerUUID("592B8158-15E9-B621-0BCB-D7DA210FF149"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
-  SAMSON::setActiveEditor(c);
-  HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SEDeleteEditor* c = static_cast<SEDeleteEditor*>(SAMSON::getEditor(SBCContainerUUID("592B8158-15E9-B621-0BCB-D7DA210FF149"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SAMSON::setActiveEditor(c);
+	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 }
 
 void SEAdenitaCoreSEAppGUI::onDNATwistEditor()
 {
-  SETwistHelixEditor* c = static_cast<SETwistHelixEditor*>(SAMSON::getEditor(SBCContainerUUID("4B60FECA-2A79-680F-F289-B4908A924409"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
-  SAMSON::setActiveEditor(c);
-  HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SETwistHelixEditor* c = static_cast<SETwistHelixEditor*>(SAMSON::getEditor(SBCContainerUUID("4B60FECA-2A79-680F-F289-B4908A924409"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SAMSON::setActiveEditor(c);
+	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 }
 
 void SEAdenitaCoreSEAppGUI::onMergePartsEditor()
 {
-  SEMergePartsEditor* c = static_cast<SEMergePartsEditor*>(SAMSON::getEditor(SBCContainerUUID("EB812444-8EA8-BD83-988D-AFF5987461D8"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
-  SAMSON::setActiveEditor(c);
-  HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SEMergePartsEditor* c = static_cast<SEMergePartsEditor*>(SAMSON::getEditor(SBCContainerUUID("EB812444-8EA8-BD83-988D-AFF5987461D8"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SAMSON::setActiveEditor(c);
+	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 }
 
 void SEAdenitaCoreSEAppGUI::onCreateStrandEditor()
 {
-  SEDSDNACreatorEditor* c = static_cast<SEDSDNACreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("86204A08-DFD6-97A8-2BE2-4CFC8B4169A3"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
-  SAMSON::setActiveEditor(c);
-  HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SEDSDNACreatorEditor* c = static_cast<SEDSDNACreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("86204A08-DFD6-97A8-2BE2-4CFC8B4169A3"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SAMSON::setActiveEditor(c);
+	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 }
 
 void SEAdenitaCoreSEAppGUI::onNanotubeCreatorEditor()
 {
-  SENanotubeCreatorEditor* c = static_cast<SENanotubeCreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("4B6A0B18-48B5-233A-28A4-BA3EF3D56AB8"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
-  SAMSON::setActiveEditor(c);
-  HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SENanotubeCreatorEditor* c = static_cast<SENanotubeCreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("4B6A0B18-48B5-233A-28A4-BA3EF3D56AB8"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SAMSON::setActiveEditor(c);
+	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 }
 
 void SEAdenitaCoreSEAppGUI::onLatticeCreatorEditor()
 {
-  SELatticeCreatorEditor* c = static_cast<SELatticeCreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("EA67625E-89B5-2EEA-156D-FC836214B0E4"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
-  SAMSON::setActiveEditor(c);
-  HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SELatticeCreatorEditor* c = static_cast<SELatticeCreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("EA67625E-89B5-2EEA-156D-FC836214B0E4"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SAMSON::setActiveEditor(c);
+	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 }
 
 void SEAdenitaCoreSEAppGUI::onWireframeEditor()
 {
-  SEWireframeEditor* c = static_cast<SEWireframeEditor*>(SAMSON::getEditor(SBCContainerUUID("F1F29042-3D87-DA61-BC5C-D3348EB2E1FA"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
-  SAMSON::setActiveEditor(c);
-  HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SEWireframeEditor* c = static_cast<SEWireframeEditor*>(SAMSON::getEditor(SBCContainerUUID("F1F29042-3D87-DA61-BC5C-D3348EB2E1FA"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SAMSON::setActiveEditor(c);
+	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 }
 
 void SEAdenitaCoreSEAppGUI::onTaggingEditor()
 {
-  SETaggingEditor* c = static_cast<SETaggingEditor*>(SAMSON::getEditor(SBCContainerUUID("473D2F88-5D06-25F5-EB58-053661504C43"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
-  SAMSON::setActiveEditor(c);
-  HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SETaggingEditor* c = static_cast<SETaggingEditor*>(SAMSON::getEditor(SBCContainerUUID("473D2F88-5D06-25F5-EB58-053661504C43"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SAMSON::setActiveEditor(c);
+	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 }
 
 void SEAdenitaCoreSEAppGUI::onTwisterEditor()
 {
-  SEDNATwisterEditor* c = static_cast<SEDNATwisterEditor*>(SAMSON::getEditor(SBCContainerUUID("677B1667-7856-12E6-5901-E8EAC729501A"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
-  SAMSON::setActiveEditor(c);
-  HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SEDNATwisterEditor* c = static_cast<SEDNATwisterEditor*>(SAMSON::getEditor(SBCContainerUUID("677B1667-7856-12E6-5901-E8EAC729501A"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SAMSON::setActiveEditor(c);
+	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 }
 
 std::string SEAdenitaCoreSEAppGUI::IsJsonCadnano(QString filename)
@@ -759,12 +761,13 @@ std::string SEAdenitaCoreSEAppGUI::IsJsonCadnano(QString filename)
   return format;
 }
 
-void SEAdenitaCoreSEAppGUI::HighlightEditor(QToolButton* b)
-{
-  // remove current
-  if (highlightedEditor_ != nullptr) highlightedEditor_->setStyleSheet(QString("border: none"));
-  b->setStyleSheet(QString("border: 2px solid #FFFFFF"));
-  highlightedEditor_ = b;
+void SEAdenitaCoreSEAppGUI::HighlightEditor(QToolButton* b) {
+
+	// remove current
+	if (highlightedEditor_ != nullptr) highlightedEditor_->setStyleSheet(QString("border: none"));
+	b->setStyleSheet(QString("border: 2px solid #FFFFFF"));
+	highlightedEditor_ = b;
+
 }
 
 void SEAdenitaCoreSEAppGUI::CheckForLoadedParts()
@@ -822,7 +825,7 @@ QString SEAdenitaCoreSEAppGUI::getName() const {
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your app inside SAMSON
 
-	return "Adenita"; 
+	return "Adenita (alpha)"; 
 
 }
 
@@ -843,437 +846,459 @@ QString SEAdenitaCoreSEAppGUI::getCitation() const {
 
 	// SAMSON Element generator pro tip: modify this function to add citation information
 
-  return ADNAuxiliary::AdenitaCitation();
+	return ADNAuxiliary::AdenitaCitation();
+
 }
 
 void SEAdenitaCoreSEAppGUI::SetupUI() {
 
-  ui.setupUi(this);
-  // disable debug menu if compiling in release mode
-  #if NDEBUG
-  ui.cmbSelector->removeItem(4);
-  #endif
+	ui.setupUi(this);
+	// disable debug menu if compiling in release mode
+	#if NDEBUG
+	ui.cmbSelector->removeItem(4);
+	#endif
 
-  // make fluid
-  int idx = ui.cmbSelector->currentIndex();
+	// make fluid
+	int idx = ui.cmbSelector->currentIndex();
 
-  FlowLayout* layout = new FlowLayout;
-  ui.verticalLayout->addLayout(layout);
+	FlowLayout* layout = new FlowLayout;
+	ui.verticalLayout->addLayout(layout);
 
-  onChangeSelector(idx);
+	onChangeSelector(idx);
+
 }
 
 std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetMenuButtons() {
-  if (menuButtons_.size() == 0) {
-    auto btnLoad = new QToolButton(this);
-    btnLoad->setObjectName(QStringLiteral("btnLoad"));
-    btnLoad->setIconSize(QSize(20, 20));
-    btnLoad->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnLoad->setAutoRaise(true);
-    menuButtons_.push_back(btnLoad);
 
-    auto btnSaveSelection = new QToolButton(this);
-    btnSaveSelection->setObjectName(QStringLiteral("btnSaveSelection"));
-    btnSaveSelection->setIconSize(QSize(20, 20));
-    btnSaveSelection->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnSaveSelection->setAutoRaise(true);
-    menuButtons_.push_back(btnSaveSelection);
+	if (menuButtons_.size() == 0) {
 
-    auto btnSaveAll = new QToolButton(this);
-    btnSaveAll->setObjectName(QStringLiteral("btnSaveAll"));
-    btnSaveAll->setIconSize(QSize(20, 20));
-    btnSaveAll->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnSaveAll->setAutoRaise(true);
-    menuButtons_.push_back(btnSaveAll);
+		auto btnLoad = new QToolButton(this);
+		btnLoad->setObjectName(QStringLiteral("btnLoad"));
+		btnLoad->setIconSize(QSize(20, 20));
+		btnLoad->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnLoad->setAutoRaise(true);
+		menuButtons_.push_back(btnLoad);
 
-    auto btnExport = new QToolButton(this);
-    btnExport->setObjectName(QStringLiteral("btnExport"));
-    btnExport->setIconSize(QSize(20, 20));
-    btnExport->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnExport->setAutoRaise(true);
-    menuButtons_.push_back(btnExport);
+		auto btnSaveSelection = new QToolButton(this);
+		btnSaveSelection->setObjectName(QStringLiteral("btnSaveSelection"));
+		btnSaveSelection->setIconSize(QSize(20, 20));
+		btnSaveSelection->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnSaveSelection->setAutoRaise(true);
+		menuButtons_.push_back(btnSaveSelection);
 
-    auto btnSettings = new QToolButton(this);
-    btnSettings->setObjectName(QStringLiteral("btnSettings"));
-    btnSettings->setIconSize(QSize(20, 20));
-    btnSettings->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnSettings->setAutoRaise(true);
-    menuButtons_.push_back(btnSettings);
+		auto btnSaveAll = new QToolButton(this);
+		btnSaveAll->setObjectName(QStringLiteral("btnSaveAll"));
+		btnSaveAll->setIconSize(QSize(20, 20));
+		btnSaveAll->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnSaveAll->setAutoRaise(true);
+		menuButtons_.push_back(btnSaveAll);
 
-    QObject::connect(btnLoad, SIGNAL(released()), this, SLOT(onLoadFile()));
-    QObject::connect(btnSaveSelection, SIGNAL(released()), this, SLOT(onSaveSelection()));
-    QObject::connect(btnSaveAll, SIGNAL(released()), this, SLOT(onSaveAll()));
-    QObject::connect(btnSettings, SIGNAL(released()), this, SLOT(onSettings()));
-    QObject::connect(btnExport, SIGNAL(released()), this, SLOT(onExport()));
+		auto btnExport = new QToolButton(this);
+		btnExport->setObjectName(QStringLiteral("btnExport"));
+		btnExport->setIconSize(QSize(20, 20));
+		btnExport->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnExport->setAutoRaise(true);
+		menuButtons_.push_back(btnExport);
 
-    //change icons
-    std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
+		auto btnSettings = new QToolButton(this);
+		btnSettings->setObjectName(QStringLiteral("btnSettings"));
+		btnSettings->setIconSize(QSize(20, 20));
+		btnSettings->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnSettings->setAutoRaise(true);
+		menuButtons_.push_back(btnSettings);
 
-    QIcon loadIcon;
-    loadIcon.addFile(string(iconsPath + "load.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnLoad->setIcon(loadIcon);
+		QObject::connect(btnLoad, SIGNAL(released()), this, SLOT(onLoadFile()));
+		QObject::connect(btnSaveSelection, SIGNAL(released()), this, SLOT(onSaveSelection()));
+		QObject::connect(btnSaveAll, SIGNAL(released()), this, SLOT(onSaveAll()));
+		QObject::connect(btnSettings, SIGNAL(released()), this, SLOT(onSettings()));
+		QObject::connect(btnExport, SIGNAL(released()), this, SLOT(onExport()));
 
-    QIcon saveAllIcon;
-    saveAllIcon.addFile(string(iconsPath + "saveAll.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnSaveAll->setIcon(saveAllIcon);
+		//change icons
+		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
 
-    QIcon saveSelectionIcon;
-    saveSelectionIcon.addFile(string(iconsPath + "saveSelection.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnSaveSelection->setIcon(saveSelectionIcon);
+		QIcon loadIcon;
+		loadIcon.addFile(string(iconsPath + "load.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnLoad->setIcon(loadIcon);
 
-    QIcon exportIcon;
-    exportIcon.addFile(string(iconsPath + "export.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnExport->setIcon(exportIcon);
+		QIcon saveAllIcon;
+		saveAllIcon.addFile(string(iconsPath + "saveAll.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnSaveAll->setIcon(saveAllIcon);
 
-    QIcon settings;
-    settings.addFile(string(iconsPath + "settings.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnSettings->setIcon(settings);
-  }
+		QIcon saveSelectionIcon;
+		saveSelectionIcon.addFile(string(iconsPath + "saveSelection.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnSaveSelection->setIcon(saveSelectionIcon);
 
-  return menuButtons_;
+		QIcon exportIcon;
+		exportIcon.addFile(string(iconsPath + "export.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnExport->setIcon(exportIcon);
+
+		QIcon settings;
+		settings.addFile(string(iconsPath + "settings.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnSettings->setIcon(settings);
+
+	}
+
+	return menuButtons_;
+
 }
 
 std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetEditSequencesButtons() {
-  if (editSequencesButtons_.size() == 0) {
-    auto btnSetScaff = new QToolButton(this);
-    btnSetScaff->setObjectName(QStringLiteral("btnSetScaff"));
-    btnSetScaff->setIconSize(QSize(20, 20));
-    btnSetScaff->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnSetScaff->setAutoRaise(true);
-    editSequencesButtons_.push_back(btnSetScaff);
 
-    auto btnGenerateSequence = new QToolButton(this);
-    btnGenerateSequence->setObjectName(QStringLiteral("btnGenerateSequence"));
-    btnGenerateSequence->setIconSize(QSize(20, 20));
-    btnGenerateSequence->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnGenerateSequence->setAutoRaise(true);
-    editSequencesButtons_.push_back(btnGenerateSequence);
+	if (editSequencesButtons_.size() == 0) {
 
-    auto btnSetStart = new QToolButton(this);
-    btnSetStart->setObjectName(QStringLiteral("btnSetStart"));
-    btnSetStart->setIconSize(QSize(20, 20));
-    btnSetStart->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnSetStart->setAutoRaise(true);
-    editSequencesButtons_.push_back(btnSetStart);
+		auto btnSetScaff = new QToolButton(this);
+		btnSetScaff->setObjectName(QStringLiteral("btnSetScaff"));
+		btnSetScaff->setIconSize(QSize(20, 20));
+		btnSetScaff->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnSetScaff->setAutoRaise(true);
+		editSequencesButtons_.push_back(btnSetScaff);
 
-    auto btnCalculateBindingProperties = new QToolButton(this);
-    btnCalculateBindingProperties->setObjectName(QStringLiteral("btnCalculateBindingProperties"));
-    btnCalculateBindingProperties->setIconSize(QSize(20, 20));
-    btnCalculateBindingProperties->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnCalculateBindingProperties->setAutoRaise(true);
-    editSequencesButtons_.push_back(btnCalculateBindingProperties);
+		auto btnGenerateSequence = new QToolButton(this);
+		btnGenerateSequence->setObjectName(QStringLiteral("btnGenerateSequence"));
+		btnGenerateSequence->setIconSize(QSize(20, 20));
+		btnGenerateSequence->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnGenerateSequence->setAutoRaise(true);
+		editSequencesButtons_.push_back(btnGenerateSequence);
 
-    auto btnTaggingEditor = new QToolButton(this);
-    btnTaggingEditor->setObjectName(QStringLiteral("btnTaggingEditor"));
-    btnTaggingEditor->setCheckable(true);
-    btnTaggingEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnTaggingEditor->setAutoRaise(true);
-    editSequencesButtons_.push_back(btnTaggingEditor);
+		auto btnSetStart = new QToolButton(this);
+		btnSetStart->setObjectName(QStringLiteral("btnSetStart"));
+		btnSetStart->setIconSize(QSize(20, 20));
+		btnSetStart->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnSetStart->setAutoRaise(true);
+		editSequencesButtons_.push_back(btnSetStart);
 
-    QObject::connect(btnSetScaff, SIGNAL(released()), this, SLOT(onSetScaffold()));
-    QObject::connect(btnGenerateSequence, SIGNAL(released()), this, SLOT(onGenerateSequence()));
-    QObject::connect(btnCalculateBindingProperties, SIGNAL(released()), this, SLOT(onCalculateBindingProperties()));
-    QObject::connect(btnSetStart, SIGNAL(released()), this, SLOT(onSetStart()));
-    QObject::connect(btnTaggingEditor, SIGNAL(released()), this, SLOT(onTaggingEditor()));
+		auto btnCalculateBindingProperties = new QToolButton(this);
+		btnCalculateBindingProperties->setObjectName(QStringLiteral("btnCalculateBindingProperties"));
+		btnCalculateBindingProperties->setIconSize(QSize(20, 20));
+		btnCalculateBindingProperties->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnCalculateBindingProperties->setAutoRaise(true);
+		editSequencesButtons_.push_back(btnCalculateBindingProperties);
 
-    //change icons
-    std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
+		auto btnTaggingEditor = new QToolButton(this);
+		btnTaggingEditor->setObjectName(QStringLiteral("btnTaggingEditor"));
+		btnTaggingEditor->setCheckable(true);
+		btnTaggingEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnTaggingEditor->setAutoRaise(true);
+		editSequencesButtons_.push_back(btnTaggingEditor);
 
-    QIcon setScaffIcon;
-    setScaffIcon.addFile(string(iconsPath + "setScaffold.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnSetScaff->setIcon(setScaffIcon);
+		QObject::connect(btnSetScaff, SIGNAL(released()), this, SLOT(onSetScaffold()));
+		QObject::connect(btnGenerateSequence, SIGNAL(released()), this, SLOT(onGenerateSequence()));
+		QObject::connect(btnCalculateBindingProperties, SIGNAL(released()), this, SLOT(onCalculateBindingProperties()));
+		QObject::connect(btnSetStart, SIGNAL(released()), this, SLOT(onSetStart()));
+		QObject::connect(btnTaggingEditor, SIGNAL(released()), this, SLOT(onTaggingEditor()));
 
-    QIcon calcProperties;
-    calcProperties.addFile(string(iconsPath + "calculate.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnCalculateBindingProperties->setIcon(calcProperties);
+		//change icons
+		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
 
-    QIcon setStart;
-    setStart.addFile(string(iconsPath + "set5Prime.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnSetStart->setIcon(setStart);
+		QIcon setScaffIcon;
+		setScaffIcon.addFile(string(iconsPath + "setScaffold.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnSetScaff->setIcon(setScaffIcon);
 
-    QIcon generateSequences;
-    generateSequences.addFile(string(iconsPath + "generateSeqs.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnGenerateSequence->setIcon(generateSequences);
+		QIcon calcProperties;
+		calcProperties.addFile(string(iconsPath + "calculate.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnCalculateBindingProperties->setIcon(calcProperties);
 
-    QIcon tagEditor;
-    tagEditor.addFile(string(iconsPath + "SETaggingEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnTaggingEditor->setIcon(tagEditor);
-  }
+		QIcon setStart;
+		setStart.addFile(string(iconsPath + "set5Prime.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnSetStart->setIcon(setStart);
+
+		QIcon generateSequences;
+		generateSequences.addFile(string(iconsPath + "generateSeqs.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnGenerateSequence->setIcon(generateSequences);
+
+		QIcon tagEditor;
+		tagEditor.addFile(string(iconsPath + "SETaggingEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnTaggingEditor->setIcon(tagEditor);
+
+	}
   
-  return editSequencesButtons_;
+	return editSequencesButtons_;
+
 }
 
 std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetModelingButtons() {
-  if (modelingButtons_.size() == 0) {
-    auto btnBreakEditor = new QToolButton(this);
-    btnBreakEditor->setObjectName(QStringLiteral("btnBreakEditor"));
-    btnBreakEditor->setIconSize(QSize(20, 20));
-    btnBreakEditor->setCheckable(true);
-    btnBreakEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnBreakEditor->setAutoRaise(true);
-    modelingButtons_.push_back(btnBreakEditor);
 
-    auto btnDeleteEditor = new QToolButton(this);
-    btnDeleteEditor->setObjectName(QStringLiteral("btnDeleteEditor"));
-    btnDeleteEditor->setIconSize(QSize(20, 20));
-    btnDeleteEditor->setCheckable(true);
-    btnDeleteEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnDeleteEditor->setAutoRaise(true);
-    modelingButtons_.push_back(btnDeleteEditor);
+	if (modelingButtons_.size() == 0) {
 
-    auto btnConnectEditor = new QToolButton(this);
-    btnConnectEditor->setObjectName(QStringLiteral("btnConnectEditor"));
-    btnConnectEditor->setIconSize(QSize(20, 20));
-    btnConnectEditor->setCheckable(true);
-    btnConnectEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnConnectEditor->setAutoRaise(true);
-    modelingButtons_.push_back(btnConnectEditor);
+		auto btnBreakEditor = new QToolButton(this);
+		btnBreakEditor->setObjectName(QStringLiteral("btnBreakEditor"));
+		btnBreakEditor->setIconSize(QSize(20, 20));
+		btnBreakEditor->setCheckable(true);
+		btnBreakEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnBreakEditor->setAutoRaise(true);
+		modelingButtons_.push_back(btnBreakEditor);
 
-    auto btnMergePartsEditor = new QToolButton(this);
-    btnMergePartsEditor->setObjectName(QStringLiteral("btnMergePartsEditor"));
-    btnMergePartsEditor->setCheckable(true);
-    btnMergePartsEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnMergePartsEditor->setAutoRaise(true);
-    modelingButtons_.push_back(btnMergePartsEditor);
+		auto btnDeleteEditor = new QToolButton(this);
+		btnDeleteEditor->setObjectName(QStringLiteral("btnDeleteEditor"));
+		btnDeleteEditor->setIconSize(QSize(20, 20));
+		btnDeleteEditor->setCheckable(true);
+		btnDeleteEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnDeleteEditor->setAutoRaise(true);
+		modelingButtons_.push_back(btnDeleteEditor);
 
-    auto btnDNATwisterEditor = new QToolButton(this);
-    btnDNATwisterEditor->setObjectName(QStringLiteral("btnDNATwisterEditor"));
-    btnDNATwisterEditor->setIconSize(QSize(20, 20));
-    btnDNATwisterEditor->setCheckable(true);
-    btnDNATwisterEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnDNATwisterEditor->setAutoRaise(true);
-    modelingButtons_.push_back(btnDNATwisterEditor);
+		auto btnConnectEditor = new QToolButton(this);
+		btnConnectEditor->setObjectName(QStringLiteral("btnConnectEditor"));
+		btnConnectEditor->setIconSize(QSize(20, 20));
+		btnConnectEditor->setCheckable(true);
+		btnConnectEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnConnectEditor->setAutoRaise(true);
+		modelingButtons_.push_back(btnConnectEditor);
 
-    auto btnTwisterEditor = new QToolButton(this);
-    btnTwisterEditor->setObjectName(QStringLiteral("btnTwisterEditor"));
-    btnTwisterEditor->setIconSize(QSize(20, 20));
-    btnTwisterEditor->setCheckable(true);
-    btnTwisterEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnTwisterEditor->setAutoRaise(true);
-    modelingButtons_.push_back(btnTwisterEditor);
+		auto btnMergePartsEditor = new QToolButton(this);
+		btnMergePartsEditor->setObjectName(QStringLiteral("btnMergePartsEditor"));
+		btnMergePartsEditor->setCheckable(true);
+		btnMergePartsEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnMergePartsEditor->setAutoRaise(true);
+		modelingButtons_.push_back(btnMergePartsEditor);
 
-    QObject::connect(btnBreakEditor, SIGNAL(released()), this, SLOT(onBreakEditor()));
-    QObject::connect(btnConnectEditor, SIGNAL(released()), this, SLOT(onConnectEditor()));
-    QObject::connect(btnDeleteEditor, SIGNAL(released()), this, SLOT(onDeleteEditor()));
-    QObject::connect(btnTwisterEditor, SIGNAL(released()), this, SLOT(onTwisterEditor()));
-    QObject::connect(btnDNATwisterEditor, SIGNAL(released()), this, SLOT(onDNATwistEditor()));
-    QObject::connect(btnMergePartsEditor, SIGNAL(released()), this, SLOT(onMergePartsEditor()));
+		auto btnDNATwisterEditor = new QToolButton(this);
+		btnDNATwisterEditor->setObjectName(QStringLiteral("btnDNATwisterEditor"));
+		btnDNATwisterEditor->setIconSize(QSize(20, 20));
+		btnDNATwisterEditor->setCheckable(true);
+		btnDNATwisterEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnDNATwisterEditor->setAutoRaise(true);
+		modelingButtons_.push_back(btnDNATwisterEditor);
 
-    //change icons
-    std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
+		auto btnTwisterEditor = new QToolButton(this);
+		btnTwisterEditor->setObjectName(QStringLiteral("btnTwisterEditor"));
+		btnTwisterEditor->setIconSize(QSize(20, 20));
+		btnTwisterEditor->setCheckable(true);
+		btnTwisterEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnTwisterEditor->setAutoRaise(true);
+		modelingButtons_.push_back(btnTwisterEditor);
 
-    QIcon breakEditor;
-    breakEditor.addFile(string(iconsPath + "break.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnBreakEditor->setIcon(breakEditor);
+		QObject::connect(btnBreakEditor, SIGNAL(released()), this, SLOT(onBreakEditor()));
+		QObject::connect(btnConnectEditor, SIGNAL(released()), this, SLOT(onConnectEditor()));
+		QObject::connect(btnDeleteEditor, SIGNAL(released()), this, SLOT(onDeleteEditor()));
+		QObject::connect(btnTwisterEditor, SIGNAL(released()), this, SLOT(onTwisterEditor()));
+		QObject::connect(btnDNATwisterEditor, SIGNAL(released()), this, SLOT(onDNATwistEditor()));
+		QObject::connect(btnMergePartsEditor, SIGNAL(released()), this, SLOT(onMergePartsEditor()));
 
-    QIcon deleteEditor;
-    deleteEditor.addFile(string(iconsPath + "delete.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnDeleteEditor->setIcon(deleteEditor);
+		//change icons
+		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
 
-    QIcon connectEditor;
-    connectEditor.addFile(string(iconsPath + "connectDS.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnConnectEditor->setIcon(connectEditor);
+		QIcon breakEditor;
+		breakEditor.addFile(string(iconsPath + "break.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnBreakEditor->setIcon(breakEditor);
 
-    QIcon twistDsDNA;
-    twistDsDNA.addFile(string(iconsPath + "twistDS.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnDNATwisterEditor->setIcon(twistDsDNA);
+		QIcon deleteEditor;
+		deleteEditor.addFile(string(iconsPath + "delete.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnDeleteEditor->setIcon(deleteEditor);
 
-    QIcon mergePartsEditor;
-    mergePartsEditor.addFile(string(iconsPath + "merge.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnMergePartsEditor->setIcon(mergePartsEditor);
+		QIcon connectEditor;
+		connectEditor.addFile(string(iconsPath + "connectDS.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnConnectEditor->setIcon(connectEditor);
 
-    QIcon dnaTwister;
-    dnaTwister.addFile(string(iconsPath + "SEDNATwisterEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnTwisterEditor->setIcon(dnaTwister);
-  }
+		QIcon twistDsDNA;
+		twistDsDNA.addFile(string(iconsPath + "twistDS.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnDNATwisterEditor->setIcon(twistDsDNA);
 
-  return modelingButtons_;
+		QIcon mergePartsEditor;
+		mergePartsEditor.addFile(string(iconsPath + "merge.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnMergePartsEditor->setIcon(mergePartsEditor);
+
+		QIcon dnaTwister;
+		dnaTwister.addFile(string(iconsPath + "SEDNATwisterEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnTwisterEditor->setIcon(dnaTwister);
+
+	}
+
+	return modelingButtons_;
 }
 
 std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetCreatorsButtons() {
-  if (creatorsButtons_.size() == 0) {
-    QToolButton* btnCreateBasePair = new QToolButton;
-    btnCreateBasePair->setObjectName(QStringLiteral("btnCreateBasePair"));
-    btnCreateBasePair->setIconSize(QSize(20, 20));
-    btnCreateBasePair->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnCreateBasePair->setAutoRaise(true);
-    creatorsButtons_.push_back(btnCreateBasePair);
 
-    QToolButton* btnDsDNACreatorEditor = new QToolButton;
-    btnDsDNACreatorEditor->setObjectName(QStringLiteral("btnDsDNACreatorEditor"));
-    btnDsDNACreatorEditor->setCheckable(true);
-    btnDsDNACreatorEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnDsDNACreatorEditor->setAutoRaise(true);
-    creatorsButtons_.push_back(btnDsDNACreatorEditor);
+	if (creatorsButtons_.size() == 0) {
 
-    QToolButton* btnNanotubeCreator = new QToolButton;
-    btnNanotubeCreator->setObjectName(QStringLiteral("btnNanotubeCreator"));
-    btnNanotubeCreator->setCheckable(true);
-    btnNanotubeCreator->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnNanotubeCreator->setAutoRaise(true);
-    creatorsButtons_.push_back(btnNanotubeCreator);
+		QToolButton* btnCreateBasePair = new QToolButton;
+		btnCreateBasePair->setObjectName(QStringLiteral("btnCreateBasePair"));
+		btnCreateBasePair->setIconSize(QSize(20, 20));
+		btnCreateBasePair->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnCreateBasePair->setAutoRaise(true);
+		creatorsButtons_.push_back(btnCreateBasePair);
 
-    QToolButton* btnLatticeCreatorEditor = new QToolButton;
-    btnLatticeCreatorEditor->setObjectName(QStringLiteral("btnLatticeCreatorEditor"));
-    btnLatticeCreatorEditor->setCheckable(true);
-    btnLatticeCreatorEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnLatticeCreatorEditor->setAutoRaise(true);
-    creatorsButtons_.push_back(btnLatticeCreatorEditor);
+		QToolButton* btnDsDNACreatorEditor = new QToolButton;
+		btnDsDNACreatorEditor->setObjectName(QStringLiteral("btnDsDNACreatorEditor"));
+		btnDsDNACreatorEditor->setCheckable(true);
+		btnDsDNACreatorEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnDsDNACreatorEditor->setAutoRaise(true);
+		creatorsButtons_.push_back(btnDsDNACreatorEditor);
 
-    QToolButton* btnWireframeEditor = new QToolButton;
-    btnWireframeEditor->setObjectName(QStringLiteral("btnWireframeEditor"));
-    btnWireframeEditor->setCheckable(true);
-    btnWireframeEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    btnWireframeEditor->setAutoRaise(true);
-    creatorsButtons_.push_back(btnWireframeEditor);
+		QToolButton* btnNanotubeCreator = new QToolButton;
+		btnNanotubeCreator->setObjectName(QStringLiteral("btnNanotubeCreator"));
+		btnNanotubeCreator->setCheckable(true);
+		btnNanotubeCreator->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnNanotubeCreator->setAutoRaise(true);
+		creatorsButtons_.push_back(btnNanotubeCreator);
 
-    QObject::connect(btnCreateBasePair, SIGNAL(released()), this, SLOT(onCreateBasePair()));
-    QObject::connect(btnDsDNACreatorEditor, SIGNAL(released()), this, SLOT(onCreateStrandEditor()));
-    QObject::connect(btnNanotubeCreator, SIGNAL(released()), this, SLOT(onNanotubeCreatorEditor()));
-    QObject::connect(btnLatticeCreatorEditor, SIGNAL(released()), this, SLOT(onLatticeCreatorEditor()));
-    QObject::connect(btnWireframeEditor, SIGNAL(released()), this, SLOT(onWireframeEditor()));
+		QToolButton* btnLatticeCreatorEditor = new QToolButton;
+		btnLatticeCreatorEditor->setObjectName(QStringLiteral("btnLatticeCreatorEditor"));
+		btnLatticeCreatorEditor->setCheckable(true);
+		btnLatticeCreatorEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnLatticeCreatorEditor->setAutoRaise(true);
+		creatorsButtons_.push_back(btnLatticeCreatorEditor);
 
-    //change icons
-    std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
+		QToolButton* btnWireframeEditor = new QToolButton;
+		btnWireframeEditor->setObjectName(QStringLiteral("btnWireframeEditor"));
+		btnWireframeEditor->setCheckable(true);
+		btnWireframeEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnWireframeEditor->setAutoRaise(true);
+		creatorsButtons_.push_back(btnWireframeEditor);
 
-    QIcon createBp;
-    createBp.addFile(string(iconsPath + "createBasePair.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnCreateBasePair->setIcon(createBp);
+		QObject::connect(btnCreateBasePair, SIGNAL(released()), this, SLOT(onCreateBasePair()));
+		QObject::connect(btnDsDNACreatorEditor, SIGNAL(released()), this, SLOT(onCreateStrandEditor()));
+		QObject::connect(btnNanotubeCreator, SIGNAL(released()), this, SLOT(onNanotubeCreatorEditor()));
+		QObject::connect(btnLatticeCreatorEditor, SIGNAL(released()), this, SLOT(onLatticeCreatorEditor()));
+		QObject::connect(btnWireframeEditor, SIGNAL(released()), this, SLOT(onWireframeEditor()));
 
-    QIcon strandCreator;
-    strandCreator.addFile(string(iconsPath + "SEDSDNACreatorEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnDsDNACreatorEditor->setIcon(strandCreator);
+		//change icons
+		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
 
-    QIcon nanotubeEditor;
-    nanotubeEditor.addFile(string(iconsPath + "SENanotubeCreatorEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnNanotubeCreator->setIcon(nanotubeEditor);
+		QIcon createBp;
+		createBp.addFile(string(iconsPath + "createBasePair.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnCreateBasePair->setIcon(createBp);
 
-    QIcon latticeEditor;
-    latticeEditor.addFile(string(iconsPath + "SELatticeCreatorEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnLatticeCreatorEditor->setIcon(latticeEditor);
+		QIcon strandCreator;
+		strandCreator.addFile(string(iconsPath + "SEDSDNACreatorEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnDsDNACreatorEditor->setIcon(strandCreator);
 
-    QIcon wireframeEditor;
-    wireframeEditor.addFile(string(iconsPath + "SEWireframeEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
-    btnWireframeEditor->setIcon(wireframeEditor);
-  }
+		QIcon nanotubeEditor;
+		nanotubeEditor.addFile(string(iconsPath + "SENanotubeCreatorEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnNanotubeCreator->setIcon(nanotubeEditor);
 
-  return creatorsButtons_;
+		QIcon latticeEditor;
+		latticeEditor.addFile(string(iconsPath + "SELatticeCreatorEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnLatticeCreatorEditor->setIcon(latticeEditor);
+
+		QIcon wireframeEditor;
+		wireframeEditor.addFile(string(iconsPath + "SEWireframeEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnWireframeEditor->setIcon(wireframeEditor);
+
+	}
+
+	return creatorsButtons_;
+
 }
 
 std::vector<QPushButton*> SEAdenitaCoreSEAppGUI::GetDebugButtons() {
-  if (debugButtons_.size() == 0) {
-    //change icons
-    std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
 
-    auto btnDataGraph = new QPushButton(this);
-    btnDataGraph->setObjectName(QStringLiteral("btnDataGraph"));
-    btnDataGraph->setText("From Datagraph");
-    debugButtons_.push_back(btnDataGraph);
+	if (debugButtons_.size() == 0) {
 
-    auto btnTestNeighbors = new QPushButton(this);
-    btnTestNeighbors->setObjectName(QStringLiteral("btnTestNeighbors"));
-    btnTestNeighbors->setText("Test Neighbors");
-    debugButtons_.push_back(btnTestNeighbors);
+		//change icons
+		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
 
-    auto btnOxDNAImport = new QPushButton(this);
-    btnOxDNAImport->setObjectName(QStringLiteral("btnOxDNAImport"));
-    btnOxDNAImport->setText("oxDNA Import");
-    debugButtons_.push_back(btnOxDNAImport);
+		auto btnDataGraph = new QPushButton(this);
+		btnDataGraph->setObjectName(QStringLiteral("btnDataGraph"));
+		btnDataGraph->setText("From Datagraph");
+		debugButtons_.push_back(btnDataGraph);
 
-    auto btnCenterPart = new QPushButton(this);
-    btnCenterPart->setObjectName(QStringLiteral("btnCenterPart"));
-    btnCenterPart->setText("Center Part");
-    debugButtons_.push_back(btnCenterPart);
+		auto btnTestNeighbors = new QPushButton(this);
+		btnTestNeighbors->setObjectName(QStringLiteral("btnTestNeighbors"));
+		btnTestNeighbors->setText("Test Neighbors");
+		debugButtons_.push_back(btnTestNeighbors);
 
-    auto btnCatenanes = new QPushButton(this);
-    btnCatenanes->setObjectName(QStringLiteral("btnCatenanes"));
-    btnCatenanes->setText("Catenanes");
-    debugButtons_.push_back(btnCatenanes);
+		auto btnOxDNAImport = new QPushButton(this);
+		btnOxDNAImport->setObjectName(QStringLiteral("btnOxDNAImport"));
+		btnOxDNAImport->setText("oxDNA Import");
+		debugButtons_.push_back(btnOxDNAImport);
 
-    auto btnKinetoplast = new QPushButton(this);
-    btnKinetoplast->setObjectName(QStringLiteral("btnKinetoplast"));
-    btnKinetoplast->setText("Kinetoplast");
-    debugButtons_.push_back(btnKinetoplast);
+		auto btnCenterPart = new QPushButton(this);
+		btnCenterPart->setObjectName(QStringLiteral("btnCenterPart"));
+		btnCenterPart->setText("Center Part");
+		debugButtons_.push_back(btnCenterPart);
 
-    auto btnHighlightCrossovers = new QPushButton(this);
-    btnHighlightCrossovers->setObjectName(QStringLiteral("btnHighlightCrossovers"));
-    btnHighlightCrossovers->setText("Highlight Crossovers");
-    debugButtons_.push_back(btnHighlightCrossovers);
+		auto btnCatenanes = new QPushButton(this);
+		btnCatenanes->setObjectName(QStringLiteral("btnCatenanes"));
+		btnCatenanes->setText("Catenanes");
+		debugButtons_.push_back(btnCatenanes);
 
-    auto btnHighlightPosXOs = new QPushButton(this);
-    btnHighlightPosXOs->setObjectName(QStringLiteral("btnHighlightPosXOs"));
-    btnHighlightPosXOs->setText("Possible Crossovers");
-    debugButtons_.push_back(btnHighlightPosXOs);
+		auto btnKinetoplast = new QPushButton(this);
+		btnKinetoplast->setObjectName(QStringLiteral("btnKinetoplast"));
+		btnKinetoplast->setText("Kinetoplast");
+		debugButtons_.push_back(btnKinetoplast);
 
-    auto btnAddNtThreeP = new QPushButton(this);
-    btnAddNtThreeP->setObjectName(QStringLiteral("btnAddNtThreeP"));
-    btnAddNtThreeP->setText("Add nt 3'");
-    debugButtons_.push_back(btnAddNtThreeP);
+		auto btnHighlightCrossovers = new QPushButton(this);
+		btnHighlightCrossovers->setObjectName(QStringLiteral("btnHighlightCrossovers"));
+		btnHighlightCrossovers->setText("Highlight Crossovers");
+		debugButtons_.push_back(btnHighlightCrossovers);
 
-    auto btnExportCanDo = new QPushButton(this);
-    btnExportCanDo->setObjectName(QStringLiteral("btnExportCanDo"));
-    btnExportCanDo->setText("Export to CanDo");
-    debugButtons_.push_back(btnExportCanDo);
+		auto btnHighlightPosXOs = new QPushButton(this);
+		btnHighlightPosXOs->setObjectName(QStringLiteral("btnHighlightPosXOs"));
+		btnHighlightPosXOs->setText("Possible Crossovers");
+		debugButtons_.push_back(btnHighlightPosXOs);
 
-    auto btnFix = new QPushButton(this);
-    btnFix->setObjectName(QStringLiteral("btnFix"));
-    btnFix->setText("Fix");
-    debugButtons_.push_back(btnFix);
+		auto btnAddNtThreeP = new QPushButton(this);
+		btnAddNtThreeP->setObjectName(QStringLiteral("btnAddNtThreeP"));
+		btnAddNtThreeP->setText("Add nt 3'");
+		debugButtons_.push_back(btnAddNtThreeP);
 
-    QObject::connect(btnCenterPart, SIGNAL(released()), this, SLOT(onCenterPart()));
-    QObject::connect(btnOxDNAImport, SIGNAL(released()), this, SLOT(onOxDNAImport()));
-    QObject::connect(btnKinetoplast, SIGNAL(released()), this, SLOT(onKinetoplast()));
-    QObject::connect(btnTestNeighbors, SIGNAL(released()), this, SLOT(onTestNeighbors()));
-    QObject::connect(btnExportCanDo, SIGNAL(released()), this, SLOT(onExportToCanDo()));
-    QObject::connect(btnHighlightPosXOs, SIGNAL(released()), this, SLOT(onHighlightPosXOs()));
-    QObject::connect(btnHighlightCrossovers, SIGNAL(released()), this, SLOT(onHighlightXOs()));
-    QObject::connect(btnCatenanes, SIGNAL(released()), this, SLOT(onCatenanes()));
-    QObject::connect(btnAddNtThreeP, SIGNAL(released()), this, SLOT(onAddNtThreeP()));
-    QObject::connect(btnFix, SIGNAL(released()), this, SLOT(onFixDesigns()));
-    QObject::connect(btnDataGraph, SIGNAL(released()), this, SLOT(onFromDatagraph()));
-  }
+		auto btnExportCanDo = new QPushButton(this);
+		btnExportCanDo->setObjectName(QStringLiteral("btnExportCanDo"));
+		btnExportCanDo->setText("Export to CanDo");
+		debugButtons_.push_back(btnExportCanDo);
 
-  return debugButtons_;
+		auto btnFix = new QPushButton(this);
+		btnFix->setObjectName(QStringLiteral("btnFix"));
+		btnFix->setText("Fix");
+		debugButtons_.push_back(btnFix);
+
+		QObject::connect(btnCenterPart, SIGNAL(released()), this, SLOT(onCenterPart()));
+		QObject::connect(btnOxDNAImport, SIGNAL(released()), this, SLOT(onOxDNAImport()));
+		QObject::connect(btnKinetoplast, SIGNAL(released()), this, SLOT(onKinetoplast()));
+		QObject::connect(btnTestNeighbors, SIGNAL(released()), this, SLOT(onTestNeighbors()));
+		QObject::connect(btnExportCanDo, SIGNAL(released()), this, SLOT(onExportToCanDo()));
+		QObject::connect(btnHighlightPosXOs, SIGNAL(released()), this, SLOT(onHighlightPosXOs()));
+		QObject::connect(btnHighlightCrossovers, SIGNAL(released()), this, SLOT(onHighlightXOs()));
+		QObject::connect(btnCatenanes, SIGNAL(released()), this, SLOT(onCatenanes()));
+		QObject::connect(btnAddNtThreeP, SIGNAL(released()), this, SLOT(onAddNtThreeP()));
+		QObject::connect(btnFix, SIGNAL(released()), this, SLOT(onFixDesigns()));
+		QObject::connect(btnDataGraph, SIGNAL(released()), this, SLOT(onFromDatagraph()));
+
+	}
+
+	return debugButtons_;
+
 }
 
 void SEAdenitaCoreSEAppGUI::onChangeSelector(int idx) {
   
-  FlowLayout* layout = static_cast<FlowLayout*>(ui.verticalLayout->itemAt(1));
-  QLayoutItem* item;
-  while ( (item = layout->takeAt(0)) ) {
-    auto w = item->widget();
-    //layout->removeWidget(w);
-    layout->removeItem(item);
-    w->setVisible(false);
-  }
+	FlowLayout* layout = static_cast<FlowLayout*>(ui.verticalLayout->itemAt(1));
+	QLayoutItem* item;
+	while ( (item = layout->takeAt(0)) ) {
 
-  if (idx == 4) {
-    auto buttons = GetDebugButtons();
+		auto w = item->widget();
+		//layout->removeWidget(w);
+		layout->removeItem(item);
+		w->setVisible(false);
 
-    for (auto b : buttons) {
-      layout->addWidget(b);
-      b->setVisible(true);
-    }
+	}
 
-    return;
-  }
+	if (idx == 4) {
 
-  std::vector<QToolButton*> buttons;
-  if (idx == 0) {
-    buttons = GetMenuButtons();
-  }
-  else if (idx == 1) {
-    buttons = GetEditSequencesButtons();
-  }
-  else if (idx == 2) {
-    buttons = GetModelingButtons();
-  }
-  else if (idx == 3) {
-    buttons = GetCreatorsButtons();
-  }
+		auto buttons = GetDebugButtons();
 
-  for (auto b : buttons) {
-    layout->addWidget(b);
-    b->setVisible(true);
-  }
+		for (auto b : buttons) {
+
+			layout->addWidget(b);
+			b->setVisible(true);
+
+		}
+
+		return;
+
+	}
+
+	std::vector<QToolButton*> buttons;
+	if      (idx == 0) buttons = GetMenuButtons();
+	else if (idx == 1) buttons = GetEditSequencesButtons();
+	else if (idx == 2) buttons = GetModelingButtons();
+	else if (idx == 3) buttons = GetCreatorsButtons();
+
+	for (auto b : buttons) {
+
+		layout->addWidget(b);
+		b->setVisible(true);
+
+	}
+
 }

@@ -24,7 +24,7 @@ SETaggingVisualModelProperties::~SETaggingVisualModelProperties() {
 
 void SETaggingVisualModelProperties::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == 0 ) return;
+	if ( settings == nullptr ) return;
 	
 	// SAMSON Element generator pro tip: complete this function so this property window can save its GUI state from one session to the next
 
@@ -32,7 +32,7 @@ void SETaggingVisualModelProperties::loadSettings( SBGSettings *settings ) {
 
 void SETaggingVisualModelProperties::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == 0 ) return;
+	if ( settings == nullptr ) return;
 
 	// SAMSON Element generator pro tip: complete this function so this property window can save its GUI state from one session to the next
 
@@ -54,7 +54,7 @@ QString SETaggingVisualModelProperties::getName() const {
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your visual model inside SAMSON
 
-	return "SETaggingVisualModel properties"; 
+	return "Tagging Visual Model properties"; 
 
 }
 
@@ -75,7 +75,8 @@ QString SETaggingVisualModelProperties::getCitation() const {
 
 	// SAMSON Element generator pro tip: modify this function to add citation information
 
-  return ADNAuxiliary::AdenitaCitation();
+	return ADNAuxiliary::AdenitaCitation();
+
 }
 
 bool SETaggingVisualModelProperties::setup() {
@@ -100,7 +101,7 @@ bool SETaggingVisualModelProperties::setup() {
 bool SETaggingVisualModelProperties::setup(SBNode* node) {
 
 	if (node->getProxy()->getName() != "SETaggingVisualModel") return false;
-	if (node->getProxy()->getElement() != "SETagging") return false;
+	if (node->getProxy()->getElement() != "SEAdenitaCoreSE") return false;
 	if (node->getProxy()->getElementUUID() != SBUUID(SB_ELEMENT_UUID)) return false;
 
 	visualModel = static_cast<SETaggingVisualModel*>(node);

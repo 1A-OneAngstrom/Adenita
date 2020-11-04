@@ -24,8 +24,8 @@ public:
 	/// \name Constructors and destructors
 	//@{
 
-	SEAdenitaVisualModelProperties();																								///< Constructs a widget to show the properties of the visual model
-	virtual ~SEAdenitaVisualModelProperties();																						///< Destructs the widget
+	SEAdenitaVisualModelProperties();																									///< Constructs a widget to show the properties of the visual model
+	virtual ~SEAdenitaVisualModelProperties();																							///< Destructs the widget
 
 	//@}
 
@@ -63,35 +63,36 @@ public:
 
 		friend class SEAdenitaVisualModelProperties;
 
-		void														onBaseEvent(SBBaseEvent* baseEvent);								///< Base event management
-		void														onVisualEvent(SBVisualEvent* visualEvent);							///< Visual event management
+		void														onBaseEvent(SBBaseEvent* baseEvent);									///< Base event management
+		void														onVisualEvent(SBVisualEvent* visualEvent);								///< Visual event management
 
 		SEAdenitaVisualModelProperties* properties;
 
 	};
 
 public slots:
-void                              onSliderScaleChanged(int val);
-void                              onSliderVisibilityChanged(int val);
-void                              onSpinboxVisibilityChanged(double val);
-void                              onSliderDimensionChanged(int val);
-void                              onPropertyColorsChanged(int propertyIdx);
-void                              onHighlightChanged(int highlightIdx);
-void                              onPropertyColorSchemeChanged(int colorSchemeIdx);
-void                              onSingleStrandColorSchemeChanged(int index);
-void                              onNucleotideColorSchemeChanged(int index);
-void                              onDoubleStrandColorSchemeChanged(int index);
-void                              onShowBasePairing(bool show);
-void                              onMinLenChanged(QString text);
-void                              onMaxLenChanged(QString text);
-void                              onNotWithinRangeChanged(bool c);
-void                              onNotScaffoldChanged(bool c);
+
+	void														onSliderScaleChanged(int val);
+	void														onSliderVisibilityChanged(int val);
+	void														onSpinboxVisibilityChanged(double val);
+	void														onSliderDimensionChanged(int val);
+	void														onPropertyColorsChanged(int propertyIdx);
+	void														onHighlightChanged(int highlightIdx);
+	void														onPropertyColorSchemeChanged(int colorSchemeIdx);
+	void														onSingleStrandColorSchemeChanged(int index);
+	void														onNucleotideColorSchemeChanged(int index);
+	void														onDoubleStrandColorSchemeChanged(int index);
+	void														onShowBasePairing(bool show);
+	void														onMinLenChanged(QString text);
+	void														onMaxLenChanged(QString text);
+	void														onNotWithinRangeChanged(bool c);
+	void														onNotScaffoldChanged(bool c);
 
 private:
 
 	friend class SEAdenitaVisualModel;
-	Ui::SEAdenitaVisualModelPropertiesClass							ui;
-	SBPointer<SEAdenitaVisualModel>									visualModel;
+	Ui::SEAdenitaVisualModelPropertiesClass						ui;
+	SBPointer<SEAdenitaVisualModel>								visualModel;
 
 	SBPointer<Observer>											observer;
 

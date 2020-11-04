@@ -16,8 +16,7 @@ SETaggingVisualModel::SETaggingVisualModel(const SBNodeIndexer& nodeIndexer) {
 	// the center of mass of a group of atoms, you might want to connect to the atoms' base signals (e.g. to update the center of mass when an atom is erased) and
 	// the atoms' structural signals (e.g. to update the center of mass when an atom is moved).
 
-    SAMSON::getActiveDocument()->getNodes(goldAtoms_,
-    SBNode::IsType(SBNode::Atom) && SBNode::IsSelected());
+    SAMSON::getActiveDocument()->getNodes(goldAtoms_, SBNode::IsType(SBNode::Atom) && SBNode::IsSelected());
   
 }
 
@@ -69,12 +68,14 @@ void SETaggingVisualModel::display() {
 	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop. This is the main function of your visual model. 
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
 
-  displayGoldSphere();
+	displayGoldSphere();
+
 }
 
-void SETaggingVisualModel::displayGoldSphere()
-{
-  ADNDisplayHelper::displayGoldSphere(goldAtoms_);
+void SETaggingVisualModel::displayGoldSphere() {
+
+	ADNDisplayHelper::displayGoldSphere(goldAtoms_);
+
 }
 
 void SETaggingVisualModel::displayForShadow() {
@@ -136,4 +137,3 @@ void SETaggingVisualModel::onStructuralEvent(SBStructuralEvent* documentEvent) {
 	// SAMSON Element generator pro tip: implement this function if you need to handle structural events (e.g. when a structural node for which you provide a visual representation is updated)
 
 }
-

@@ -18,9 +18,9 @@ public :
 	/// \name Constructors and destructors
 	//@{
 
-	SETaggingVisualModel();																													///< Builds a visual model					
-	SETaggingVisualModel(const SBNodeIndexer& nodeIndexer);																					///< Builds a visual model 
-	virtual ~SETaggingVisualModel();																											///< Destructs the visual model
+	SETaggingVisualModel();																												///< Builds a visual model					
+	SETaggingVisualModel(const SBNodeIndexer& nodeIndexer);																				///< Builds a visual model 
+	virtual ~SETaggingVisualModel();																									///< Destructs the visual model
 
 	//@}
 
@@ -44,8 +44,8 @@ public :
 	/// \name Rendering
 	//@{
 
-  virtual void												display();																///< Displays the visual model
-  virtual void												displayGoldSphere();																
+	virtual void												display();																///< Displays the visual model
+	virtual void												displayGoldSphere();																
 	virtual void												displayForShadow();														///< Displays the visual model for shadow purposes
 	virtual void												displayForSelection();													///< Displays the visual model for selection purposes
 
@@ -60,11 +60,11 @@ public :
 
 	virtual void												onBaseEvent(SBBaseEvent* baseEvent);									///< Handles base events
 	virtual void												onDocumentEvent(SBDocumentEvent* documentEvent);						///< Handles document events
-  virtual void												onStructuralEvent(SBStructuralEvent* documentEvent);					///< Handles structural events
+	virtual void												onStructuralEvent(SBStructuralEvent* documentEvent);					///< Handles structural events
 
 	//@}
 
-  SBNodeIndexer										    goldAtoms_;
+	SBNodeIndexer												goldAtoms_;
 
 };
 

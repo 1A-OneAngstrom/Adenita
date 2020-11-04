@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>433</width>
-    <height>521</height>
+    <width>358</width>
+    <height>488</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -341,55 +341,49 @@
        <property name="title">
         <string>Highlight Options</string>
        </property>
-       <widget class="QWidget" name="formLayoutWidget">
-        <property name="geometry">
-         <rect>
-          <x>9</x>
-          <y>19</y>
-          <width>391</width>
-          <height>91</height>
-         </rect>
-        </property>
-        <layout class="QFormLayout" name="formLayout_2">
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_10">
-           <property name="text">
-            <string>Min Length (nts)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_11">
-           <property name="text">
-            <string>Max Length (nts)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="lneMinLen"/>
-         </item>
-         <item row="2" column="1">
-          <widget class="QLineEdit" name="lneMax"/>
-         </item>
-         <item row="0" column="0">
-          <widget class="QCheckBox" name="chkNotWithinRange">
-           <property name="text">
-            <string>Not within this range</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QCheckBox" name="chkNotScaffold">
-           <property name="text">
-            <string>Not Scaffold</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <layout class="QFormLayout" name="formLayout_2">
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>Min Length (nts)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_11">
+            <property name="text">
+             <string>Max Length (nts)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="lneMinLen"/>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="lneMax"/>
+          </item>
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="chkNotWithinRange">
+            <property name="text">
+             <string>Not within this range</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QCheckBox" name="chkNotScaffold">
+            <property name="text">
+             <string>Not Scaffold</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </widget>
      </item>
     </layout>

@@ -9,89 +9,91 @@ SEAdenitaCoreSEApp::SEAdenitaCoreSEApp() {
 	setGUI(new SEAdenitaCoreSEAppGUI(this));
 	getGUI()->loadDefaultSettings();
 
-  SEConfig& config = SEConfig::GetInstance();
+	SEConfig& config = SEConfig::GetInstance();
 
-  SB_INFORMATION("Adenita started");
+	SB_INFORMATION("Adenita started");
+
 }
 
 SEAdenitaCoreSEApp::~SEAdenitaCoreSEApp() {
 
 	getGUI()->saveDefaultSettings();
 	delete getGUI();
+
 }
 
 SEAdenitaCoreSEAppGUI* SEAdenitaCoreSEApp::getGUI() const { return static_cast<SEAdenitaCoreSEAppGUI*>(SBDApp::getGUI()); }
 
-void SEAdenitaCoreSEApp::LoadPart(QString filename)
-{
-  SAMSON::setStatusMessage(QString("Loading component ") + filename);
-  ADNPointer<ADNPart> part = ADNLoader::LoadPartFromJson(filename.toStdString());
-  AddPartToActiveLayer(part);
+void SEAdenitaCoreSEApp::LoadPart(QString filename) {
+
+	SAMSON::setStatusMessage(QString("Loading component ") + filename);
+	ADNPointer<ADNPart> part = ADNLoader::LoadPartFromJson(filename.toStdString());
+	AddPartToActiveLayer(part);
+
 }
 
-void SEAdenitaCoreSEApp::LoadParts(QString filename)
-{
-  SAMSON::setStatusMessage(QString("Loading components from ") + filename);
-  std::vector<ADNPointer<ADNPart>> parts = ADNLoader::LoadPartsFromJson(filename.toStdString());
-  for (ADNPointer<ADNPart> p : parts) {
-    AddPartToActiveLayer(p);
-  }
+void SEAdenitaCoreSEApp::LoadParts(QString filename) {
+
+	SAMSON::setStatusMessage(QString("Loading components from ") + filename);
+	std::vector<ADNPointer<ADNPart>> parts = ADNLoader::LoadPartsFromJson(filename.toStdString());
+	for (ADNPointer<ADNPart> p : parts) AddPartToActiveLayer(p);
+
 }
 
 void SEAdenitaCoreSEApp::SaveFile(QString filename, ADNPointer<ADNPart> part)
 {
-  if (part == nullptr) {
-    SAMSON::setStatusMessage(QString("Saving all designs to ") + filename);
-    ADNLoader::SaveNanorobotToJson(GetNanorobot(), filename.toStdString());
-  }
-  else {
-    SAMSON::setStatusMessage(QString("Saving ") + QString::fromStdString(part->GetName()) + QString(" to ") + filename);
-    ADNLoader::SavePartToJson(part, filename.toStdString());
-  }
+	if (part == nullptr) {
+		SAMSON::setStatusMessage(QString("Saving all designs to ") + filename);
+		ADNLoader::SaveNanorobotToJson(GetNanorobot(), filename.toStdString());
+	}
+	else {
+		SAMSON::setStatusMessage(QString("Saving ") + QString::fromStdString(part->GetName()) + QString(" to ") + filename);
+		ADNLoader::SavePartToJson(part, filename.toStdString());
+	}
 }
 
 void SEAdenitaCoreSEApp::LoadPartWithDaedalus(QString filename, int minEdgeSize)
 {
-  SAMSON::setStatusMessage(QString("Loading ") + filename);
+	SAMSON::setStatusMessage(QString("Loading ") + filename);
 
-  // Apply algorithm
-  DASDaedalus *alg = new DASDaedalus();
-  alg->SetMinEdgeLength(minEdgeSize);
-  std::string seq = "";
-  auto part = alg->ApplyAlgorithm(seq, filename.toStdString());
+	// Apply algorithm
+	DASDaedalus *alg = new DASDaedalus();
+	alg->SetMinEdgeLength(minEdgeSize);
+	std::string seq = "";
+	auto part = alg->ApplyAlgorithm(seq, filename.toStdString());
 
-  QFileInfo fi(filename);
-  QString s = fi.baseName();
-  part->SetName(s.toStdString());
+	QFileInfo fi(filename);
+	QString s = fi.baseName();
+	part->SetName(s.toStdString());
 
-  AddPartToActiveLayer(part);
+	AddPartToActiveLayer(part);
 }
 
 void SEAdenitaCoreSEApp::ImportFromCadnano(QString filename)
 {
-  SAMSON::setStatusMessage(QString("Loading ") + filename);
-  DASCadnano cad = DASCadnano();
-  ADNPointer<ADNPart> part = new ADNPart();
-  std::string seq = "";
+	SAMSON::setStatusMessage(QString("Loading ") + filename);
+	DASCadnano cad = DASCadnano();
+	ADNPointer<ADNPart> part = new ADNPart();
+	std::string seq = "";
 
-  part = cad.CreateCadnanoPart(filename.toStdString());
+	part = cad.CreateCadnanoPart(filename.toStdString());
   
-  QFileInfo fi(filename);
-  QString s = fi.baseName();
-  part->SetName(s.toStdString());
+	QFileInfo fi(filename);
+	QString s = fi.baseName();
+	part->SetName(s.toStdString());
 
-  AddPartToActiveLayer(part);
+	AddPartToActiveLayer(part);
 
-  cad.CreateConformations(part);
-  AddConformationToActiveLayer(cad.Get3DConformation());
-  AddConformationToActiveLayer(cad.Get2DConformation());
-  AddConformationToActiveLayer(cad.Get1DConformation());
+	cad.CreateConformations(part);
+	AddConformationToActiveLayer(cad.Get3DConformation());
+	AddConformationToActiveLayer(cad.Get2DConformation());
+	AddConformationToActiveLayer(cad.Get1DConformation());
 }
 
 void SEAdenitaCoreSEApp::ExportToSequenceList(QString filename, CollectionMap<ADNPart> parts)
 {
-  QFileInfo file = QFileInfo(filename);
-  ADNLoader::OutputToCSV(parts, file.fileName().toStdString(), file.path().toStdString());
+	QFileInfo file = QFileInfo(filename);
+	ADNLoader::OutputToCSV(parts, file.fileName().toStdString(), file.path().toStdString());
 }
 
 void SEAdenitaCoreSEApp::SetScaffoldSequence(std::string filename)
@@ -147,8 +149,8 @@ void SEAdenitaCoreSEApp::AddNtThreeP(int numNt)
 
 void SEAdenitaCoreSEApp::CenterPart()
 {
-  auto parts = GetNanorobot()->GetSelectedParts();
-  SB_FOR(ADNPointer<ADNPart> part, parts) ADNBasicOperations::CenterPart(part);
+	auto parts = GetNanorobot()->GetSelectedParts();
+	SB_FOR(ADNPointer<ADNPart> part, parts) ADNBasicOperations::CenterPart(part);
 }
 
 void SEAdenitaCoreSEApp::GenerateSequence(double gcCont, int maxContGs, bool overwrite)
@@ -709,43 +711,40 @@ void SEAdenitaCoreSEApp::AddPartToActiveLayer(ADNPointer<ADNPart> part, bool pos
 
 void SEAdenitaCoreSEApp::AddConformationToActiveLayer(ADNPointer<ADNConformation> conf)
 {
-  GetNanorobot()->RegisterConformation(conf);
+	GetNanorobot()->RegisterConformation(conf);
 
-  conf->create();
+	conf->create();
 
-  SAMSON::getActiveDocument()->addChild(conf());
+	SAMSON::getActiveDocument()->addChild(conf());
 }
 
 void SEAdenitaCoreSEApp::AddLoadedPartToNanorobot(ADNPointer<ADNPart> part)
 {
-  if (part->loadedViaSAMSON()) {
-    GetNanorobot()->RegisterPart(part);
+	if (part->loadedViaSAMSON()) {
+		GetNanorobot()->RegisterPart(part);
 
-    //events
-    ConnectStructuralSignalSlots(part);
+		//events
+		ConnectStructuralSignalSlots(part);
 
-    part->loadedViaSAMSON(false);
+		part->loadedViaSAMSON(false);
 
-    ResetVisualModel();
-  }
+		ResetVisualModel();
+	}
 }
 
 void SEAdenitaCoreSEApp::ConnectStructuralSignalSlots(ADNPointer<ADNPart> part)
 {
-  part->connectStructuralSignalToSlot(
-    this,
-    SB_SLOT(&SEAdenitaCoreSEApp::onStructuralEvent)
-    );
+	part->connectStructuralSignalToSlot(this, SB_SLOT(&SEAdenitaCoreSEApp::onStructuralEvent));
 }
 
 void SEAdenitaCoreSEApp::keyPressEvent(QKeyEvent* event)
 {
-  if (event->key() == Qt::Key_0) {
-    SAMSON::requestViewportUpdate();
-  }
+	if (event->key() == Qt::Key_0) {
+		SAMSON::requestViewportUpdate();
+	}
 }
 
 void SEAdenitaCoreSEApp::SetMod(bool m)
 {
-  mod_ = m;
+	mod_ = m;
 }

@@ -26,21 +26,21 @@ class SEAdenitaVisualModel : public SBMVisualModel {
 
 public :
 
-  enum Scale {
-    ATOMS_STICKS = 0,
-    ATOMS_BALLS = 1,
-    NUCLEOTIDES = 2,
-    SINGLE_STRANDS = 3,
-    DOUBLE_STRANDS = 4,
-    OBJECTS = 5
-  };
+	enum class Scale {
+		ATOMS_STICKS = 0,
+		ATOMS_BALLS = 1,
+		NUCLEOTIDES = 2,
+		SINGLE_STRANDS = 3,
+		DOUBLE_STRANDS = 4,
+		OBJECTS = 5
+	};
 
 	/// \name Constructors and destructors
 	//@{
 
-	SEAdenitaVisualModel();																													///< Builds a visual model					
-	SEAdenitaVisualModel(const SBNodeIndexer& nodeIndexer);																					///< Builds a visual model 
-	virtual ~SEAdenitaVisualModel();																											///< Destructs the visual model
+	SEAdenitaVisualModel();																												///< Builds a visual model					
+	SEAdenitaVisualModel(const SBNodeIndexer& nodeIndexer);																				///< Builds a visual model 
+	virtual ~SEAdenitaVisualModel();																									///< Destructs the visual model
 
 	//@}
 
@@ -61,29 +61,102 @@ public :
 
 	//@}
 
-	/// \name Rendering
+	/// \name Rendering options
 	//@{
-  float       												getScale();																
-  void												        changeScaleDiscrete(int scale, bool createIndex = true);																///< Displays the visual model
-  void												        changeScale(float scale, bool createIndex = true);																///< Displays the visual model
-  void												        changeDimension(float dimension);																///< Displays the visual model
-  void												        changeVisibility(double layer);																///< Displays the visual model
-  void                                changePropertyColors(int propertyIdx, int colorSchemeIdx);
-  void                                changeHighlight(int highlightIdx);
-  void                                setSingleStrandColors(int index);
-  void                                setNucleotideColors(int index);
-  void                                setDoubleStrandColors(int index);
-	void                                update();
-	void                                setHighlightMinLen(unsigned int min);
-	void                                setHighlightMaxLen(unsigned int max);
-  void                                setNotWithinRange(bool c);
-  void                                setNotScaffold(bool c);
 
-  virtual void												display();																///< Displays the visual model
-  virtual void												displayForShadow();														///< Displays the visual model for shadow purposes
+	float       												getScale() const;
+	void												        setScale(float scale);
+	bool														hasScaleRange() const;
+	float														getDefaultScale() const;
+	float														getMinimumScale() const;
+	float														getMaximumScale() const;
+	float														getScaleSingleStep() const;
+	std::string													getScaleSuffix() const;
+
+	int															getDiscreteScaleCount() const;
+	int															getDiscreteScaleCurrentIndex() const;
+	void														setDiscreteScaleCurrentIndex(const int index);
+	std::string													getDiscreteScaleItemText(const int index) const;
+
+	float       												getDimension() const;
+	void												        setDimension(float dimension);
+	bool														hasDimensionRange() const;
+	float														getDefaultDimension() const;
+	float														getMinimumDimension() const;
+	float														getMaximumDimension() const;
+	float														getDimensionSingleStep() const;
+	std::string													getDimensionSuffix() const;
+
+	int															getDiscreteDimensionCount() const;
+	int															getDiscreteDimensionCurrentIndex() const;
+	void														setDiscreteDimensionCurrentIndex(const int index);
+	std::string													getDiscreteDimensionItemText(const int index) const;
+
+	void														setVisibility(double layer);
+	double														getVisibility() const;
+	bool														hasVisibilityRange() const;
+	double														getDefaultVisibility() const;
+	double														getMinimumVisibility() const;
+	double														getMaximumVisibility() const;
+	double														getVisibilitySingleStep() const;
+	std::string													getVisibilitySuffix() const;
+
+	void														changePropertyColors(const int propertyIdx, const int colorSchemeIdx);
+
+	int															getColorTypeCount() const;
+	int															getColorTypeCurrentIndex() const;
+	void														setColorTypeCurrentIndex(const int index);
+	std::string													getColorTypeItemText(const int index) const;
+
+	int															getPropertyColorSchemeCount() const;
+	int															getPropertyColorSchemeCurrentIndex() const;
+	void														setPropertyColorSchemeCurrentIndex(const int index);
+	std::string													getPropertyColorSchemeItemText(const int index) const;
+
+	void														setSingleStrandColorsCurrentIndex(const int index);
+	int															getSingleStrandColorsCount() const;
+	int															getSingleStrandColorsCurrentIndex() const;
+	std::string													getSingleStrandColorsItemText(const int index) const;
+
+	void														setNucleotideColorsCurrentIndex(const int index);
+	int															getNucleotideColorsCount() const;
+	int															getNucleotideColorsCurrentIndex() const;
+	std::string													getNucleotideColorsItemText(const int index) const;
+
+	void														setDoubleStrandColorsCurrentIndex(const int index);
+	int															getDoubleStrandColorsCount() const;
+	int															getDoubleStrandColorsCurrentIndex() const;
+	std::string													getDoubleStrandColorsItemText(const int index) const;
+
+	int															getHighlightCount() const;
+	int															getHighlightCurrentIndex() const;
+	void														setHighlightCurrentIndex(const int index);
+	std::string													getHighlightItemText(const int index) const;
+
+	unsigned int												getHighlightMinLength() const;
+	void														setHighlightMinLength(unsigned int min);
+
+	unsigned int												getHighlightMaxLength() const;
+	void														setHighlightMaxLength(unsigned int max);
+
+	bool														getNotWithinRange() const;
+	void														setNotWithinRange(bool c);
+	bool														getDefaultNotWithinRange() const;
+
+	bool														getNotScaffold() const;
+	void														setNotScaffold(bool c);
+	bool														getDefaultNotScaffold() const;
+
+	bool														getShowBasePairingFlag() const;
+	void														setShowBasePairingFlag(bool show);
+
+	void														update();
+
+	virtual void												display();																///< Displays the visual model
+	virtual void												displayForShadow();														///< Displays the visual model for shadow purposes
 	virtual void												displayForSelection();													///< Displays the visual model for selection purposes
 
-  virtual void                        highlightNucleotides();
+	virtual void												highlightNucleotides();
 	virtual void												expandBounds(SBIAPosition3& bounds) const;								///< Expands the bounds to make sure the visual model fits inside them
 	virtual void												collectAmbientOcclusion(const SBPosition3& boxOrigin, const SBPosition3& boxSize, unsigned int nCellsX, unsigned int nCellsY, unsigned int nCellsZ, float* ambientOcclusionData);		///< To collect ambient occlusion data
 
@@ -95,151 +168,192 @@ public :
 	virtual void												onBaseEvent(SBBaseEvent* baseEvent);									///< Handles base events
 	virtual void												onDocumentEvent(SBDocumentEvent* documentEvent);						///< Handles document events
 	virtual void												onStructuralEvent(SBStructuralEvent* documentEvent);					///< Handles structural events
-  void                                showBasePairing(bool show);
 
 	//@}
 
 private:
-  void                                init();
-  void												        initAtoms(bool createIndex = true);
-  void												        initNucleotidesAndSingleStrands(bool createIndex = true);
-  void												        initDoubleStrands(bool createIndex = true);
-  void                                initDisplayIndices();
-  ADNArray<unsigned int>              getAtomIndices();
-  ADNArray<unsigned int>              getNucleotideIndices();
-  ADNArray<unsigned int>              getBaseSegmentIndices();
-  void												        changeHighlightFlag(); //scale 9: display polyhedron 
-  SEAdenitaCoreSEApp*					        getAdenitaApp() const;															///< Returns a pointer to the app
-  void                                orderVisibility();
-  void                                setupPropertyColors();
-  ADNArray<float>                     calcPropertyColor(int colorSchemeIdx, float min, float max, float val);
-  void                                displayBasePairConnections(bool onlySelected);
-  void                                displayForDebugging();
-  void                                displayCircularDNAConnection();
-  void                                displayTags();
 
-  void												        prepareAtoms();
-  void												        prepareNucleotides();
-  void												        prepareSingleStrands();
-  void												        prepareDoubleStrands();
-  void												        displayNucleotides(bool forSelection = false);
-  void												        displaySingleStrands(bool forSelection = false);
-  void												        displayDoubleStrands(bool forSelection = false);
-  void												        prepareDiscreteScalesDim();
-  void												        prepareDimensions();
-  void												        displayTransition(bool forSelection); 
-  void												        prepareSticksToBalls(double iv);
-  void												        prepareBallsToNucleotides(double iv);
-  void												        prepareNucleotidesToSingleStrands(double iv);
-  void												        prepareSingleStrandsToDoubleStrands(double iv);
-  void												        prepareDoubleStrandsToObjects(double iv);
-  void                                prepare1Dto2D(double iv);
-  void                                prepare2Dto3D(double iv);
-  void                                prepare3D(double iv);
-  void                                emphasizeColors(ADNArray<float> & colors, vector<unsigned int> & indices, float r, float g, float b, float a);
-  void                                replaceColors(ADNArray<float> & colors, vector<unsigned int> & indices, float * color);
-  // general display properties 
-  ADNArray<float> nucleotideEColor_;
+	void														init();
+	void														initAtoms(bool createIndex = true);
+	void														initNucleotidesAndSingleStrands(bool createIndex = true);
+	void														initDoubleStrands(bool createIndex = true);
+	void														initDisplayIndices();
+	ADNArray<unsigned int>										getAtomIndices();
+	ADNArray<unsigned int>										getNucleotideIndices();
+	ADNArray<unsigned int>										getBaseSegmentIndices();
+	void														changeHighlightFlag(); //scale 9: display polyhedron 
+	SEAdenitaCoreSEApp*											getAdenitaApp() const;													///< Returns a pointer to the app
+	void														orderVisibility();
+	void														setupPropertyColors();
+	ADNArray<float>												calcPropertyColor(int colorSchemeIdx, float min, float max, float val);
+	void														displayBasePairConnections(bool onlySelected);
+	void														displayForDebugging();
+	void														displayCircularDNAConnection();
+	void														displayTags();
+
+	void														prepareAtoms();
+	void														prepareNucleotides();
+	void														prepareSingleStrands();
+	void														prepareDoubleStrands();
+	void														displayNucleotides(bool forSelection = false);
+	void														displaySingleStrands(bool forSelection = false);
+	void														displayDoubleStrands(bool forSelection = false);
+	void														prepareDiscreteScalesDim();
+	void														prepareDimensions();
+	void														displayTransition(bool forSelection); 
+	void														prepareSticksToBalls(double iv);
+	void														prepareBallsToNucleotides(double iv);
+	void														prepareNucleotidesToSingleStrands(double iv);
+	void														prepareSingleStrandsToDoubleStrands(double iv);
+	void														prepareDoubleStrandsToObjects(double iv);
+	void														prepare1Dto2D(double iv);
+	void														prepare2Dto3D(double iv);
+	void														prepare3D(double iv);
+	void														emphasizeColors(ADNArray<float> & colors, vector<unsigned int> & indices, float r, float g, float b, float a);
+	void														replaceColors(ADNArray<float> & colors, vector<unsigned int> & indices, float * color);
+
+	// general display properties 
+	ADNArray<float>												nucleotideEColor_;
   
-  float scale_ = 3.0f;
-  float dim_ = 3.0f;
+	float														scale_ = 3.0f;
+	float														dim_ = 3.0f;
 
-  ADNNanorobot * nanorobot_;
+	double														visibility_ = 0.99;
 
-  //transitional scale
-  unsigned int nPositions_;
-  unsigned int nCylinders_;
-  ADNArray<float> colorsV_;
-  ADNArray<float> colorsE_;
-  ADNArray<float> positions_;
-  ADNArray<float> radiiV_;
-  ADNArray<float> radiiE_;
-  ADNArray<unsigned int> flags_;
-  ADNArray<unsigned int> nodeIndices_;
-  ADNArray<unsigned int> indices_;
+	ADNNanorobot*												nanorobot_;
 
-  //atom scale
-  unsigned int nPositionsAtom_;
-  unsigned int nCylindersAtom_;
-  ADNArray<float> colorsVAtom_;
-  ADNArray<float> colorsEAtom_;
-  ADNArray<float> positionsAtom_;
-  ADNArray<float> radiiVAtom_;
-  ADNArray<float> radiiEAtom_;
-  ADNArray<unsigned int> flagsAtom_;
-  ADNArray<unsigned int> nodeIndicesAtom_;
-  ADNArray<unsigned int> indicesAtom_;
+	/// \name Transitional scale
+	//@{
 
-  //nucleotide scale
-  unsigned int nPositionsNt_;
-  unsigned int nCylindersNt_;
-  ADNArray<float> colorsVNt_;
-  ADNArray<float> colorsENt_;
-  ADNArray<float> positionsNt_;
-  ADNArray<float> radiiVNt_;
-  ADNArray<float> radiiENt_;
-  ADNArray<unsigned int> flagsNt_;
-  ADNArray<unsigned int> nodeIndicesNt_;
-  ADNArray<unsigned int> indicesNt_;
+	unsigned int												nPositions_;
+	unsigned int												nCylinders_;
+	ADNArray<float>												colorsV_;
+	ADNArray<float>												colorsE_;
+	ADNArray<float>												positions_;
+	ADNArray<float>												radiiV_;
+	ADNArray<float>												radiiE_;
+	ADNArray<unsigned int>										flags_;
+	ADNArray<unsigned int>										nodeIndices_;
+	ADNArray<unsigned int>										indices_;
 
-  //single strand scale
-  ADNArray<float> colorsVSS_;
-  ADNArray<float> colorsESS_;
-  ADNArray<float> radiiVSS_;
-  ADNArray<float> radiiESS_;
+	//@}
 
-  //double strand scale
-  unsigned int nPositionsDS_;
-  unsigned int nCylindersDS_;
-  ADNArray<float> colorsVDS_;
-  ADNArray<float> positionsDS_;
-  ADNArray<float> radiiVDS_;
-  ADNArray<unsigned int> flagsDS_;
-  ADNArray<unsigned int> nodeIndicesDS_;
+	/// \name Atom scale
+	//@{
 
-  //2D
-  ADNArray<float> positionsNt2D_;
-  ADNArray<float> positionsNt1D_;
+	unsigned int												nPositionsAtom_;
+	unsigned int												nCylindersAtom_;
+	ADNArray<float>												colorsVAtom_;
+	ADNArray<float>												colorsEAtom_;
+	ADNArray<float>												positionsAtom_;
+	ADNArray<float>												radiiVAtom_;
+	ADNArray<float>												radiiEAtom_;
+	ADNArray<unsigned int>										flagsAtom_;
+	ADNArray<unsigned int>										nodeIndicesAtom_;
+	ADNArray<unsigned int>										indicesAtom_;
 
-  std::map<ADNAtom*, unsigned int> atomMap_;
-  std::map<ADNNucleotide*, unsigned int> ntMap_;
-  std::map<ADNBaseSegment*, unsigned int> bsMap_;
-  map<unsigned int, unsigned> atomNtIndexMap_;
-  map<unsigned int, unsigned> ntBsIndexMap_;
+	//@}
 
-  map<ADNNucleotide*, float> sortedNucleotidesByDist_;
-  map<ADNSingleStrand*, float> sortedSingleStrandsByDist_;
+	/// \name Nucleotide scale
+	//@{
+
+	unsigned int												nPositionsNt_;
+	unsigned int												nCylindersNt_;
+	ADNArray<float>												colorsVNt_;
+	ADNArray<float>												colorsENt_;
+	ADNArray<float>												positionsNt_;
+	ADNArray<float>												radiiVNt_;
+	ADNArray<float>												radiiENt_;
+	ADNArray<unsigned int>										flagsNt_;
+	ADNArray<unsigned int>										nodeIndicesNt_;
+	ADNArray<unsigned int>										indicesNt_;
+
+	//@}
+
+	/// \name Single strand scale
+	//@{
+
+	ADNArray<float>												colorsVSS_;
+	ADNArray<float>												colorsESS_;
+	ADNArray<float>												radiiVSS_;
+	ADNArray<float>												radiiESS_;
+
+	//@}
+
+	/// \name Double strand scale
+	//@{
+
+	unsigned int												nPositionsDS_;
+	unsigned int												nCylindersDS_;
+	ADNArray<float>												colorsVDS_;
+	ADNArray<float>												positionsDS_;
+	ADNArray<float>												radiiVDS_;
+	ADNArray<unsigned int>										flagsDS_;
+	ADNArray<unsigned int>										nodeIndicesDS_;
+
+	//@}
+
+	//2D
+	ADNArray<float>												positionsNt2D_;
+	ADNArray<float>												positionsNt1D_;
+
+	std::map<ADNAtom*, unsigned int>							atomMap_;
+	std::map<ADNNucleotide*, unsigned int>						ntMap_;
+	std::map<ADNBaseSegment*, unsigned int>						bsMap_;
+	map<unsigned int, unsigned>									atomNtIndexMap_;
+	map<unsigned int, unsigned>									ntBsIndexMap_;
+
+	map<ADNNucleotide*, float>									sortedNucleotidesByDist_;
+	map<ADNSingleStrand*, float>								sortedSingleStrandsByDist_;
  
-  // current arrays for being displayed (only spheres and cylinders)
+	// current arrays for being displayed (only spheres and cylinders)
 
-  vector<ADNArray<float>> propertyColorSchemes_;
+	/// \name Property colors
+	//@{
+
+	vector<ADNArray<float>>										propertyColorSchemes_;
   
-  enum ColorType {
-    REGULAR = 0,  // default color map
-    MELTTEMP = 1,  // melting temperatures color map
-    GIBBS = 2  // gibbs free energy color map
-  };
+	enum class ColorType {
+		REGULAR = 0,	///< default color map
+		MELTTEMP = 1,	///< melting temperatures color map
+		GIBBS = 2		///< gibbs free energy color map
+	};
 
-  ColorType curColorType_ = REGULAR;
+	ColorType													curColorType_ = ColorType::REGULAR;
 
-  std::map<ColorType, MSVColors*> colors_;
+	std::map<ColorType, MSVColors*>								colors_;
 
-  enum HighlightType {
-    NONE = 0,
-    CROSSOVERS = 1,
-    GC = 2,
-    TAGGED = 3,
+	int															colorSchemeCurrentIndex = 0;
+	int															nucleotideColorSchemeCurrentIndex = 0;
+	int															singleStrandColorsCurrentIndex = 0;
+	int															doubleStrandColorsCurrentIndex = 0;
+
+	//@}
+
+	/// \name Highlight options
+	//@{
+
+	enum class HighlightType {
+		NONE = 0,
+		CROSSOVERS = 1,
+		GC = 2,
+		TAGGED = 3,
 		LENGTH = 4,
 		NOBASE = 5,
-    UNPAIRED = 6
-  };
+		UNPAIRED = 6
+	};
 
-  HighlightType highlightType_ = NONE;
-  bool showBasePairing_ = false;
-  unsigned int highlightMinLen_ = 0;
-  unsigned int highlightMaxLen_ = UINT_MAX;
-  bool notWithin_ = false;
-  bool notScaffold_ = true;
+	void														setHighlight(const HighlightType highlightType);
+	HighlightType												highlightType_ = HighlightType::NONE;
+
+	bool														showBasePairing_ = false;
+	unsigned int												highlightMinLen_ = 0;
+	unsigned int												highlightMaxLen_ = UINT_MAX;
+	bool														notWithin_ = false;
+	bool														notScaffold_ = true;
+
+	//@}
+
 };
 
 
