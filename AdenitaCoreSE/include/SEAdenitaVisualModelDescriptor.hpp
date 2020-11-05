@@ -32,8 +32,8 @@ SB_CLASS_BEGIN(SEAdenitaVisualModel);
 		SB_ATTRIBUTE_READ_WRITE_RESET_RANGE(double, SEAdenitaVisualModel, Visibility, "Visibility", "Properties");
 
 		SB_ATTRIBUTE_READ_WRITE_LIST(SEAdenitaVisualModel, Highlight, "Highlight", "Highlight options");
-		SB_ATTRIBUTE_READ_WRITE_RESET(bool, SEAdenitaVisualModel, NotWithinRange, "Not within this range", "Highlight options");
-		SB_ATTRIBUTE_READ_WRITE_RESET(bool, SEAdenitaVisualModel, NotScaffold, "Not Scaffold", "Highlight options");
+		SB_ATTRIBUTE_READ_WRITE_RESET(bool, SEAdenitaVisualModel, NotScaffold, "Not scaffold", "Highlight options");
+		SB_ATTRIBUTE_READ_WRITE_RESET(bool, SEAdenitaVisualModel, NotWithinRange, "Not within the range", "Highlight options");
 		SB_ATTRIBUTE_READ_WRITE(unsigned int, SEAdenitaVisualModel, HighlightMinLength, "Min length (nts)", "Highlight options");
 		SB_ATTRIBUTE_READ_WRITE(unsigned int, SEAdenitaVisualModel, HighlightMaxLength, "Max length (nts)", "Highlight options");
 

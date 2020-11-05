@@ -76,111 +76,69 @@ std::string SEAdenitaCoreSEAppGUI::GetScaffoldFilename() {
 
 void SEAdenitaCoreSEAppGUI::onLoadFile() {
 
-	SEConfig& config = SEConfig::GetInstance();
-    
-	if (config.mode == SEConfigMode::HAICHAO) {
-    
-		SEAdenitaCoreSEApp* t = getApp();
-		t->ImportFromCadnano("C:/Development/Data_DNA_Nanomodeling/cadnano/hextube/hextube.json");
-		//t->ImportFromCadnano("C:/Development/Data_DNA_Nanomodeling/inner_ring_and_sheet/inner ring.json");
-		//t->ImportFromCadnano("C:/Development/Data_DNA_Nanomodeling/cadnano/samples/skip.json");
-		//t->ImportFromCadnano("C:/Development/Data_DNA_Nanomodeling/cadnano/samples/simple.json");
-		//t->ImportFromCadnano("C:/Development/Data_DNA_Nanomodeling/cadnano/samples/loop.json");
-		//t->ImportFromCadnano("C:/Development/Data_DNA_Nanomodeling/cadnano/samples/loop_skip.json");
-		//t->ImportFromCadnano("C:/Development/Data_DNA_Nanomodeling/cadnano/robot_bent/robot_v1.9_bent.json");
+	bool ok;
+	QString filename;// = QFileDialog::getOpenFileName(this, tr("Open document: caDNAno, mesh (ply), Adenita document (adn, adnpart)"), QDir::currentPath(), tr("(Documents *.json *.ply *.adn *.adnpart)"));
+	ok = SAMSON::getFileNameFromUser(tr("Open document: caDNAno, mesh (ply, json), Adenita document (adn, adnpart, json)"), filename, QString(), tr("(Documents *.json *.ply *.adn *.adnpart)"));
 
-		t->ResetVisualModel();
-		SAMSON::getActiveCamera()->center();
+	if (!ok) return;
+	if (filename.isEmpty()) return;
 
-	}
-	else if (config.mode == SEConfigMode::ELISA) {
+	SEAdenitaCoreSEApp* t = getApp();
 
-		SEAdenitaCoreSEApp* t = getApp();
-		t->LoadPartWithDaedalus("C:/Users/DeLlanoE/Documents/code/Data_DNA_Nanomodeling/daedalus_samples/46_reinforced_cube.ply", 42);
+	if (filename.endsWith(".json")) {
 
-		t->ResetVisualModel();
-		SAMSON::getActiveCamera()->center();
+		// either cadnano or old Adenita format
+		std::string format = IsJsonCadnano(filename);
+		if (format == "cadnano") {
 
-	}
-	else {
+			t->ImportFromCadnano(filename);
 
-		QString filename;// = QFileDialog::getOpenFileName(this, tr("Open document: caDNAno, mesh (ply), Adenita document (adn, adnpart)"), QDir::currentPath(), tr("(Documents *.json *.ply *.adn *.adnpart)"));
-		SAMSON::getFileNameFromUser(tr("Open document: caDNAno, mesh (ply, json), Adenita document (adn, adnpart, json)"), filename, QString(), tr("(Documents *.json *.ply *.adn *.adnpart)"));
-		
-		bool loadVM = true;
+		}
+		else if (format == "adenita") {
 
-		if (!filename.isEmpty()) {
+			t->LoadPart(filename);
 
-			SEAdenitaCoreSEApp* t = getApp();
+		}
+		else {
 
-			if (filename.endsWith(".json")) {
-
-				// either cadnano or old Adenita format
-				std::string format = IsJsonCadnano(filename);
-				if (format == "cadnano") {
-
-					t->ImportFromCadnano(filename);
-
-				}
-				else if (format == "adenita") {
-
-					t->LoadPart(filename);
-
-				}
-				else {
-
-					QMessageBox msgBox;
-					loadVM = false;
-					msgBox.setText("Unknown json format. Current supported formats include Cadnano and legacy Adenita parts");
-					msgBox.exec();
-
-				}
-
-			}
-			else if (filename.endsWith(".ply")) {
-
-				bool ok;
-				int i = QInputDialog::getInt(this, tr("Wireframe structure (Daedalus)"),
-				tr("Minimum edge size (bp): "), 42, 31, 1050, 1, &ok);
-				if (ok) {
-
-					div_t d = div(i, 10.5);
-					int minSize = floor(d.quot * 10.5);
-					t->LoadPartWithDaedalus(filename, minSize);
-
-				}
-
-			}
-			else if (filename.endsWith(".adnpart")) {
-
-				t->LoadPart(filename);
-
-			}
-			else if (filename.endsWith(".adn")) {
-
-				t->LoadParts(filename);
-
-			}
-			else {
-
-				loadVM = false;
-
-			}
-
-			//add the visual model
-			if (loadVM) { 
-
-				t->ResetVisualModel();
-
-			}
+			SAMSON::informUser("Adenita", "Unknown json format. Current supported formats include Cadnano and legacy Adenita parts.");
+			return;
 
 		}
 
-		SAMSON::getActiveCamera()->center();
+	}
+	else if (filename.endsWith(".ply")) {
+
+		int i = 42;
+		//int i = QInputDialog::getInt(this, tr("Wireframe structure (Daedalus)"), tr("Minimum edge size (bp): "), 42, 31, 1050, 1, &ok);
+		ok = SAMSON::getIntegerFromUser(QString("Wireframe structure (Daedalus)"), i, 31, 1050, 1, QString("Minimum edge size: "), QString(" bp"));
+		if (ok) {
+
+			div_t d = div(i, 10.5);
+			int minSize = floor(d.quot * 10.5);
+			t->LoadPartWithDaedalus(filename, minSize);
+
+		}
+		else return;
 
 	}
-  
-	SAMSON::hideProgressBar();
+	else if (filename.endsWith(".adnpart")) {
+
+		t->LoadPart(filename);
+
+	}
+	else if (filename.endsWith(".adn")) {
+
+		t->LoadParts(filename);
+
+	}
+	else return;
+
+	//add the visual model
+
+	t->ResetVisualModel();
+
+	SAMSON::getActiveCamera()->center();
 
 }
 

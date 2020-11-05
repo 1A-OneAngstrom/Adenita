@@ -362,7 +362,7 @@ std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOper
   auto numNtsNew = part->GetNumberOfNucleotides();
   auto numSSNew = part->GetNumberOfSingleStrands();
 
-  if (config.mode == DEBUG_NO_LOG || config.mode == DEBUG_LOG) {
+  if (config.mode == SEConfigMode::DEBUG_NO_LOG || config.mode == SEConfigMode::DEBUG_LOG) {
     std::string msg = "  --> DELETING NUCLEOTIDE";
     ADNLogger::LogDebug(msg);
     msg = "         Nucleotides before deletion: " + std::to_string(numNts) + "\n";
@@ -447,7 +447,7 @@ std::pair<ADNPointer<ADNDoubleStrand>, ADNPointer<ADNDoubleStrand>> ADNBasicOper
   auto numBssNew = part->GetNumberOfBaseSegments();
   auto numDSNew = part->GetNumberOfDoubleStrands();
 
-  if (config.mode == DEBUG_NO_LOG || config.mode == DEBUG_LOG) {
+  if (config.mode == SEConfigMode::DEBUG_NO_LOG || config.mode == SEConfigMode::DEBUG_LOG) {
     std::string msg = "  --> DELETING NUCLEOTIDE";
     ADNLogger::LogDebug(msg);
     msg = "         Nucleotides before deletion: " + std::to_string(numBss) + "\n";

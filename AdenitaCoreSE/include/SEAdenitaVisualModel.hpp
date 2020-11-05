@@ -345,6 +345,7 @@ private:
 
 	void														setHighlight(const HighlightType highlightType);
 	HighlightType												highlightType_ = HighlightType::NONE;
+	void														updateEnabledFlagForHighlightAttributes();
 
 	bool														showBasePairing_ = false;
 	unsigned int												highlightMinLen_ = 0;

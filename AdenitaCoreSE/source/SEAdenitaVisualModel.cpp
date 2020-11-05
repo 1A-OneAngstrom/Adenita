@@ -7,30 +7,30 @@
 
 SEAdenitaVisualModel::SEAdenitaVisualModel() {
 
-  // SAMSON Element generator pro tip: this default constructor is called when unserializing the node, so it should perform all default initializations.
+	// SAMSON Element generator pro tip: this default constructor is called when unserializing the node, so it should perform all default initializations.
 	
-  init();
+	init();
 
 }
 
 SEAdenitaVisualModel::SEAdenitaVisualModel(const SBNodeIndexer& nodeIndexer) {
 
-  // SAMSON Element generator pro tip: implement this function if you want your visual model to be applied to a set of data graph nodes.
-  // You might want to connect to various signals and handle the corresponding events. For example, if your visual model represents a sphere positioned at
-  // the center of mass of a group of atoms, you might want to connect to the atoms' base signals (e.g. to update the center of mass when an atom is erased) and
-  // the atoms' structural signals (e.g. to update the center of mass when an atom is moved).
+	// SAMSON Element generator pro tip: implement this function if you want your visual model to be applied to a set of data graph nodes.
+	// You might want to connect to various signals and handle the corresponding events. For example, if your visual model represents a sphere positioned at
+	// the center of mass of a group of atoms, you might want to connect to the atoms' base signals (e.g. to update the center of mass when an atom is erased) and
+	// the atoms' structural signals (e.g. to update the center of mass when an atom is moved).
 
-  SEAdenitaCoreSEApp* app = getAdenitaApp();
+	SEAdenitaCoreSEApp* app = getAdenitaApp();
   
-  app->FromDatagraph();
+	app->FromDatagraph();
 
-  init();
+	init();
 
 }
 
 SEAdenitaVisualModel::~SEAdenitaVisualModel() {
 
-  ADNLogger::Log(std::string("SEAdenitaVisualModel got destroyed!"));
+	ADNLogger::Log(std::string("SEAdenitaVisualModel got destroyed!"));
 
 }
 
@@ -284,6 +284,8 @@ void SEAdenitaVisualModel::init() {
 	update();
 
 	setupPropertyColors();
+
+	updateEnabledFlagForHighlightAttributes();
 
 	//orderVisibility();
 
@@ -1684,9 +1686,28 @@ std::string SEAdenitaVisualModel::getPropertyColorSchemeItemText(const int index
 
 }
 
+void		SEAdenitaVisualModel::updateEnabledFlagForHighlightAttributes() {
+
+	// enable/disable attributes in the Inspector
+
+	const bool enabled = (highlightType_ == HighlightType::LENGTH);
+	SBCClassInterface const* classInterface = getProxy()->getInterface();
+	if (classInterface) {
+
+		if (classInterface->getAttribute("NotScaffold")) classInterface->getAttribute("NotScaffold")->setEnabled(enabled);
+		if (classInterface->getAttribute("NotWithinRange")) classInterface->getAttribute("NotWithinRange")->setEnabled(enabled);
+		if (classInterface->getAttribute("HighlightMinLength")) classInterface->getAttribute("HighlightMinLength")->setEnabled(enabled);
+		if (classInterface->getAttribute("HighlightMaxLength")) classInterface->getAttribute("HighlightMaxLength")->setEnabled(enabled);
+
+	}
+
+}
+
 void		SEAdenitaVisualModel::setHighlight(const HighlightType highlightType) {
 
 	this->highlightType_ = highlightType;
+
+	updateEnabledFlagForHighlightAttributes();
 
 	highlightNucleotides();
 	setScale(scale_);

@@ -259,7 +259,7 @@ void SEConfig::loadConfig() {
 		writer.Bool(show_overlay);
 
 		writer.Key("mode");
-		writer.Int(mode);
+		writer.Int(static_cast<int>(mode));
 
 		writer.Key("auto_set_scaffold_sequence");
 		writer.Bool(auto_set_scaffold_sequence);
