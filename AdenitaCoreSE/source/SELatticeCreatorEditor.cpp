@@ -127,7 +127,7 @@ void SELatticeCreatorEditor::sendPartToAdenita(ADNPointer<ADNPart> lattice)
   if (lattice != nullptr) {
     lattice->SetName("Lattice Structure");
 
-    SEAdenitaCoreSEApp* adenita = static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+    SEAdenitaCoreSEApp* adenita = static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
     adenita->AddPartToActiveLayer(lattice);
 
     //DASCadnano cad = DASCadnano();
@@ -136,7 +136,7 @@ void SELatticeCreatorEditor::sendPartToAdenita(ADNPointer<ADNPart> lattice)
     //adenita->AddConformationToActiveLayer(cad.Get2DConformation());
     //adenita->AddConformationToActiveLayer(cad.Get1DConformation());
 
-    adenita->ResetVisualModel();
+	SEAdenitaCoreSEApp::resetVisualModel();
   }
 }
 

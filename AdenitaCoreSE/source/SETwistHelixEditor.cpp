@@ -44,7 +44,7 @@ void SETwistHelixEditor::SetMode(bool t)
 
 SEAdenitaCoreSEApp* SETwistHelixEditor::getAdenitaApp() const
 {
-  return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+  return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
 }
 
 SBCContainerUUID SETwistHelixEditor::getUUID() const { return SBCContainerUUID("4B60FECA-2A79-680F-F289-B4908A924409"); }

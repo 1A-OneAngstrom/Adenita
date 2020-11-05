@@ -49,7 +49,7 @@ void SEConnectSSDNAEditor::SetConcat(bool c)
 
 SEAdenitaCoreSEApp* SEConnectSSDNAEditor::getAdenitaApp() const
 {
-  return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+  return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
 }
 
 SBCContainerUUID SEConnectSSDNAEditor::getUUID() const { return SBCContainerUUID("0854A585-E146-954F-616C-B4532A1B2555"); }
@@ -252,7 +252,7 @@ void SEConnectSSDNAEditor::mouseReleaseEvent(QMouseEvent* event) {
 
       app->SetMod(true);
       DASOperations::CreateCrossover(part1, part2, start, end, two, seq);
-      app->ResetVisualModel();
+	  SEAdenitaCoreSEApp::resetVisualModel();
       app->SetMod(false);
     }
   }

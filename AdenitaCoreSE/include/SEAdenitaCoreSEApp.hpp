@@ -48,8 +48,10 @@ public :
 	void														ExportToSequenceList(QString filename, CollectionMap<ADNPart> parts);
 	void														SetScaffoldSequence(std::string seq);
 	void														GenerateSequence(double gcCont, int maxContGs, bool overwrite = true);
-	void														ResetVisualModel();
-	SBVisualModel*												GetVisualModel();
+
+	static void													resetVisualModel();														///< Resets the Adenita visual model in the active document if any, else creates one
+	static SBVisualModel*										getVisualModel();														///< Returns an Adenita visual model from the active document if any, else return nullptr
+
 	void														SetStart();
 	// Modifications
 	void														BreakSingleStrand(bool fPrime = false);
@@ -80,7 +82,7 @@ public :
 
 	// Helper functions
 	ADNNanorobot*												GetNanorobot();
-	std::string													ReadScaffoldFilename(std::string filename);
+	static std::string											readScaffoldFilename(std::string filename);
 	QStringList													GetPartsNameList();
 
 	// Adding things to data graph

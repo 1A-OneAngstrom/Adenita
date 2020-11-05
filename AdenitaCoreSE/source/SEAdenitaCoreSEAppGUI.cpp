@@ -54,7 +54,7 @@ void SEAdenitaCoreSEAppGUI::saveSettings( SBGSettings *settings ) {
 
 }
 
-std::string SEAdenitaCoreSEAppGUI::GetScaffoldFilename() {
+std::string SEAdenitaCoreSEAppGUI::getScaffoldFilename() {
 
 	SEConfig& c = SEConfig::GetInstance();
 
@@ -136,7 +136,7 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 
 	//add the visual model
 
-	t->ResetVisualModel();
+	SEAdenitaCoreSEApp::resetVisualModel();
 
 	SAMSON::getActiveCamera()->center();
 
@@ -366,7 +366,7 @@ void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 
 void SEAdenitaCoreSEAppGUI::onSetScaffold() {
 
-	std::string filename = GetScaffoldFilename();
+	std::string filename = SEAdenitaCoreSEAppGUI::getScaffoldFilename();
 	SEAdenitaCoreSEApp *t = getApp();
 	t->SetScaffoldSequence(filename);
 
@@ -555,7 +555,7 @@ void SEAdenitaCoreSEAppGUI::onCalculateBindingProperties() {
 
 			if (res) {
 
-				SEAdenitaVisualModel* adenitaVm = static_cast<SEAdenitaVisualModel*>(t->GetVisualModel());
+				SEAdenitaVisualModel* adenitaVm = static_cast<SEAdenitaVisualModel*>(SEAdenitaCoreSEApp::getVisualModel());
 				if (adenitaVm != nullptr) {
 
 					adenitaVm->changePropertyColors(1, 0);
@@ -697,7 +697,7 @@ void SEAdenitaCoreSEAppGUI::onSettings() {
 
 void SEAdenitaCoreSEAppGUI::onBreakEditor() {
 
-	SEBreakEditor* be = static_cast<SEBreakEditor*>(SAMSON::getEditor(SBCContainerUUID("CFACD1E5-FCD1-916F-2CF7-4B60979F1A77"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SEBreakEditor* be = static_cast<SEBreakEditor*>(SAMSON::getEditor(SBCContainerUUID("CFACD1E5-FCD1-916F-2CF7-4B60979F1A77"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(be);
 	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
@@ -705,7 +705,7 @@ void SEAdenitaCoreSEAppGUI::onBreakEditor() {
 
 void SEAdenitaCoreSEAppGUI::onConnectEditor() {
 
-	SEConnectSSDNAEditor* c = static_cast<SEConnectSSDNAEditor*>(SAMSON::getEditor(SBCContainerUUID("48FDCE78-A55E-FDA2-237E-319202E56080"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SEConnectSSDNAEditor* c = static_cast<SEConnectSSDNAEditor*>(SAMSON::getEditor(SBCContainerUUID("48FDCE78-A55E-FDA2-237E-319202E56080"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
 	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
@@ -713,7 +713,7 @@ void SEAdenitaCoreSEAppGUI::onConnectEditor() {
 
 void SEAdenitaCoreSEAppGUI::onDeleteEditor() {
 
-	SEDeleteEditor* c = static_cast<SEDeleteEditor*>(SAMSON::getEditor(SBCContainerUUID("592B8158-15E9-B621-0BCB-D7DA210FF149"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SEDeleteEditor* c = static_cast<SEDeleteEditor*>(SAMSON::getEditor(SBCContainerUUID("592B8158-15E9-B621-0BCB-D7DA210FF149"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
 	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
@@ -721,7 +721,7 @@ void SEAdenitaCoreSEAppGUI::onDeleteEditor() {
 
 void SEAdenitaCoreSEAppGUI::onDNATwistEditor() {
 
-	SETwistHelixEditor* c = static_cast<SETwistHelixEditor*>(SAMSON::getEditor(SBCContainerUUID("4B60FECA-2A79-680F-F289-B4908A924409"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SETwistHelixEditor* c = static_cast<SETwistHelixEditor*>(SAMSON::getEditor(SBCContainerUUID("4B60FECA-2A79-680F-F289-B4908A924409"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
 	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
@@ -729,7 +729,7 @@ void SEAdenitaCoreSEAppGUI::onDNATwistEditor() {
 
 void SEAdenitaCoreSEAppGUI::onMergePartsEditor() {
 
-	SEMergePartsEditor* c = static_cast<SEMergePartsEditor*>(SAMSON::getEditor(SBCContainerUUID("EB812444-8EA8-BD83-988D-AFF5987461D8"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SEMergePartsEditor* c = static_cast<SEMergePartsEditor*>(SAMSON::getEditor(SBCContainerUUID("EB812444-8EA8-BD83-988D-AFF5987461D8"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
 	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
@@ -737,7 +737,7 @@ void SEAdenitaCoreSEAppGUI::onMergePartsEditor() {
 
 void SEAdenitaCoreSEAppGUI::onCreateStrandEditor() {
 
-	SEDSDNACreatorEditor* c = static_cast<SEDSDNACreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("86204A08-DFD6-97A8-2BE2-4CFC8B4169A3"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SEDSDNACreatorEditor* c = static_cast<SEDSDNACreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("86204A08-DFD6-97A8-2BE2-4CFC8B4169A3"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
 	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
@@ -745,7 +745,7 @@ void SEAdenitaCoreSEAppGUI::onCreateStrandEditor() {
 
 void SEAdenitaCoreSEAppGUI::onNanotubeCreatorEditor() {
 
-	SENanotubeCreatorEditor* c = static_cast<SENanotubeCreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("4B6A0B18-48B5-233A-28A4-BA3EF3D56AB8"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SENanotubeCreatorEditor* c = static_cast<SENanotubeCreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("4B6A0B18-48B5-233A-28A4-BA3EF3D56AB8"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
 	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
@@ -753,7 +753,7 @@ void SEAdenitaCoreSEAppGUI::onNanotubeCreatorEditor() {
 
 void SEAdenitaCoreSEAppGUI::onLatticeCreatorEditor() {
 
-	SELatticeCreatorEditor* c = static_cast<SELatticeCreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("EA67625E-89B5-2EEA-156D-FC836214B0E4"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SELatticeCreatorEditor* c = static_cast<SELatticeCreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("EA67625E-89B5-2EEA-156D-FC836214B0E4"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
 	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
@@ -761,7 +761,7 @@ void SEAdenitaCoreSEAppGUI::onLatticeCreatorEditor() {
 
 void SEAdenitaCoreSEAppGUI::onWireframeEditor() {
 
-	SEWireframeEditor* c = static_cast<SEWireframeEditor*>(SAMSON::getEditor(SBCContainerUUID("F1F29042-3D87-DA61-BC5C-D3348EB2E1FA"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SEWireframeEditor* c = static_cast<SEWireframeEditor*>(SAMSON::getEditor(SBCContainerUUID("F1F29042-3D87-DA61-BC5C-D3348EB2E1FA"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
 	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
@@ -769,7 +769,7 @@ void SEAdenitaCoreSEAppGUI::onWireframeEditor() {
 
 void SEAdenitaCoreSEAppGUI::onTaggingEditor() {
 
-	SETaggingEditor* c = static_cast<SETaggingEditor*>(SAMSON::getEditor(SBCContainerUUID("473D2F88-5D06-25F5-EB58-053661504C43"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SETaggingEditor* c = static_cast<SETaggingEditor*>(SAMSON::getEditor(SBCContainerUUID("473D2F88-5D06-25F5-EB58-053661504C43"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
 	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
@@ -777,7 +777,7 @@ void SEAdenitaCoreSEAppGUI::onTaggingEditor() {
 
 void SEAdenitaCoreSEAppGUI::onTwisterEditor() {
 
-	SEDNATwisterEditor* c = static_cast<SEDNATwisterEditor*>(SAMSON::getEditor(SBCContainerUUID("677B1667-7856-12E6-5901-E8EAC729501A"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SEDNATwisterEditor* c = static_cast<SEDNATwisterEditor*>(SAMSON::getEditor(SBCContainerUUID("677B1667-7856-12E6-5901-E8EAC729501A"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
 	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
@@ -815,7 +815,7 @@ void SEAdenitaCoreSEAppGUI::checkForLoadedParts() {
 
 	SEAdenitaCoreSEApp* adenita = getApp();
 	SBNodeIndexer nodeIndexer;
-	SAMSON::getActiveDocument()->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNPart")) && (SBNode::GetElementUUID() == SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	SAMSON::getActiveDocument()->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNPart")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
 	SB_FOR(SBNode* n, nodeIndexer) {
 

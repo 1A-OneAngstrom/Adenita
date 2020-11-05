@@ -52,7 +52,7 @@ void SEDNATwisterEditor::setBendingType(BendingType type)
 
 SEAdenitaCoreSEApp* SEDNATwisterEditor::getAdenitaApp() const
 {
-  return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+  return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
 }
 
 void SEDNATwisterEditor::untwisting()
@@ -60,7 +60,7 @@ void SEDNATwisterEditor::untwisting()
 
   SBDocument* doc = SAMSON::getActiveDocument();
   SBNodeIndexer nodes;
-  doc->getNodes(nodes, (SBNode::GetClass() == std::string("ADNBaseSegment")) && (SBNode::GetElementUUID() == SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+  doc->getNodes(nodes, (SBNode::GetClass() == std::string("ADNBaseSegment")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
   DASBackToTheAtom btta;
 
@@ -81,7 +81,7 @@ void SEDNATwisterEditor::untwisting()
     }
   }
 
-  auto vm = static_cast<SEAdenitaVisualModel*>(getAdenitaApp()->GetVisualModel());
+  auto vm = static_cast<SEAdenitaVisualModel*>(SEAdenitaCoreSEApp::getVisualModel());
   vm->update();
 
 }
@@ -91,7 +91,7 @@ void SEDNATwisterEditor::makeInvisible()
 
   SBDocument* doc = SAMSON::getActiveDocument();
   SBNodeIndexer nts;
-  doc->getNodes(nts, (SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+  doc->getNodes(nts, (SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
   SB_FOR(SBNode* node, nts) {
 
@@ -112,7 +112,7 @@ void SEDNATwisterEditor::makeInvisible()
     }
   }
 
-  auto vm = static_cast<SEAdenitaVisualModel*>(getAdenitaApp()->GetVisualModel());
+  auto vm = static_cast<SEAdenitaVisualModel*>(SEAdenitaCoreSEApp::getVisualModel());
   vm->update();
 
 }

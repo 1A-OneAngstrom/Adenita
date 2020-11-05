@@ -20,7 +20,7 @@ CollectionMap<ADNSingleStrand> ADNNanorobot::GetSingleStrands() const
   CollectionMap<ADNSingleStrand> singleStrands;
 
   /*SBNodeIndexer nodeIndexer;
-  SAMSON::getActiveDocument()->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNSingleStrand")) && (SBNode::GetElementUUID() == SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+  SAMSON::getActiveDocument()->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNSingleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
   SB_FOR(SBNode* n, nodeIndexer) {
     singleStrands.addReferenceTarget(static_cast<ADNSingleStrand*>(n));
@@ -104,7 +104,7 @@ CollectionMap<ADNPart> ADNNanorobot::GetParts() const
   //CollectionMap<ADNPart> parts;
 
   //SBNodeIndexer nodeIndexer;
-  //SAMSON::getActiveDocument()->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNPart")) && (SBNode::GetElementUUID() == SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")) );
+  //SAMSON::getActiveDocument()->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNPart")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)) );
 
   //SB_FOR(SBNode* n, nodeIndexer) {
   //  if (!n->isErased()) parts.addReferenceTarget(static_cast<ADNPart*>(n));
@@ -135,7 +135,7 @@ CollectionMap<ADNNucleotide> ADNNanorobot::GetSelectedNucleotides()
 
   SBDocument* doc = SAMSON::getActiveDocument();
   SBNodeIndexer nodes;
-  doc->getNodes(nodes, (SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+  doc->getNodes(nodes, (SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
   // only take one
   SB_FOR(SBNode* node, nodes) {
@@ -154,7 +154,7 @@ CollectionMap<ADNPart> ADNNanorobot::GetSelectedParts()
 
   SBDocument* doc = SAMSON::getActiveDocument();
   SBNodeIndexer nodes;
-  doc->getNodes(nodes, (SBNode::GetClass() == std::string("ADNPart")) && (SBNode::GetElementUUID() == SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+  doc->getNodes(nodes, (SBNode::GetClass() == std::string("ADNPart")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
   // only take one
   SB_FOR(SBNode* node, nodes) {
@@ -191,7 +191,7 @@ CollectionMap<ADNNucleotide> ADNNanorobot::GetHighlightedNucleotides()
 
   SBDocument* doc = SAMSON::getActiveDocument();
   SBNodeIndexer nodes;
-  doc->getNodes(nodes, (SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+  doc->getNodes(nodes, (SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
   // only take one
   SB_FOR(SBNode* node, nodes) {
@@ -222,7 +222,7 @@ CollectionMap<ADNBaseSegment> ADNNanorobot::GetSelectedBaseSegmentsFromNucleotid
 
   //SBDocument* doc = SAMSON::getActiveDocument();
   //SBNodeIndexer nodes;
-  //doc->getNodes(nodes, (SBNode::GetClass() == std::string("ADNBaseSegment")) && (SBNode::GetElementUUID() == SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+  //doc->getNodes(nodes, (SBNode::GetClass() == std::string("ADNBaseSegment")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
   //// only take one
   //SB_FOR(SBNode* node, nodes) {
@@ -241,7 +241,7 @@ CollectionMap<ADNSingleStrand> ADNNanorobot::GetSelectedSingleStrands()
 
   SBDocument* doc = SAMSON::getActiveDocument();
   SBNodeIndexer nodes;
-  doc->getNodes(nodes, (SBNode::GetClass() == std::string("ADNSingleStrand")) && (SBNode::GetElementUUID() == SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+  doc->getNodes(nodes, (SBNode::GetClass() == std::string("ADNSingleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
   // only take one
   SB_FOR(SBNode* node, nodes) {
@@ -260,7 +260,7 @@ CollectionMap<ADNDoubleStrand> ADNNanorobot::GetSelectedDoubleStrands()
 
   SBDocument* doc = SAMSON::getActiveDocument();
   SBNodeIndexer nodes;
-  doc->getNodes(nodes, (SBNode::GetClass() == std::string("ADNDoubleStrand")) && (SBNode::GetElementUUID() == SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+  doc->getNodes(nodes, (SBNode::GetClass() == std::string("ADNDoubleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
   // only take one
   SB_FOR(SBNode* node, nodes) {
@@ -279,7 +279,7 @@ CollectionMap<ADNDoubleStrand> ADNNanorobot::GetHighlightedDoubleStrands()
 
   SBDocument* doc = SAMSON::getActiveDocument();
   SBNodeIndexer nodes;
-  doc->getNodes(nodes, (SBNode::GetClass() == std::string("ADNDoubleStrand")) && (SBNode::GetElementUUID() == SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+  doc->getNodes(nodes, (SBNode::GetClass() == std::string("ADNDoubleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
   // only take one
   SB_FOR(SBNode* node, nodes) {
@@ -444,7 +444,7 @@ CollectionMap<ADNBaseSegment> ADNNanorobot::GetHighlightedBaseSegments()
 
   SBDocument* doc = SAMSON::getActiveDocument();
   SBNodeIndexer nodes;
-  doc->getNodes(nodes, (SBNode::GetClass() == std::string("ADNBaseSegment")) && (SBNode::GetElementUUID() == SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+  doc->getNodes(nodes, (SBNode::GetClass() == std::string("ADNBaseSegment")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
   // only take one
   SB_FOR(SBNode* node, nodes) {

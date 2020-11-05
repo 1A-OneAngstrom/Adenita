@@ -47,7 +47,7 @@ public:
 
 	//@}
 
-  virtual void keyPressEvent(QKeyEvent *event);
+	virtual void												keyPressEvent(QKeyEvent *event);
 
 	///\name Settings
 	//@{
@@ -57,8 +57,7 @@ public:
 
 	//@}
 
-	// get selected scaffold
-	std::string													GetScaffoldFilename();
+	static std::string											getScaffoldFilename();													///< Returns the selected scaffold
 
 public slots:
 
