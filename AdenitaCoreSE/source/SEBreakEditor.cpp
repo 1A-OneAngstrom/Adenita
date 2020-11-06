@@ -1,4 +1,6 @@
 #include "SEBreakEditor.hpp"
+#include "SEAdenitaCoreSEApp.hpp"
+
 #include "SAMSON.hpp"
 
 
@@ -24,12 +26,7 @@ SEBreakEditorGUI* SEBreakEditor::getPropertyWidget() const { return static_cast<
 
 void SEBreakEditor::SetMode(bool five)
 {
-  fivePrimeMode_ = five;
-}
-
-SEAdenitaCoreSEApp* SEBreakEditor::getAdenitaApp() const
-{
-  return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
+	fivePrimeMode_ = five;
 }
 
 SBCContainerUUID SEBreakEditor::getUUID() const { return SBCContainerUUID("2FACBF90-F7E2-AFCB-5E37-AA86763DDBC2"); }
@@ -157,7 +154,7 @@ void SEBreakEditor::mousePressEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-  auto app = getAdenitaApp();
+  auto app = SEAdenitaCoreSEApp::getAdenitaApp();
   auto nanorobot = app->GetNanorobot();
 
   app->BreakSingleStrand();

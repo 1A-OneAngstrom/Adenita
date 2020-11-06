@@ -1,4 +1,6 @@
 #include "SEMergePartsEditor.hpp"
+#include "SEAdenitaCoreSEApp.hpp"
+
 #include "SAMSON.hpp"
 
 
@@ -27,7 +29,7 @@ std::map<int, ADNPointer<ADNPart>> SEMergePartsEditor::getPartsList()
   indexParts_.clear();
   int lastId = 0;
 
-  SEAdenitaCoreSEApp* t = getAdenitaApp();
+  SEAdenitaCoreSEApp* t = SEAdenitaCoreSEApp::getAdenitaApp();
   auto nr = t->GetNanorobot();
   auto parts = nr->GetParts();
   SB_FOR(ADNPointer<ADNPart> p, parts) {
@@ -42,7 +44,7 @@ std::map<int, SEMergePartsEditor::Element> SEMergePartsEditor::getElementsList()
   indexElements_.clear();
   int lastId = 0;
 
-  SEAdenitaCoreSEApp* t = getAdenitaApp();
+  SEAdenitaCoreSEApp* t = SEAdenitaCoreSEApp::getAdenitaApp();
   auto nr = t->GetNanorobot();
   auto parts = nr->GetParts();
   SB_FOR(ADNPointer<ADNPart> p, parts) {
@@ -70,7 +72,7 @@ void SEMergePartsEditor::MergeParts(int idx, int jdx)
 {
   if (idx == jdx) return;
 
-  auto app = getAdenitaApp();
+  auto app = SEAdenitaCoreSEApp::getAdenitaApp();
   app->SetMod(true);
 
   ADNPointer<ADNPart> p1 = nullptr;
@@ -78,7 +80,7 @@ void SEMergePartsEditor::MergeParts(int idx, int jdx)
   if (indexParts_.find(idx) != indexParts_.end()) p1 = indexParts_.at(idx);
   if (indexParts_.find(jdx) != indexParts_.end()) p2 = indexParts_.at(jdx);
   if (p1 != nullptr && p2 != nullptr) {
-    SEAdenitaCoreSEApp* t = getAdenitaApp();
+    SEAdenitaCoreSEApp* t = SEAdenitaCoreSEApp::getAdenitaApp();
     t->MergeComponents(p1, p2);
   }
 
@@ -87,7 +89,7 @@ void SEMergePartsEditor::MergeParts(int idx, int jdx)
 
 void SEMergePartsEditor::MoveElement(int edx, int pdx)
 {
-  auto app = getAdenitaApp();
+  auto app = SEAdenitaCoreSEApp::getAdenitaApp();
   app->SetMod(true);
 
   ADNPointer<ADNPart> p = nullptr;
@@ -95,7 +97,7 @@ void SEMergePartsEditor::MoveElement(int edx, int pdx)
   Element el;
   if (indexElements_.find(edx) != indexElements_.end()) el = indexElements_.at(edx);
   if (p != nullptr && el.type != -1) {
-    SEAdenitaCoreSEApp* t = getAdenitaApp();
+    SEAdenitaCoreSEApp* t = SEAdenitaCoreSEApp::getAdenitaApp();
     if (el.type == 0) {
       t->MoveDoubleStrand(el.ds, p);
     }
@@ -105,11 +107,6 @@ void SEMergePartsEditor::MoveElement(int edx, int pdx)
   }
 
   app->SetMod(false);
-}
-
-SEAdenitaCoreSEApp* SEMergePartsEditor::getAdenitaApp() const
-{
-  return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
 }
 
 SBCContainerUUID SEMergePartsEditor::getUUID() const { return SBCContainerUUID("EB812444-8EA8-BD83-988D-AFF5987461D8"); }
@@ -131,16 +128,17 @@ QPixmap SEMergePartsEditor::getLogo() const {
 
 }
 
-int SEMergePartsEditor::getFormat() const
-{
-  // SAMSON Element generator pro tip: modify these default settings to configure the window
-  //
-  // SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
-  // SBGWindow::Lockable : let users lock the window on top
-  // SBGWindow::Resizable : let users resize the window
-  // SBGWindow::Citable : let users obtain citation information (implement getCitation)
+int SEMergePartsEditor::getFormat() const {
 
-  return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
+	// SAMSON Element generator pro tip: modify these default settings to configure the window
+	//
+	// SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
+	// SBGWindow::Lockable : let users lock the window on top
+	// SBGWindow::Resizable : let users resize the window
+	// SBGWindow::Citable : let users obtain citation information (implement getCitation)
+
+	return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
+
 }
 
 QKeySequence SEMergePartsEditor::getShortcut() const {
@@ -159,25 +157,25 @@ QString SEMergePartsEditor::getToolTip() const {
 
 }
 
-void SEMergePartsEditor::loadSettings(SBGSettings * settings)
-{
-  if (settings == NULL) return;
+void SEMergePartsEditor::loadSettings(SBGSettings * settings) {
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	if (settings == nullptr) return;
+
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
 void SEMergePartsEditor::saveSettings(SBGSettings* settings) {
 
-  if (settings == NULL) return;
+	if (settings == nullptr) return;
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
 QString SEMergePartsEditor::getDescription() const
 {
-  return QObject::tr("Adenita | Merge Adenita Components");
+	return QObject::tr("Adenita | Merge Adenita Components");
 }
 
 void SEMergePartsEditor::beginEditing() {
@@ -206,7 +204,6 @@ void SEMergePartsEditor::display() {
 
 	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop. 
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
-
 
 }
 

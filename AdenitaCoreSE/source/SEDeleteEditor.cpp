@@ -1,4 +1,6 @@
 #include "SEDeleteEditor.hpp"
+#include "SEAdenitaCoreSEApp.hpp"
+
 #include "SAMSON.hpp"
 
 
@@ -21,11 +23,6 @@ SEDeleteEditor::~SEDeleteEditor() {
 }
 
 SEDeleteEditorGUI* SEDeleteEditor::getPropertyWidget() const { return static_cast<SEDeleteEditorGUI*>(propertyWidget); }
-
-SEAdenitaCoreSEApp* SEDeleteEditor::getAdenitaApp() const
-{
-  return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
-}
 
 SBCContainerUUID SEDeleteEditor::getUUID() const { return SBCContainerUUID("BA1E9F38-0280-6871-D979-D314FBC98758"); }
 
@@ -149,7 +146,7 @@ void SEDeleteEditor::mousePressEvent(QMouseEvent* event) {
 	// Implement this function to handle this event with your editor.
 
 
-  auto app = getAdenitaApp();
+  auto app = SEAdenitaCoreSEApp::getAdenitaApp();
   auto nanorobot = app->GetNanorobot();
   app->SetMod(true);
 

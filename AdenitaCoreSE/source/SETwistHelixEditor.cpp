@@ -1,4 +1,5 @@
 #include "SETwistHelixEditor.hpp"
+#include "SEAdenitaCoreSEApp.hpp"
 #include "SAMSON.hpp"
 
 
@@ -38,13 +39,8 @@ void SETwistHelixEditor::SetTwistAngle(double angle)
 
 void SETwistHelixEditor::SetMode(bool t)
 {
-  SETwistHelixEditorGUI* gui = getPropertyWidget();
-  gui->CheckPlusOrMinus(t);
-}
-
-SEAdenitaCoreSEApp* SETwistHelixEditor::getAdenitaApp() const
-{
-  return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
+	SETwistHelixEditorGUI* gui = getPropertyWidget();
+	gui->CheckPlusOrMinus(t);
 }
 
 SBCContainerUUID SETwistHelixEditor::getUUID() const { return SBCContainerUUID("4B60FECA-2A79-680F-F289-B4908A924409"); }
@@ -69,14 +65,14 @@ QPixmap SETwistHelixEditor::getLogo() const {
 int SETwistHelixEditor::getFormat() const
 {
 
-  // SAMSON Element generator pro tip: modify these default settings to configure the window
-  //
-  // SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
-  // SBGWindow::Lockable : let users lock the window on top
-  // SBGWindow::Resizable : let users resize the window
-  // SBGWindow::Citable : let users obtain citation information (implement getCitation)
+	// SAMSON Element generator pro tip: modify these default settings to configure the window
+	//
+	// SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
+	// SBGWindow::Lockable : let users lock the window on top
+	// SBGWindow::Resizable : let users resize the window
+	// SBGWindow::Citable : let users obtain citation information (implement getCitation)
 
-  return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
+	return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
 
 }
 
@@ -96,25 +92,25 @@ QString SETwistHelixEditor::getToolTip() const {
 
 }
 
-void SETwistHelixEditor::loadSettings(SBGSettings * settings)
-{
-  if (settings == NULL) return;
+void SETwistHelixEditor::loadSettings(SBGSettings * settings) {
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	if (settings == nullptr) return;
+
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
 void SETwistHelixEditor::saveSettings(SBGSettings* settings) {
 
-  if (settings == NULL) return;
+	if (settings == nullptr) return;
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
 QString SETwistHelixEditor::getDescription() const
 {
-  return QObject::tr("Adenita | dsDNA Helical Twist");
+	return QObject::tr("Adenita | dsDNA Helical Twist");
 }
 
 void SETwistHelixEditor::beginEditing() {
@@ -136,7 +132,7 @@ void SETwistHelixEditor::endEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function immediately before your editor becomes inactive (for example when another editor becomes active). 
 	// Implement this function if you need to clean some data structures.
-  SAMSON::unsetViewportCursor();
+	SAMSON::unsetViewportCursor();
 }
 
 void SETwistHelixEditor::getActions(SBVector<SBAction*>& actionVector) {
@@ -177,7 +173,7 @@ void SETwistHelixEditor::mousePressEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
   if (event->buttons() == Qt::LeftButton) {
-    auto app = getAdenitaApp();
+    auto app = SEAdenitaCoreSEApp::getAdenitaApp();
     auto nanorobot = app->GetNanorobot();
 
     auto highlightedNucleotides = nanorobot->GetHighlightedNucleotides();

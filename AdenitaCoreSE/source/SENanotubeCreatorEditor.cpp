@@ -1,4 +1,6 @@
 #include "SENanotubeCreatorEditor.hpp"
+#include "SEAdenitaCoreSEApp.hpp"
+
 #include "SAMSON.hpp"
 
 
@@ -24,27 +26,27 @@ SENanotubeCreatorEditorGUI* SENanotubeCreatorEditor::getPropertyWidget() const {
 
 void SENanotubeCreatorEditor::SetRouting(RoutingType t)
 {
-  routing_ = t;
+	routing_ = t;
 }
 
 void SENanotubeCreatorEditor::SetPredefined(bool predefined, double radius, int numBp)
 {
-  predefined_ = false;
-  if (radius > 0.0 && numBp > 0) {
-    predefined_ = predefined;
-    numBp_ = numBp;
-    radius_ = radius;
-  }
+	predefined_ = false;
+	if (radius > 0.0 && numBp > 0) {
+		predefined_ = predefined;
+		numBp_ = numBp;
+		radius_ = radius;
+	}
 }
 
 void SENanotubeCreatorEditor::SetRadius(double radius)
 {
-  radius_ = radius;
+	radius_ = radius;
 }
 
 void SENanotubeCreatorEditor::SetBp(int bp)
 {
-  numBp_ = bp;
+	numBp_ = bp;
 }
 
 ADNPointer<ADNPart> SENanotubeCreatorEditor::generateNanotube(bool mock)
@@ -81,16 +83,16 @@ ADNPointer<ADNPart> SENanotubeCreatorEditor::generateNanotube(bool mock)
 
 void SENanotubeCreatorEditor::displayNanotube()
 {
-  ADNDisplayHelper::displayPart(tempPart_);
+	ADNDisplayHelper::displayPart(tempPart_);
 }
 
 void SENanotubeCreatorEditor::sendPartToAdenita(ADNPointer<ADNPart> nanotube)
 {
-  if (nanotube != nullptr) {
-    SEAdenitaCoreSEApp* adenita = static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
-    adenita->AddPartToActiveLayer(nanotube);
-	SEAdenitaCoreSEApp::resetVisualModel();
-  }
+	if (nanotube != nullptr) {
+		SEAdenitaCoreSEApp* adenita = static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
+		adenita->AddPartToActiveLayer(nanotube);
+		SEAdenitaCoreSEApp::resetVisualModel();
+	}
 }
 
 void SENanotubeCreatorEditor::updateGUI(SBQuantity::length radius, int numBp, bool clear)
@@ -132,13 +134,14 @@ QPixmap SENanotubeCreatorEditor::getLogo() const {
 int SENanotubeCreatorEditor::getFormat() const
 {
 
-  // SAMSON Element generator pro tip: modify these default settings to configure the window
-  // SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
-  // SBGWindow::Lockable : let users lock the window on top
-  // SBGWindow::Resizable : let users resize the window
-  // SBGWindow::Citable : let users obtain citation information (implement getCitation)
+	// SAMSON Element generator pro tip: modify these default settings to configure the window
+	// SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
+	// SBGWindow::Lockable : let users lock the window on top
+	// SBGWindow::Resizable : let users resize the window
+	// SBGWindow::Citable : let users obtain citation information (implement getCitation)
 
-  return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
+	return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
+
 }
 
 QKeySequence SENanotubeCreatorEditor::getShortcut() const { 
@@ -157,33 +160,33 @@ QString SENanotubeCreatorEditor::getToolTip() const {
 
 }
 
-void SENanotubeCreatorEditor::loadSettings(SBGSettings * settings)
-{
-  if (settings == NULL) return;
+void SENanotubeCreatorEditor::loadSettings(SBGSettings * settings) {
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	if (settings == nullptr) return;
+
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
 void SENanotubeCreatorEditor::saveSettings(SBGSettings* settings) {
 
-  if (settings == NULL) return;
+	if (settings == nullptr) return;
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
 QString SENanotubeCreatorEditor::getDescription() const
 {
-  return QObject::tr("Adenita | DNA Nanotube Editor");
+	return QObject::tr("Adenita | DNA Nanotube Editor");
 }
 
 void SENanotubeCreatorEditor::beginEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
-  string iconPath = SB_ELEMENT_PATH + "/Resource/icons/nanotubeCreator.png";
-  SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
+	string iconPath = SB_ELEMENT_PATH + "/Resource/icons/nanotubeCreator.png";
+	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
 
 }
 
@@ -191,7 +194,8 @@ void SENanotubeCreatorEditor::endEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function immediately before your editor becomes inactive (for example when another editor becomes active). 
 	// Implement this function if you need to clean some data structures.
-  SAMSON::unsetViewportCursor();
+	SAMSON::unsetViewportCursor();
+
 }
 
 void SENanotubeCreatorEditor::getActions(SBVector<SBAction*>& actionVector) {

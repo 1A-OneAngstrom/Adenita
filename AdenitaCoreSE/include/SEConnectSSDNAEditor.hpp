@@ -8,14 +8,15 @@
 #include "SBDynamicalEvent.hpp"
 #include "SBStructuralEvent.hpp"
 #include "SBAction.hpp"
-#include "MSVDisplayHelper.hpp"
-#include "SEAdenitaCoreSEApp.hpp"
+
+#include "ADNModel.hpp"
+#include "ADNMixins.hpp"
 
 /// This class implements an editor
 
 enum ConnectionMode {
-  Single,
-  Double
+	Single,
+	Double
 };
 
 class SEConnectSSDNAEditor : public SBGEditor {
@@ -28,31 +29,31 @@ public :
 	/// \name Constructors and destructors
 	//@{
 
-	SEConnectSSDNAEditor();																													///< Builds an editor					
-	virtual ~SEConnectSSDNAEditor();																											///< Destructs the editor
+	SEConnectSSDNAEditor();																												///< Builds an editor					
+	virtual ~SEConnectSSDNAEditor();																									///< Destructs the editor
 
 	//@}
 
 	/// \name Identity
 	//@{
 
-  virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
-  virtual QString												getName() const;														///< Returns the class name
-  virtual QString	                      getDescription() const;	                      ///< Returns the menu item text
-  virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
-  virtual int													getFormat() const;														///< Returns the format
-  virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
-  virtual QString												getToolTip() const;														///< Returns the tool tip
+	virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
+	virtual QString												getName() const;														///< Returns the class name
+	virtual QString												getDescription() const;													///< Returns the menu item text
+	virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
+	virtual int													getFormat() const;														///< Returns the format
+	virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
+	virtual QString												getToolTip() const;														///< Returns the tool tip
 
-  //@}
+	//@}
 
-  ///\name Settings
-  //@{
+	///\name Settings
+	//@{
 
-  virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
-  virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
+	virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
+	virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
 
-  //@}
+	//@}
 
 	/// \name Editing
 	//@{
@@ -106,25 +107,25 @@ public :
 	/// \name GUI
 	//@{
 
-	SEConnectSSDNAEditorGUI*											getPropertyWidget() const;												///< Returns the property widget of the editor
+	SEConnectSSDNAEditorGUI*									getPropertyWidget() const;												///< Returns the property widget of the editor
 
 	//@}
 
-  void SetMode(bool xo);
-  void SetSequence(std::string seq);
-  void SetAutoSequence(bool s);
-  void SetConcat(bool c);
+	void														SetMode(bool xo);
+	void														SetSequence(std::string seq);
+	void														SetAutoSequence(bool s);
+	void														SetConcat(bool c);
 
 private:
-  SEAdenitaCoreSEApp*					          getAdenitaApp() const;															///< Returns a pointer to the app
 
-  bool display_ = false;
-  ADNPointer<ADNNucleotide> start_;
+	bool														display_ = false;
+	ADNPointer<ADNNucleotide>									start_;
 
-  ConnectionMode mode_ = Single;
-  std::string sequence_ = "";
-  bool concat_ = false;
-  bool autoSequence_ = false;
+	ConnectionMode												mode_ = Single;
+	std::string													sequence_ = "";
+	bool														concat_ = false;
+	bool														autoSequence_ = false;
+
 };
 
 

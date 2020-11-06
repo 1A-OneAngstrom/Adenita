@@ -8,16 +8,18 @@
 #include "SBDynamicalEvent.hpp"
 #include "SBStructuralEvent.hpp"
 #include "SBAction.hpp"
+
+#include "ADNConstants.hpp"
 #include "ADNPart.hpp"
-#include "SEAdenitaCoreSEApp.hpp"
-#include "MSVDisplayHelper.hpp"
+#include "DASCadnano.hpp"
+#include "DASCreator.hpp"
 
 /// This class implements an editor
 
 enum ZLatticePattern {
-  ALLZ,
-  TRIANGLE,
-  CIRCLE
+	ALLZ,
+	TRIANGLE,
+	CIRCLE
 };
 
 class SELatticeCreatorEditor : public SBGEditor {
@@ -30,31 +32,31 @@ public :
 	/// \name Constructors and destructors
 	//@{
 
-	SELatticeCreatorEditor();																													///< Builds an editor					
-	virtual ~SELatticeCreatorEditor();																											///< Destructs the editor
+	SELatticeCreatorEditor();																											///< Builds an editor					
+	virtual ~SELatticeCreatorEditor();																									///< Destructs the editor
 
 	//@}
 
 	/// \name Identity
 	//@{
 
-  virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
-  virtual QString												getName() const;														///< Returns the class name
-  virtual QString	                      getDescription() const;	                      ///< Returns the menu item text
-  virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
-  virtual int													getFormat() const;														///< Returns the format
-  virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
-  virtual QString												getToolTip() const;														///< Returns the tool tip
+	virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
+	virtual QString												getName() const;														///< Returns the class name
+	virtual QString												getDescription() const;													///< Returns the menu item text
+	virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
+	virtual int													getFormat() const;														///< Returns the format
+	virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
+	virtual QString												getToolTip() const;														///< Returns the tool tip
 
-  //@}
+	//@}
 
-  ///\name Settings
-  //@{
+	///\name Settings
+	//@{
 
-  virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
-  virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
+	virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
+	virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
 
-  //@}
+	//@}
 
 	/// \name Editing
 	//@{
@@ -105,39 +107,41 @@ public :
 
 	//@}
 
-  void                                setLatticeType(LatticeType type);
-  void                                setZPattern(ZLatticePattern pattern);
+	void														setLatticeType(LatticeType type);
+	void														setZPattern(ZLatticePattern pattern);
+
 	/// \name GUI
 	//@{
 
-	SELatticeCreatorEditorGUI*											getPropertyWidget() const;												///< Returns the property widget of the editor
+	SELatticeCreatorEditorGUI*									getPropertyWidget() const;												///< Returns the property widget of the editor
 
 	//@}
 
-	void															setMaxXds(int val);
-	void															setMaxYds(int val);
-	void															setMaxZBps(int val);
+	void														setMaxXds(int val);
+	void														setMaxYds(int val);
+	void														setMaxZBps(int val);
+
 private:
 
-  ADNPointer<ADNPart> generateLattice(bool mock = false);
-  void displayLattice();
-  void sendPartToAdenita(ADNPointer<ADNPart> lattice);
+	ADNPointer<ADNPart>											generateLattice(bool mock = false);
+	void														displayLattice();
+	void														sendPartToAdenita(ADNPointer<ADNPart> lattice);
 
-	LatticeType lType_ = LatticeType::Honeycomb;
-  VGrid vGrid_;
+	LatticeType													lType_ = LatticeType::Honeycomb;
+	VGrid														vGrid_;
 
-  DASCreatorEditors::UIData positions_;
-  bool display_ = false;
-  ADNPointer<ADNPart> tempPart_ = nullptr;
+	DASCreatorEditors::UIData									positions_;
+	bool														display_ = false;
+	ADNPointer<ADNPart>											tempPart_ = nullptr;
 
-	int maxXds_ = 32;
-	int maxYds_ = 30;
-	int maxZBps_ = 400;
+	int															maxXds_ = 32;
+	int															maxYds_ = 30;
+	int															maxZBps_ = 400;
 
-	string xyText_ = "";
-	string zText_ = "";
+	string														xyText_ = "";
+	string														zText_ = "";
 
-  ZLatticePattern zPattern_ = ZLatticePattern::ALLZ;
+	ZLatticePattern												zPattern_ = ZLatticePattern::ALLZ;
 
 };
 

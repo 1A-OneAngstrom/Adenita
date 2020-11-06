@@ -1,4 +1,6 @@
 #include "SEConnectSSDNAEditor.hpp"
+#include "SEAdenitaCoreSEApp.hpp"
+
 #include "SAMSON.hpp"
 
 
@@ -34,22 +36,17 @@ void SEConnectSSDNAEditor::SetMode(bool xo)
 
 void SEConnectSSDNAEditor::SetSequence(std::string seq)
 {
-  sequence_ = seq;
+	sequence_ = seq;
 }
 
 void SEConnectSSDNAEditor::SetAutoSequence(bool s)
 {
-  autoSequence_ = s;
+	autoSequence_ = s;
 }
 
 void SEConnectSSDNAEditor::SetConcat(bool c)
 {
-  concat_ = c;
-}
-
-SEAdenitaCoreSEApp* SEConnectSSDNAEditor::getAdenitaApp() const
-{
-  return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
+	concat_ = c;
 }
 
 SBCContainerUUID SEConnectSSDNAEditor::getUUID() const { return SBCContainerUUID("0854A585-E146-954F-616C-B4532A1B2555"); }
@@ -73,14 +70,14 @@ QPixmap SEConnectSSDNAEditor::getLogo() const {
 
 int SEConnectSSDNAEditor::getFormat() const {
 
-  // SAMSON Element generator pro tip: modify these default settings to configure the window
-  //
-  // SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
-  // SBGWindow::Lockable : let users lock the window on top
-  // SBGWindow::Resizable : let users resize the window
-  // SBGWindow::Citable : let users obtain citation information (implement getCitation)
+	// SAMSON Element generator pro tip: modify these default settings to configure the window
+	//
+	// SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
+	// SBGWindow::Lockable : let users lock the window on top
+	// SBGWindow::Resizable : let users resize the window
+	// SBGWindow::Citable : let users obtain citation information (implement getCitation)
 
-  return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
+	return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
 
 }
 
@@ -100,33 +97,33 @@ QString SEConnectSSDNAEditor::getToolTip() const {
 
 }
 
-void SEConnectSSDNAEditor::loadSettings(SBGSettings * settings)
-{
-  if (settings == NULL) return;
+void SEConnectSSDNAEditor::loadSettings(SBGSettings * settings) {
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	if (settings == nullptr) return;
+
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
 void SEConnectSSDNAEditor::saveSettings(SBGSettings* settings) {
 
-  if (settings == NULL) return;
+	if (settings == nullptr) return;
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
 QString SEConnectSSDNAEditor::getDescription() const
 {
-  return QObject::tr("Adenita | Connect DNA strands");
+	return QObject::tr("Adenita | Connect DNA strands");
 }
 
 void SEConnectSSDNAEditor::beginEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
-  string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_connectSS.png";
-  SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
+	string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_connectSS.png";
+	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
   
 }
 
@@ -134,7 +131,8 @@ void SEConnectSSDNAEditor::endEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function immediately before your editor becomes inactive (for example when another editor becomes active). 
 	// Implement this function if you need to clean some data structures.
-  SAMSON::unsetViewportCursor();
+	SAMSON::unsetViewportCursor();
+
 }
 
 void SEConnectSSDNAEditor::getActions(SBVector<SBAction*>& actionVector) {
@@ -154,7 +152,7 @@ void SEConnectSSDNAEditor::display() {
     SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
     
     //check if a nucleotide got selected
-    auto app = getAdenitaApp();
+    auto app = SEAdenitaCoreSEApp::getAdenitaApp();
     auto nanorobot = app->GetNanorobot();
 
     auto highlightedNucleotides = nanorobot->GetHighlightedNucleotides();
@@ -192,7 +190,7 @@ void SEConnectSSDNAEditor::mousePressEvent(QMouseEvent* event) {
   if (event->buttons() == Qt::LeftButton && !display_) {
 
     //check if a nucleotide got selected
-    auto app = getAdenitaApp();
+    auto app = SEAdenitaCoreSEApp::getAdenitaApp();
     auto nanorobot = app->GetNanorobot();
 
     auto selectedNucleotides = nanorobot->GetSelectedNucleotides();
@@ -219,7 +217,7 @@ void SEConnectSSDNAEditor::mouseReleaseEvent(QMouseEvent* event) {
   if (display_) {
     display_ = false;
 
-    auto app = getAdenitaApp();
+    auto app = SEAdenitaCoreSEApp::getAdenitaApp();
     auto nanorobot = app->GetNanorobot();
 
     auto highlightedNucleotides = nanorobot->GetHighlightedNucleotides();

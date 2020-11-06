@@ -182,7 +182,6 @@ private:
 	ADNArray<unsigned int>										getNucleotideIndices();
 	ADNArray<unsigned int>										getBaseSegmentIndices();
 	void														changeHighlightFlag(); //scale 9: display polyhedron 
-	SEAdenitaCoreSEApp*											getAdenitaApp() const;													///< Returns a pointer to the app
 	void														orderVisibility();
 	void														setupPropertyColors();
 	ADNArray<float>												calcPropertyColor(int colorSchemeIdx, float min, float max, float val);

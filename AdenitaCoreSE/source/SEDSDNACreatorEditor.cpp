@@ -1,19 +1,21 @@
 #include "SEDSDNACreatorEditor.hpp"
+#include "SEAdenitaCoreSEApp.hpp"
+
 #include "SAMSON.hpp"
 
 
 SEDSDNACreatorEditor::SEDSDNACreatorEditor() {
 
 	// SAMSON Element generator pro tip: this default constructor is called when unserializing the node, so it should perform all default initializations.
-  SEConfig& config = SEConfig::GetInstance();
+	SEConfig& config = SEConfig::GetInstance();
 
 	propertyWidget = new SEDSDNACreatorEditorGUI(this);
 	propertyWidget->loadDefaultSettings();
 
-  auto app = getAdenitaApp();
-  nanorobot_ = app->GetNanorobot();
+	auto app = SEAdenitaCoreSEApp::getAdenitaApp();
+	nanorobot_ = app->GetNanorobot();
 
-  basePairRadius_ = config.base_pair_radius;
+	basePairRadius_ = config.base_pair_radius;
 }
 
 SEDSDNACreatorEditor::~SEDSDNACreatorEditor() {
@@ -29,39 +31,39 @@ SEDSDNACreatorEditorGUI* SEDSDNACreatorEditor::getPropertyWidget() const { retur
 
 void SEDSDNACreatorEditor::SetMode(bool m)
 {
-  dsMode_ = m;
+	dsMode_ = m;
 }
 
 void SEDSDNACreatorEditor::SetShowBox(bool s)
 {
-  showBox_ = s;
+	showBox_ = s;
 }
 
 void SEDSDNACreatorEditor::SetBoxSize(double height, double width, double depth)
 {
-  boxHeight_ = SBQuantity::nanometer(height);
-  boxWidth_ = SBQuantity::nanometer(width);
-  boxDepth_ = SBQuantity::nanometer(depth);
+	boxHeight_ = SBQuantity::nanometer(height);
+	boxWidth_ = SBQuantity::nanometer(width);
+	boxDepth_ = SBQuantity::nanometer(depth);
 }
 
 void SEDSDNACreatorEditor::SetCircular(bool c)
 {
-  circular_ = c;
+	circular_ = c;
 }
 
 void SEDSDNACreatorEditor::SetManual(bool m)
 {
-  manual_ = m;
+	manual_ = m;
 }
 
 void SEDSDNACreatorEditor::SetNumberNucleotides(int n)
 {
-  numNts_ = n;
+	numNts_ = n;
 }
 
 void SEDSDNACreatorEditor::SetSequence(bool s)
 {
-  setSequence_ = s;
+	setSequence_ = s;
 }
 
 SBPosition3 SEDSDNACreatorEditor::GetSnappedPosition()
@@ -188,12 +190,6 @@ void SEDSDNACreatorEditor::sendPartToAdenita(ADNPointer<ADNPart> nanotube)
   }
 }
 
-SEAdenitaCoreSEApp * SEDSDNACreatorEditor::getAdenitaApp()
-{
-  SEAdenitaCoreSEApp* adenita = static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
-  return adenita;
-}
-
 void SEDSDNACreatorEditor::SetSequence(ADNPointer<ADNPart> nanotube)
 {
   if (setSequence_) {
@@ -276,35 +272,35 @@ QString SEDSDNACreatorEditor::getToolTip() const {
 
 void SEDSDNACreatorEditor::loadSettings(SBGSettings* settings) {
 
-  if (settings == NULL) return;
+	if (settings == nullptr) return;
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
 void SEDSDNACreatorEditor::saveSettings(SBGSettings* settings) {
 
-  if (settings == NULL) return;
+	if (settings == nullptr) return;
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
 QString SEDSDNACreatorEditor::getDescription() const
 {
-  return QObject::tr("Adenita | DNA strands Editor");
+	return QObject::tr("Adenita | DNA strands Editor");
 }
 
 int SEDSDNACreatorEditor::getFormat() const {
 
-  // SAMSON Element generator pro tip: modify these default settings to configure the window
-  //
-  // SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
-  // SBGWindow::Lockable : let users lock the window on top
-  // SBGWindow::Resizable : let users resize the window
-  // SBGWindow::Citable : let users obtain citation information (implement getCitation)
+	// SAMSON Element generator pro tip: modify these default settings to configure the window
+	//
+	// SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
+	// SBGWindow::Lockable : let users lock the window on top
+	// SBGWindow::Resizable : let users resize the window
+	// SBGWindow::Citable : let users obtain citation information (implement getCitation)
 
-  return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
+	return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
 
 }
 
@@ -312,8 +308,8 @@ void SEDSDNACreatorEditor::beginEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
-  string iconPath = SB_ELEMENT_PATH + "/Resource/icons/dsCreator.png";
-  SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
+	string iconPath = SB_ELEMENT_PATH + "/Resource/icons/dsCreator.png";
+	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
 
 }
 
@@ -321,7 +317,8 @@ void SEDSDNACreatorEditor::endEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function immediately before your editor becomes inactive (for example when another editor becomes active). 
 	// Implement this function if you need to clean some data structures.
-  SAMSON::unsetViewportCursor();
+	SAMSON::unsetViewportCursor();
+
 }
 
 void SEDSDNACreatorEditor::getActions(SBVector<SBAction*>& actionVector) {

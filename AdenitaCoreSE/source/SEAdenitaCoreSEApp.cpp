@@ -24,6 +24,12 @@ SEAdenitaCoreSEApp::~SEAdenitaCoreSEApp() {
 
 SEAdenitaCoreSEAppGUI* SEAdenitaCoreSEApp::getGUI() const { return static_cast<SEAdenitaCoreSEAppGUI*>(SBDApp::getGUI()); }
 
+SEAdenitaCoreSEApp* SEAdenitaCoreSEApp::getAdenitaApp() {
+
+	return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
+
+}
+
 void SEAdenitaCoreSEApp::LoadPart(QString filename) {
 
 	SAMSON::setStatusMessage(QString("Loading component ") + filename);

@@ -8,7 +8,8 @@
 #include "SBDynamicalEvent.hpp"
 #include "SBStructuralEvent.hpp"
 #include "SBAction.hpp"
-#include "SEAdenitaCoreSEApp.hpp"
+
+#include "ADNPart.hpp"
 
 
 /// This class implements an editor
@@ -23,7 +24,7 @@ public :
 	/// \name Constructors and destructors
 	//@{
 
-  SEMergePartsEditor();																													///< Builds an editor					
+	SEMergePartsEditor();																													///< Builds an editor					
 	virtual ~SEMergePartsEditor();																											///< Destructs the editor
 
 	//@}
@@ -31,23 +32,23 @@ public :
 	/// \name Identity
 	//@{
 
-  virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
-  virtual QString												getName() const;														///< Returns the class name
-  virtual QString	                      getDescription() const;	                      ///< Returns the menu item text
-  virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
-  virtual int													getFormat() const;														///< Returns the format
-  virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
-  virtual QString												getToolTip() const;														///< Returns the tool tip
+	virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
+	virtual QString												getName() const;														///< Returns the class name
+	virtual QString												getDescription() const;													///< Returns the menu item text
+	virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
+	virtual int													getFormat() const;														///< Returns the format
+	virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
+	virtual QString												getToolTip() const;														///< Returns the tool tip
 
-  //@}
+	//@}
 
-  ///\name Settings
-  //@{
+	///\name Settings
+	//@{
 
-  virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
-  virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
+	virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
+	virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
 
-  //@}
+	//@}
 
 	/// \name Editing
 	//@{
@@ -101,35 +102,35 @@ public :
 	/// \name GUI
 	//@{
 
-  SEMergePartsEditorGUI*											getPropertyWidget() const;												///< Returns the property widget of the editor
+	SEMergePartsEditorGUI*										getPropertyWidget() const;												///< Returns the property widget of the editor
 
-  struct Element {
-    int type = -1;
-    ADNPointer<ADNSingleStrand> ss;
-    ADNPointer<ADNDoubleStrand> ds;
+	struct Element {
+		int type = -1;
+		ADNPointer<ADNSingleStrand> ss;
+		ADNPointer<ADNDoubleStrand> ds;
 
-    std::string GetName() {
-      std::string n = "";
-      if (type == 0) {
-        n = ds->getName();
-      }
-      else if (type == 1) {
-        n = ss->getName();
-      }
-      return n;
-    }
-  };
+		std::string GetName() {
+			std::string n = "";
+			if (type == 0) {
+				n = ds->getName();
+			}
+			else if (type == 1) {
+				n = ss->getName();
+			}
+			return n;
+		}
+	};
 
-  std::map<int, ADNPointer<ADNPart>> getPartsList();
-  std::map<int, Element> getElementsList();
-  void MergeParts(int idx, int jdx);
-  void MoveElement(int edx, int pdx);
+	std::map<int, ADNPointer<ADNPart>>							getPartsList();
+	std::map<int, Element>										getElementsList();
+	void														MergeParts(int idx, int jdx);
+	void														MoveElement(int edx, int pdx);
 
 private:
-  SEAdenitaCoreSEApp*					          getAdenitaApp() const;															///< Returns a pointer to the app
 
-  std::map<int, ADNPointer<ADNPart>> indexParts_;
-  std::map<int, Element> indexElements_;
+	std::map<int, ADNPointer<ADNPart>>							indexParts_;
+	std::map<int, Element>										indexElements_;
+
 };
 
 

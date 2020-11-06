@@ -1,5 +1,8 @@
 #include "SEWireframeEditor.hpp"
+#include "SEAdenitaCoreSEApp.hpp"
 #include "SAMSON.hpp"
+
+#include <QOpenGLFunctions_4_3_Core>
 
 
 SEWireframeEditor::SEWireframeEditor() {
@@ -24,7 +27,7 @@ SEWireframeEditorGUI* SEWireframeEditor::getPropertyWidget() const { return stat
 
 void SEWireframeEditor::setWireframeType(DASCreator::EditorType type)
 {
-  wireframeType_ = type;
+	wireframeType_ = type;
 }
 
 ADNPointer<ADNPart> SEWireframeEditor::generateCuboid(bool mock /*= false*/)
@@ -321,14 +324,14 @@ QPixmap SEWireframeEditor::getLogo() const {
 int SEWireframeEditor::getFormat() const
 {
 
-  // SAMSON Element generator pro tip: modify these default settings to configure the window
-  //
-  // SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
-  // SBGWindow::Lockable : let users lock the window on top
-  // SBGWindow::Resizable : let users resize the window
-  // SBGWindow::Citable : let users obtain citation information (implement getCitation)
+	// SAMSON Element generator pro tip: modify these default settings to configure the window
+	//
+	// SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
+	// SBGWindow::Lockable : let users lock the window on top
+	// SBGWindow::Resizable : let users resize the window
+	// SBGWindow::Citable : let users obtain citation information (implement getCitation)
 
-  return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
+	return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
 
 }
 
@@ -348,40 +351,41 @@ QString SEWireframeEditor::getToolTip() const {
 
 }
 
-void SEWireframeEditor::loadSettings(SBGSettings * settings)
-{
-  if (settings == NULL) return;
+void SEWireframeEditor::loadSettings(SBGSettings * settings) {
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	if (settings == nullptr) return;
+
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
 void SEWireframeEditor::saveSettings(SBGSettings* settings) {
 
-  if (settings == NULL) return;
+	if (settings == nullptr) return;
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
 QString SEWireframeEditor::getDescription() const
 {
-  return QObject::tr("Adenita | Daedalus DNA Nanostructures");
+	return QObject::tr("Adenita | Daedalus DNA Nanostructures");
 }
 
 void SEWireframeEditor::beginEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
-  string iconPath = SB_ELEMENT_PATH + "/Resource/icons/wireframeCreator.png";
-  SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
+	string iconPath = SB_ELEMENT_PATH + "/Resource/icons/wireframeCreator.png";
+	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
+
 }
 
 void SEWireframeEditor::endEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function immediately before your editor becomes inactive (for example when another editor becomes active). 
 	// Implement this function if you need to clean some data structures.
-  SAMSON::unsetViewportCursor();
+	SAMSON::unsetViewportCursor();
 
 }
 
@@ -582,11 +586,11 @@ void SEWireframeEditor::keyPressEvent(QKeyEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-  if (event->key() == Qt::Key_Escape) {
-    display_ = false;
-    DASCreatorEditors::resetPositions(positions_);
-    SAMSON::requestViewportUpdate();
-  }
+	if (event->key() == Qt::Key_Escape) {
+		display_ = false;
+		DASCreatorEditors::resetPositions(positions_);
+		SAMSON::requestViewportUpdate();
+	}
 }
 
 void SEWireframeEditor::keyReleaseEvent(QKeyEvent* event) {

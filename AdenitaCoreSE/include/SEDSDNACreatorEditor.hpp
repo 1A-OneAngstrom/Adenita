@@ -11,9 +11,7 @@
 #include "SBStructuralEvent.hpp"
 #include "SBAction.hpp"
 
-#include "SEAdenitaCoreSEApp.hpp"
 #include "ADNPart.hpp"
-#include "MSVDisplayHelper.hpp"
 #include "DASCreator.hpp"
 
 /// This class implements an editor
@@ -38,21 +36,21 @@ public :
 
 	virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
 	virtual QString												getName() const;														///< Returns the class name
-  virtual QString	                      getDescription() const;	                      ///< Returns the menu item text
+	virtual QString	                      getDescription() const;	                      ///< Returns the menu item text
 	virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
-  virtual int													getFormat() const;														///< Returns the format
+	virtual int													getFormat() const;														///< Returns the format
 	virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
 	virtual QString												getToolTip() const;														///< Returns the tool tip
 
 	//@}
 
-  ///\name Settings
-  //@{
+	///\name Settings
+	//@{
 
-  virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
-  virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
+	virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
+	virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
 
-  //@}
+	//@}
 
 	/// \name Editing
 	//@{
@@ -106,48 +104,49 @@ public :
 	/// \name GUI
 	//@{
 
-	SEDSDNACreatorEditorGUI*											getPropertyWidget() const;												///< Returns the property widget of the editor
+	SEDSDNACreatorEditorGUI*									getPropertyWidget() const;												///< Returns the property widget of the editor
 
 	//@}
 
-  void SetMode(bool m);
-  void SetShowBox(bool s);
-  void SetBoxSize(double height, double width, double depth);
-  void SetCircular(bool c);
-  void SetManual(bool m);
-  void SetNumberNucleotides(int n);
-  void SetSequence(bool s);
+	void														SetMode(bool m);
+	void														SetShowBox(bool s);
+	void														SetBoxSize(double height, double width, double depth);
+	void														SetCircular(bool c);
+	void														SetManual(bool m);
+	void														SetNumberNucleotides(int n);
+	void														SetSequence(bool s);
 
 private:
-  ADNPointer<ADNPart> generateStrand(bool mock = false);
-  ADNPointer<ADNPart> generateCircularStrand(bool mock = false);
-  void displayStrand();
-  void displayBox();
-  void sendPartToAdenita(ADNPointer<ADNPart> nanotube);
-  void ShowBox();
-  void SetSequence(ADNPointer<ADNPart> nanotube);
-  SBPosition3 GetSnappedPosition();
-  SEAdenitaCoreSEApp* getAdenitaApp();
 
-  bool dsMode_ = true;  // true for dsDNA, false for ssDNA
-  bool circular_ = false;  // if we are creating circular strands
-  bool manual_ = false;
-  int numNts_ = 12;
+	ADNPointer<ADNPart>											generateStrand(bool mock = false);
+	ADNPointer<ADNPart>											generateCircularStrand(bool mock = false);
+	void														displayStrand();
+	void														displayBox();
+	void														sendPartToAdenita(ADNPointer<ADNPart> nanotube);
+	void														ShowBox();
+	void														SetSequence(ADNPointer<ADNPart> nanotube);
+	SBPosition3													GetSnappedPosition();
 
-  DASCreatorEditors::UIData positions_;
-  bool display_ = false;
-  ADNPointer<ADNPart> tempPart_ = nullptr;
-  bool showBox_ = false;
-  SBQuantity::length boxHeight_;
-  SBQuantity::length boxWidth_;
-  SBQuantity::length boxDepth_;
-  bool setSequence_ = false;
-  bool snappingActive_ = true;
+	bool														dsMode_ = true;  // true for dsDNA, false for ssDNA
+	bool														circular_ = false;  // if we are creating circular strands
+	bool														manual_ = false;
+	int															numNts_ = 12;
 
-  float opaqueness_ = 0.5f;
-  float basePairRadius_ = 1000.0f;
+	DASCreatorEditors::UIData									positions_;
+	bool														display_ = false;
+	ADNPointer<ADNPart>											tempPart_ = nullptr;
+	bool														showBox_ = false;
+	SBQuantity::length											boxHeight_;
+	SBQuantity::length											boxWidth_;
+	SBQuantity::length											boxDepth_;
+	bool														setSequence_ = false;
+	bool														snappingActive_ = true;
 
-  ADNNanorobot * nanorobot_;
+	float														opaqueness_ = 0.5f;
+	float														basePairRadius_ = 1000.0f;
+
+	ADNNanorobot*												nanorobot_;
+
 };
 
 

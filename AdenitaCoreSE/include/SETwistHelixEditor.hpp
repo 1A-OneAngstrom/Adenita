@@ -8,7 +8,6 @@
 #include "SBDynamicalEvent.hpp"
 #include "SBStructuralEvent.hpp"
 #include "SBAction.hpp"
-#include "SEAdenitaCoreSEApp.hpp"
 
 
 /// This class implements an editor
@@ -23,31 +22,31 @@ public :
 	/// \name Constructors and destructors
 	//@{
 
-  SETwistHelixEditor();																													///< Builds an editor					
-	virtual ~SETwistHelixEditor();																											///< Destructs the editor
+	SETwistHelixEditor();																												///< Builds an editor					
+	virtual ~SETwistHelixEditor();																										///< Destructs the editor
 
 	//@}
 
 	/// \name Identity
 	//@{
 
-  virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
-  virtual QString												getName() const;														///< Returns the class name
-  virtual QString	                      getDescription() const;	                      ///< Returns the menu item text
-  virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
-  virtual int													getFormat() const;														///< Returns the format
-  virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
-  virtual QString												getToolTip() const;														///< Returns the tool tip
+	virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
+	virtual QString												getName() const;														///< Returns the class name
+	virtual QString												getDescription() const;													///< Returns the menu item text
+	virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
+	virtual int													getFormat() const;														///< Returns the format
+	virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
+	virtual QString												getToolTip() const;														///< Returns the tool tip
 
-  //@}
+	//@}
 
-  ///\name Settings
-  //@{
+	///\name Settings
+	//@{
 
-  virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
-  virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
+	virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
+	virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
 
-  //@}
+	//@}
 
 	/// \name Editing
 	//@{
@@ -101,18 +100,18 @@ public :
 	/// \name GUI
 	//@{
 
-  SETwistHelixEditorGUI*											getPropertyWidget() const;												///< Returns the property widget of the editor
+	SETwistHelixEditorGUI*										getPropertyWidget() const;												///< Returns the property widget of the editor
 
 	//@}
 
-  void SetTwistAngle(double angle);
-  //! For use from Adenita App, to keep coherence in the GUIs
-  void SetMode(bool t);
+	void														SetTwistAngle(double angle);
+	//! For use from Adenita App, to keep coherence in the GUIs
+	void														SetMode(bool t);
 
 private:
-  SEAdenitaCoreSEApp*					          getAdenitaApp() const;															///< Returns a pointer to the app
 
-  double twistAngle_ = 34.3;
+	double														twistAngle_ = 34.3;
+
 };
 
 

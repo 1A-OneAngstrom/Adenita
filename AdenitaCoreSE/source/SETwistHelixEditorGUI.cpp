@@ -1,5 +1,8 @@
 #include "SETwistHelixEditorGUI.hpp"
 #include "SETwistHelixEditor.hpp"
+#include "ADNConstants.hpp"
+#include "ADNAuxiliary.hpp"
+
 #include "SAMSON.hpp"
 #include "SBGWindow.hpp"
 

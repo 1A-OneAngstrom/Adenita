@@ -1,5 +1,9 @@
 #include "SETaggingEditor.hpp"
+#include "SEAdenitaCoreSEApp.hpp"
+#include "MSVDisplayHelper.hpp"
+
 #include "SAMSON.hpp"
+
 #include <QInputDialog>
 
 
@@ -45,14 +49,14 @@ QPixmap SETaggingEditor::getLogo() const {
 int SETaggingEditor::getFormat() const
 {
 
-  // SAMSON Element generator pro tip: modify these default settings to configure the window
-  //
-  // SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
-  // SBGWindow::Lockable : let users lock the window on top
-  // SBGWindow::Resizable : let users resize the window
-  // SBGWindow::Citable : let users obtain citation information (implement getCitation)
+	// SAMSON Element generator pro tip: modify these default settings to configure the window
+	//
+	// SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
+	// SBGWindow::Lockable : let users lock the window on top
+	// SBGWindow::Resizable : let users resize the window
+	// SBGWindow::Citable : let users obtain citation information (implement getCitation)
 
-  return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
+	return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
 
 }
 
@@ -72,25 +76,25 @@ QString SETaggingEditor::getToolTip() const {
 
 }
 
-void SETaggingEditor::loadSettings(SBGSettings * settings)
-{
-  if (settings == NULL) return;
+void SETaggingEditor::loadSettings(SBGSettings * settings) {
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	if (settings == nullptr) return;
+
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
 void SETaggingEditor::saveSettings(SBGSettings* settings) {
 
-  if (settings == NULL) return;
+	if (settings == nullptr) return;
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
 QString SETaggingEditor::getDescription() const
 {
-  return QObject::tr("Adenita | Tagging Editor");
+	return QObject::tr("Adenita | Tagging Editor");
 }
 
 void SETaggingEditor::beginEditing() {
@@ -98,8 +102,9 @@ void SETaggingEditor::beginEditing() {
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
 
-  string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_tagging.png";
-  SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
+	string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_tagging.png";
+	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
+
 }
 
 void SETaggingEditor::endEditing() {
@@ -122,11 +127,11 @@ void SETaggingEditor::display() {
 	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop. 
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
 
-  if (mode_ == TaggingMode::Base) {
-    std::string base(1, ADNModel::GetResidueName(ntType_));
-    SBPosition3 pos = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
-    ADNDisplayHelper::displayText(pos, base);
-  }
+	if (mode_ == TaggingMode::Base) {
+		std::string base(1, ADNModel::GetResidueName(ntType_));
+		SBPosition3 pos = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+		ADNDisplayHelper::displayText(pos, base);
+	}
 }
 
 
@@ -199,11 +204,11 @@ void SETaggingEditor::wheelEvent(QWheelEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-  QPoint numDegrees = event->angleDelta() / 8;
-  if (!numDegrees.isNull()) {
-    QPoint numSteps = numDegrees / 15;
-    ntType_ = GetNtType(numSteps);
-  }
+	QPoint numDegrees = event->angleDelta() / 8;
+	if (!numDegrees.isNull()) {
+		QPoint numSteps = numDegrees / 15;
+		ntType_ = GetNtType(numSteps);
+	}
 }
 
 void SETaggingEditor::keyPressEvent(QKeyEvent* event) {
@@ -247,7 +252,7 @@ void SETaggingEditor::onStructuralEvent(SBStructuralEvent* documentEvent) {
 ADNPointer<ADNNucleotide> SETaggingEditor::GetHighlightedNucleotide()
 {
   ADNPointer<ADNNucleotide> nt = nullptr;
-  auto highlightedNucleotides = getAdenitaApp()->GetNanorobot()->GetHighlightedNucleotides();
+  auto highlightedNucleotides = SEAdenitaCoreSEApp::getAdenitaApp()->GetNanorobot()->GetHighlightedNucleotides();
 
   if (highlightedNucleotides.size() == 1) {
     nt = highlightedNucleotides[0];
@@ -259,12 +264,7 @@ ADNPointer<ADNNucleotide> SETaggingEditor::GetHighlightedNucleotide()
 
 void SETaggingEditor::changeMode(int mode)
 {
-  mode_ = TaggingMode(mode);
-}
-
-SEAdenitaCoreSEApp * SETaggingEditor::getAdenitaApp() const
-{
-  return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
+	mode_ = TaggingMode(mode);
 }
 
 DNABlocks SETaggingEditor::GetNtType(QPoint numSteps)

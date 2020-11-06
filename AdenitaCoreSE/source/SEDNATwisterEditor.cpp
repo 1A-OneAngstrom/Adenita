@@ -1,8 +1,9 @@
 #include "SEDNATwisterEditor.hpp"
-#include "SAMSON.hpp"
-#include <QOpenGLFunctions_4_3_Core>
 #include "SEAdenitaCoreSEApp.hpp"
-#include "SEAdenitaVisualModel.hpp"
+
+#include "SAMSON.hpp"
+
+#include <QOpenGLFunctions_4_3_Core>
 
 SEDNATwisterEditor::SEDNATwisterEditor() {
 
@@ -11,18 +12,18 @@ SEDNATwisterEditor::SEDNATwisterEditor() {
 	propertyWidget = new SEDNATwisterEditorGUI(this);
 	propertyWidget->loadDefaultSettings();
 
-  forwardActionSphereActive_ = false;
-  reverseActionSphereActive_ = false;
-  sphereRadius_ = SBQuantity::angstrom(20.0f);
-  spherePosition_ = SBPosition3();
-  textPosition_ = SBPosition3();
-  altPressed_ = false;
-  text_ = "Untwisting";
+	forwardActionSphereActive_ = false;
+	reverseActionSphereActive_ = false;
+	sphereRadius_ = SBQuantity::angstrom(20.0f);
+	spherePosition_ = SBPosition3();
+	textPosition_ = SBPosition3();
+	altPressed_ = false;
+	text_ = "Untwisting";
 
-  auto app = getAdenitaApp();
-  nanorobot_ = app->GetNanorobot();
+	auto app = SEAdenitaCoreSEApp::getAdenitaApp();
+	nanorobot_ = app->GetNanorobot();
 
-  SAMSON::requestViewportUpdate();
+	SAMSON::requestViewportUpdate();
 
 
 }
@@ -48,11 +49,6 @@ void SEDNATwisterEditor::setBendingType(BendingType type)
   else if (bendingType_ == BendingType::SPHEREVISIBILITY) {
     text_ = "Invisible";
   }
-}
-
-SEAdenitaCoreSEApp* SEDNATwisterEditor::getAdenitaApp() const
-{
-  return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
 }
 
 void SEDNATwisterEditor::untwisting()

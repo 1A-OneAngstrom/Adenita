@@ -9,15 +9,15 @@
 #include "SBDynamicalEvent.hpp"
 #include "SBStructuralEvent.hpp"
 #include "SBAction.hpp"
+
 #include "ADNNanorobot.hpp"
 #include "DASBackToTheAtom.hpp"
-#include "MSVDisplayHelper.hpp"
 
 /// This class implements an editor
 
 enum BendingType {
-  UNTWIST,
-  SPHEREVISIBILITY
+	UNTWIST,
+	SPHEREVISIBILITY
 };
 
 class SEDNATwisterEditor : public SBGEditor {
@@ -30,31 +30,31 @@ public :
 	/// \name Constructors and destructors
 	//@{
 
-	SEDNATwisterEditor();																													///< Builds an editor					
-	virtual ~SEDNATwisterEditor();																											///< Destructs the editor
+	SEDNATwisterEditor();																												///< Builds an editor					
+	virtual ~SEDNATwisterEditor();																										///< Destructs the editor
 
 	//@}
 
 	/// \name Identity
 	//@{
 
-  virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
-  virtual QString												getName() const;														///< Returns the class name
-  virtual QString	                      getDescription() const;	                      ///< Returns the menu item text
-  virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
-  virtual int													getFormat() const;														///< Returns the format
-  virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
-  virtual QString												getToolTip() const;														///< Returns the tool tip
+	virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
+	virtual QString												getName() const;														///< Returns the class name
+	virtual QString												getDescription() const;													///< Returns the menu item text
+	virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
+	virtual int													getFormat() const;														///< Returns the format
+	virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
+	virtual QString												getToolTip() const;														///< Returns the tool tip
 
-  //@}
+	//@}
 
-  ///\name Settings
-  //@{
+	///\name Settings
+	//@{
 
-  virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
-  virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
+	virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
+	virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
 
-  //@}
+	//@}
 
 	/// \name Editing
 	//@{
@@ -108,27 +108,27 @@ public :
 	/// \name GUI
 	//@{
 
-	SEDNATwisterEditorGUI*											getPropertyWidget() const;												///< Returns the property widget of the editor
-  void                                setBendingType(BendingType type);
+	SEDNATwisterEditorGUI*										getPropertyWidget() const;												///< Returns the property widget of the editor
+	void														setBendingType(BendingType type);
 
 private:
-  SEAdenitaCoreSEApp*					        getAdenitaApp() const;															///< Returns a pointer to the app
-  void                                untwisting();
-  void                                makeInvisible();
-  SBPosition3                         GetSnappedPosition();
+
+	void														untwisting();
+	void														makeInvisible();
+	SBPosition3													GetSnappedPosition();
 
 	//@}
-  bool                                  altPressed_;
-  SBPosition3														spherePosition_;
-  SBPosition3														textPosition_;
-  string                                text_;
-  SBQuantity::length										sphereRadius_;
-  bool															    forwardActionSphereActive_;
-  bool															    reverseActionSphereActive_;
-  bool snappingActive_ = true;
+	bool														altPressed_;
+	SBPosition3													spherePosition_;
+	SBPosition3													textPosition_;
+	string														text_;
+	SBQuantity::length											sphereRadius_;
+	bool														forwardActionSphereActive_;
+	bool														reverseActionSphereActive_;
+	bool														snappingActive_ = true;
 
-  BendingType                           bendingType_ = BendingType::UNTWIST;
-  ADNNanorobot * nanorobot_;
+	BendingType													bendingType_ = BendingType::UNTWIST;
+	ADNNanorobot*												nanorobot_;
 
 };
 

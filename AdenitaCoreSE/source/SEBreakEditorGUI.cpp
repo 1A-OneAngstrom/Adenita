@@ -1,5 +1,7 @@
 #include "SEBreakEditorGUI.hpp"
 #include "SEBreakEditor.hpp"
+#include "ADNAuxiliary.hpp"
+
 #include "SAMSON.hpp"
 #include "SBGWindow.hpp"
 
@@ -18,7 +20,7 @@ SEBreakEditor* SEBreakEditorGUI::getEditor() const { return editor; }
 
 void SEBreakEditorGUI::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -26,7 +28,7 @@ void SEBreakEditorGUI::loadSettings( SBGSettings *settings ) {
 
 void SEBreakEditorGUI::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -69,11 +71,14 @@ QString SEBreakEditorGUI::getCitation() const {
 
 	// SAMSON Element generator pro tip: modify this function to add citation information
 
-  return ADNAuxiliary::AdenitaCitation();
+	return ADNAuxiliary::AdenitaCitation();
+
 }
 
 void SEBreakEditorGUI::onSetMode() {
-  bool m = ui.rdnFive->isChecked();
-  SEBreakEditor* editor = getEditor();
-  editor->SetMode(m);
+
+	bool m = ui.rdnFive->isChecked();
+	SEBreakEditor* editor = getEditor();
+	editor->SetMode(m);
+
 }

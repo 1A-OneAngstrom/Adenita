@@ -39,6 +39,8 @@ public :
 
 	//@}
 
+	static SEAdenitaCoreSEApp*									getAdenitaApp();														///< Returns a pointer to the app's instance
+
 	void														LoadPart(QString filename);
 	void														LoadParts(QString filename);
 	void														SaveFile(QString filename, ADNPointer<ADNPart> part = nullptr);

@@ -59,6 +59,8 @@ public:
 
 	static std::string											getScaffoldFilename();													///< Returns the selected scaffold
 
+	static std::string											isCadnanoJsonFormat(QString filename);
+
 public slots:
 
 	void														onChangeSelector(int idx);
@@ -108,7 +110,6 @@ private slots:
 private:
 
 	void														setupUI();
-	std::string													IsJsonCadnano(QString filename);
 	void														HighlightEditor(QToolButton* b);
 
 	std::vector<QToolButton*>									menuButtons_;

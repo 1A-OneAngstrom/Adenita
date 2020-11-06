@@ -1,4 +1,7 @@
 #include "SELatticeCreatorEditor.hpp"
+#include "SEAdenitaCoreSEApp.hpp"
+#include "MSVDisplayHelper.hpp"
+
 #include "SAMSON.hpp"
 
 

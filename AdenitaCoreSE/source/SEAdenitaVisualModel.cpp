@@ -20,7 +20,7 @@ SEAdenitaVisualModel::SEAdenitaVisualModel(const SBNodeIndexer& nodeIndexer) {
 	// the center of mass of a group of atoms, you might want to connect to the atoms' base signals (e.g. to update the center of mass when an atom is erased) and
 	// the atoms' structural signals (e.g. to update the center of mass when an atom is moved).
 
-	SEAdenitaCoreSEApp* app = getAdenitaApp();
+	SEAdenitaCoreSEApp* app = SEAdenitaCoreSEApp::getAdenitaApp();
   
 	app->FromDatagraph();
 
@@ -262,7 +262,7 @@ void			SEAdenitaVisualModel::setVisibility(double layer) {
 
 void SEAdenitaVisualModel::init() {
 
-	SEAdenitaCoreSEApp* app = getAdenitaApp();
+	SEAdenitaCoreSEApp* app = SEAdenitaCoreSEApp::getAdenitaApp();
 	nanorobot_ = app->GetNanorobot();
 
 	SEConfig& config = SEConfig::GetInstance();
@@ -944,127 +944,136 @@ void SEAdenitaVisualModel::changeHighlightFlag() {
 
 }
 
-SEAdenitaCoreSEApp* SEAdenitaVisualModel::getAdenitaApp() const {
+void SEAdenitaVisualModel::orderVisibility() {
 
-	return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
+	unsigned int order = 1;
 
-}
-
-void SEAdenitaVisualModel::orderVisibility()
-{
-
-  unsigned int order = 1;
-
-  SEConfig& config = SEConfig::GetInstance();
+	SEConfig& config = SEConfig::GetInstance();
   
-  auto parts = nanorobot_->GetParts();
+	auto parts = nanorobot_->GetParts();
 
-  std::vector<pair<ADNNucleotide*, float>> nucleotidesSorted;
-  std::vector<pair<ADNSingleStrand*, float>> singleStrandsSorted;
+	std::vector<pair<ADNNucleotide*, float>> nucleotidesSorted;
+	std::vector<pair<ADNSingleStrand*, float>> singleStrandsSorted;
 
-  //ordered by
-  if (order == 1) {
-    SB_FOR(auto part, parts) {
-      auto scaffolds = nanorobot_->GetScaffolds(part);
+	//ordered by
+	if (order == 1) {
 
-      if (scaffolds.size() == 0) return;
+		SB_FOR(auto part, parts) {
+
+			auto scaffolds = nanorobot_->GetScaffolds(part);
+
+			if (scaffolds.size() == 0) return;
         
-      SB_FOR(ADNPointer<ADNSingleStrand> ss, scaffolds) {
-        auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
-        SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
-          auto pair = nanorobot_->GetNucleotidePair(nt);
-          nucleotidesSorted.push_back(make_pair(nt(), float(nt->getNodeIndex())));
-          if (pair != nullptr)
-            nucleotidesSorted.push_back(make_pair(pair(), float(nt->getNodeIndex()))); //the staple nucleotide should get the same order as the scaffold nucleotide
-        }
-      }
+			SB_FOR(ADNPointer<ADNSingleStrand> ss, scaffolds) {
 
-      auto singleStrands = nanorobot_->GetSingleStrands(part);
-      SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
-        auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
-        unsigned int minIdx = UINT_MAX;
-        if (nanorobot_->IsScaffold(ss)) {
-          minIdx = 0;
-        }
-        else {
-          SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
-            auto pair = nanorobot_->GetNucleotidePair(nt);
-            if (pair != nullptr) {
-              unsigned int idx = pair->getNodeIndex();
-              if (idx < minIdx) minIdx = idx;
-            }
-          }
-        }
+				auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+				SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
-        singleStrandsSorted.push_back(std::make_pair(ss(), boost::numeric_cast<float>(minIdx)));
-      }
+					auto pair = nanorobot_->GetNucleotidePair(nt);
+					nucleotidesSorted.push_back(make_pair(nt(), float(nt->getNodeIndex())));
+					if (pair != nullptr)
+					nucleotidesSorted.push_back(make_pair(pair(), float(nt->getNodeIndex()))); //the staple nucleotide should get the same order as the scaffold nucleotide
+
+				}
+
+			}
+
+			auto singleStrands = nanorobot_->GetSingleStrands(part);
+			SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
+
+				auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+				unsigned int minIdx = UINT_MAX;
+				if (nanorobot_->IsScaffold(ss)) {
+					minIdx = 0;
+				}
+				else {
+
+					SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
+
+						auto pair = nanorobot_->GetNucleotidePair(nt);
+						if (pair != nullptr) {
+
+							unsigned int idx = pair->getNodeIndex();
+							if (idx < minIdx) minIdx = idx;
+
+						}
+
+					}
+
+				}
+
+				singleStrandsSorted.push_back(std::make_pair(ss(), boost::numeric_cast<float>(minIdx)));
+
+			}
       
-    }
-  }
-  else if (order == 1) {
-    SBPosition3 center;
-    SB_FOR(auto part, parts) {
-      auto singleStrands = nanorobot_->GetSingleStrands(part);
-      SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
-        auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
-        SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
-          center += nanorobot_->GetNucleotidePosition(nt);
-        }
-      }
-    }
+		}
 
-    center /= nanorobot_->GetNumberOfNucleotides();
+	}
+	else if (order == 1) {
 
-    SB_FOR(auto part, parts) {
-      auto singleStrands = nanorobot_->GetSingleStrands(part);
-      SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
-        auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
-        SBPosition3 strandPosition;
-        float minDist = FLT_MAX;
-        SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
-          SBPosition3 diff = nanorobot_->GetNucleotidePosition(nt) - center;
-          float dist = diff.norm().getValue();
-          nucleotidesSorted.push_back(make_pair(nt(), dist));
+		SBPosition3 center;
+		SB_FOR(auto part, parts) {
 
-          if (dist < minDist) minDist = dist;
+			auto singleStrands = nanorobot_->GetSingleStrands(part);
+			SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
-        }
+				auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+				SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) center += nanorobot_->GetNucleotidePosition(nt);
 
-        singleStrandsSorted.push_back(std::make_pair(ss(), minDist));
+			}
 
-      }
-    }
-  }
-  else if (order == 2) {
+		}
 
-  }
+		center /= nanorobot_->GetNumberOfNucleotides();
 
-  if (nucleotidesSorted.size() == 0 || singleStrandsSorted.size() == 0) return;
+		SB_FOR(auto part, parts) {
+			auto singleStrands = nanorobot_->GetSingleStrands(part);
+			SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
+				auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+				SBPosition3 strandPosition;
+				float minDist = FLT_MAX;
+				SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
-  sort(nucleotidesSorted.begin(), nucleotidesSorted.end(), [=](std::pair<ADNNucleotide*, float>& a, std::pair<ADNNucleotide*, float>& b)
-  {
-    return a.second < b.second;
-  });
+					SBPosition3 diff = nanorobot_->GetNucleotidePosition(nt) - center;
+					float dist = diff.norm().getValue();
+					nucleotidesSorted.push_back(make_pair(nt(), dist));
 
-  sort(singleStrandsSorted.begin(), singleStrandsSorted.end(), [=](std::pair<ADNSingleStrand*, float>& a, std::pair<ADNSingleStrand*, float>& b)
-  {
-    return a.second < b.second;
-  });
+					if (dist < minDist) minDist = dist;
 
-  sortedNucleotidesByDist_.clear();
-  sortedSingleStrandsByDist_.clear();
+				}
 
-  float max = nucleotidesSorted.back().second;
+				singleStrandsSorted.push_back(std::make_pair(ss(), minDist));
 
-  for (int i = 0; i < nucleotidesSorted.size(); i++) {
-    sortedNucleotidesByDist_.insert(make_pair(nucleotidesSorted[i].first, nucleotidesSorted[i].second / max));
-    //logger.Log(nucleotidesSorted[i].second);
-  }
+			}
 
-  for (int i = 0; i < singleStrandsSorted.size(); i++) {
-    sortedSingleStrandsByDist_.insert(make_pair(singleStrandsSorted[i].first, singleStrandsSorted[i].second / max));
-    //logger.Log(singleStrandsSorted[i].second);
-  }
+		}
+
+	}
+	else if (order == 2) {
+
+	}
+
+	if (nucleotidesSorted.size() == 0 || singleStrandsSorted.size() == 0) return;
+
+	sort(nucleotidesSorted.begin(), nucleotidesSorted.end(), [=](std::pair<ADNNucleotide*, float>& a, std::pair<ADNNucleotide*, float>& b) { return a.second < b.second; });
+
+	sort(singleStrandsSorted.begin(), singleStrandsSorted.end(), [=](std::pair<ADNSingleStrand*, float>& a, std::pair<ADNSingleStrand*, float>& b) { return a.second < b.second; });
+
+	sortedNucleotidesByDist_.clear();
+	sortedSingleStrandsByDist_.clear();
+
+	float max = nucleotidesSorted.back().second;
+
+	for (int i = 0; i < nucleotidesSorted.size(); i++) {
+		sortedNucleotidesByDist_.insert(make_pair(nucleotidesSorted[i].first, nucleotidesSorted[i].second / max));
+		//logger.Log(nucleotidesSorted[i].second);
+	}
+
+	for (int i = 0; i < singleStrandsSorted.size(); i++) {
+		sortedSingleStrandsByDist_.insert(make_pair(singleStrandsSorted[i].first, singleStrandsSorted[i].second / max));
+		//logger.Log(singleStrandsSorted[i].second);
+	}
+
 }
 
 int			SEAdenitaVisualModel::getSingleStrandColorsCount() const { return 4; }

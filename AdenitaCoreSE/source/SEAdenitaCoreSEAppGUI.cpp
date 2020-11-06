@@ -26,9 +26,9 @@ SEAdenitaCoreSEAppGUI::SEAdenitaCoreSEAppGUI( SEAdenitaCoreSEApp* t ) : SBGApp( 
 
 	setupUI();
 
-	QTimer *timer = new QTimer(this);
-	connect(timer, SIGNAL(timeout()), this, SLOT(checkForLoadedParts()));
-	timer->start();
+	//QTimer *timer = new QTimer(this);
+	//connect(timer, SIGNAL(timeout()), this, SLOT(checkForLoadedParts()));
+	//timer->start();
 
 }
 
@@ -88,7 +88,7 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 	if (filename.endsWith(".json")) {
 
 		// either cadnano or old Adenita format
-		std::string format = IsJsonCadnano(filename);
+		std::string format = SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(filename);
 		if (format == "cadnano") {
 
 			t->ImportFromCadnano(filename);
@@ -134,7 +134,7 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 	}
 	else return;
 
-	//add the visual model
+	// add a visual model or reset the existing one
 
 	SEAdenitaCoreSEApp::resetVisualModel();
 
@@ -783,9 +783,7 @@ void SEAdenitaCoreSEAppGUI::onTwisterEditor() {
 
 }
 
-std::string SEAdenitaCoreSEAppGUI::IsJsonCadnano(QString filename) {
-
-	std::string format = "unknown";
+std::string SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(QString filename) {
 
 	FILE* fp = fopen(filename.toStdString().c_str(), "rb");
 	char readBuffer[65536];
@@ -794,11 +792,11 @@ std::string SEAdenitaCoreSEAppGUI::IsJsonCadnano(QString filename) {
 	d.ParseStream(is);
 
 	if (d.HasMember("vstrands"))
-		format = "cadnano";
+		return "cadnano";
 	else if (d.HasMember("doubleStrands"))
-		format = "adenita";
+		return "adenita";
 
-	return format;
+	return "unknown";
 
 }
 
