@@ -76,6 +76,7 @@ public slots:
 	void														onSettings();
 	void														onSetStart();
 	void														onCalculateBindingProperties();
+	void														onResetVisualModel();
 
 	// Editors
 	void														onBreakEditor();
@@ -127,5 +128,7 @@ private:
 	Ui::SEAdenitaCoreSEAppGUIClass								ui;
 
 	QToolButton*												highlightedEditor_ = nullptr;
+
+	QString														workingDirectory = QString();
 
 };

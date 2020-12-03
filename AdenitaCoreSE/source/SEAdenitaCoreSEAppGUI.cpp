@@ -3,9 +3,12 @@
 #include "SEAdenitaCoreSettingsGUI.hpp"
 #include "SAMSON.hpp"
 #include "SBGWindow.hpp"
+#include "SBGWindowDialog.hpp"
+
 #include <QInputDialog>
 #include <QFormLayout>
 #include <QToolButton>
+
 #include "SEWireframeEditor.hpp"
 #include "SEBreakEditor.hpp"
 #include "SEConnectSSDNAEditor.hpp"
@@ -17,8 +20,10 @@
 #include "SENanotubeCreatorEditor.hpp"
 #include "SEDSDNACreatorEditor.hpp"
 #include "SEMergePartsEditor.hpp"
+
 #include <QPixmap>
 #include <QTimer>
+
 #include "SEAdenitaCoreSEAppGUIFlowLayout.hpp"
 
 
@@ -78,10 +83,11 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 
 	bool ok;
 	QString filename;// = QFileDialog::getOpenFileName(this, tr("Open document: caDNAno, mesh (ply), Adenita document (adn, adnpart)"), QDir::currentPath(), tr("(Documents *.json *.ply *.adn *.adnpart)"));
-	ok = SAMSON::getFileNameFromUser(tr("Open document: caDNAno, mesh (ply, json), Adenita document (adn, adnpart, json)"), filename, QString(), tr("(Documents *.json *.ply *.adn *.adnpart)"));
-
+	ok = SAMSON::getFileNameFromUser(tr("Open document: caDNAno, mesh (ply, json), Adenita document (adn, adnpart, json)"), filename, workingDirectory, tr("(Documents *.json *.ply *.adn *.adnpart)"));
 	if (!ok) return;
 	if (filename.isEmpty()) return;
+
+	workingDirectory = QFileInfo(filename).absolutePath();	// get the absolute path to the filename
 
 	SEAdenitaCoreSEApp* t = getApp();
 
@@ -146,8 +152,16 @@ void SEAdenitaCoreSEAppGUI::onSaveAll() {
 
 	SEAdenitaCoreSEApp* t = getApp();
 
-	QString filename = QFileDialog::getSaveFileName(this, tr("Save the workspace"), QDir::currentPath(), tr("Adenita workspace (*.adn)"));
-	if (!filename.isEmpty()) t->SaveFile(filename);
+	QString filename;// = QFileDialog::getSaveFileName(this, tr("Save the workspace"), QDir::currentPath(), tr("Adenita workspace (*.adn)"));
+	if (SBGWindowDialog::getSaveFileNameFromUser(tr("Save the workspace"), filename, workingDirectory, tr("Adenita workspace (*.adn)"))) {
+
+		QFileInfo fileInfo(filename);
+		workingDirectory = fileInfo.absolutePath();	// get the absolute path to the filename
+		if (fileInfo.exists()) if (!SAMSON::askUser("Save the workspace", "The file already exists. Do you want to overwrite it?")) return;
+
+		if (!filename.isEmpty()) t->SaveFile(filename);
+
+	}
 
 }
 
@@ -199,7 +213,13 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 	mainLayout->addWidget(buttonBox, 2, 0);
 
 	dialog->setLayout(mainLayout);
-	dialog->setWindowTitle(tr("Export design"));
+	//dialog->setWindowTitle(tr("Export design"));
+
+	// make it a SAMSON dialog
+	SBGWindow* dialogWindow = SAMSON::addDialog(dialog, "Adenita: Export design", SBGWindow::NoOptions);
+	dialogWindow->QWidget::setWindowFlags(dialogWindow->QWidget::windowFlags() | Qt::WindowStaysOnTopHint);
+	dialogWindow->setWindowModality(Qt::ApplicationModal);
+	dialogWindow->show();
 
 	int dialogCode = dialog->exec();
 
@@ -211,14 +231,20 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 		std::pair<SBPosition3, SBPosition3> boundingBox;
 
 		if (val == sel_idx) {
+
 			selectedParts = nr->GetSelectedParts();
+
 		}
 		else if (val != all_idx) {
+
 			ADNPointer<ADNPart> part = indexParts.at(val);
 			selectedParts.addReferenceTarget(part());
+
 		}
 		else {
+
 			selectedParts = nr->GetParts();
+
 		}
 		boundingBox = nr->GetBoundingBox(selectedParts);
 
@@ -227,8 +253,16 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 		if (eType == "Sequence list") {
 
 			// export sequences
-			auto filename = QFileDialog::getSaveFileName(this, tr("Sequence List"), QDir::currentPath(), tr("Sequence List (*.csv)"));
-			t->ExportToSequenceList(filename, selectedParts);
+			QString filename;// = QFileDialog::getSaveFileName(this, tr("Sequence List"), QDir::currentPath(), tr("Sequence List (*.csv)"));
+			if (SBGWindowDialog::getSaveFileNameFromUser(tr("Sequence List"), filename, workingDirectory, tr("Sequence List (*.csv)"))) {
+
+				QFileInfo fileInfo(filename);
+				workingDirectory = fileInfo.absolutePath();	// get the absolute path to the filename
+				if (fileInfo.exists()) if (!SAMSON::askUser("Sequence List", "The file already exists. Do you want to overwrite it?")) return;
+
+				t->ExportToSequenceList(filename, selectedParts);
+
+			}
 
 		}
 		else if (eType == "oxDNA") {
@@ -279,7 +313,13 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 			oxDNALayout->addRow(bttBox);
 
 			dialogOxDNA->setLayout(oxDNALayout);
-			dialogOxDNA->setWindowTitle(tr("Set bounding box size"));
+			//dialogOxDNA->setWindowTitle(tr("Set bounding box size"));
+
+			// make it a SAMSON dialog
+			SBGWindow* dialogOxDNAWindow = SAMSON::addDialog(dialogOxDNA, "Adenita: Set bounding box size", SBGWindow::NoOptions);
+			dialogOxDNAWindow->QWidget::setWindowFlags(dialogOxDNAWindow->QWidget::windowFlags() | Qt::WindowStaysOnTopHint);
+			dialogOxDNAWindow->setWindowModality(Qt::ApplicationModal);
+			dialogOxDNAWindow->show();
 
 			int dCode = dialogOxDNA->exec();
 
@@ -289,14 +329,18 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 				options.boxSizeY_ = boxY->value();
 				options.boxSizeZ_ = boxZ->value();
 
-				QString folder = QFileDialog::getExistingDirectory(this, tr("Choose an existing directory"), QDir::currentPath(), QFileDialog::DontUseNativeDialog);
-				t->ExportToOxDNA(folder, options, selectedParts);
+				QString folder = QFileDialog::getExistingDirectory(this, tr("Choose an existing directory"), workingDirectory, QFileDialog::DontUseNativeDialog);
+				if (!folder.isEmpty()) t->ExportToOxDNA(folder, options, selectedParts);
 
 			}
+
+			dialogOxDNAWindow->deleteLater();
 
 		}
 
 	}
+
+	dialogWindow->deleteLater();
 
 }
 
@@ -340,7 +384,13 @@ void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 	mainLayout->addWidget(buttonBox, 1, 0);
 
 	dialog->setLayout(mainLayout);
-	dialog->setWindowTitle(tr("Export design"));
+	//dialog->setWindowTitle(tr("Export design"));
+
+	// make it a SAMSON dialog
+	SBGWindow* dialogWindow = SAMSON::addDialog(dialog, "Adenita: Export design", SBGWindow::NoOptions);
+	dialogWindow->QWidget::setWindowFlags(dialogWindow->QWidget::windowFlags() | Qt::WindowStaysOnTopHint);
+	dialogWindow->setWindowModality(Qt::ApplicationModal);
+	dialogWindow->show();
 
 	int dialogCode = dialog->exec();
 
@@ -355,12 +405,20 @@ void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 			part = indexParts.at(val);
 		}
 
-		QString filename = QFileDialog::getSaveFileName(this, tr("Save a part"), QDir::currentPath(), tr("Adenita part (*.adnpart)"));
+		QString filename;// = QFileDialog::getSaveFileName(this, tr("Save a part"), QDir::currentPath(), tr("Adenita part (*.adnpart)"));
+		if (SBGWindowDialog::getSaveFileNameFromUser(tr("Save a part"), filename, QString(), tr("Adenita part (*.adnpart)"))) {
 
-		if (!filename.isEmpty())
-			t->SaveFile(filename, part);
+			QFileInfo fileInfo(filename);
+			workingDirectory = fileInfo.absolutePath();	// get the absolute path to the filename
+			if (fileInfo.exists()) if (!SAMSON::askUser("Save a part", "The file already exists. Do you want to overwrite it?")) return;
+
+			if (!filename.isEmpty()) t->SaveFile(filename, part);
+
+		}
 	
 	}
+
+	dialogWindow->deleteLater();
 
 }
 
@@ -425,7 +483,13 @@ void SEAdenitaCoreSEAppGUI::onCatenanes() {
 	mainLayout->addWidget(buttonBox_, 2, 0);
 
 	dialog->setLayout(mainLayout);
-	dialog->setWindowTitle(tr("Create Catenanes"));
+	//dialog->setWindowTitle(tr("Create Catenanes"));
+
+	// make it a SAMSON dialog
+	SBGWindow* dialogWindow = SAMSON::addDialog(dialog, "Adenita: Create Catenanes", SBGWindow::NoOptions);
+	dialogWindow->QWidget::setWindowFlags(dialogWindow->QWidget::windowFlags() | Qt::WindowStaysOnTopHint);
+	dialogWindow->setWindowModality(Qt::ApplicationModal);
+	dialogWindow->show();
 
 	int dialogCode = dialog->exec();
 
@@ -442,6 +506,8 @@ void SEAdenitaCoreSEAppGUI::onCatenanes() {
 		t->LinearCatenanes(R, center, normal, num);
 
 	}
+
+	dialogWindow->deleteLater();
 
 }
 
@@ -479,7 +545,7 @@ void SEAdenitaCoreSEAppGUI::onKinetoplast() {
 	QObject::connect(cancelButton, SIGNAL(released()), dialog, SLOT(reject()));
 	QObject::connect(acceptButton, SIGNAL(released()), dialog, SLOT(accept()));
 
-	QGridLayout *mainLayout = new QGridLayout;
+	QGridLayout *mainLayout = new QGridLayout();
 	mainLayout->setSizeConstraint(QLayout::SetFixedSize);
 	mainLayout->addWidget(rowsLabel, 0, 0);
 	mainLayout->addWidget(rows, 0, 1);
@@ -490,7 +556,13 @@ void SEAdenitaCoreSEAppGUI::onKinetoplast() {
 	mainLayout->addWidget(buttonBox_, 3, 0);
 
 	dialog->setLayout(mainLayout);
-	dialog->setWindowTitle(tr("Create Kinetoplast"));
+	//dialog->setWindowTitle(tr("Create Kinetoplast"));
+
+	// make it a SAMSON dialog
+	SBGWindow* dialogWindow = SAMSON::addDialog(dialog, "Adenita: Create Kinetoplast", SBGWindow::NoOptions);
+	dialogWindow->QWidget::setWindowFlags(dialogWindow->QWidget::windowFlags() | Qt::WindowStaysOnTopHint);
+	dialogWindow->setWindowModality(Qt::ApplicationModal);
+	dialogWindow->show();
 
 	int dialogCode = dialog->exec();
 
@@ -508,6 +580,8 @@ void SEAdenitaCoreSEAppGUI::onKinetoplast() {
 		t->Kinetoplast(R, center, normal, r, c);
 
 	}
+
+	dialogWindow->deleteLater();
 
 }
 
@@ -535,6 +609,12 @@ void SEAdenitaCoreSEAppGUI::onCalculateBindingProperties() {
 	form.addRow(&buttonBox);
 	QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
 	QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
+
+	// make it a SAMSON dialog
+	SBGWindow* dialogWindow = SAMSON::addDialog(&dialog, "Adenita: Calculate Binding Properties", SBGWindow::NoOptions);
+	dialogWindow->QWidget::setWindowFlags(dialogWindow->QWidget::windowFlags() | Qt::WindowStaysOnTopHint);
+	dialogWindow->setWindowModality(Qt::ApplicationModal);
+	dialogWindow->show();
 
 	if (dialog.exec() == QDialog::Accepted) {
 
@@ -576,6 +656,8 @@ void SEAdenitaCoreSEAppGUI::onCalculateBindingProperties() {
 
 	}
 
+	dialogWindow->deleteLater();
+
 }
 
 void SEAdenitaCoreSEAppGUI::onSetStart() {
@@ -594,10 +676,22 @@ void SEAdenitaCoreSEAppGUI::onTestNeighbors() {
 
 void SEAdenitaCoreSEAppGUI::onOxDNAImport() {
 
-	QString topoFile = QFileDialog::getOpenFileName(this, tr("Select a topology file"), QDir::currentPath(), tr("(OxDNA topology *.*)"));
-	QString configFile = QFileDialog::getOpenFileName(this, tr("Select a configuration file"), QDir::currentPath(), tr("(OxDNA configuration *.*)"));
-	SEAdenitaCoreSEApp* t = getApp();
-	t->ImportFromOxDNA(topoFile.toStdString(), configFile.toStdString());
+	QString topoFile;// = QFileDialog::getOpenFileName(this, tr("Select a topology file"), QDir::currentPath(), tr("(OxDNA topology *.*)"));
+	if (!SAMSON::getFileNameFromUser(tr("Select a topology file"), topoFile, workingDirectory, tr("(OxDNA topology *.*)"))) return;
+
+	workingDirectory = QFileInfo(topoFile).absolutePath();
+
+	QString configFile;// = QFileDialog::getOpenFileName(this, tr("Select a configuration file"), QDir::currentPath(), tr("(OxDNA configuration *.*)"));
+	if (!SAMSON::getFileNameFromUser(tr("Select a configuration file"), configFile, workingDirectory, tr("(OxDNA configuration *.*)"))) return;
+
+	workingDirectory = QFileInfo(configFile).absolutePath();
+
+	if (!topoFile.isEmpty() || !configFile.isEmpty()) {
+		
+		SEAdenitaCoreSEApp* t = getApp();
+		t->ImportFromOxDNA(topoFile.toStdString(), configFile.toStdString());
+
+	}
 
 }
 
@@ -624,11 +718,19 @@ void SEAdenitaCoreSEAppGUI::onHighlightPosXOs() {
 
 void SEAdenitaCoreSEAppGUI::onExportToCanDo() {
 
-	QString filename = QFileDialog::getSaveFileName(this, tr("Choose a filename"), QDir::currentPath(), tr("(CanDo .cndo)"));
-	if (!filename.isEmpty()) {
+	QString filename;// = QFileDialog::getSaveFileName(this, tr("Choose a filename"), QDir::currentPath(), tr("(CanDo .cndo)"));
+	if (SBGWindowDialog::getSaveFileNameFromUser(tr("Choose a filename"), filename, QString(), tr("CanDo (*.cndo)"))) {
 
-		SEAdenitaCoreSEApp* t = getApp();
-		t->ExportToCanDo(filename);
+		QFileInfo fileInfo(filename);
+		workingDirectory = fileInfo.absolutePath();	// get the absolute path to the filename
+		if (fileInfo.exists()) if (!SAMSON::askUser("Export to CanDo", "The file already exists. Do you want to overwrite it?")) return;
+
+		if (!filename.isEmpty()) {
+
+			SEAdenitaCoreSEApp* t = getApp();
+			t->ExportToCanDo(filename);
+
+		}
 
 	}
 
@@ -673,8 +775,15 @@ void SEAdenitaCoreSEAppGUI::onGenerateSequence() {
 
 	QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, &dialog);
 	form.addRow(&buttonBox);
+
 	QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
 	QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
+
+	// make it a SAMSON dialog
+	SBGWindow* dialogWindow = SAMSON::addDialog(&dialog, "Adenita: Generate Sequence", SBGWindow::NoOptions);
+	dialogWindow->QWidget::setWindowFlags(dialogWindow->QWidget::windowFlags() | Qt::WindowStaysOnTopHint);
+	dialogWindow->setWindowModality(Qt::ApplicationModal);
+	dialogWindow->show();
 
 	if (dialog.exec() == QDialog::Accepted) {
 
@@ -686,12 +795,17 @@ void SEAdenitaCoreSEAppGUI::onGenerateSequence() {
 
 	}
 
+	dialogWindow->deleteLater();
+
 }
+
+void SEAdenitaCoreSEAppGUI::onResetVisualModel() { getApp()->resetVisualModel(); }
 
 void SEAdenitaCoreSEAppGUI::onSettings() {
 
 	SEAdenitaCoreSettingsGUI diag(this);
-	diag.exec();
+	diag.showDialog();
+	//diag.exec();
 
 }
 
@@ -830,17 +944,9 @@ void SEAdenitaCoreSEAppGUI::keyPressEvent(QKeyEvent* event) {
 	
 		SBProxy* ep = nullptr;
 
-		if (event->key() == Qt::Key_D) {
-			ep = SAMSON::getProxy("SEDeleteEditor", SBUUID(SB_ELEMENT_UUID));
-		}
-
-		if (event->key() == Qt::Key_B) {
-			ep = SAMSON::getProxy("SEBreakEditor", SBUUID(SB_ELEMENT_UUID));
-		}
-
-		if (event->key() == Qt::Key_G) {
-			ep = SAMSON::getProxy("SEConnectSSDNAEditor", SBUUID(SB_ELEMENT_UUID));
-		}
+		//if (event->key() == Qt::Key_D) ep = SAMSON::getProxy("SEDeleteEditor", SBUUID(SB_ELEMENT_UUID));
+		//if (event->key() == Qt::Key_B) ep = SAMSON::getProxy("SEBreakEditor", SBUUID(SB_ELEMENT_UUID));
+		//if (event->key() == Qt::Key_G) ep = SAMSON::getProxy("SEConnectSSDNAEditor", SBUUID(SB_ELEMENT_UUID));
 
 		if (ep) {
 
@@ -919,44 +1025,58 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetMenuButtons() {
 
 		auto btnLoad = new QToolButton(this);
 		btnLoad->setObjectName(QStringLiteral("btnLoad"));
-		btnLoad->setIconSize(QSize(20, 20));
+		btnLoad->setToolTip("Load structure");
+		btnLoad->setIconSize(QSize(24, 24));
 		btnLoad->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnLoad->setAutoRaise(true);
 		menuButtons_.push_back(btnLoad);
 
 		auto btnSaveSelection = new QToolButton(this);
 		btnSaveSelection->setObjectName(QStringLiteral("btnSaveSelection"));
-		btnSaveSelection->setIconSize(QSize(20, 20));
+		btnSaveSelection->setToolTip("Save selection");
+		btnSaveSelection->setIconSize(QSize(24, 24));
 		btnSaveSelection->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnSaveSelection->setAutoRaise(true);
 		menuButtons_.push_back(btnSaveSelection);
 
 		auto btnSaveAll = new QToolButton(this);
 		btnSaveAll->setObjectName(QStringLiteral("btnSaveAll"));
-		btnSaveAll->setIconSize(QSize(20, 20));
+		btnSaveAll->setToolTip("Save all");
+		btnSaveAll->setIconSize(QSize(24, 24));
 		btnSaveAll->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnSaveAll->setAutoRaise(true);
 		menuButtons_.push_back(btnSaveAll);
 
 		auto btnExport = new QToolButton(this);
 		btnExport->setObjectName(QStringLiteral("btnExport"));
-		btnExport->setIconSize(QSize(20, 20));
+		btnExport->setToolTip("Export");
+		btnExport->setIconSize(QSize(24, 24));
 		btnExport->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnExport->setAutoRaise(true);
 		menuButtons_.push_back(btnExport);
 
+		auto btnResetVisualModel = new QToolButton(this);
+		btnResetVisualModel->setObjectName(QStringLiteral("btnResetVisualModel"));
+		btnResetVisualModel->setToolTip("Reset visual model");
+		btnResetVisualModel->setIconSize(QSize(24, 24));
+		btnResetVisualModel->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnResetVisualModel->setAutoRaise(true);
+		menuButtons_.push_back(btnResetVisualModel);
+
 		auto btnSettings = new QToolButton(this);
 		btnSettings->setObjectName(QStringLiteral("btnSettings"));
-		btnSettings->setIconSize(QSize(20, 20));
+		btnSettings->setToolTip("Settings");
+		btnSettings->setIconSize(QSize(24, 24));
 		btnSettings->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnSettings->setAutoRaise(true);
 		menuButtons_.push_back(btnSettings);
 
-		QObject::connect(btnLoad, SIGNAL(released()), this, SLOT(onLoadFile()));
-		QObject::connect(btnSaveSelection, SIGNAL(released()), this, SLOT(onSaveSelection()));
-		QObject::connect(btnSaveAll, SIGNAL(released()), this, SLOT(onSaveAll()));
-		QObject::connect(btnSettings, SIGNAL(released()), this, SLOT(onSettings()));
-		QObject::connect(btnExport, SIGNAL(released()), this, SLOT(onExport()));
+		QObject::connect(btnLoad, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onLoadFile, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnSaveSelection, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSaveSelection, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnSaveAll, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSaveAll, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnSettings, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSettings, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnExport, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onExport, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnResetVisualModel, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onResetVisualModel, Qt::ConnectionType::UniqueConnection);
 
 		//change icons
 		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
@@ -977,6 +1097,10 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetMenuButtons() {
 		exportIcon.addFile(string(iconsPath + "export.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnExport->setIcon(exportIcon);
 
+		QIcon resetVM;
+		resetVM.addFile(string(iconsPath + "resetVisualModel.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnResetVisualModel->setIcon(resetVM);
+
 		QIcon settings;
 		settings.addFile(string(iconsPath + "settings.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnSettings->setIcon(settings);
@@ -993,44 +1117,49 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetEditSequencesButtons() {
 
 		auto btnSetScaff = new QToolButton(this);
 		btnSetScaff->setObjectName(QStringLiteral("btnSetScaff"));
-		btnSetScaff->setIconSize(QSize(20, 20));
+		btnSetScaff->setToolTip("Set scaffold");
+		btnSetScaff->setIconSize(QSize(24, 24));
 		btnSetScaff->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnSetScaff->setAutoRaise(true);
 		editSequencesButtons_.push_back(btnSetScaff);
 
 		auto btnGenerateSequence = new QToolButton(this);
 		btnGenerateSequence->setObjectName(QStringLiteral("btnGenerateSequence"));
-		btnGenerateSequence->setIconSize(QSize(20, 20));
+		btnGenerateSequence->setToolTip("Generate sequence");
+		btnGenerateSequence->setIconSize(QSize(24, 24));
 		btnGenerateSequence->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnGenerateSequence->setAutoRaise(true);
 		editSequencesButtons_.push_back(btnGenerateSequence);
 
 		auto btnSetStart = new QToolButton(this);
 		btnSetStart->setObjectName(QStringLiteral("btnSetStart"));
-		btnSetStart->setIconSize(QSize(20, 20));
+		btnSetStart->setToolTip("Set start (5\')");
+		btnSetStart->setIconSize(QSize(24, 24));
 		btnSetStart->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnSetStart->setAutoRaise(true);
 		editSequencesButtons_.push_back(btnSetStart);
 
 		auto btnCalculateBindingProperties = new QToolButton(this);
 		btnCalculateBindingProperties->setObjectName(QStringLiteral("btnCalculateBindingProperties"));
-		btnCalculateBindingProperties->setIconSize(QSize(20, 20));
+		btnCalculateBindingProperties->setToolTip("Calculate binding properties");
+		btnCalculateBindingProperties->setIconSize(QSize(24, 24));
 		btnCalculateBindingProperties->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnCalculateBindingProperties->setAutoRaise(true);
 		editSequencesButtons_.push_back(btnCalculateBindingProperties);
 
 		auto btnTaggingEditor = new QToolButton(this);
 		btnTaggingEditor->setObjectName(QStringLiteral("btnTaggingEditor"));
+		btnTaggingEditor->setToolTip("Tagging editor");
 		btnTaggingEditor->setCheckable(true);
 		btnTaggingEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnTaggingEditor->setAutoRaise(true);
 		editSequencesButtons_.push_back(btnTaggingEditor);
 
-		QObject::connect(btnSetScaff, SIGNAL(released()), this, SLOT(onSetScaffold()));
-		QObject::connect(btnGenerateSequence, SIGNAL(released()), this, SLOT(onGenerateSequence()));
-		QObject::connect(btnCalculateBindingProperties, SIGNAL(released()), this, SLOT(onCalculateBindingProperties()));
-		QObject::connect(btnSetStart, SIGNAL(released()), this, SLOT(onSetStart()));
-		QObject::connect(btnTaggingEditor, SIGNAL(released()), this, SLOT(onTaggingEditor()));
+		QObject::connect(btnSetScaff, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSetScaffold, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnGenerateSequence, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onGenerateSequence, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnCalculateBindingProperties, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCalculateBindingProperties, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnSetStart, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSetStart, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnTaggingEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onTaggingEditor, Qt::ConnectionType::UniqueConnection);
 
 		//change icons
 		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
@@ -1067,7 +1196,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetModelingButtons() {
 
 		auto btnBreakEditor = new QToolButton(this);
 		btnBreakEditor->setObjectName(QStringLiteral("btnBreakEditor"));
-		btnBreakEditor->setIconSize(QSize(20, 20));
+		btnBreakEditor->setToolTip("Break editor");
+		btnBreakEditor->setIconSize(QSize(24, 24));
 		btnBreakEditor->setCheckable(true);
 		btnBreakEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnBreakEditor->setAutoRaise(true);
@@ -1075,7 +1205,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetModelingButtons() {
 
 		auto btnDeleteEditor = new QToolButton(this);
 		btnDeleteEditor->setObjectName(QStringLiteral("btnDeleteEditor"));
-		btnDeleteEditor->setIconSize(QSize(20, 20));
+		btnDeleteEditor->setToolTip("Delete editor");
+		btnDeleteEditor->setIconSize(QSize(24, 24));
 		btnDeleteEditor->setCheckable(true);
 		btnDeleteEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnDeleteEditor->setAutoRaise(true);
@@ -1083,7 +1214,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetModelingButtons() {
 
 		auto btnConnectEditor = new QToolButton(this);
 		btnConnectEditor->setObjectName(QStringLiteral("btnConnectEditor"));
-		btnConnectEditor->setIconSize(QSize(20, 20));
+		btnConnectEditor->setToolTip("Connect editor");
+		btnConnectEditor->setIconSize(QSize(24, 24));
 		btnConnectEditor->setCheckable(true);
 		btnConnectEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnConnectEditor->setAutoRaise(true);
@@ -1091,6 +1223,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetModelingButtons() {
 
 		auto btnMergePartsEditor = new QToolButton(this);
 		btnMergePartsEditor->setObjectName(QStringLiteral("btnMergePartsEditor"));
+		btnMergePartsEditor->setToolTip("Merge parts editor");
 		btnMergePartsEditor->setCheckable(true);
 		btnMergePartsEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnMergePartsEditor->setAutoRaise(true);
@@ -1098,7 +1231,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetModelingButtons() {
 
 		auto btnDNATwisterEditor = new QToolButton(this);
 		btnDNATwisterEditor->setObjectName(QStringLiteral("btnDNATwisterEditor"));
-		btnDNATwisterEditor->setIconSize(QSize(20, 20));
+		btnDNATwisterEditor->setToolTip("DNA twister editor");
+		btnDNATwisterEditor->setIconSize(QSize(24, 24));
 		btnDNATwisterEditor->setCheckable(true);
 		btnDNATwisterEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnDNATwisterEditor->setAutoRaise(true);
@@ -1106,18 +1240,19 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetModelingButtons() {
 
 		auto btnTwisterEditor = new QToolButton(this);
 		btnTwisterEditor->setObjectName(QStringLiteral("btnTwisterEditor"));
-		btnTwisterEditor->setIconSize(QSize(20, 20));
+		btnTwisterEditor->setToolTip("Twister editor");
+		btnTwisterEditor->setIconSize(QSize(24, 24));
 		btnTwisterEditor->setCheckable(true);
 		btnTwisterEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnTwisterEditor->setAutoRaise(true);
 		modelingButtons_.push_back(btnTwisterEditor);
 
-		QObject::connect(btnBreakEditor, SIGNAL(released()), this, SLOT(onBreakEditor()));
-		QObject::connect(btnConnectEditor, SIGNAL(released()), this, SLOT(onConnectEditor()));
-		QObject::connect(btnDeleteEditor, SIGNAL(released()), this, SLOT(onDeleteEditor()));
-		QObject::connect(btnTwisterEditor, SIGNAL(released()), this, SLOT(onTwisterEditor()));
-		QObject::connect(btnDNATwisterEditor, SIGNAL(released()), this, SLOT(onDNATwistEditor()));
-		QObject::connect(btnMergePartsEditor, SIGNAL(released()), this, SLOT(onMergePartsEditor()));
+		QObject::connect(btnBreakEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onBreakEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnConnectEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onConnectEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnDeleteEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onDeleteEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnTwisterEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onTwisterEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnDNATwisterEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onDNATwistEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnMergePartsEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onMergePartsEditor, Qt::ConnectionType::UniqueConnection);
 
 		//change icons
 		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
@@ -1157,13 +1292,15 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetCreatorsButtons() {
 
 		QToolButton* btnCreateBasePair = new QToolButton;
 		btnCreateBasePair->setObjectName(QStringLiteral("btnCreateBasePair"));
-		btnCreateBasePair->setIconSize(QSize(20, 20));
+		btnCreateBasePair->setToolTip("Create base pair");
+		btnCreateBasePair->setIconSize(QSize(24, 24));
 		btnCreateBasePair->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnCreateBasePair->setAutoRaise(true);
 		creatorsButtons_.push_back(btnCreateBasePair);
 
 		QToolButton* btnDsDNACreatorEditor = new QToolButton;
 		btnDsDNACreatorEditor->setObjectName(QStringLiteral("btnDsDNACreatorEditor"));
+		btnDsDNACreatorEditor->setToolTip("DsDNA creator editor");
 		btnDsDNACreatorEditor->setCheckable(true);
 		btnDsDNACreatorEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnDsDNACreatorEditor->setAutoRaise(true);
@@ -1171,6 +1308,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetCreatorsButtons() {
 
 		QToolButton* btnNanotubeCreator = new QToolButton;
 		btnNanotubeCreator->setObjectName(QStringLiteral("btnNanotubeCreator"));
+		btnNanotubeCreator->setToolTip("Nanotube creator");
 		btnNanotubeCreator->setCheckable(true);
 		btnNanotubeCreator->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnNanotubeCreator->setAutoRaise(true);
@@ -1178,6 +1316,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetCreatorsButtons() {
 
 		QToolButton* btnLatticeCreatorEditor = new QToolButton;
 		btnLatticeCreatorEditor->setObjectName(QStringLiteral("btnLatticeCreatorEditor"));
+		btnLatticeCreatorEditor->setToolTip("Lattice creator editor");
 		btnLatticeCreatorEditor->setCheckable(true);
 		btnLatticeCreatorEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnLatticeCreatorEditor->setAutoRaise(true);
@@ -1185,16 +1324,17 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetCreatorsButtons() {
 
 		QToolButton* btnWireframeEditor = new QToolButton;
 		btnWireframeEditor->setObjectName(QStringLiteral("btnWireframeEditor"));
+		btnWireframeEditor->setToolTip("Wireframe editor");
 		btnWireframeEditor->setCheckable(true);
 		btnWireframeEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnWireframeEditor->setAutoRaise(true);
 		creatorsButtons_.push_back(btnWireframeEditor);
 
-		QObject::connect(btnCreateBasePair, SIGNAL(released()), this, SLOT(onCreateBasePair()));
-		QObject::connect(btnDsDNACreatorEditor, SIGNAL(released()), this, SLOT(onCreateStrandEditor()));
-		QObject::connect(btnNanotubeCreator, SIGNAL(released()), this, SLOT(onNanotubeCreatorEditor()));
-		QObject::connect(btnLatticeCreatorEditor, SIGNAL(released()), this, SLOT(onLatticeCreatorEditor()));
-		QObject::connect(btnWireframeEditor, SIGNAL(released()), this, SLOT(onWireframeEditor()));
+		QObject::connect(btnCreateBasePair, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCreateBasePair, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnDsDNACreatorEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCreateStrandEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnNanotubeCreator, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onNanotubeCreatorEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnLatticeCreatorEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onLatticeCreatorEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnWireframeEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onWireframeEditor, Qt::ConnectionType::UniqueConnection);
 
 		//change icons
 		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
@@ -1287,17 +1427,17 @@ std::vector<QPushButton*> SEAdenitaCoreSEAppGUI::GetDebugButtons() {
 		btnFix->setText("Fix");
 		debugButtons_.push_back(btnFix);
 
-		QObject::connect(btnCenterPart, SIGNAL(released()), this, SLOT(onCenterPart()));
-		QObject::connect(btnOxDNAImport, SIGNAL(released()), this, SLOT(onOxDNAImport()));
-		QObject::connect(btnKinetoplast, SIGNAL(released()), this, SLOT(onKinetoplast()));
-		QObject::connect(btnTestNeighbors, SIGNAL(released()), this, SLOT(onTestNeighbors()));
-		QObject::connect(btnExportCanDo, SIGNAL(released()), this, SLOT(onExportToCanDo()));
-		QObject::connect(btnHighlightPosXOs, SIGNAL(released()), this, SLOT(onHighlightPosXOs()));
-		QObject::connect(btnHighlightCrossovers, SIGNAL(released()), this, SLOT(onHighlightXOs()));
-		QObject::connect(btnCatenanes, SIGNAL(released()), this, SLOT(onCatenanes()));
-		QObject::connect(btnAddNtThreeP, SIGNAL(released()), this, SLOT(onAddNtThreeP()));
-		QObject::connect(btnFix, SIGNAL(released()), this, SLOT(onFixDesigns()));
-		QObject::connect(btnDataGraph, SIGNAL(released()), this, SLOT(onFromDatagraph()));
+		QObject::connect(btnCenterPart, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCenterPart, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnOxDNAImport, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onOxDNAImport, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnKinetoplast, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onKinetoplast, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnTestNeighbors, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onTestNeighbors, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnExportCanDo, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onExportToCanDo, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnHighlightPosXOs, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onHighlightPosXOs, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnHighlightCrossovers, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onHighlightXOs, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnCatenanes, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCatenanes, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnAddNtThreeP, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onAddNtThreeP, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnFix, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onFixDesigns, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnDataGraph, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onFromDatagraph, Qt::ConnectionType::UniqueConnection);
 
 	}
 

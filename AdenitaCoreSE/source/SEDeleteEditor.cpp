@@ -8,8 +8,8 @@ SEDeleteEditor::SEDeleteEditor() {
 
 	// SAMSON Element generator pro tip: this default constructor is called when unserializing the node, so it should perform all default initializations.
 
-	propertyWidget = new SEDeleteEditorGUI(this);
-	propertyWidget->loadDefaultSettings();
+	//propertyWidget = new SEDeleteEditorGUI(this);
+	//propertyWidget->loadDefaultSettings();
 
 }
 
@@ -17,12 +17,16 @@ SEDeleteEditor::~SEDeleteEditor() {
 
 	// SAMSON Element generator pro tip: disconnect from signals you might have connected to.
 
-	propertyWidget->saveDefaultSettings();
-	delete propertyWidget;
+	//propertyWidget->saveDefaultSettings();
+	//delete propertyWidget;
 
 }
 
-SEDeleteEditorGUI* SEDeleteEditor::getPropertyWidget() const { return static_cast<SEDeleteEditorGUI*>(propertyWidget); }
+SEDeleteEditorGUI* SEDeleteEditor::getPropertyWidget() const {
+	
+	return nullptr; //static_cast<SEDeleteEditorGUI*>(propertyWidget);
+
+}
 
 SBCContainerUUID SEDeleteEditor::getUUID() const { return SBCContainerUUID("BA1E9F38-0280-6871-D979-D314FBC98758"); }
 
@@ -71,33 +75,35 @@ QString SEDeleteEditor::getToolTip() const {
 
 }
 
-void SEDeleteEditor::loadSettings(SBGSettings * settings)
-{
-  if (settings == NULL) return;
+void SEDeleteEditor::loadSettings(SBGSettings * settings) {
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	if (settings == nullptr) return;
+
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
 void SEDeleteEditor::saveSettings(SBGSettings* settings) {
 
-  if (settings == NULL) return;
+	if (settings == nullptr) return;
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
-QString SEDeleteEditor::getDescription() const
-{
-  return QObject::tr("Adenita | Delete Nucleotides");
+QString SEDeleteEditor::getDescription() const {
+
+	return QObject::tr("Adenita | Delete Nucleotides");
+
 }
 
 void SEDeleteEditor::beginEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
-  string iconPath = SB_ELEMENT_PATH + "/Resource/icons/delete.png";
-  SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
+
+	string iconPath = SB_ELEMENT_PATH + "/Resource/icons/delete.png";
+	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
 
 }
 
@@ -105,7 +111,9 @@ void SEDeleteEditor::endEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function immediately before your editor becomes inactive (for example when another editor becomes active). 
 	// Implement this function if you need to clean some data structures.
-  SAMSON::unsetViewportCursor();
+
+	SAMSON::unsetViewportCursor();
+
 }
 
 void SEDeleteEditor::getActions(SBVector<SBAction*>& actionVector) {
@@ -145,37 +153,49 @@ void SEDeleteEditor::mousePressEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
+	bool isLeftButton = event->button() & Qt::LeftButton;
 
-  auto app = SEAdenitaCoreSEApp::getAdenitaApp();
-  auto nanorobot = app->GetNanorobot();
-  app->SetMod(true);
+	if (isLeftButton) {
 
-  auto selectedNucleotides = nanorobot->GetSelectedNucleotides();
-  auto highlightedNucleotides = nanorobot->GetHighlightedNucleotides();
+		auto app = SEAdenitaCoreSEApp::getAdenitaApp();
+		auto nanorobot = app->GetNanorobot();
+		app->SetMod(true);
 
-  SB_FOR(auto node, selectedNucleotides) {
-    node->setSelectionFlag(false);
-  }
+		auto selectedNucleotides = nanorobot->GetSelectedNucleotides();
+		auto highlightedNucleotides = nanorobot->GetHighlightedNucleotides();
 
-  if (highlightedNucleotides.size() == 1) {
-    ADNPointer<ADNNucleotide> nt = highlightedNucleotides[0];
-    ADNPointer<ADNBaseSegment> bs = nt->GetBaseSegment();
-    ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
-    ADNPointer<ADNPart> part = nanorobot->GetPart(ss);
-    auto newStrands = ADNBasicOperations::DeleteNucleotide(part, nt);
-    if (ss->getNumberOfNucleotides() == 0) {
-      // delete single strand if was left empty
-      part->DeregisterSingleStrand(ss);
-    }
-    auto numBsNts = bs->GetNucleotides().size();
-    if (numBsNts == 0) {
-      // if base segment is empty, delete
-      ADNBasicOperations::DeleteBaseSegment(part, bs);
-    }
-  }
+		SB_FOR(auto node, selectedNucleotides) node->setSelectionFlag(false);
 
-  SEAdenitaCoreSEApp::resetVisualModel();
-  app->SetMod(false);
+		if (highlightedNucleotides.size() == 1) {
+
+			ADNPointer<ADNNucleotide> nt = highlightedNucleotides[0];
+			ADNPointer<ADNBaseSegment> bs = nt->GetBaseSegment();
+			ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
+			ADNPointer<ADNPart> part = nanorobot->GetPart(ss);
+			auto newStrands = ADNBasicOperations::DeleteNucleotide(part, nt);
+			if (ss->getNumberOfNucleotides() == 0) {
+
+				// delete single strand if was left empty
+				part->DeregisterSingleStrand(ss);
+
+			}
+			auto numBsNts = bs->GetNucleotides().size();
+			if (numBsNts == 0) {
+
+				// if base segment is empty, delete
+				ADNBasicOperations::DeleteBaseSegment(part, bs);
+
+			}
+
+		}
+
+		SEAdenitaCoreSEApp::resetVisualModel();
+		app->SetMod(false);
+
+		event->accept();
+
+	}
+
 }
 
 void SEDeleteEditor::mouseReleaseEvent(QMouseEvent* event) {
