@@ -11,7 +11,7 @@ class SEBreakEditor;
 // SAMSON Element generator pro tip: add GUI functionality in this class. 
 // The non-GUI functionality (and the mouse and keyboard event handling methods that are specific to the editor) should go in the SEBreakEditor class
 
-class SEBreakEditorGUI : public SBGWindowWidget {
+class SB_EXPORT SEBreakEditorGUI : public SBGWindowWidget {
 
 	Q_OBJECT
 

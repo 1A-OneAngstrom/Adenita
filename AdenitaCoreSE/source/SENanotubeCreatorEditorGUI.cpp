@@ -18,7 +18,7 @@ SENanotubeCreatorEditor* SENanotubeCreatorEditorGUI::getEditor() const { return 
 
 void SENanotubeCreatorEditorGUI::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if (settings == nullptr) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -26,7 +26,7 @@ void SENanotubeCreatorEditorGUI::loadSettings( SBGSettings *settings ) {
 
 void SENanotubeCreatorEditorGUI::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 

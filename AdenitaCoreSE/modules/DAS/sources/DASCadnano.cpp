@@ -277,7 +277,7 @@ void DASCadnano::CreateStaples(ADNPointer<ADNPart> nanorobot)
     std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> bs_positions = cellBsMap_.at(&vstrands[vStrandId]);
 
     ADNPointer<ADNSingleStrand> staple = new ADNSingleStrand();
-    staple->SetName("Staple" + to_string(sid));
+    staple->SetName("Staple" + std::to_string(sid));
     ++sid;
     staple->IsScaffold(false);
     nanorobot->RegisterSingleStrand(staple);

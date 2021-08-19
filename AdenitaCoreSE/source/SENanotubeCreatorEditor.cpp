@@ -185,7 +185,7 @@ void SENanotubeCreatorEditor::beginEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
-	string iconPath = SB_ELEMENT_PATH + "/Resource/icons/nanotubeCreator.png";
+	std::string iconPath = SB_ELEMENT_PATH + "/Resource/icons/nanotubeCreator.png";
 	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
 
 }

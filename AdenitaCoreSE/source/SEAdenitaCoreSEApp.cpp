@@ -215,7 +215,7 @@ void SEAdenitaCoreSEApp::resetVisualModel() {
 SBVisualModel* SEAdenitaCoreSEApp::getVisualModel() {
 
 	SBNodeIndexer nodeIndexer;
-	SAMSON::getActiveDocument()->getNodes(nodeIndexer, SBNode::IsType(SBNode::VisualModel));
+	SAMSON::getActiveDocument()->getNodes(nodeIndexer, SBNode::VisualModel);
   
 	bool visualModelAlreadyExist = false;
 	SBVisualModel* visualModel = nullptr;
@@ -454,7 +454,7 @@ void SEAdenitaCoreSEApp::FromDatagraph() {
 
 	SBDocument* doc = SAMSON::getActiveDocument();
 	SBNodeIndexer nodes;
-	doc->getNodes(nodes, SBNode::IsType(SBNode::StructuralModel));
+	doc->getNodes(nodes, SBNode::StructuralModel);
 
 	SB_FOR(auto node, nodes) {
 
@@ -495,7 +495,7 @@ void SEAdenitaCoreSEApp::ExportToCanDo(QString filename) {
 
 	SBDocument* doc = SAMSON::getActiveDocument();
 	SBNodeIndexer nodes;
-	doc->getNodes(nodes, SBNode::IsType(SBNode::StructuralModel));
+	doc->getNodes(nodes, SBNode::StructuralModel);
 
 	CollectionMap<ADNPart> parts;
 
@@ -529,7 +529,7 @@ void SEAdenitaCoreSEApp::FixDesigns() {
 
 	SBDocument* doc = SAMSON::getActiveDocument();
 	SBNodeIndexer nodes;
-	doc->getNodes(nodes, SBNode::IsType(SBNode::StructuralModel));
+	doc->getNodes(nodes, SBNode::StructuralModel);
 
 	CollectionMap<ADNPart> parts;
 

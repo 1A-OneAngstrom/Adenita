@@ -51,9 +51,9 @@ ThermParam PIPrimer3::ExecuteNtthal(std::string leftSequence, std::string rightS
 
   arguments << "-s1" << leftSequence.c_str();
   arguments << "-s2" << rightSequence.c_str();
-  arguments << "-mv" << to_string(mv).c_str();
-  arguments << "-dv" << to_string(dv).c_str();
-  arguments << "-dna_conc" << to_string(oligo_conc).c_str();
+  arguments << "-mv" << std::to_string(mv).c_str();
+  arguments << "-dv" << std::to_string(dv).c_str();
+  arguments << "-dna_conc" << std::to_string(oligo_conc).c_str();
 
   QProcess *myProcess = new QProcess();
   myProcess->setWorkingDirectory(workingDirection);

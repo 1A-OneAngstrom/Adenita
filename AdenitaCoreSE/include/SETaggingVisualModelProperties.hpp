@@ -14,7 +14,7 @@
 // SAMSON Element generator pro tip: if you do not want to have a property window associated to you visual model, do not expose it in the descriptor. 
 // Precisely, remove the line SB_ELEMENT_CLASS(SETaggingVisualModelProperties); from the file SETaggingDescriptor.cpp
 
-class SETaggingVisualModelProperties : public SBGDataGraphNodeProperties {
+class SB_EXPORT SETaggingVisualModelProperties : public SBGDataGraphNodeProperties {
 
 	SB_CLASS
 	Q_OBJECT

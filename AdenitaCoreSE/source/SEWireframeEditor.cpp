@@ -161,7 +161,7 @@ ADNPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock)
   unsigned int numNucleotides;
 
   ADNPointer<ADNPart> part = nullptr;
-  string filename;
+  std::string filename;
   if (wireframeType_ == DASCreator::Tetrahedron) {
     part = new ADNPart();
     double a = sqrt(pow(radius.getValue(), 2) * 2);
@@ -376,7 +376,7 @@ void SEWireframeEditor::beginEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
-	string iconPath = SB_ELEMENT_PATH + "/Resource/icons/wireframeCreator.png";
+    std::string iconPath = SB_ELEMENT_PATH + "/Resource/icons/wireframeCreator.png";
 	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
 
 }
@@ -402,14 +402,14 @@ void SEWireframeEditor::display() {
 	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop. 
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
 
-  SEConfig& config = SEConfig::GetInstance();
+    SEConfig& config = SEConfig::GetInstance();
 
-  if (!display_) return;
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    if (!display_) return;
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+    SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
 
   if (wireframeType_ == DASCreator::Cuboid) {
     if (positions_.positionsCounter < 3) {

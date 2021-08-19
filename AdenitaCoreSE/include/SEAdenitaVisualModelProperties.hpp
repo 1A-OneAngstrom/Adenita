@@ -14,7 +14,7 @@
 // SAMSON Element generator pro tip: if you do not want to have a property window associated to you visual model, do not expose it in the descriptor. 
 // Precisely, remove the line SB_ELEMENT_CLASS(SEAdenitaVisualModelProperties); from the file SEAdenitaDescriptor.cpp
 
-class SEAdenitaVisualModelProperties : public SBGDataGraphNodeProperties {
+class SB_EXPORT SEAdenitaVisualModelProperties : public SBGDataGraphNodeProperties {
 
 	SB_CLASS
 	Q_OBJECT

@@ -127,9 +127,9 @@ void ADNDisplayHelper::displayLengthText(SBPosition3 start, SBPosition3 end, std
     double length = (end - start).norm().getValue();
     length /= 1000;
 
-    stringstream stream;
-    stream << fixed << setprecision(2) << length;
-    string text = stream.str() + " nm";
+    std::stringstream stream;
+    stream << fixed << std::setprecision(2) << length;
+    std::string text = stream.str() + " nm";
   }
 
   float * color = new float[4];

@@ -9,7 +9,7 @@
 
 /// This class implements a visual model
 
-class SETaggingVisualModel : public SBMVisualModel {
+class SB_EXPORT SETaggingVisualModel : public SBMVisualModel {
 
 	SB_CLASS
 

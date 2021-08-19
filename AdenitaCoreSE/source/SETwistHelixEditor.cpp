@@ -28,11 +28,11 @@ void SETwistHelixEditor::SetTwistAngle(double angle)
   twistAngle_ = angle;
 
 	if (twistAngle_ < 0) {
-		string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_twistMinus1BP.png";
+		std::string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_twistMinus1BP.png";
 		SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
 	}
 	else {
-		string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_twistPlus1BP.png";
+		std::string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_twistPlus1BP.png";
 		SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
 	}
 }
@@ -118,11 +118,11 @@ void SETwistHelixEditor::beginEditing() {
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
 	if (twistAngle_ < 0) {
-		string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_twistMinus1BP.png";
+		std::string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_twistMinus1BP.png";
 		SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
 	}
 	else {
-		string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_twistPlus1BP.png";
+		std::string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_twistPlus1BP.png";
 		SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
 	}
 

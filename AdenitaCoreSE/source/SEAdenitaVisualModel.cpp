@@ -440,7 +440,7 @@ void SEAdenitaVisualModel::initDisplayIndices() {
 			auto baseSegments = ds->GetBaseSegments();
 			SB_FOR(ADNPointer<ADNBaseSegment> bs, baseSegments) {
 
-				bsMap_.insert(make_pair(bs(), indexDS));
+				bsMap_.insert(std::make_pair(bs(), indexDS));
 				++indexDS;
 
 			}
@@ -464,14 +464,14 @@ void SEAdenitaVisualModel::initDisplayIndices() {
 			auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
 			SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
-				ntMap_.insert(make_pair(nt(), indexNt));
+				ntMap_.insert(std::make_pair(nt(), indexNt));
 				auto atoms = nt->GetAtoms();
 				SB_FOR(ADNPointer<ADNAtom> a, atoms) {
 
-					atomMap_.insert(make_pair(a(), indexAtom));
+					atomMap_.insert(std::make_pair(a(), indexAtom));
 
 					//associate atom to nt index
-					atomNtIndexMap_.insert(make_pair(indexAtom, indexNt));
+					atomNtIndexMap_.insert(std::make_pair(indexAtom, indexNt));
           
 					++indexAtom;
 
@@ -479,7 +479,7 @@ void SEAdenitaVisualModel::initDisplayIndices() {
 
 				//associate nt to bs index
 				auto bs = nt->GetBaseSegment();
-				ntBsIndexMap_.insert(make_pair(indexNt, bsMap_[bs()]));
+				ntBsIndexMap_.insert(std::make_pair(indexNt, bsMap_[bs()]));
 
 				++indexNt;
 
@@ -864,7 +864,7 @@ void SEAdenitaVisualModel::prepare3D(double iv) {
 
 }
 
-void SEAdenitaVisualModel::emphasizeColors(ADNArray<float> & colors, vector<unsigned int> & indices, float r, float g, float b, float a) {
+void SEAdenitaVisualModel::emphasizeColors(ADNArray<float> & colors, std::vector<unsigned int> & indices, float r, float g, float b, float a) {
 
 	for (int i = 0; i < indices.size(); i++) {
 
@@ -884,7 +884,7 @@ void SEAdenitaVisualModel::emphasizeColors(ADNArray<float> & colors, vector<unsi
 
 }
 
-void SEAdenitaVisualModel::replaceColors(ADNArray<float> & colors, vector<unsigned int> & indices, float * color) {
+void SEAdenitaVisualModel::replaceColors(ADNArray<float> & colors, std::vector<unsigned int> & indices, float * color) {
 
 	for (int i = 0; i < indices.size(); i++) {
 
@@ -952,8 +952,8 @@ void SEAdenitaVisualModel::orderVisibility() {
   
 	auto parts = nanorobot_->GetParts();
 
-	std::vector<pair<ADNNucleotide*, float>> nucleotidesSorted;
-	std::vector<pair<ADNSingleStrand*, float>> singleStrandsSorted;
+	std::vector<std::pair<ADNNucleotide*, float>> nucleotidesSorted;
+	std::vector<std::pair<ADNSingleStrand*, float>> singleStrandsSorted;
 
 	//ordered by
 	if (order == 1) {
@@ -970,9 +970,9 @@ void SEAdenitaVisualModel::orderVisibility() {
 				SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
 					auto pair = nanorobot_->GetNucleotidePair(nt);
-					nucleotidesSorted.push_back(make_pair(nt(), float(nt->getNodeIndex())));
+					nucleotidesSorted.push_back(std::make_pair(nt(), float(nt->getNodeIndex())));
 					if (pair != nullptr)
-					nucleotidesSorted.push_back(make_pair(pair(), float(nt->getNodeIndex()))); //the staple nucleotide should get the same order as the scaffold nucleotide
+					nucleotidesSorted.push_back(std::make_pair(pair(), float(nt->getNodeIndex()))); //the staple nucleotide should get the same order as the scaffold nucleotide
 
 				}
 
@@ -1036,7 +1036,7 @@ void SEAdenitaVisualModel::orderVisibility() {
 
 					SBPosition3 diff = nanorobot_->GetNucleotidePosition(nt) - center;
 					float dist = diff.norm().getValue();
-					nucleotidesSorted.push_back(make_pair(nt(), dist));
+					nucleotidesSorted.push_back(std::make_pair(nt(), dist));
 
 					if (dist < minDist) minDist = dist;
 
@@ -1065,12 +1065,12 @@ void SEAdenitaVisualModel::orderVisibility() {
 	float max = nucleotidesSorted.back().second;
 
 	for (int i = 0; i < nucleotidesSorted.size(); i++) {
-		sortedNucleotidesByDist_.insert(make_pair(nucleotidesSorted[i].first, nucleotidesSorted[i].second / max));
+		sortedNucleotidesByDist_.insert(std::make_pair(nucleotidesSorted[i].first, nucleotidesSorted[i].second / max));
 		//logger.Log(nucleotidesSorted[i].second);
 	}
 
 	for (int i = 0; i < singleStrandsSorted.size(); i++) {
-		sortedSingleStrandsByDist_.insert(make_pair(singleStrandsSorted[i].first, singleStrandsSorted[i].second / max));
+		sortedSingleStrandsByDist_.insert(std::make_pair(singleStrandsSorted[i].first, singleStrandsSorted[i].second / max));
 		//logger.Log(singleStrandsSorted[i].second);
 	}
 
@@ -2115,7 +2115,7 @@ void SEAdenitaVisualModel::displayBasePairConnections(bool onlySelected) {
 
 				if (nt->GetPair() != nullptr) {
 
-					ntMap.insert(make_pair(nt(), numPairedNts));
+					ntMap.insert(std::make_pair(nt(), numPairedNts));
 					++numPairedNts;
 
 				}
@@ -2321,202 +2321,249 @@ void SEAdenitaVisualModel::prepareAtoms()
       
 }
 
-void SEAdenitaVisualModel::highlightNucleotides()
-{
-  prepareDiscreteScalesDim();
+void SEAdenitaVisualModel::highlightNucleotides() {
 
-  float * colorHighlight = new float[4];
-  colorHighlight[0] = 0.2f;
-  colorHighlight[1] = 0.8f;
-  colorHighlight[2] = 0.2f;
-  colorHighlight[3] = 1.0f;
+	prepareDiscreteScalesDim();
 
-  auto parts = nanorobot_->GetParts();
-  vector<unsigned int> ntHighlight;
-  vector<unsigned int> ntContext;
-  vector<unsigned int> bsHighlight;
-  vector<unsigned int> bsContext;
+	float * colorHighlight = new float[4];
+	colorHighlight[0] = 0.2f;
+	colorHighlight[1] = 0.8f;
+	colorHighlight[2] = 0.2f;
+	colorHighlight[3] = 1.0f;
 
-  if (highlightType_ == HighlightType::NONE) {
+	auto parts = nanorobot_->GetParts();
+	std::vector<unsigned int> ntHighlight;
+	std::vector<unsigned int> ntContext;
+	std::vector<unsigned int> bsHighlight;
+	std::vector<unsigned int> bsContext;
+
+	if (highlightType_ == HighlightType::NONE) {
     
-  }
-  else if (highlightType_ == HighlightType::CROSSOVERS) {
+	}
+	else if (highlightType_ == HighlightType::CROSSOVERS) {
 
-    for (auto p : ntMap_) {
-      auto index = p.second;
-      ntContext.push_back(index);
-    }
+		for (auto p : ntMap_) {
+			auto index = p.second;
+			ntContext.push_back(index);
+		}
 
-    for (auto p : bsMap_) {
-      auto index = p.second;
-      bsContext.push_back(index);
-    }
+		for (auto p : bsMap_) {
+			auto index = p.second;
+			bsContext.push_back(index);
+		}
 
-    SB_FOR(auto part, parts) {
-      auto xos = PICrossovers::GetCrossovers(part);
-      for (auto xo : xos) {
-        auto startNt = xo.first;
-        auto endNt = xo.second;
-        auto startBs = startNt->GetBaseSegment();
-        auto endBs = endNt->GetBaseSegment();
+		SB_FOR(auto part, parts) {
 
-        auto startNtIdx = ntMap_[startNt()];
-        auto endNtIdx = ntMap_[endNt()];
-        auto startBsIdx = bsMap_[startBs()];
-        auto endBsIdx = bsMap_[endBs()];
+			auto xos = PICrossovers::GetCrossovers(part);
+			for (auto xo : xos) {
 
-        ntHighlight.push_back(startNtIdx);
-        ntHighlight.push_back(endNtIdx);
-        bsHighlight.push_back(startBsIdx);
-        bsHighlight.push_back(endBsIdx);
-      }
-    }
-  }
-  else if (highlightType_ == HighlightType::GC) {
+				auto startNt = xo.first;
+				auto endNt = xo.second;
+				auto startBs = startNt->GetBaseSegment();
+				auto endBs = endNt->GetBaseSegment();
 
-    for (auto p : ntMap_) {
-      auto index = p.second;
-      ntContext.push_back(index);
-    }
+				auto startNtIdx = ntMap_[startNt()];
+				auto endNtIdx = ntMap_[endNt()];
+				auto startBsIdx = bsMap_[startBs()];
+				auto endBsIdx = bsMap_[endBs()];
 
-    for (auto p : bsMap_) {
-      auto index = p.second;
-      bsContext.push_back(index);
-    }
+				ntHighlight.push_back(startNtIdx);
+				ntHighlight.push_back(endNtIdx);
+				bsHighlight.push_back(startBsIdx);
+				bsHighlight.push_back(endBsIdx);
 
-    SB_FOR(auto part, parts) {
-      auto singleStrands = nanorobot_->GetSingleStrands(part);
-      SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
-        auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
-        SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
-          auto indexNt = ntMap_[nt()];
-          if (nt->getNucleotideType() == DNABlocks::DC || nt->getNucleotideType() == DNABlocks::DG) {
-            ntHighlight.push_back(indexNt);
+			}
 
-            auto bs = nt->GetBaseSegment();
-            auto indexDs = bsMap_[bs()];
-            bsHighlight.push_back(indexDs);
-          }
-        }
-      }
-    }
-  }
-  else if (highlightType_ == HighlightType::TAGGED) {
+		}
 
-    for (auto p : ntMap_) {
-      auto index = p.second;
-      ntContext.push_back(index);
-    }
+	}
+	else if (highlightType_ == HighlightType::GC) {
 
-    for (auto p : bsMap_) {
-      auto index = p.second;
-      bsContext.push_back(index);
-    }
+		for (auto p : ntMap_) {
+			auto index = p.second;
+			ntContext.push_back(index);
+		}
 
-    SB_FOR(auto part, parts) {
-      auto singleStrands = nanorobot_->GetSingleStrands(part);
-      SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
-        auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
-        SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
-          auto indexNt = ntMap_[nt()];
-          if (nt->hasTag()) {
-            ntHighlight.push_back(indexNt);
-            auto bs = nt->GetBaseSegment();
-            auto indexDs = bsMap_[bs()];
-            bsHighlight.push_back(indexDs);
-          }
+		for (auto p : bsMap_) {
+			auto index = p.second;
+			bsContext.push_back(index);
+		}
 
-        }
-      }
-    }
-  }
-  else if (highlightType_ == HighlightType::LENGTH) {
-	  for (auto p : ntMap_) {
-		  auto index = p.second;
-		  ntContext.push_back(index);
-	  }
+		SB_FOR(auto part, parts) {
 
-	  for (auto p : bsMap_) {
-		  auto index = p.second;
-		  bsContext.push_back(index);
-	  }
+			auto singleStrands = nanorobot_->GetSingleStrands(part);
+			SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
-	  SB_FOR(auto part, parts) {
-		  auto singleStrands = nanorobot_->GetSingleStrands(part);
-		  SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
-			  bool inRange = ss->getNumberOfNucleotides() > highlightMinLen_ && ss->getNumberOfNucleotides() < highlightMaxLen_;
-        if (notWithin_) inRange = !inRange;
-        if (notScaffold_) inRange = ss->IsScaffold() ? false : inRange;
-			  if (inRange) {
-				  auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
-				  SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
-					  auto indexNt = ntMap_[nt()];
-					  ntHighlight.push_back(indexNt);
-					  auto bs = nt->GetBaseSegment();
-					  auto indexDs = bsMap_[bs()];
-					  bsHighlight.push_back(indexDs);
-				  }
-			  }
-		  }
-	  }
-  }
+				auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+				SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
+
+					auto indexNt = ntMap_[nt()];
+					if (nt->getNucleotideType() == DNABlocks::DC || nt->getNucleotideType() == DNABlocks::DG) {
+						ntHighlight.push_back(indexNt);
+
+						auto bs = nt->GetBaseSegment();
+						auto indexDs = bsMap_[bs()];
+						bsHighlight.push_back(indexDs);
+
+					}
+
+				}
+
+			}
+
+		}
+
+	}
+	else if (highlightType_ == HighlightType::TAGGED) {
+
+		for (auto p : ntMap_) {
+			auto index = p.second;
+			ntContext.push_back(index);
+		}
+
+		for (auto p : bsMap_) {
+			auto index = p.second;
+			bsContext.push_back(index);
+		}
+
+		SB_FOR(auto part, parts) {
+
+			auto singleStrands = nanorobot_->GetSingleStrands(part);
+			SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
+
+				auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+				SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
+
+					auto indexNt = ntMap_[nt()];
+					if (nt->hasTag()) {
+
+						ntHighlight.push_back(indexNt);
+						auto bs = nt->GetBaseSegment();
+						auto indexDs = bsMap_[bs()];
+						bsHighlight.push_back(indexDs);
+
+					}
+
+				}
+
+			}
+
+		}
+
+	}
+	else if (highlightType_ == HighlightType::LENGTH) {
+
+		for (auto p : ntMap_) {
+			auto index = p.second;
+			ntContext.push_back(index);
+		}
+
+		for (auto p : bsMap_) {
+			auto index = p.second;
+			bsContext.push_back(index);
+		}
+
+		SB_FOR(auto part, parts) {
+
+			auto singleStrands = nanorobot_->GetSingleStrands(part);
+			SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
+
+				bool inRange = ss->getNumberOfNucleotides() > highlightMinLen_ && ss->getNumberOfNucleotides() < highlightMaxLen_;
+				if (notWithin_) inRange = !inRange;
+				if (notScaffold_) inRange = ss->IsScaffold() ? false : inRange;
+				if (inRange) {
+
+					auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+					SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
+
+						auto indexNt = ntMap_[nt()];
+						ntHighlight.push_back(indexNt);
+						auto bs = nt->GetBaseSegment();
+						auto indexDs = bsMap_[bs()];
+						bsHighlight.push_back(indexDs);
+
+					}
+
+				}
+
+			}
+
+		}
+
+	}
 	else if (highlightType_ == HighlightType::NOBASE) {
 
-	  for (auto p : ntMap_) {
-		  auto index = p.second;
-		  ntContext.push_back(index);
-	  }
+		for (auto p : ntMap_) {
+			auto index = p.second;
+			ntContext.push_back(index);
+		}
 
-	  for (auto p : bsMap_) {
-		  auto index = p.second;
-		  bsContext.push_back(index);
-	  }
+		for (auto p : bsMap_) {
+			auto index = p.second;
+			bsContext.push_back(index);
+		}
 
-	  SB_FOR(auto part, parts) {
-		  auto singleStrands = nanorobot_->GetSingleStrands(part);
-		  SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
-			  auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
-			  SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
-				  auto indexNt = ntMap_[nt()];
-				  if (nt->getNucleotideType() == DNABlocks::DI) {
-					  ntHighlight.push_back(indexNt);
-					  auto bs = nt->GetBaseSegment();
-					  auto indexDs = bsMap_[bs()];
-					  bsHighlight.push_back(indexDs);
-				  }
+		SB_FOR(auto part, parts) {
 
-			  }
-		  }
-	  }
+			auto singleStrands = nanorobot_->GetSingleStrands(part);
+			SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
+
+				auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+				SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
+
+					auto indexNt = ntMap_[nt()];
+					if (nt->getNucleotideType() == DNABlocks::DI) {
+
+						ntHighlight.push_back(indexNt);
+						auto bs = nt->GetBaseSegment();
+						auto indexDs = bsMap_[bs()];
+						bsHighlight.push_back(indexDs);
+
+					}
+
+				}
+
+			}
+
+		}
 	}
-  else if (highlightType_ == HighlightType::UNPAIRED) {
+	else if (highlightType_ == HighlightType::UNPAIRED) {
 
-    for (auto p : ntMap_) {
-      auto index = p.second;
-      ntContext.push_back(index);
-    }
+		for (auto p : ntMap_) {
+			auto index = p.second;
+			ntContext.push_back(index);
+		}
 
-    for (auto p : bsMap_) {
-      auto index = p.second;
-      bsContext.push_back(index);
-    }
+		for (auto p : bsMap_) {
+			auto index = p.second;
+			bsContext.push_back(index);
+		}
 
-    SB_FOR(auto part, parts) {
-      auto singleStrands = nanorobot_->GetSingleStrands(part);
-      SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
-        auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
-        SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
-          auto indexNt = ntMap_[nt()];
-          if (nt->GetPair() == nullptr) {
-            ntHighlight.push_back(indexNt);
-            auto bs = nt->GetBaseSegment();
-            auto indexDs = bsMap_[bs()];
-            bsHighlight.push_back(indexDs);
-          }
-        }
-      }
-    }
-  }
+		SB_FOR(auto part, parts) {
+
+			auto singleStrands = nanorobot_->GetSingleStrands(part);
+			SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
+
+				auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+				SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
+
+					auto indexNt = ntMap_[nt()];
+					if (nt->GetPair() == nullptr) {
+
+						ntHighlight.push_back(indexNt);
+						auto bs = nt->GetBaseSegment();
+						auto indexDs = bsMap_[bs()];
+						bsHighlight.push_back(indexDs);
+
+					}
+
+				}
+
+			}
+
+		}
+
+	}
 
 	emphasizeColors(colorsVNt_, ntContext, 0.4f, 0.4f, 0.4f, 1.0f);
 	emphasizeColors(colorsENt_, ntContext, 0.4f, 0.4f, 0.4f, 1.0f);

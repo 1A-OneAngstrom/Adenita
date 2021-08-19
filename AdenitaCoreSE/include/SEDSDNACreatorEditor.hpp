@@ -16,7 +16,7 @@
 
 /// This class implements an editor
 
-class SEDSDNACreatorEditor : public SBGEditor {
+class SB_EXPORT SEDSDNACreatorEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT

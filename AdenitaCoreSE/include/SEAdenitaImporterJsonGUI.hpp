@@ -10,7 +10,7 @@ class SEAdenitaImporterJson;
 
 // SAMSON Element generator pro tip: add GUI functionality in this class. The non-GUI functionality should go in the SEAdenitaImporterJson class
 
-class SEAdenitaImporterJsonGUI : public SBGFileImporter {
+class SB_EXPORT SEAdenitaImporterJsonGUI : public SBGFileImporter {
 
 	Q_OBJECT
 

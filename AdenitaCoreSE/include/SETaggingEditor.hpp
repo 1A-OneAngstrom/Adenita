@@ -13,7 +13,7 @@
 
 /// This class implements an editor
 
-class SETaggingEditor : public SBGEditor {
+class SB_EXPORT SETaggingEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT

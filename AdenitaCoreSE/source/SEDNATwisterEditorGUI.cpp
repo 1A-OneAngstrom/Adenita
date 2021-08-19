@@ -18,7 +18,7 @@ SEDNATwisterEditor* SEDNATwisterEditorGUI::getEditor() const { return editor; }
 
 void SEDNATwisterEditorGUI::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -26,7 +26,7 @@ void SEDNATwisterEditorGUI::loadSettings( SBGSettings *settings ) {
 
 void SEDNATwisterEditorGUI::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 

@@ -22,7 +22,7 @@ enum ZLatticePattern {
 	CIRCLE
 };
 
-class SELatticeCreatorEditor : public SBGEditor {
+class SB_EXPORT SELatticeCreatorEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT
@@ -138,8 +138,8 @@ private:
 	int															maxYds_ = 30;
 	int															maxZBps_ = 400;
 
-	string														xyText_ = "";
-	string														zText_ = "";
+	std::string													xyText_ = "";
+	std::string													zText_ = "";
 
 	ZLatticePattern												zPattern_ = ZLatticePattern::ALLZ;
 

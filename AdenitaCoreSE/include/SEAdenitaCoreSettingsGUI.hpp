@@ -8,7 +8,7 @@
 #include <QDialog>
 
 
-class SEAdenitaCoreSettingsGUI : public QDialog {
+class SB_EXPORT SEAdenitaCoreSettingsGUI : public QDialog {
 
 	Q_OBJECT
 

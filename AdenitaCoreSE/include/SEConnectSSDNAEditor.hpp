@@ -19,7 +19,7 @@ enum ConnectionMode {
 	Double
 };
 
-class SEConnectSSDNAEditor : public SBGEditor {
+class SB_EXPORT SEConnectSSDNAEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT

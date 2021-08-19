@@ -21,7 +21,7 @@ SETwistHelixEditor* SETwistHelixEditorGUI::getEditor() const { return editor; }
 
 void SETwistHelixEditorGUI::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if (settings == nullptr) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -29,7 +29,7 @@ void SETwistHelixEditorGUI::loadSettings( SBGSettings *settings ) {
 
 void SETwistHelixEditorGUI::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 

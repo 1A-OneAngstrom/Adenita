@@ -20,7 +20,7 @@ enum BendingType {
 	SPHEREVISIBILITY
 };
 
-class SEDNATwisterEditor : public SBGEditor {
+class SB_EXPORT SEDNATwisterEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT
@@ -121,7 +121,7 @@ private:
 	bool														altPressed_;
 	SBPosition3													spherePosition_;
 	SBPosition3													textPosition_;
-	string														text_;
+	std::string													text_;
 	SBQuantity::length											sphereRadius_;
 	bool														forwardActionSphereActive_;
 	bool														reverseActionSphereActive_;

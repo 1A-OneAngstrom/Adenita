@@ -12,7 +12,7 @@
 
 /// This class implements an editor
 
-class SETwistHelixEditor : public SBGEditor {
+class SB_EXPORT SETwistHelixEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT

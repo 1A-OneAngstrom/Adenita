@@ -18,7 +18,7 @@ SEConnectSSDNAEditor* SEConnectSSDNAEditorGUI::getEditor() const { return editor
 
 void SEConnectSSDNAEditorGUI::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -26,7 +26,7 @@ void SEConnectSSDNAEditorGUI::loadSettings( SBGSettings *settings ) {
 
 void SEConnectSSDNAEditorGUI::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 

@@ -11,7 +11,7 @@ class SEMergePartsEditor;
 // SAMSON Element generator pro tip: add GUI functionality in this class. 
 // The non-GUI functionality (and the mouse and keyboard event handling methods that are specific to the editor) should go in the SEConnectSSDNAEditor class
 
-class SEMergePartsEditorGUI : public SBGWindowWidget {
+class SB_EXPORT SEMergePartsEditorGUI : public SBGWindowWidget {
 
 	Q_OBJECT
 

@@ -11,7 +11,7 @@ class SEDSDNACreatorEditor;
 // SAMSON Element generator pro tip: add GUI functionality in this class. 
 // The non-GUI functionality (and the mouse and keyboard event handling methods that are specific to the editor) should go in the SEDSDNACreatorEditor class
 
-class SEDSDNACreatorEditorGUI : public SBGWindowWidget {
+class SB_EXPORT SEDSDNACreatorEditorGUI : public SBGWindowWidget {
 
 	Q_OBJECT
 

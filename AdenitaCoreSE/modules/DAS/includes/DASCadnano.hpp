@@ -16,7 +16,7 @@
 #include "DASLattices.hpp"
 
 
-using namespace std;
+//using namespace std;
 //using namespace rapidjson;
 
 double const bp_rise_ = ADNConstants::BP_RISE; // nm
@@ -54,7 +54,7 @@ struct Vstrand {
 };
 
 struct CadnanoJSONFile {
-  string name_;
+  std::string name_;
   std::map<int, Vstrand> vstrands_;  // key is vStrand num
   LatticeType lType_;
   std::vector<std::pair<int, int>> scaffoldStartPositions_;  // first is vhelix num, second is position  within it

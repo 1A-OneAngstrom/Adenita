@@ -172,7 +172,7 @@ CollectionMap<SBAtom> ADNNanorobot::GetHighlightedAtoms()
   CollectionMap<SBAtom> atoms;
 
   SBNodeIndexer atomIndexer;
-  SAMSON::getActiveDocument()->getNodes(atomIndexer, SBNode::IsType(SBNode::Atom));
+  SAMSON::getActiveDocument()->getNodes(atomIndexer, SBNode::Atom);
 
   // only take one
   SB_FOR(SBNode* node, atomIndexer) {

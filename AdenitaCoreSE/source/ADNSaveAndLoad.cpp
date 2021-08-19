@@ -822,7 +822,7 @@ ADNPointer<ADNPart> ADNLoader::GenerateModelFromDatagraph(SBNode* n)
   ADNPointer<ADNPart> part = new ADNPart();
 
   SBNodeIndexer nodes;
-  n->getNodes(nodes, SBNode::IsType(SBNode::Chain));
+  n->getNodes(nodes, SBNode::Chain);
 
   SB_FOR(SBNode* node, nodes) {
     
@@ -931,7 +931,7 @@ ADNPointer<ADNPart> ADNLoader::GenerateModelFromDatagraphParametrized(SBNode * s
   ADNPointer<ADNPart> part = new ADNPart();
 
   SBNodeIndexer nodes;
-  sn->getNodes(nodes, SBNode::IsType(SBNode::Chain));
+  sn->getNodes(nodes, SBNode::Chain);
 
   SB_FOR(SBNode* node, nodes) {
 

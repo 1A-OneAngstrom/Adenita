@@ -14,7 +14,7 @@
 
 /// This class implements an editor
 
-class SEMergePartsEditor : public SBGEditor {
+class SB_EXPORT SEMergePartsEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT

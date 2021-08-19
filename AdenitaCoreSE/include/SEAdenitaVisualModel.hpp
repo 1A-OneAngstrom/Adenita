@@ -20,7 +20,7 @@
 
 /// This class implements a visual model
 
-class SEAdenitaVisualModel : public SBMVisualModel {
+class SB_EXPORT SEAdenitaVisualModel : public SBMVisualModel {
 
 	SB_CLASS
 
@@ -208,8 +208,8 @@ private:
 	void														prepare1Dto2D(double iv);
 	void														prepare2Dto3D(double iv);
 	void														prepare3D(double iv);
-	void														emphasizeColors(ADNArray<float> & colors, vector<unsigned int> & indices, float r, float g, float b, float a);
-	void														replaceColors(ADNArray<float> & colors, vector<unsigned int> & indices, float * color);
+	void														emphasizeColors(ADNArray<float> & colors, std::vector<unsigned int> & indices, float r, float g, float b, float a);
+	void														replaceColors(ADNArray<float> & colors, std::vector<unsigned int> & indices, float * color);
 
 	// general display properties 
 	ADNArray<float>												nucleotideEColor_;
@@ -299,18 +299,18 @@ private:
 	std::map<ADNAtom*, unsigned int>							atomMap_;
 	std::map<ADNNucleotide*, unsigned int>						ntMap_;
 	std::map<ADNBaseSegment*, unsigned int>						bsMap_;
-	map<unsigned int, unsigned>									atomNtIndexMap_;
-	map<unsigned int, unsigned>									ntBsIndexMap_;
+	std::map<unsigned int, unsigned>							atomNtIndexMap_;
+	std::map<unsigned int, unsigned>							ntBsIndexMap_;
 
-	map<ADNNucleotide*, float>									sortedNucleotidesByDist_;
-	map<ADNSingleStrand*, float>								sortedSingleStrandsByDist_;
+	std::map<ADNNucleotide*, float>								sortedNucleotidesByDist_;
+	std::map<ADNSingleStrand*, float>							sortedSingleStrandsByDist_;
  
 	// current arrays for being displayed (only spheres and cylinders)
 
 	/// \name Property colors
 	//@{
 
-	vector<ADNArray<float>>										propertyColorSchemes_;
+	std::vector<ADNArray<float>>								propertyColorSchemes_;
   
 	enum class ColorType {
 		REGULAR = 0,	///< default color map

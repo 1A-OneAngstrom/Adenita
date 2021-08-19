@@ -274,8 +274,8 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 			double sysY = bbSize[1].getValue() * 0.001;  // nm
 			double sysZ = bbSize[2].getValue() * 0.001;  // nm
 
-			double refVal = max(sysX, sysY);
-			refVal = max(refVal, sysZ);
+			double refVal = std::max(sysX, sysY);
+			refVal = std::max(refVal, sysZ);
 
 			// oxDNA dialog
 			QDialog* dialogOxDNA = new QDialog();
@@ -1082,27 +1082,27 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetMenuButtons() {
 		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
 
 		QIcon loadIcon;
-		loadIcon.addFile(string(iconsPath + "load.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		loadIcon.addFile(std::string(iconsPath + "load.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnLoad->setIcon(loadIcon);
 
 		QIcon saveAllIcon;
-		saveAllIcon.addFile(string(iconsPath + "saveAll.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		saveAllIcon.addFile(std::string(iconsPath + "saveAll.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnSaveAll->setIcon(saveAllIcon);
 
 		QIcon saveSelectionIcon;
-		saveSelectionIcon.addFile(string(iconsPath + "saveSelection.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		saveSelectionIcon.addFile(std::string(iconsPath + "saveSelection.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnSaveSelection->setIcon(saveSelectionIcon);
 
 		QIcon exportIcon;
-		exportIcon.addFile(string(iconsPath + "export.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		exportIcon.addFile(std::string(iconsPath + "export.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnExport->setIcon(exportIcon);
 
 		QIcon resetVM;
-		resetVM.addFile(string(iconsPath + "resetVisualModel.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		resetVM.addFile(std::string(iconsPath + "resetVisualModel.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnResetVisualModel->setIcon(resetVM);
 
 		QIcon settings;
-		settings.addFile(string(iconsPath + "settings.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		settings.addFile(std::string(iconsPath + "settings.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnSettings->setIcon(settings);
 
 	}
@@ -1165,23 +1165,23 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetEditSequencesButtons() {
 		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
 
 		QIcon setScaffIcon;
-		setScaffIcon.addFile(string(iconsPath + "setScaffold.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		setScaffIcon.addFile(std::string(iconsPath + "setScaffold.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnSetScaff->setIcon(setScaffIcon);
 
 		QIcon calcProperties;
-		calcProperties.addFile(string(iconsPath + "calculate.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		calcProperties.addFile(std::string(iconsPath + "calculate.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnCalculateBindingProperties->setIcon(calcProperties);
 
 		QIcon setStart;
-		setStart.addFile(string(iconsPath + "set5Prime.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		setStart.addFile(std::string(iconsPath + "set5Prime.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnSetStart->setIcon(setStart);
 
 		QIcon generateSequences;
-		generateSequences.addFile(string(iconsPath + "generateSeqs.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		generateSequences.addFile(std::string(iconsPath + "generateSeqs.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnGenerateSequence->setIcon(generateSequences);
 
 		QIcon tagEditor;
-		tagEditor.addFile(string(iconsPath + "SETaggingEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		tagEditor.addFile(std::string(iconsPath + "SETaggingEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnTaggingEditor->setIcon(tagEditor);
 
 	}
@@ -1258,27 +1258,27 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetModelingButtons() {
 		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
 
 		QIcon breakEditor;
-		breakEditor.addFile(string(iconsPath + "break.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		breakEditor.addFile(std::string(iconsPath + "break.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnBreakEditor->setIcon(breakEditor);
 
 		QIcon deleteEditor;
-		deleteEditor.addFile(string(iconsPath + "delete.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		deleteEditor.addFile(std::string(iconsPath + "delete.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnDeleteEditor->setIcon(deleteEditor);
 
 		QIcon connectEditor;
-		connectEditor.addFile(string(iconsPath + "connectDS.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		connectEditor.addFile(std::string(iconsPath + "connectDS.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnConnectEditor->setIcon(connectEditor);
 
 		QIcon twistDsDNA;
-		twistDsDNA.addFile(string(iconsPath + "twistDS.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		twistDsDNA.addFile(std::string(iconsPath + "twistDS.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnDNATwisterEditor->setIcon(twistDsDNA);
 
 		QIcon mergePartsEditor;
-		mergePartsEditor.addFile(string(iconsPath + "merge.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		mergePartsEditor.addFile(std::string(iconsPath + "merge.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnMergePartsEditor->setIcon(mergePartsEditor);
 
 		QIcon dnaTwister;
-		dnaTwister.addFile(string(iconsPath + "SEDNATwisterEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		dnaTwister.addFile(std::string(iconsPath + "SEDNATwisterEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnTwisterEditor->setIcon(dnaTwister);
 
 	}
@@ -1340,23 +1340,23 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetCreatorsButtons() {
 		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
 
 		QIcon createBp;
-		createBp.addFile(string(iconsPath + "createBasePair.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		createBp.addFile(std::string(iconsPath + "createBasePair.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnCreateBasePair->setIcon(createBp);
 
 		QIcon strandCreator;
-		strandCreator.addFile(string(iconsPath + "SEDSDNACreatorEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		strandCreator.addFile(std::string(iconsPath + "SEDSDNACreatorEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnDsDNACreatorEditor->setIcon(strandCreator);
 
 		QIcon nanotubeEditor;
-		nanotubeEditor.addFile(string(iconsPath + "SENanotubeCreatorEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		nanotubeEditor.addFile(std::string(iconsPath + "SENanotubeCreatorEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnNanotubeCreator->setIcon(nanotubeEditor);
 
 		QIcon latticeEditor;
-		latticeEditor.addFile(string(iconsPath + "SELatticeCreatorEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		latticeEditor.addFile(std::string(iconsPath + "SELatticeCreatorEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnLatticeCreatorEditor->setIcon(latticeEditor);
 
 		QIcon wireframeEditor;
-		wireframeEditor.addFile(string(iconsPath + "SEWireframeEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		wireframeEditor.addFile(std::string(iconsPath + "SEWireframeEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnWireframeEditor->setIcon(wireframeEditor);
 
 	}

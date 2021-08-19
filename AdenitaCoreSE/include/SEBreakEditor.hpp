@@ -12,7 +12,7 @@
 
 /// This class implements an editor
 
-class SEBreakEditor : public SBGEditor {
+class SB_EXPORT SEBreakEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT

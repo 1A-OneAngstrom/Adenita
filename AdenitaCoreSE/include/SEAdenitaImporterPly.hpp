@@ -8,7 +8,7 @@
 
 // SAMSON Element generator pro tip: add non-GUI functionality in this class. The GUI functionality should go in the SEAdenitaImporterPlyGUI class
 
-class SEAdenitaImporterPly : public SBIFileImporter {
+class SB_EXPORT SEAdenitaImporterPly : public SBIFileImporter {
 
 	SB_CLASS
 

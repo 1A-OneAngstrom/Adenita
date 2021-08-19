@@ -15,7 +15,7 @@
 
 /// This class implements an editor
 
-class SEWireframeEditor : public SBGEditor {
+class SB_EXPORT SEWireframeEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT

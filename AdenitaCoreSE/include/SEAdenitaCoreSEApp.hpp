@@ -18,7 +18,7 @@
 
 // SAMSON Element generator pro tip: add non-GUI functionality in this class. The GUI functionality should go in the SEAdenitaCoreSEAppGUI class
 
-class SEAdenitaCoreSEApp : public SBDApp {
+class SB_EXPORT SEAdenitaCoreSEApp : public SBDApp {
 
   SB_CLASS
 

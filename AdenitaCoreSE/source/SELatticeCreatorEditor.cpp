@@ -82,22 +82,22 @@ ADNPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*
 	if (numBps > maxZBps_)  numBps = maxZBps_;
 
 	xyText_ = "x: ";
-	xyText_ += to_string(int(xNumStrands));
+	xyText_ += std::to_string(int(xNumStrands));
 	xyText_ += " ds / ";
 	auto xLen = SBQuantity::nanometer(x).getValue();
 	if (lType_ == LatticeType::Honeycomb)
 		xLen *= 1.5;
-	xyText_ += to_string(int(xLen));
+	xyText_ += std::to_string(int(xLen));
 	xyText_ += " nm; ";
 	xyText_ += "y: ";
-	xyText_ += to_string(int(yNumStrands));
+	xyText_ += std::to_string(int(yNumStrands));
 	xyText_ += " ds / ";
-	xyText_ += to_string(int(SBQuantity::nanometer(y).getValue()));
+	xyText_ += std::to_string(int(SBQuantity::nanometer(y).getValue()));
 	xyText_ += " nm; ";
 	zText_ = "z: ";
-	zText_ += to_string(int(numBps));
+	zText_ += std::to_string(int(numBps));
 	zText_ += " bps / ";
-	zText_ += to_string(int(SBQuantity::nanometer(z).getValue()));
+	zText_ += std::to_string(int(SBQuantity::nanometer(z).getValue()));
 	zText_ += " nm; ";
 
 	part = new ADNPart();
@@ -192,7 +192,7 @@ QString SELatticeCreatorEditor::getToolTip() const {
 
 void SELatticeCreatorEditor::loadSettings(SBGSettings * settings)
 {
-  if (settings == NULL) return;
+  if (settings == nullptr) return;
 
   // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
@@ -200,7 +200,7 @@ void SELatticeCreatorEditor::loadSettings(SBGSettings * settings)
 
 void SELatticeCreatorEditor::saveSettings(SBGSettings* settings) {
 
-  if (settings == NULL) return;
+  if (settings == nullptr) return;
 
   // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 

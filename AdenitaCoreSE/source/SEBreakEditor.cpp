@@ -24,9 +24,10 @@ SEBreakEditor::~SEBreakEditor() {
 
 SEBreakEditorGUI* SEBreakEditor::getPropertyWidget() const { return static_cast<SEBreakEditorGUI*>(propertyWidget); }
 
-void SEBreakEditor::SetMode(bool five)
-{
+void SEBreakEditor::SetMode(bool five) {
+
 	fivePrimeMode_ = five;
+
 }
 
 SBCContainerUUID SEBreakEditor::getUUID() const { return SBCContainerUUID("2FACBF90-F7E2-AFCB-5E37-AA86763DDBC2"); }
@@ -48,17 +49,16 @@ QPixmap SEBreakEditor::getLogo() const {
 
 }
 
-int SEBreakEditor::getFormat() const
-{
+int SEBreakEditor::getFormat() const {
   
-  // SAMSON Element generator pro tip: modify these default settings to configure the window
-  //
-  // SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
-  // SBGWindow::Lockable : let users lock the window on top
-  // SBGWindow::Resizable : let users resize the window
-  // SBGWindow::Citable : let users obtain citation information (implement getCitation)
+	// SAMSON Element generator pro tip: modify these default settings to configure the window
+	//
+	// SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
+	// SBGWindow::Lockable : let users lock the window on top
+	// SBGWindow::Resizable : let users resize the window
+	// SBGWindow::Citable : let users obtain citation information (implement getCitation)
 
-  return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
+	return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
 
 }
 
@@ -78,33 +78,31 @@ QString SEBreakEditor::getToolTip() const {
 
 }
 
-void SEBreakEditor::loadSettings(SBGSettings * settings)
-{
-  if (settings == NULL) return;
+void SEBreakEditor::loadSettings(SBGSettings * settings) {
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
-}
+	if (settings == nullptr) return;
 
-void SEBreakEditor::saveSettings(SBGSettings * settings)
-{
-  if (settings == NULL) return;
-
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
-QString SEBreakEditor::getDescription() const
-{
-  return QObject::tr("Adenita | Break ssDNA");
+void SEBreakEditor::saveSettings(SBGSettings * settings) {
+
+	if (settings == nullptr) return;
+
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+
 }
+
+QString SEBreakEditor::getDescription() const { return QObject::tr("Adenita | Break ssDNA"); }
 
 void SEBreakEditor::beginEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
 
-  string iconPath = SB_ELEMENT_PATH + "/Resource/icons/break.png";
-  SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
+	std::string iconPath = SB_ELEMENT_PATH + "/Resource/icons/break.png";
+	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
 
 }
 
@@ -113,7 +111,8 @@ void SEBreakEditor::endEditing() {
 	// SAMSON Element generator pro tip: SAMSON calls this function immediately before your editor becomes inactive (for example when another editor becomes active). 
 	// Implement this function if you need to clean some data structures.
 
-  SAMSON::unsetViewportCursor();
+	SAMSON::unsetViewportCursor();
+
 }
 
 void SEBreakEditor::getActions(SBVector<SBAction*>& actionVector) {
@@ -154,10 +153,11 @@ void SEBreakEditor::mousePressEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-  auto app = SEAdenitaCoreSEApp::getAdenitaApp();
-  auto nanorobot = app->GetNanorobot();
+	auto app = SEAdenitaCoreSEApp::getAdenitaApp();
+	auto nanorobot = app->GetNanorobot();
 
-  app->BreakSingleStrand();
+	app->BreakSingleStrand();
+
 }
 
 void SEBreakEditor::mouseReleaseEvent(QMouseEvent* event) {

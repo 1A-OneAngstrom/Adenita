@@ -17,7 +17,7 @@ SEMergePartsEditor* SEMergePartsEditorGUI::getEditor() const { return editor; }
 
 void SEMergePartsEditorGUI::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if (settings == nullptr) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -25,7 +25,7 @@ void SEMergePartsEditorGUI::loadSettings( SBGSettings *settings ) {
 
 void SEMergePartsEditorGUI::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 

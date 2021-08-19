@@ -11,7 +11,7 @@
 
 /// This class implements an editor
 
-class SEDeleteEditor : public SBGEditor {
+class SB_EXPORT SEDeleteEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT

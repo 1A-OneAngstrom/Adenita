@@ -13,7 +13,7 @@ double ADNAuxiliary::mapRange(double input, double input_start, double input_end
 //	if (false)
 //	{
 //		SBNodeIndexer atoms;
-//		node->getNodes(atoms, SBNode::IsType(SBNode::Atom));
+//		node->getNodes(atoms, SBNode::Atom);
 //		result = getBaseSymbol(atoms.size());
 //	}
 //	else {

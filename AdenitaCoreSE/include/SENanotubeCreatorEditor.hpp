@@ -16,7 +16,7 @@
 
 /// This class implements an editor
 
-class SENanotubeCreatorEditor : public SBGEditor {
+class SB_EXPORT SENanotubeCreatorEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT

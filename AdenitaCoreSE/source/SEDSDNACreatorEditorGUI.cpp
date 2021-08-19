@@ -19,7 +19,7 @@ SEDSDNACreatorEditor* SEDSDNACreatorEditorGUI::getEditor() const { return editor
 
 void SEDSDNACreatorEditorGUI::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -27,7 +27,7 @@ void SEDSDNACreatorEditorGUI::loadSettings( SBGSettings *settings ) {
 
 void SEDSDNACreatorEditorGUI::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
