@@ -3,10 +3,9 @@
 
 #include "SBGApp.hpp"
 #include "ui_SEAdenitaCoreSEAppGUI.h"
-#include <QMessageBox>
-#include <QComboBox>
-#include <QSpinBox>
+
 #include <QToolButton>
+#include <QPushButton>
 
 
 class SEAdenitaCoreSEApp;
@@ -63,35 +62,42 @@ public:
 
 public slots:
 
-	void														onChangeSelector(int idx);
-
 	// Main
+
 	void														onLoadFile();
 	void														onSaveAll();
 	void														onSaveSelection();
 	void														onExport();
-	void														onSetScaffold();
-	void														onCreateBasePair();
-	void														onGenerateSequence();
-	void														onSettings();
-	void														onSetStart();
-	void														onCalculateBindingProperties();
 	void														onResetVisualModel();
+	void														onSettings();
 
-	// Editors
+	// Edit sequences
+
+	void														onSetScaffold();
+	void														onGenerateSequence();
+	void														onCalculateBindingProperties();
+	void														onSetStart();
+	void														onTaggingEditor();
+
+	// Modeling
+
 	void														onBreakEditor();
 	void														onConnectEditor();
 	void														onDeleteEditor();
+	void														onTwisterEditor();
 	void														onDNATwistEditor();
 	void														onMergePartsEditor();
+
+	// Creators
+
+	void														onCreateBasePair();
 	void														onCreateStrandEditor();
 	void														onNanotubeCreatorEditor();
 	void														onLatticeCreatorEditor();
 	void														onWireframeEditor();
-	void														onTaggingEditor();
-	void														onTwisterEditor();
 
 	// Debug
+
 	void														onAddNtThreeP();
 	void														onCenterPart();
 	void														onCatenanes();
@@ -111,7 +117,8 @@ private slots:
 private:
 
 	void														setupUI();
-	void														HighlightEditor(QToolButton* b);
+
+	void														setHighlightEditor(QToolButton* b);
 
 	std::vector<QToolButton*>									menuButtons_;
 	std::vector<QToolButton*>									editSequencesButtons_;
@@ -119,11 +126,11 @@ private:
 	std::vector<QToolButton*>									creatorsButtons_;
 	std::vector<QPushButton*>									debugButtons_;
 
-	std::vector<QToolButton*>									GetMenuButtons();
-	std::vector<QToolButton*>									GetEditSequencesButtons();
-	std::vector<QToolButton*>									GetModelingButtons();
-	std::vector<QToolButton*>									GetCreatorsButtons();
-	std::vector<QPushButton*>									GetDebugButtons();
+	std::vector<QToolButton*>									getMenuButtons();
+	std::vector<QToolButton*>									getEditSequencesButtons();
+	std::vector<QToolButton*>									getModelingButtons();
+	std::vector<QToolButton*>									getCreatorsButtons();
+	std::vector<QPushButton*>									getDebugButtons();
 
 	Ui::SEAdenitaCoreSEAppGUIClass								ui;
 

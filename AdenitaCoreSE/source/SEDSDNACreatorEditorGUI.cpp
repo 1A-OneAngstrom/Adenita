@@ -1,8 +1,7 @@
 #include <QInputDialog>
 #include "SEDSDNACreatorEditorGUI.hpp"
 #include "SEDSDNACreatorEditor.hpp"
-#include "SAMSON.hpp"
-#include "SBGWindow.hpp"
+
 
 SEDSDNACreatorEditorGUI::SEDSDNACreatorEditorGUI(SEDSDNACreatorEditor* editor) {
 
@@ -137,5 +136,6 @@ QString SEDSDNACreatorEditorGUI::getCitation() const {
 
 	// SAMSON Element generator pro tip: modify this function to add citation information
 
-  return ADNAuxiliary::AdenitaCitation();
+	return ADNAuxiliary::AdenitaCitation();
+
 }

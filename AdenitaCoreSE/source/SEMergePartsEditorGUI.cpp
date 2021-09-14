@@ -1,12 +1,12 @@
 #include "SEMergePartsEditorGUI.hpp"
 #include "SEMergePartsEditor.hpp"
-#include "SAMSON.hpp"
-#include "SBGWindow.hpp"
+
 
 SEMergePartsEditorGUI::SEMergePartsEditorGUI(SEMergePartsEditor* editor) {
 
 	ui.setupUi( this );
 	this->editor = editor;
+
 }
 
 SEMergePartsEditorGUI::~SEMergePartsEditorGUI() {
@@ -129,5 +129,6 @@ QString SEMergePartsEditorGUI::getCitation() const {
 
 	// SAMSON Element generator pro tip: modify this function to add citation information
 
-  return ADNAuxiliary::AdenitaCitation();
+	return ADNAuxiliary::AdenitaCitation();
+
 }

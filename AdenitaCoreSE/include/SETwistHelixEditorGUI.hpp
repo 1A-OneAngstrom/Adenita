@@ -20,15 +20,15 @@ public:
 	/// \name Constructors and destructors
 	//@{
 
-  SETwistHelixEditorGUI(SETwistHelixEditor* editor);																		///< Constructs a GUI for the editor
-	virtual ~SETwistHelixEditorGUI();																										///< Destructs the GUI of the editor
+  SETwistHelixEditorGUI(SETwistHelixEditor* editor);																					///< Constructs a GUI for the editor
+	virtual ~SETwistHelixEditorGUI();																									///< Destructs the GUI of the editor
 
 	//@}
 
 	/// \name Editor
 	//@{
 
-  SETwistHelixEditor*												getEditor() const;														///< Returns a pointer to the editor
+  SETwistHelixEditor*											getEditor() const;														///< Returns a pointer to the editor
 
 	//@}
 
@@ -46,26 +46,26 @@ public:
 	///\name Settings
 	//@{
 
-	void														loadSettings(SBGSettings* settings);										///< Load GUI settings
-	void														saveSettings(SBGSettings* settings);										///< Save GUI settings
+	void														loadSettings(SBGSettings* settings);									///< Load GUI settings
+	void														saveSettings(SBGSettings* settings);									///< Save GUI settings
 
 	//@}
 
-  //! Sets the mode to plus or minus, for use with Adenita App menu
-  void CheckPlusOrMinus(bool plus);
+	//! Sets the mode to plus or minus, for use with Adenita App menu
+	void														CheckPlusOrMinus(bool plus);
 
 public slots:
-  void onMinus(bool checked);
-  void onPlus(bool checked);
-  void onTwistAngle(bool checked);
-  void onTwistTurns(bool checked);
-  void onTwistAngleChanged(double angle);
-  void onTwistTurnsChanged(int turns);
+
+	void														onMinus(bool checked);
+	void														onPlus(bool checked);
+	void														onTwistAngle(bool checked);
+	void														onTwistTurns(bool checked);
+	void														onTwistAngleChanged(double angle);
+	void														onTwistTurnsChanged(int turns);
 
 private:
 
-	Ui::SETwistHelixEditorGUIClass									ui;
-  SETwistHelixEditor*												editor;
+	Ui::SETwistHelixEditorGUIClass								ui;
+	SETwistHelixEditor*											editor{ nullptr };
 
 };
-

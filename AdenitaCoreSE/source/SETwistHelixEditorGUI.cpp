@@ -3,8 +3,6 @@
 #include "ADNConstants.hpp"
 #include "ADNAuxiliary.hpp"
 
-#include "SAMSON.hpp"
-#include "SBGWindow.hpp"
 
 SETwistHelixEditorGUI::SETwistHelixEditorGUI(SETwistHelixEditor* editor) {
 
@@ -139,5 +137,6 @@ QString SETwistHelixEditorGUI::getCitation() const {
 
 	// SAMSON Element generator pro tip: modify this function to add citation information
 
-  return ADNAuxiliary::AdenitaCitation();
+	return ADNAuxiliary::AdenitaCitation();
+
 }

@@ -14,7 +14,7 @@
 
 /// This class implements an editor
 
-enum ConnectionMode {
+enum class ConnectionMode {
 	Single,
 	Double
 };
@@ -121,7 +121,7 @@ private:
 	bool														display_ = false;
 	ADNPointer<ADNNucleotide>									start_;
 
-	ConnectionMode												mode_ = Single;
+	ConnectionMode												mode_ = ConnectionMode::Single;
 	std::string													sequence_ = "";
 	bool														concat_ = false;
 	bool														autoSequence_ = false;

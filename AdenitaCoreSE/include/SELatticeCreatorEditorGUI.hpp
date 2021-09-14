@@ -22,15 +22,15 @@ public:
 	/// \name Constructors and destructors
 	//@{
 
-	SELatticeCreatorEditorGUI(SELatticeCreatorEditor* editor);																		///< Constructs a GUI for the editor
-	virtual ~SELatticeCreatorEditorGUI();																										///< Destructs the GUI of the editor
+	SELatticeCreatorEditorGUI(SELatticeCreatorEditor* editor);																			///< Constructs a GUI for the editor
+	virtual ~SELatticeCreatorEditorGUI();																								///< Destructs the GUI of the editor
 
 	//@}
 
 	/// \name Editor
 	//@{
 
-	SELatticeCreatorEditor*												getEditor() const;														///< Returns a pointer to the editor
+	SELatticeCreatorEditor*										getEditor() const;														///< Returns a pointer to the editor
 
 	//@}
 
@@ -48,23 +48,23 @@ public:
 	///\name Settings
 	//@{
 
-	void														loadSettings(SBGSettings* settings);										///< Load GUI settings
-	void														saveSettings(SBGSettings* settings);										///< Save GUI settings
+	void														loadSettings(SBGSettings* settings);									///< Load GUI settings
+	void														saveSettings(SBGSettings* settings);									///< Save GUI settings
 
 	//@}
-  public slots:
+public slots:
   
-  void                            setHoneycomb();
-  void                            setSquare();
-  void                            onZPatternChanged(int index);
+	void														setHoneycomb();
+	void														setSquare();
+	void														onZPatternChanged(int index);
 	void														onMaxXdsChanged(int val);
 	void														onMaxYdsChanged(int val);
 	void														onMaxZBpsChanged(int val);
 
 private:
 
-	Ui::SELatticeCreatorEditorGUIClass									ui;
-	SELatticeCreatorEditor*												editor;
+	Ui::SELatticeCreatorEditorGUIClass							ui;
+	SELatticeCreatorEditor*										editor{ nullptr };
 
 };
 

@@ -20,7 +20,7 @@ public:
 	/// \name Constructors and destructors
 	//@{
 
-	SEDeleteEditorGUI(SEDeleteEditor* editor);																		///< Constructs a GUI for the editor
+	SEDeleteEditorGUI(SEDeleteEditor* editor);																							///< Constructs a GUI for the editor
 	virtual ~SEDeleteEditorGUI();																										///< Destructs the GUI of the editor
 
 	//@}
@@ -46,15 +46,15 @@ public:
 	///\name Settings
 	//@{
 
-	void														loadSettings(SBGSettings* settings);										///< Load GUI settings
-	void														saveSettings(SBGSettings* settings);										///< Save GUI settings
+	void														loadSettings(SBGSettings* settings);									///< Load GUI settings
+	void														saveSettings(SBGSettings* settings);									///< Save GUI settings
 
 	//@}
 
 private:
 
 	Ui::SEDeleteEditorGUIClass									ui;
-	SEDeleteEditor*												editor;
+	SEDeleteEditor*												editor{ nullptr };
 
 };
 

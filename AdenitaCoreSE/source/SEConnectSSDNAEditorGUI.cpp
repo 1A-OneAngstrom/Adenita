@@ -1,7 +1,6 @@
 #include "SEConnectSSDNAEditorGUI.hpp"
 #include "SEConnectSSDNAEditor.hpp"
-#include "SAMSON.hpp"
-#include "SBGWindow.hpp"
+
 
 SEConnectSSDNAEditorGUI::SEConnectSSDNAEditorGUI(SEConnectSSDNAEditor* editor) {
 
@@ -32,23 +31,26 @@ void SEConnectSSDNAEditorGUI::saveSettings( SBGSettings *settings ) {
 
 }
 
-void SEConnectSSDNAEditorGUI::onSetSequence(QString seq)
-{
-  SEConnectSSDNAEditor* t = getEditor();
-  t->SetSequence(seq.toStdString());
+void SEConnectSSDNAEditorGUI::onSetSequence(QString seq) {
+
+	SEConnectSSDNAEditor* t = getEditor();
+	t->SetSequence(seq.toStdString());
+
 }
 
-void SEConnectSSDNAEditorGUI::onInsert(bool e)
-{
-  SEConnectSSDNAEditor* editor = getEditor();
-  editor->SetConcat(e);
+void SEConnectSSDNAEditorGUI::onInsert(bool e) {
+
+	SEConnectSSDNAEditor* editor = getEditor();
+	editor->SetConcat(e);
+
 }
 
-void SEConnectSSDNAEditorGUI::onAuto(bool e)
-{
-  ui.lineSequence->setDisabled(e);
-  SEConnectSSDNAEditor* editor = getEditor();
-  editor->SetAutoSequence(e);
+void SEConnectSSDNAEditorGUI::onAuto(bool e) {
+
+	ui.lineSequence->setDisabled(e);
+	SEConnectSSDNAEditor* editor = getEditor();
+	editor->SetAutoSequence(e);
+
 }
 
 SBCContainerUUID SEConnectSSDNAEditorGUI::getUUID() const { return SBCContainerUUID( "CDC75BAA-A7AD-F837-49F4-E0F14DF87181" );}
@@ -93,7 +95,9 @@ QString SEConnectSSDNAEditorGUI::getCitation() const {
 }
 
 void SEConnectSSDNAEditorGUI::onSelectMode() {
-  bool xo = ui.rdnSS->isChecked();
-  SEConnectSSDNAEditor* t = getEditor();
-  t->SetMode(xo);
+
+	bool xo = ui.rdnSS->isChecked();
+	SEConnectSSDNAEditor* t = getEditor();
+	t->SetMode(xo);
+
 }

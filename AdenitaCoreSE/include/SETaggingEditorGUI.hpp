@@ -20,7 +20,7 @@ public:
 	/// \name Constructors and destructors
 	//@{
 
-	SETaggingEditorGUI(SETaggingEditor* editor);																		///< Constructs a GUI for the editor
+	SETaggingEditorGUI(SETaggingEditor* editor);																						///< Constructs a GUI for the editor
 	virtual ~SETaggingEditorGUI();																										///< Destructs the GUI of the editor
 
 	//@}
@@ -28,7 +28,7 @@ public:
 	/// \name Editor
 	//@{
 
-	SETaggingEditor*												getEditor() const;														///< Returns a pointer to the editor
+	SETaggingEditor*											getEditor() const;														///< Returns a pointer to the editor
 
 	//@}
 
@@ -46,19 +46,19 @@ public:
 	///\name Settings
 	//@{
 
-	void														loadSettings(SBGSettings* settings);										///< Load GUI settings
-	void														saveSettings(SBGSettings* settings);										///< Save GUI settings
+	void														loadSettings(SBGSettings* settings);									///< Load GUI settings
+	void														saveSettings(SBGSettings* settings);									///< Save GUI settings
 
 	//@}
 
 public slots:
 
-  void onModeChanged(bool tags);
+	void														onModeChanged(bool tags);
 
 private:
 
 	Ui::SETaggingEditorGUIClass									ui;
-	SETaggingEditor*												editor;
+	SETaggingEditor*											editor{ nullptr };
 
 };
 

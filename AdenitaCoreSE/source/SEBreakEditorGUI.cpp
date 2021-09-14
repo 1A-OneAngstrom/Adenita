@@ -2,8 +2,6 @@
 #include "SEBreakEditor.hpp"
 #include "ADNAuxiliary.hpp"
 
-#include "SAMSON.hpp"
-#include "SBGWindow.hpp"
 
 SEBreakEditorGUI::SEBreakEditorGUI(SEBreakEditor* editor) {
 

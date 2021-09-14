@@ -20,15 +20,15 @@ public:
 	/// \name Constructors and destructors
 	//@{
 
-  SEMergePartsEditorGUI(SEMergePartsEditor* editor);																		///< Constructs a GUI for the editor
-	virtual ~SEMergePartsEditorGUI();																										///< Destructs the GUI of the editor
+  SEMergePartsEditorGUI(SEMergePartsEditor* editor);																					///< Constructs a GUI for the editor
+	virtual ~SEMergePartsEditorGUI();																									///< Destructs the GUI of the editor
 
 	//@}
 
 	/// \name Editor
 	//@{
 
-  SEMergePartsEditor*												getEditor() const;														///< Returns a pointer to the editor
+  SEMergePartsEditor*											getEditor() const;														///< Returns a pointer to the editor
 
 	//@}
 
@@ -46,20 +46,21 @@ public:
 	///\name Settings
 	//@{
 
-	void														loadSettings(SBGSettings* settings);										///< Load GUI settings
-	void														saveSettings(SBGSettings* settings);										///< Save GUI settings
+	void														loadSettings(SBGSettings* settings);									///< Load GUI settings
+	void														saveSettings(SBGSettings* settings);									///< Save GUI settings
 
 	//@}
 
 public slots:
-  void updatePartsList();
-  void onMerge();
-  void onMove();
+
+	void														updatePartsList();
+	void														onMerge();
+	void														onMove();
 
 private:
 
-	Ui::SEMergePartsEditorGUIClass									ui;
-  SEMergePartsEditor*												editor;
+	Ui::SEMergePartsEditorGUIClass								ui;
+	SEMergePartsEditor*											editor{ nullptr };
 
 };
 

@@ -23,9 +23,17 @@
 
 #include <QPixmap>
 #include <QTimer>
+#include <QGroupBox>
+#include <QMessageBox>
 
 #include "SEAdenitaCoreSEAppGUIFlowLayout.hpp"
 
+#ifdef NDEBUG
+#define ADENITA_DEBUG
+#endif
+#ifdef _DEBUG
+#define ADENITA_DEBUG
+#endif
 
 SEAdenitaCoreSEAppGUI::SEAdenitaCoreSEAppGUI( SEAdenitaCoreSEApp* t ) : SBGApp( t ) {
 
@@ -813,7 +821,7 @@ void SEAdenitaCoreSEAppGUI::onBreakEditor() {
 
 	SEBreakEditor* be = static_cast<SEBreakEditor*>(SAMSON::getEditor(SBCContainerUUID("CFACD1E5-FCD1-916F-2CF7-4B60979F1A77"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(be);
-	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
 }
 
@@ -821,7 +829,7 @@ void SEAdenitaCoreSEAppGUI::onConnectEditor() {
 
 	SEConnectSSDNAEditor* c = static_cast<SEConnectSSDNAEditor*>(SAMSON::getEditor(SBCContainerUUID("48FDCE78-A55E-FDA2-237E-319202E56080"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
-	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
 }
 
@@ -829,7 +837,7 @@ void SEAdenitaCoreSEAppGUI::onDeleteEditor() {
 
 	SEDeleteEditor* c = static_cast<SEDeleteEditor*>(SAMSON::getEditor(SBCContainerUUID("592B8158-15E9-B621-0BCB-D7DA210FF149"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
-	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
 }
 
@@ -837,7 +845,7 @@ void SEAdenitaCoreSEAppGUI::onDNATwistEditor() {
 
 	SETwistHelixEditor* c = static_cast<SETwistHelixEditor*>(SAMSON::getEditor(SBCContainerUUID("4B60FECA-2A79-680F-F289-B4908A924409"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
-	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
 }
 
@@ -845,7 +853,7 @@ void SEAdenitaCoreSEAppGUI::onMergePartsEditor() {
 
 	SEMergePartsEditor* c = static_cast<SEMergePartsEditor*>(SAMSON::getEditor(SBCContainerUUID("EB812444-8EA8-BD83-988D-AFF5987461D8"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
-	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
 }
 
@@ -853,7 +861,7 @@ void SEAdenitaCoreSEAppGUI::onCreateStrandEditor() {
 
 	SEDSDNACreatorEditor* c = static_cast<SEDSDNACreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("86204A08-DFD6-97A8-2BE2-4CFC8B4169A3"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
-	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
 }
 
@@ -861,7 +869,7 @@ void SEAdenitaCoreSEAppGUI::onNanotubeCreatorEditor() {
 
 	SENanotubeCreatorEditor* c = static_cast<SENanotubeCreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("4B6A0B18-48B5-233A-28A4-BA3EF3D56AB8"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
-	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
 }
 
@@ -869,7 +877,7 @@ void SEAdenitaCoreSEAppGUI::onLatticeCreatorEditor() {
 
 	SELatticeCreatorEditor* c = static_cast<SELatticeCreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("EA67625E-89B5-2EEA-156D-FC836214B0E4"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
-	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
 }
 
@@ -877,7 +885,7 @@ void SEAdenitaCoreSEAppGUI::onWireframeEditor() {
 
 	SEWireframeEditor* c = static_cast<SEWireframeEditor*>(SAMSON::getEditor(SBCContainerUUID("F1F29042-3D87-DA61-BC5C-D3348EB2E1FA"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
-	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
 }
 
@@ -885,7 +893,7 @@ void SEAdenitaCoreSEAppGUI::onTaggingEditor() {
 
 	SETaggingEditor* c = static_cast<SETaggingEditor*>(SAMSON::getEditor(SBCContainerUUID("473D2F88-5D06-25F5-EB58-053661504C43"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
-	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
 }
 
@@ -893,7 +901,7 @@ void SEAdenitaCoreSEAppGUI::onTwisterEditor() {
 
 	SEDNATwisterEditor* c = static_cast<SEDNATwisterEditor*>(SAMSON::getEditor(SBCContainerUUID("677B1667-7856-12E6-5901-E8EAC729501A"), SBUUID(SB_ELEMENT_UUID)));
 	SAMSON::setActiveEditor(c);
-	HighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
 
 }
 
@@ -914,7 +922,7 @@ std::string SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(QString filename) {
 
 }
 
-void SEAdenitaCoreSEAppGUI::HighlightEditor(QToolButton* b) {
+void SEAdenitaCoreSEAppGUI::setHighlightEditor(QToolButton* b) {
 
 	// remove current
 	if (highlightedEditor_ != nullptr) highlightedEditor_->setStyleSheet(QString("border: none"));
@@ -989,7 +997,7 @@ int SEAdenitaCoreSEAppGUI::getFormat() const {
 	// SBGWindow::Resizable : let users resize the window
 	// SBGWindow::Citable : let users obtain citation information (implement getCitation)
 	
-	return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
+	return (SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
 
 }
 
@@ -1004,27 +1012,61 @@ QString SEAdenitaCoreSEAppGUI::getCitation() const {
 void SEAdenitaCoreSEAppGUI::setupUI() {
 
 	ui.setupUi(this);
-	// disable debug menu if compiling in release mode
-	#if NDEBUG
-	ui.cmbSelector->removeItem(4);
-	#endif
 
-	// make fluid
-	int idx = ui.cmbSelector->currentIndex();
+	QGroupBox* groupBoxMenu = new QGroupBox("General");
+	QGroupBox* groupBoxEditSequences = new QGroupBox("Edit sequences");
+	QGroupBox* groupBoxModeling = new QGroupBox("Modeling");
+	QGroupBox* groupBoxCreators = new QGroupBox("Creators");
 
-	FlowLayout* layout = new FlowLayout;
-	ui.verticalLayout->addLayout(layout);
+	ui.verticalLayout->addWidget(groupBoxMenu);
+	ui.verticalLayout->addWidget(groupBoxEditSequences);
+	ui.verticalLayout->addWidget(groupBoxModeling);
+	ui.verticalLayout->addWidget(groupBoxCreators);
 
-	onChangeSelector(idx);
+	QHBoxLayout* layoutMenu = new QHBoxLayout;
+	QHBoxLayout* layoutEditSequences = new QHBoxLayout;
+	QHBoxLayout* layoutModeling = new QHBoxLayout;
+	QHBoxLayout* layoutCreators = new QHBoxLayout;
+
+	groupBoxMenu->setLayout(layoutMenu);
+	groupBoxEditSequences->setLayout(layoutEditSequences);
+	groupBoxModeling->setLayout(layoutModeling);
+	groupBoxCreators->setLayout(layoutCreators);
+
+	const std::vector<QToolButton*> menuButtons = getMenuButtons();
+	const std::vector<QToolButton*> editSequencesButtons = getEditSequencesButtons();
+	const std::vector<QToolButton*> modelingButtons = getModelingButtons();
+	const std::vector<QToolButton*> creatorsButtons = getCreatorsButtons();
+	
+	for (auto b : menuButtons) layoutMenu->addWidget(b);
+	for (auto b : editSequencesButtons) layoutEditSequences->addWidget(b);
+	for (auto b : modelingButtons) layoutModeling->addWidget(b);
+	for (auto b : creatorsButtons) layoutCreators->addWidget(b);
+
+	layoutMenu->addSpacerItem(new QSpacerItem(1, 1, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed));
+	layoutEditSequences->addSpacerItem(new QSpacerItem(1, 1, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed));
+	layoutModeling->addSpacerItem(new QSpacerItem(1, 1, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed));
+	layoutCreators->addSpacerItem(new QSpacerItem(1, 1, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed));
+
+#ifdef ADENITA_DEBUG
+	QGroupBox* groupBoxDebug = new QGroupBox("Debug");
+	groupBoxDebug->setMinimumHeight(150);
+	ui.verticalLayout->addWidget(groupBoxDebug);
+	FlowLayout* layoutDebug = new FlowLayout;
+	groupBoxDebug->setLayout(layoutDebug);
+	const std::vector<QPushButton*> debugButtons = getDebugButtons();
+	for (auto b : debugButtons) layoutDebug->addWidget(b);
+#endif
 
 }
 
-std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetMenuButtons() {
+std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getMenuButtons() {
 
 	if (menuButtons_.size() == 0) {
 
 		auto btnLoad = new QToolButton(this);
 		btnLoad->setObjectName(QStringLiteral("btnLoad"));
+		btnLoad->setText("Load\n");
 		btnLoad->setToolTip("Load structure");
 		btnLoad->setIconSize(QSize(24, 24));
 		btnLoad->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1033,6 +1075,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetMenuButtons() {
 
 		auto btnSaveSelection = new QToolButton(this);
 		btnSaveSelection->setObjectName(QStringLiteral("btnSaveSelection"));
+		btnSaveSelection->setText("Save\nselection");
 		btnSaveSelection->setToolTip("Save selection");
 		btnSaveSelection->setIconSize(QSize(24, 24));
 		btnSaveSelection->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1041,6 +1084,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetMenuButtons() {
 
 		auto btnSaveAll = new QToolButton(this);
 		btnSaveAll->setObjectName(QStringLiteral("btnSaveAll"));
+		btnSaveAll->setText("Save all\n");
 		btnSaveAll->setToolTip("Save all");
 		btnSaveAll->setIconSize(QSize(24, 24));
 		btnSaveAll->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1049,6 +1093,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetMenuButtons() {
 
 		auto btnExport = new QToolButton(this);
 		btnExport->setObjectName(QStringLiteral("btnExport"));
+		btnExport->setText("Export\n");
 		btnExport->setToolTip("Export");
 		btnExport->setIconSize(QSize(24, 24));
 		btnExport->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1057,6 +1102,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetMenuButtons() {
 
 		auto btnResetVisualModel = new QToolButton(this);
 		btnResetVisualModel->setObjectName(QStringLiteral("btnResetVisualModel"));
+		btnResetVisualModel->setText("Reset\nvisual model");
 		btnResetVisualModel->setToolTip("Reset visual model");
 		btnResetVisualModel->setIconSize(QSize(24, 24));
 		btnResetVisualModel->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1065,6 +1111,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetMenuButtons() {
 
 		auto btnSettings = new QToolButton(this);
 		btnSettings->setObjectName(QStringLiteral("btnSettings"));
+		btnSettings->setText("Settings\n");
 		btnSettings->setToolTip("Settings");
 		btnSettings->setIconSize(QSize(24, 24));
 		btnSettings->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1111,12 +1158,13 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetMenuButtons() {
 
 }
 
-std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetEditSequencesButtons() {
+std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getEditSequencesButtons() {
 
 	if (editSequencesButtons_.size() == 0) {
 
 		auto btnSetScaff = new QToolButton(this);
 		btnSetScaff->setObjectName(QStringLiteral("btnSetScaff"));
+		btnSetScaff->setText("Set\nscaffold\n");
 		btnSetScaff->setToolTip("Set scaffold");
 		btnSetScaff->setIconSize(QSize(24, 24));
 		btnSetScaff->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1125,6 +1173,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetEditSequencesButtons() {
 
 		auto btnGenerateSequence = new QToolButton(this);
 		btnGenerateSequence->setObjectName(QStringLiteral("btnGenerateSequence"));
+		btnGenerateSequence->setText("Generate\nsequence\n");
 		btnGenerateSequence->setToolTip("Generate sequence");
 		btnGenerateSequence->setIconSize(QSize(24, 24));
 		btnGenerateSequence->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1133,6 +1182,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetEditSequencesButtons() {
 
 		auto btnSetStart = new QToolButton(this);
 		btnSetStart->setObjectName(QStringLiteral("btnSetStart"));
+		btnSetStart->setText("Set\nstart (5\')\n");
 		btnSetStart->setToolTip("Set start (5\')");
 		btnSetStart->setIconSize(QSize(24, 24));
 		btnSetStart->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1141,6 +1191,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetEditSequencesButtons() {
 
 		auto btnCalculateBindingProperties = new QToolButton(this);
 		btnCalculateBindingProperties->setObjectName(QStringLiteral("btnCalculateBindingProperties"));
+		btnCalculateBindingProperties->setText("Calculate\nbinding\nproperties");
 		btnCalculateBindingProperties->setToolTip("Calculate binding properties");
 		btnCalculateBindingProperties->setIconSize(QSize(24, 24));
 		btnCalculateBindingProperties->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1149,7 +1200,9 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetEditSequencesButtons() {
 
 		auto btnTaggingEditor = new QToolButton(this);
 		btnTaggingEditor->setObjectName(QStringLiteral("btnTaggingEditor"));
+		btnTaggingEditor->setText("Tagging\neditor\n");
 		btnTaggingEditor->setToolTip("Tagging editor");
+		btnTaggingEditor->setIconSize(QSize(24, 24));
 		btnTaggingEditor->setCheckable(true);
 		btnTaggingEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnTaggingEditor->setAutoRaise(true);
@@ -1190,12 +1243,13 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetEditSequencesButtons() {
 
 }
 
-std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetModelingButtons() {
+std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 
 	if (modelingButtons_.size() == 0) {
 
 		auto btnBreakEditor = new QToolButton(this);
 		btnBreakEditor->setObjectName(QStringLiteral("btnBreakEditor"));
+		btnBreakEditor->setText("Break");
 		btnBreakEditor->setToolTip("Break editor");
 		btnBreakEditor->setIconSize(QSize(24, 24));
 		btnBreakEditor->setCheckable(true);
@@ -1205,6 +1259,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetModelingButtons() {
 
 		auto btnDeleteEditor = new QToolButton(this);
 		btnDeleteEditor->setObjectName(QStringLiteral("btnDeleteEditor"));
+		btnDeleteEditor->setText("Delete");
 		btnDeleteEditor->setToolTip("Delete editor");
 		btnDeleteEditor->setIconSize(QSize(24, 24));
 		btnDeleteEditor->setCheckable(true);
@@ -1214,6 +1269,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetModelingButtons() {
 
 		auto btnConnectEditor = new QToolButton(this);
 		btnConnectEditor->setObjectName(QStringLiteral("btnConnectEditor"));
+		btnConnectEditor->setText("Connect");
 		btnConnectEditor->setToolTip("Connect editor");
 		btnConnectEditor->setIconSize(QSize(24, 24));
 		btnConnectEditor->setCheckable(true);
@@ -1223,7 +1279,9 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetModelingButtons() {
 
 		auto btnMergePartsEditor = new QToolButton(this);
 		btnMergePartsEditor->setObjectName(QStringLiteral("btnMergePartsEditor"));
+		btnMergePartsEditor->setText("Merge parts");
 		btnMergePartsEditor->setToolTip("Merge parts editor");
+		btnMergePartsEditor->setIconSize(QSize(24, 24));
 		btnMergePartsEditor->setCheckable(true);
 		btnMergePartsEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnMergePartsEditor->setAutoRaise(true);
@@ -1231,6 +1289,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetModelingButtons() {
 
 		auto btnDNATwisterEditor = new QToolButton(this);
 		btnDNATwisterEditor->setObjectName(QStringLiteral("btnDNATwisterEditor"));
+		btnDNATwisterEditor->setText("DNA twister");
 		btnDNATwisterEditor->setToolTip("DNA twister editor");
 		btnDNATwisterEditor->setIconSize(QSize(24, 24));
 		btnDNATwisterEditor->setCheckable(true);
@@ -1240,6 +1299,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetModelingButtons() {
 
 		auto btnTwisterEditor = new QToolButton(this);
 		btnTwisterEditor->setObjectName(QStringLiteral("btnTwisterEditor"));
+		btnTwisterEditor->setText("Twister");
 		btnTwisterEditor->setToolTip("Twister editor");
 		btnTwisterEditor->setIconSize(QSize(24, 24));
 		btnTwisterEditor->setCheckable(true);
@@ -1286,12 +1346,13 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetModelingButtons() {
 	return modelingButtons_;
 }
 
-std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetCreatorsButtons() {
+std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getCreatorsButtons() {
 
 	if (creatorsButtons_.size() == 0) {
 
 		QToolButton* btnCreateBasePair = new QToolButton;
 		btnCreateBasePair->setObjectName(QStringLiteral("btnCreateBasePair"));
+		btnCreateBasePair->setText("Create\nbase pair");
 		btnCreateBasePair->setToolTip("Create base pair");
 		btnCreateBasePair->setIconSize(QSize(24, 24));
 		btnCreateBasePair->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1300,7 +1361,9 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetCreatorsButtons() {
 
 		QToolButton* btnDsDNACreatorEditor = new QToolButton;
 		btnDsDNACreatorEditor->setObjectName(QStringLiteral("btnDsDNACreatorEditor"));
+		btnDsDNACreatorEditor->setText("DsDNA\ncreator");
 		btnDsDNACreatorEditor->setToolTip("DsDNA creator editor");
+		btnDsDNACreatorEditor->setIconSize(QSize(24, 24));
 		btnDsDNACreatorEditor->setCheckable(true);
 		btnDsDNACreatorEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnDsDNACreatorEditor->setAutoRaise(true);
@@ -1308,7 +1371,9 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetCreatorsButtons() {
 
 		QToolButton* btnNanotubeCreator = new QToolButton;
 		btnNanotubeCreator->setObjectName(QStringLiteral("btnNanotubeCreator"));
+		btnNanotubeCreator->setText("Nanotube\ncreator");
 		btnNanotubeCreator->setToolTip("Nanotube creator");
+		btnNanotubeCreator->setIconSize(QSize(24, 24));
 		btnNanotubeCreator->setCheckable(true);
 		btnNanotubeCreator->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnNanotubeCreator->setAutoRaise(true);
@@ -1316,7 +1381,9 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetCreatorsButtons() {
 
 		QToolButton* btnLatticeCreatorEditor = new QToolButton;
 		btnLatticeCreatorEditor->setObjectName(QStringLiteral("btnLatticeCreatorEditor"));
+		btnLatticeCreatorEditor->setText("Lattice\ncreator");
 		btnLatticeCreatorEditor->setToolTip("Lattice creator editor");
+		btnLatticeCreatorEditor->setIconSize(QSize(24, 24));
 		btnLatticeCreatorEditor->setCheckable(true);
 		btnLatticeCreatorEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnLatticeCreatorEditor->setAutoRaise(true);
@@ -1324,7 +1391,9 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetCreatorsButtons() {
 
 		QToolButton* btnWireframeEditor = new QToolButton;
 		btnWireframeEditor->setObjectName(QStringLiteral("btnWireframeEditor"));
+		btnWireframeEditor->setText("Wireframe\n");
 		btnWireframeEditor->setToolTip("Wireframe editor");
+		btnWireframeEditor->setIconSize(QSize(24, 24));
 		btnWireframeEditor->setCheckable(true);
 		btnWireframeEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnWireframeEditor->setAutoRaise(true);
@@ -1365,7 +1434,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::GetCreatorsButtons() {
 
 }
 
-std::vector<QPushButton*> SEAdenitaCoreSEAppGUI::GetDebugButtons() {
+std::vector<QPushButton*> SEAdenitaCoreSEAppGUI::getDebugButtons() {
 
 	if (debugButtons_.size() == 0) {
 
@@ -1442,48 +1511,5 @@ std::vector<QPushButton*> SEAdenitaCoreSEAppGUI::GetDebugButtons() {
 	}
 
 	return debugButtons_;
-
-}
-
-void SEAdenitaCoreSEAppGUI::onChangeSelector(int idx) {
-  
-	FlowLayout* layout = static_cast<FlowLayout*>(ui.verticalLayout->itemAt(1));
-	QLayoutItem* item;
-	while ( (item = layout->takeAt(0)) ) {
-
-		auto w = item->widget();
-		//layout->removeWidget(w);
-		layout->removeItem(item);
-		w->setVisible(false);
-
-	}
-
-	if (idx == 4) {
-
-		auto buttons = GetDebugButtons();
-
-		for (auto b : buttons) {
-
-			layout->addWidget(b);
-			b->setVisible(true);
-
-		}
-
-		return;
-
-	}
-
-	std::vector<QToolButton*> buttons;
-	if      (idx == 0) buttons = GetMenuButtons();
-	else if (idx == 1) buttons = GetEditSequencesButtons();
-	else if (idx == 2) buttons = GetModelingButtons();
-	else if (idx == 3) buttons = GetCreatorsButtons();
-
-	for (auto b : buttons) {
-
-		layout->addWidget(b);
-		b->setVisible(true);
-
-	}
 
 }

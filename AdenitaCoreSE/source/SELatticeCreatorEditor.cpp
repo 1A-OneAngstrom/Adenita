@@ -12,7 +12,7 @@ SELatticeCreatorEditor::SELatticeCreatorEditor() {
 	propertyWidget = new SELatticeCreatorEditorGUI(this);
 	propertyWidget->loadDefaultSettings();
 
-  setLatticeType(LatticeType::Honeycomb);
+	setLatticeType(LatticeType::Honeycomb);
 
 }
 
@@ -171,7 +171,8 @@ int SELatticeCreatorEditor::getFormat() const
   // SBGWindow::Resizable : let users resize the window
   // SBGWindow::Citable : let users obtain citation information (implement getCitation)
 
-  return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
+	return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
+
 }
 
 QKeySequence SELatticeCreatorEditor::getShortcut() const { 
@@ -190,33 +191,35 @@ QString SELatticeCreatorEditor::getToolTip() const {
 
 }
 
-void SELatticeCreatorEditor::loadSettings(SBGSettings * settings)
-{
-  if (settings == nullptr) return;
+void SELatticeCreatorEditor::loadSettings(SBGSettings * settings) {
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	if (settings == nullptr) return;
+
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
 void SELatticeCreatorEditor::saveSettings(SBGSettings* settings) {
 
-  if (settings == nullptr) return;
+	if (settings == nullptr) return;
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
-QString SELatticeCreatorEditor::getDescription() const
-{
-  return QObject::tr("Adenita | Lattice Editor");
+QString SELatticeCreatorEditor::getDescription() const {
+
+	return QObject::tr("Adenita | Lattice Editor");
+
 }
 
 void SELatticeCreatorEditor::beginEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
-  SBCamera * camera = SAMSON::getActiveCamera();
-  camera->rightView();
+
+	SBCamera * camera = SAMSON::getActiveCamera();
+	camera->rightView();
 
 }
 

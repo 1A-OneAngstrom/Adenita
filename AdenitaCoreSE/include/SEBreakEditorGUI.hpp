@@ -20,7 +20,7 @@ public:
 	/// \name Constructors and destructors
 	//@{
 
-	SEBreakEditorGUI(SEBreakEditor* editor);																		///< Constructs a GUI for the editor
+	SEBreakEditorGUI(SEBreakEditor* editor);																							///< Constructs a GUI for the editor
 	virtual ~SEBreakEditorGUI();																										///< Destructs the GUI of the editor
 
 	//@}
@@ -46,8 +46,8 @@ public:
 	///\name Settings
 	//@{
 
-	void														loadSettings(SBGSettings* settings);										///< Load GUI settings
-	void														saveSettings(SBGSettings* settings);										///< Save GUI settings
+	void														loadSettings(SBGSettings* settings);									///< Load GUI settings
+	void														saveSettings(SBGSettings* settings);									///< Save GUI settings
 
 	//@}
 
@@ -58,7 +58,7 @@ public slots:
 private:
 
 	Ui::SEBreakEditorGUIClass									ui;
-	SEBreakEditor*												editor;
+	SEBreakEditor*												editor{ nullptr };
 
 };
 

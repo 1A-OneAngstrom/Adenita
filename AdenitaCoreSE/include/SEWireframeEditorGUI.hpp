@@ -20,15 +20,15 @@ public:
 	/// \name Constructors and destructors
 	//@{
 
-	SEWireframeEditorGUI(SEWireframeEditor* editor);																		///< Constructs a GUI for the editor
-	virtual ~SEWireframeEditorGUI();																										///< Destructs the GUI of the editor
+	SEWireframeEditorGUI(SEWireframeEditor* editor);																					///< Constructs a GUI for the editor
+	virtual ~SEWireframeEditorGUI();																									///< Destructs the GUI of the editor
 
 	//@}
 
 	/// \name Editor
 	//@{
 
-	SEWireframeEditor*												getEditor() const;														///< Returns a pointer to the editor
+	SEWireframeEditor*											getEditor() const;														///< Returns a pointer to the editor
 
 	//@}
 
@@ -46,30 +46,32 @@ public:
 	///\name Settings
 	//@{
 
-	void														loadSettings(SBGSettings* settings);										///< Load GUI settings
-	void														saveSettings(SBGSettings* settings);										///< Save GUI settings
+	void														loadSettings(SBGSettings* settings);									///< Load GUI settings
+	void														saveSettings(SBGSettings* settings);									///< Save GUI settings
 
 	//@}
   public slots:
-  void                            onTetrahedronClicked();
-  void                            onCubeClicked();
-  void                            onCuboidClicked();
-  void                            onOctahedronClicked();
-  void                            onDodecahedronClicked();
-  void                            onCubocahedronClicked();
-  void                            onIcosahedronClicked();
-  void                            onIcosidodecahedronClicked();
-  void                            onRhombicuboctahedronClicked();
-  void                            onSnubCubeClicked();
-  void                            onTruncatedCubeClicked();
-  void                            onTruncatedCuboctahedronClicked();
-  void                            onHelixClicked();
-  void                            onStickmanClicked();
-  void                            onBunnyClicked();
+
+	void														onTetrahedronClicked();
+	void														onCubeClicked();
+	void														onCuboidClicked();
+	void														onOctahedronClicked();
+	void														onDodecahedronClicked();
+	void														onCubocahedronClicked();
+	void														onIcosahedronClicked();
+	void														onIcosidodecahedronClicked();
+	void														onRhombicuboctahedronClicked();
+	void														onSnubCubeClicked();
+	void														onTruncatedCubeClicked();
+	void														onTruncatedCuboctahedronClicked();
+	void														onHelixClicked();
+	void														onStickmanClicked();
+	void														onBunnyClicked();
+
 private:
 
-	Ui::SEWireframeEditorGUIClass									ui;
-	SEWireframeEditor*												editor;
+	Ui::SEWireframeEditorGUIClass								ui;
+	SEWireframeEditor*											editor{ nullptr };
 
 };
 

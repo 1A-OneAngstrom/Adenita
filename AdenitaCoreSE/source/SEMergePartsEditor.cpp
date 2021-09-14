@@ -173,9 +173,10 @@ void SEMergePartsEditor::saveSettings(SBGSettings* settings) {
 
 }
 
-QString SEMergePartsEditor::getDescription() const
-{
+QString SEMergePartsEditor::getDescription() const {
+
 	return QObject::tr("Adenita | Merge Adenita Components");
+
 }
 
 void SEMergePartsEditor::beginEditing() {

@@ -1,14 +1,13 @@
 #include "SEWireframeEditorGUI.hpp"
 #include "SEWireframeEditor.hpp"
-#include "SAMSON.hpp"
-#include "SBGWindow.hpp"
+
 
 SEWireframeEditorGUI::SEWireframeEditorGUI(SEWireframeEditor* editor) {
 
 	ui.setupUi( this );
 	this->editor = editor;
 
-	std::string iconPath = SB_ELEMENT_PATH + "/Resource/icons/";
+	const std::string iconPath = SB_ELEMENT_PATH + "/Resource/icons/";
 
 	QIcon tetrahedronIcon;
 	tetrahedronIcon.addFile(QString(std::string(iconPath + "tetrahedron.png").c_str()), QSize(), QIcon::Normal, QIcon::Off);

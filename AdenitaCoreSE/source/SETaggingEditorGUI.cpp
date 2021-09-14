@@ -1,7 +1,6 @@
 #include "SETaggingEditorGUI.hpp"
 #include "SETaggingEditor.hpp"
-#include "SAMSON.hpp"
-#include "SBGWindow.hpp"
+
 
 SETaggingEditorGUI::SETaggingEditorGUI(SETaggingEditor* editor) {
 
@@ -69,7 +68,8 @@ QString SETaggingEditorGUI::getCitation() const {
 
 	// SAMSON Element generator pro tip: modify this function to add citation information
 
-  return ADNAuxiliary::AdenitaCitation();
+	return ADNAuxiliary::AdenitaCitation();
+
 }
 
 void SETaggingEditorGUI::onModeChanged(bool tags) {

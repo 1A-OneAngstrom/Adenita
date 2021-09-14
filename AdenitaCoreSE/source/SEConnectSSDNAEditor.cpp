@@ -24,14 +24,11 @@ SEConnectSSDNAEditor::~SEConnectSSDNAEditor() {
 
 SEConnectSSDNAEditorGUI* SEConnectSSDNAEditor::getPropertyWidget() const { return static_cast<SEConnectSSDNAEditorGUI*>(propertyWidget); }
 
-void SEConnectSSDNAEditor::SetMode(bool xo)
-{
-  if (xo) {
-    mode_ = Single;
-  }
-  else {
-    mode_ = Double;
-  }
+void SEConnectSSDNAEditor::SetMode(bool xo) {
+	
+	if (xo) mode_ = ConnectionMode::Single;
+	else mode_ = ConnectionMode::Double;
+
 }
 
 void SEConnectSSDNAEditor::SetSequence(std::string seq)
@@ -231,7 +228,7 @@ void SEConnectSSDNAEditor::mouseReleaseEvent(QMouseEvent* event) {
       if (start->GetStrand() == end->GetStrand() && !start->IsEnd() && !end->IsEnd()) return;
 
       bool two = false;
-      if (mode_ == Double) two = true;
+      if (mode_ == ConnectionMode::Double) two = true;
 
       std::string seq = "";
       if (concat_) {

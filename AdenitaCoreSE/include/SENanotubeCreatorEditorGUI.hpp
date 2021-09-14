@@ -22,14 +22,14 @@ public:
 	//@{
 
 	SENanotubeCreatorEditorGUI(SENanotubeCreatorEditor* editor);																		///< Constructs a GUI for the editor
-	virtual ~SENanotubeCreatorEditorGUI();																										///< Destructs the GUI of the editor
+	virtual ~SENanotubeCreatorEditorGUI();																								///< Destructs the GUI of the editor
 
 	//@}
 
 	/// \name Editor
 	//@{
 
-	SENanotubeCreatorEditor*												getEditor() const;														///< Returns a pointer to the editor
+	SENanotubeCreatorEditor*									getEditor() const;														///< Returns a pointer to the editor
 
 	//@}
 
@@ -47,23 +47,25 @@ public:
 	///\name Settings
 	//@{
 
-	void														loadSettings(SBGSettings* settings);										///< Load GUI settings
-	void														saveSettings(SBGSettings* settings);										///< Save GUI settings
+	void														loadSettings(SBGSettings* settings);									///< Load GUI settings
+	void														saveSettings(SBGSettings* settings);									///< Save GUI settings
 
 	//@}
 
-  void updateInfo(SBQuantity::length radius, int numDs, int numBp, bool clear = false);
+	void														updateInfo(SBQuantity::length radius, int numDs, int numBp, bool clear = false);
 
 public slots:
-  void onChangeRouting();
-  void onPredefinedNanotube(bool predefined);
-  void onRadiusChanged();
-  void onBpChanged();
-  void onNumDsChanged();
+
+	void														onChangeRouting();
+	void														onPredefinedNanotube(bool predefined);
+	void														onRadiusChanged();
+	void														onBpChanged();
+	void														onNumDsChanged();
 
 private:
 
-	Ui::SENanotubeCreatorEditorGUIClass									ui;
-	SENanotubeCreatorEditor*												editor;
+	Ui::SENanotubeCreatorEditorGUIClass							ui;
+	SENanotubeCreatorEditor*									editor{ nullptr };
+
 };
 

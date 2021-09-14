@@ -2,8 +2,6 @@
 #include "SEDeleteEditor.hpp"
 #include "ADNAuxiliary.hpp"
 
-#include "SAMSON.hpp"
-#include "SBGWindow.hpp"
 
 SEDeleteEditorGUI::SEDeleteEditorGUI(SEDeleteEditor* editor) {
 

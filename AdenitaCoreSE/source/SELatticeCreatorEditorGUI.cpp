@@ -1,7 +1,6 @@
 #include "SELatticeCreatorEditorGUI.hpp"
 #include "SELatticeCreatorEditor.hpp"
-#include "SAMSON.hpp"
-#include "SBGWindow.hpp"
+
 
 SELatticeCreatorEditorGUI::SELatticeCreatorEditorGUI(SELatticeCreatorEditor* editor) {
 
@@ -18,7 +17,7 @@ SELatticeCreatorEditor* SELatticeCreatorEditorGUI::getEditor() const { return ed
 
 void SELatticeCreatorEditorGUI::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -26,7 +25,7 @@ void SELatticeCreatorEditorGUI::loadSettings( SBGSettings *settings ) {
 
 void SELatticeCreatorEditorGUI::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -121,5 +120,6 @@ QString SELatticeCreatorEditorGUI::getCitation() const {
 
 	// SAMSON Element generator pro tip: modify this function to add citation information
 
-  return ADNAuxiliary::AdenitaCitation();
+	return ADNAuxiliary::AdenitaCitation();
+
 }

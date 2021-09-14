@@ -1,7 +1,6 @@
 #include "SENanotubeCreatorEditorGUI.hpp"
 #include "SENanotubeCreatorEditor.hpp"
-#include "SAMSON.hpp"
-#include "SBGWindow.hpp"
+
 
 SENanotubeCreatorEditorGUI::SENanotubeCreatorEditorGUI(SENanotubeCreatorEditor* editor) {
 
@@ -130,6 +129,6 @@ QString SENanotubeCreatorEditorGUI::getCitation() const {
 
 	// SAMSON Element generator pro tip: modify this function to add citation information
 
-  return ADNAuxiliary::AdenitaCitation();
+	return ADNAuxiliary::AdenitaCitation();
 
 }
