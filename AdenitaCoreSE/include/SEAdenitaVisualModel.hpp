@@ -1,11 +1,10 @@
 #pragma once 
 
 #include "SBMVisualModel.hpp"
-#include "SBGApp.hpp" 
-#include "SEAdenitaCoreSEApp.hpp"
 #include "SBBaseEvent.hpp"
 #include "SBDocumentEvent.hpp"
 #include "SBStructuralEvent.hpp"
+
 #include "ADNAuxiliary.hpp"
 #include "ADNArray.hpp"
 #include "ADNMixins.hpp"
@@ -15,6 +14,7 @@
 #include "MSVColors.hpp"
 #include "MSVDisplayHelper.hpp"
 #include "PIPrimer3.hpp"
+
 #include <QOpenGLFunctions_4_3_Core>
 
 
@@ -219,13 +219,13 @@ private:
 
 	double														visibility_ = 0.99;
 
-	ADNNanorobot*												nanorobot_;
+	ADNNanorobot*												nanorobot_{ nullptr };
 
 	/// \name Transitional scale
 	//@{
 
-	unsigned int												nPositions_;
-	unsigned int												nCylinders_;
+	unsigned int												nPositions_ = 0;
+	unsigned int												nCylinders_ = 0;
 	ADNArray<float>												colorsV_;
 	ADNArray<float>												colorsE_;
 	ADNArray<float>												positions_;
@@ -240,8 +240,8 @@ private:
 	/// \name Atom scale
 	//@{
 
-	unsigned int												nPositionsAtom_;
-	unsigned int												nCylindersAtom_;
+	unsigned int												nPositionsAtom_ = 0;
+	unsigned int												nCylindersAtom_ = 0;
 	ADNArray<float>												colorsVAtom_;
 	ADNArray<float>												colorsEAtom_;
 	ADNArray<float>												positionsAtom_;
@@ -256,8 +256,8 @@ private:
 	/// \name Nucleotide scale
 	//@{
 
-	unsigned int												nPositionsNt_;
-	unsigned int												nCylindersNt_;
+	unsigned int												nPositionsNt_ = 0;
+	unsigned int												nCylindersNt_ = 0;
 	ADNArray<float>												colorsVNt_;
 	ADNArray<float>												colorsENt_;
 	ADNArray<float>												positionsNt_;
@@ -282,8 +282,8 @@ private:
 	/// \name Double strand scale
 	//@{
 
-	unsigned int												nPositionsDS_;
-	unsigned int												nCylindersDS_;
+	unsigned int												nPositionsDS_ = 0;
+	unsigned int												nCylindersDS_ = 0;
 	ADNArray<float>												colorsVDS_;
 	ADNArray<float>												positionsDS_;
 	ADNArray<float>												radiiVDS_;

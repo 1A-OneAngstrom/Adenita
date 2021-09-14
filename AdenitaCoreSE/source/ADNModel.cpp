@@ -236,7 +236,7 @@ ADNPointer<ADNNucleotide> ADNNucleotide::GetNext(bool checkCircular) const
   
   if (checkCircular) {
     auto strand = GetStrand();
-    if (strand->IsCircular() && end_ == ThreePrime) {
+    if (strand->IsCircular() && end_ == End::ThreePrime) {
       p = strand->GetFivePrime();
     }
   }
@@ -249,10 +249,13 @@ SBNode * ADNNucleotide::getNext() const
   return GetNext(true)();
 }
 
-ADNPointer<ADNSingleStrand> ADNNucleotide::GetStrand() const
-{
-  auto p = static_cast<ADNSingleStrand*>(getParent());
-  return ADNPointer<ADNSingleStrand>(p);
+ADNPointer<ADNSingleStrand> ADNNucleotide::GetStrand() const {
+
+    //check: if (parent->getProxy()->getUUID() == SBUUID("8EB118A4-A8BF-19F5-5171-C68582AC6262"))
+
+    auto p = static_cast<ADNSingleStrand*>(getParent());
+    return ADNPointer<ADNSingleStrand>(p);
+
 }
 
 SBNode* ADNNucleotide::getSingleStrand() const
@@ -380,16 +383,16 @@ std::string ADNNucleotide::getBaseSegmentType() const
 std::string ADNNucleotide::getEndType() const
 {
   std::string s;
-  if (end_ == FivePrime) {
+  if (end_ == End::FivePrime) {
     s = "5'";
   }
-  else if (end_ == ThreePrime) {
+  else if (end_ == End::ThreePrime) {
     s = "3'";
   }
-  else if (end_ == FiveAndThreePrime) {
+  else if (end_ == End::FiveAndThreePrime) {
     s = "5' and 3'";
   }
-  else if (end_ == NotEnd) {
+  else if (end_ == End::NotEnd) {
     s = "Not end";
   }
   return s;
@@ -681,14 +684,14 @@ void ADNSingleStrand::AddNucleotideThreePrime(ADNPointer<ADNNucleotide> nt)
 {
   addChild(nt());
   if (threePrime_ != nullptr) {
-    if (threePrime_->GetEnd() == FiveAndThreePrime) threePrime_->SetEnd(FivePrime);
+    if (threePrime_->GetEnd() == End::FiveAndThreePrime) threePrime_->SetEnd(End::FivePrime);
     else threePrime_->SetEnd(NotEnd);
-    nt->SetEnd(ThreePrime);
+    nt->SetEnd(End::ThreePrime);
   }
   else {
     // nt is also fivePrime_
     fivePrime_ = nt;
-    nt->SetEnd(FiveAndThreePrime);
+    nt->SetEnd(End::FiveAndThreePrime);
   }
   threePrime_ = nt;
 }
@@ -696,14 +699,14 @@ void ADNSingleStrand::AddNucleotideThreePrime(ADNPointer<ADNNucleotide> nt)
 void ADNSingleStrand::AddNucleotideFivePrime(ADNPointer<ADNNucleotide> nt)
 {
   if (fivePrime_ != nullptr) {
-    if (fivePrime_->GetEnd() == FiveAndThreePrime) fivePrime_->SetEnd(ThreePrime);
+    if (fivePrime_->GetEnd() == End::FiveAndThreePrime) fivePrime_->SetEnd(End::ThreePrime);
     else fivePrime_->SetEnd(NotEnd);
     nt->SetEnd(FivePrime);
   }
   else {
     // nt is also fivePrime_
     threePrime_ = nt;
-    nt->SetEnd(FiveAndThreePrime);
+    nt->SetEnd(End::FiveAndThreePrime);
   }
   addChild(nt(), fivePrime_());
   fivePrime_ = nt;
@@ -717,27 +720,58 @@ void ADNSingleStrand::AddNucleotide(ADNPointer<ADNNucleotide> nt, ADNPointer<ADN
   addChild(nt(), nextNt());
 }
 
-void ADNSingleStrand::ShiftStart(ADNPointer<ADNNucleotide> nt, bool shiftSeq) {
-  if (nt == fivePrime_) return;
+void ADNSingleStrand::ShiftStart(ADNPointer<ADNNucleotide> nucleotide, bool shiftSeq) {
 
-  std::string seq = GetSequence();
-  auto origThreePrime = threePrime_;
-  auto loopNt = origThreePrime;
-  auto stopNt = nt->GetPrev();
+    // skip if the nucleotide is already the 5'
+    if (nucleotide == fivePrime_) return;
 
-  while (loopNt != stopNt) {
-    auto cpNt = loopNt;
-    loopNt = loopNt->GetPrev();
-    removeChild(cpNt());
-    AddNucleotideFivePrime(cpNt);
-  }
+    // perform some checks
+
+    const int numberOfNucleotidesUsingSAMSONBefore = countNodes((SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+    const int numberOfNucleotidesBefore = getNumberOfNucleotides();
+
+    if (numberOfNucleotidesUsingSAMSONBefore != numberOfNucleotidesBefore)
+        std::cerr << "ERROR: The number of nucleotides in nanorobot does not correspond to their number in the data graph (before shifting start 5'). " <<
+        "The total number in nanorobot is " << numberOfNucleotidesBefore << " and using SAMSON it is " << numberOfNucleotidesUsingSAMSONBefore << std::endl;
+
+    std::string seq = GetSequence();
+    auto origThreePrime = threePrime_;
+    auto loopNt = origThreePrime;
+    auto stopNt = nucleotide->GetPrev();
+
+    while (loopNt != stopNt) {
+
+        auto cpNt = loopNt;
+        loopNt = loopNt->GetPrev();
+        removeChild(cpNt());
+        AddNucleotideFivePrime(cpNt);
+
+    }
   
-  stopNt->SetEnd(ThreePrime);
-  threePrime_ = stopNt;
+    stopNt->SetEnd(End::ThreePrime);
+    threePrime_ = stopNt;
 
-  if (shiftSeq) {
-    SetSequence(seq);
-  }
+    if (shiftSeq) {
+        SetSequence(seq);
+    }
+
+    // perform some checks
+
+    const int numberOfNucleotidesUsingSAMSONAfter = countNodes((SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+    const int numberOfNucleotidesAfter = getNumberOfNucleotides();
+
+    if (numberOfNucleotidesUsingSAMSONAfter != numberOfNucleotidesAfter)
+        std::cerr << "ERROR: The number of nucleotides in nanorobot does not correspond to their number in the data graph (after shifting start 5'). " <<
+        "The total number in nanorobot is " << numberOfNucleotidesUsingSAMSONAfter << " and using SAMSON it is " << numberOfNucleotidesAfter << std::endl;
+
+    if (numberOfNucleotidesUsingSAMSONBefore != numberOfNucleotidesUsingSAMSONAfter)
+        std::cerr << "ERROR: The number of nucleotides in the data graph before and after shifting start 5' do not coincide. " <<
+        "Before: " << numberOfNucleotidesUsingSAMSONBefore << " and after: " << numberOfNucleotidesUsingSAMSONAfter << std::endl;
+
+    if (numberOfNucleotidesBefore != numberOfNucleotidesAfter)
+        std::cerr << "ERROR: The number of nucleotides in the nanorobot before and after shifting start 5' do not coincide. " <<
+        "Before: " << numberOfNucleotidesBefore << " and after: " << numberOfNucleotidesAfter << std::endl;
+
 }
 
 std::string ADNSingleStrand::GetSequence() const

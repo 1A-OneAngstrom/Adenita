@@ -523,10 +523,12 @@ void ADNBasicOperations::MutateBasePairIntoLoopPair(ADNPointer<ADNBaseSegment> b
   bs->SetCell(lp());
 }
 
-void ADNBasicOperations::SetStart(ADNPointer<ADNNucleotide> nt, bool resetSequence)
-{
-  auto ss = nt->GetStrand();
-  ss->ShiftStart(nt, resetSequence);
+void ADNBasicOperations::SetStart(ADNPointer<ADNNucleotide> nucleotide, bool resetSequence) {
+
+    auto singleStrand = nucleotide->GetStrand();
+    if (singleStrand.isValid())
+        singleStrand->ShiftStart(nucleotide, resetSequence);
+
 }
 
 void ADNBasicOperations::MoveStrand(ADNPointer<ADNPart> oldPart, ADNPointer<ADNPart> part, ADNPointer<ADNDoubleStrand> ds)

@@ -1,6 +1,7 @@
 #include "SEAdenitaCoreSEAppGUI.hpp"
 #include "SEAdenitaCoreSEApp.hpp"
 #include "SEAdenitaCoreSettingsGUI.hpp"
+#include "SEAdenitaVisualModel.hpp"
 #include "SAMSON.hpp"
 #include "SBGWindow.hpp"
 #include "SBGWindowDialog.hpp"
@@ -97,20 +98,18 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 
 	workingDirectory = QFileInfo(filename).absolutePath();	// get the absolute path to the filename
 
-	SEAdenitaCoreSEApp* t = getApp();
-
 	if (filename.endsWith(".json")) {
 
 		// either cadnano or old Adenita format
 		std::string format = SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(filename);
 		if (format == "cadnano") {
 
-			t->ImportFromCadnano(filename);
+			getApp()->ImportFromCadnano(filename);
 
 		}
 		else if (format == "adenita") {
 
-			t->LoadPart(filename);
+			getApp()->LoadPart(filename);
 
 		}
 		else {
@@ -130,7 +129,7 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 
 			div_t d = div(i, 10.5);
 			int minSize = floor(d.quot * 10.5);
-			t->LoadPartWithDaedalus(filename, minSize);
+			getApp()->LoadPartWithDaedalus(filename, minSize);
 
 		}
 		else return;
@@ -138,12 +137,12 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 	}
 	else if (filename.endsWith(".adnpart")) {
 
-		t->LoadPart(filename);
+		getApp()->LoadPart(filename);
 
 	}
 	else if (filename.endsWith(".adn")) {
 
-		t->LoadParts(filename);
+		getApp()->LoadParts(filename);
 
 	}
 	else return;
@@ -158,8 +157,6 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 
 void SEAdenitaCoreSEAppGUI::onSaveAll() {
 
-	SEAdenitaCoreSEApp* t = getApp();
-
 	QString filename;// = QFileDialog::getSaveFileName(this, tr("Save the workspace"), QDir::currentPath(), tr("Adenita workspace (*.adn)"));
 	if (SBGWindowDialog::getSaveFileNameFromUser(tr("Save the workspace"), filename, workingDirectory, tr("Adenita workspace (*.adn)"))) {
 
@@ -167,7 +164,7 @@ void SEAdenitaCoreSEAppGUI::onSaveAll() {
 		workingDirectory = fileInfo.absolutePath();	// get the absolute path to the filename
 		if (fileInfo.exists()) if (!SAMSON::askUser("Save the workspace", "The file already exists. Do you want to overwrite it?")) return;
 
-		if (!filename.isEmpty()) t->SaveFile(filename);
+		if (!filename.isEmpty()) getApp()->SaveFile(filename);
 
 	}
 
@@ -175,13 +172,11 @@ void SEAdenitaCoreSEAppGUI::onSaveAll() {
 
 void SEAdenitaCoreSEAppGUI::onExport() {
 
-	SEAdenitaCoreSEApp* t = getApp();
-
 	QDialog* dialog = new QDialog();
 
 	QComboBox* typeSelection = new QComboBox();
   
-	auto nr = t->GetNanorobot();
+	auto nr = getApp()->GetNanorobot();
 	auto parts = nr->GetParts();
 	int i = 0;
 	std::map<int, ADNPointer<ADNPart>> indexParts;
@@ -268,7 +263,7 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 				workingDirectory = fileInfo.absolutePath();	// get the absolute path to the filename
 				if (fileInfo.exists()) if (!SAMSON::askUser("Sequence List", "The file already exists. Do you want to overwrite it?")) return;
 
-				t->ExportToSequenceList(filename, selectedParts);
+				getApp()->ExportToSequenceList(filename, selectedParts);
 
 			}
 
@@ -338,7 +333,7 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 				options.boxSizeZ_ = boxZ->value();
 
 				QString folder = QFileDialog::getExistingDirectory(this, tr("Choose an existing directory"), workingDirectory, QFileDialog::DontUseNativeDialog);
-				if (!folder.isEmpty()) t->ExportToOxDNA(folder, options, selectedParts);
+				if (!folder.isEmpty()) getApp()->ExportToOxDNA(folder, options, selectedParts);
 
 			}
 
@@ -354,13 +349,11 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 
 void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 
-	SEAdenitaCoreSEApp* t = getApp();
-
 	QDialog* dialog = new QDialog();
 
 	QComboBox* typeSelection = new QComboBox();
 
-	auto nr = t->GetNanorobot();
+	auto nr = getApp()->GetNanorobot();
 	auto parts = nr->GetParts();
 	int i = 0;
 	std::map<int, ADNPointer<ADNPart>> indexParts;
@@ -420,7 +413,7 @@ void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 			workingDirectory = fileInfo.absolutePath();	// get the absolute path to the filename
 			if (fileInfo.exists()) if (!SAMSON::askUser("Save a part", "The file already exists. Do you want to overwrite it?")) return;
 
-			if (!filename.isEmpty()) t->SaveFile(filename, part);
+			if (!filename.isEmpty()) getApp()->SaveFile(filename, part);
 
 		}
 	
@@ -433,23 +426,20 @@ void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 void SEAdenitaCoreSEAppGUI::onSetScaffold() {
 
 	std::string filename = SEAdenitaCoreSEAppGUI::getScaffoldFilename();
-	SEAdenitaCoreSEApp *t = getApp();
-	t->SetScaffoldSequence(filename);
+	getApp()->SetScaffoldSequence(filename);
 
 }
 
 void SEAdenitaCoreSEAppGUI::onAddNtThreeP() {
 
-	SEAdenitaCoreSEApp *t = getApp();
 	int numNt = 1;
-	t->AddNtThreeP(numNt);
+	getApp()->AddNtThreeP(numNt);
 
 }
 
 void SEAdenitaCoreSEAppGUI::onCenterPart() {
 
-	SEAdenitaCoreSEApp *t = getApp();
-	t->CenterPart();
+	getApp()->CenterPart();
 	SAMSON::getActiveCamera()->center();
 
 }
@@ -510,8 +500,8 @@ void SEAdenitaCoreSEAppGUI::onCatenanes() {
 		normal[1] = 0.0;
 		normal[2] = 1.0;
 		SBPosition3 center = SBPosition3();
-		SEAdenitaCoreSEApp* t = getApp();
-		t->LinearCatenanes(R, center, normal, num);
+		
+		getApp()->LinearCatenanes(R, center, normal, num);
 
 	}
 
@@ -584,8 +574,8 @@ void SEAdenitaCoreSEAppGUI::onKinetoplast() {
 		normal[1] = 0.0;
 		normal[2] = 1.0;
 		SBPosition3 center = SBPosition3();
-		SEAdenitaCoreSEApp* t = getApp();
-		t->Kinetoplast(R, center, normal, r, c);
+		
+		getApp()->Kinetoplast(R, center, normal, r, c);
 
 	}
 
@@ -637,16 +627,14 @@ void SEAdenitaCoreSEAppGUI::onCalculateBindingProperties() {
 
 		if (oligoConcOk && monovalentConcOk && divalentConcOk) {
 
-			SEAdenitaCoreSEApp* t = getApp();
-
-			bool res = t->CalculateBindingRegions(oligoConc, monovalentConc, divalentConc);
+			bool res = getApp()->CalculateBindingRegions(oligoConc, monovalentConc, divalentConc);
 
 			if (res) {
 
-				SEAdenitaVisualModel* adenitaVm = static_cast<SEAdenitaVisualModel*>(SEAdenitaCoreSEApp::getVisualModel());
-				if (adenitaVm != nullptr) {
+				SEAdenitaVisualModel* adenitaVisualModel = SEAdenitaCoreSEApp::getVisualModel();
+				if (adenitaVisualModel) {
 
-					adenitaVm->changePropertyColors(1, 0);
+					adenitaVisualModel->changePropertyColors(1, 0);
 					SAMSON::requestViewportUpdate();
 
 				}
@@ -670,15 +658,13 @@ void SEAdenitaCoreSEAppGUI::onCalculateBindingProperties() {
 
 void SEAdenitaCoreSEAppGUI::onSetStart() {
 
-	SEAdenitaCoreSEApp* t = getApp();
-	t->SetStart();
+	getApp()->SetStart();
 
 }
 
 void SEAdenitaCoreSEAppGUI::onTestNeighbors() {
 
-	SEAdenitaCoreSEApp* t = getApp();
-	t->TestNeighbors();
+	getApp()->TestNeighbors();
 
 }
 
@@ -696,8 +682,7 @@ void SEAdenitaCoreSEAppGUI::onOxDNAImport() {
 
 	if (!topoFile.isEmpty() || !configFile.isEmpty()) {
 		
-		SEAdenitaCoreSEApp* t = getApp();
-		t->ImportFromOxDNA(topoFile.toStdString(), configFile.toStdString());
+		getApp()->ImportFromOxDNA(topoFile.toStdString(), configFile.toStdString());
 
 	}
 
@@ -705,22 +690,19 @@ void SEAdenitaCoreSEAppGUI::onOxDNAImport() {
 
 void SEAdenitaCoreSEAppGUI::onFromDatagraph() {
 
-	SEAdenitaCoreSEApp* t = getApp();
-	t->FromDatagraph();
+	getApp()->FromDatagraph();
 
 }
 
 void SEAdenitaCoreSEAppGUI::onHighlightXOs() {
 
-	SEAdenitaCoreSEApp* t = getApp();
-	t->HighlightXOs();
+	getApp()->HighlightXOs();
 
 }
 
 void SEAdenitaCoreSEAppGUI::onHighlightPosXOs() {
 
-	SEAdenitaCoreSEApp* t = getApp();
-	t->HighlightPosXOs();
+	getApp()->HighlightPosXOs();
 
 }
 
@@ -735,8 +717,7 @@ void SEAdenitaCoreSEAppGUI::onExportToCanDo() {
 
 		if (!filename.isEmpty()) {
 
-			SEAdenitaCoreSEApp* t = getApp();
-			t->ExportToCanDo(filename);
+			getApp()->ExportToCanDo(filename);
 
 		}
 
@@ -746,15 +727,13 @@ void SEAdenitaCoreSEAppGUI::onExportToCanDo() {
 
 void SEAdenitaCoreSEAppGUI::onFixDesigns() {
 
-	SEAdenitaCoreSEApp* t = getApp();
-	t->FixDesigns();
+	getApp()->FixDesigns();
 
 }
 
 void SEAdenitaCoreSEAppGUI::onCreateBasePair() {
 
-	SEAdenitaCoreSEApp* t = getApp();
-	t->CreateBasePair();
+	getApp()->CreateBasePair();
 
 }
 
@@ -798,8 +777,8 @@ void SEAdenitaCoreSEAppGUI::onGenerateSequence() {
 		double gc100 = gcCont->value() / 100;
 		int maxContGs = contigousGs->value();
 		bool overwrite = chk->isChecked();
-		SEAdenitaCoreSEApp* t = getApp();
-		t->GenerateSequence(gc100, maxContGs, overwrite);
+
+		getApp()->GenerateSequence(gc100, maxContGs, overwrite);
 
 	}
 
@@ -819,89 +798,133 @@ void SEAdenitaCoreSEAppGUI::onSettings() {
 
 void SEAdenitaCoreSEAppGUI::onBreakEditor() {
 
-	SEBreakEditor* be = static_cast<SEBreakEditor*>(SAMSON::getEditor(SBCContainerUUID("CFACD1E5-FCD1-916F-2CF7-4B60979F1A77"), SBUUID(SB_ELEMENT_UUID)));
-	SAMSON::setActiveEditor(be);
-	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SEBreakEditor* editor = static_cast<SEBreakEditor*>(SAMSON::getEditor(SBCContainerUUID("CFACD1E5-FCD1-916F-2CF7-4B60979F1A77"), SBUUID(SB_ELEMENT_UUID)));
+	if (editor) {
+
+		SAMSON::setActiveEditor(editor);
+		setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+
+	}
 
 }
 
 void SEAdenitaCoreSEAppGUI::onConnectEditor() {
 
-	SEConnectSSDNAEditor* c = static_cast<SEConnectSSDNAEditor*>(SAMSON::getEditor(SBCContainerUUID("48FDCE78-A55E-FDA2-237E-319202E56080"), SBUUID(SB_ELEMENT_UUID)));
-	SAMSON::setActiveEditor(c);
-	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SEConnectSSDNAEditor* editor = static_cast<SEConnectSSDNAEditor*>(SAMSON::getEditor(SBCContainerUUID("48FDCE78-A55E-FDA2-237E-319202E56080"), SBUUID(SB_ELEMENT_UUID)));
+	if (editor) {
+
+		SAMSON::setActiveEditor(editor);
+		setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+
+	}
 
 }
 
 void SEAdenitaCoreSEAppGUI::onDeleteEditor() {
 
-	SEDeleteEditor* c = static_cast<SEDeleteEditor*>(SAMSON::getEditor(SBCContainerUUID("592B8158-15E9-B621-0BCB-D7DA210FF149"), SBUUID(SB_ELEMENT_UUID)));
-	SAMSON::setActiveEditor(c);
-	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SEDeleteEditor* editor = static_cast<SEDeleteEditor*>(SAMSON::getEditor(SBCContainerUUID("592B8158-15E9-B621-0BCB-D7DA210FF149"), SBUUID(SB_ELEMENT_UUID)));
+	if (editor) {
+
+		SAMSON::setActiveEditor(editor);
+		setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+
+	}
 
 }
 
 void SEAdenitaCoreSEAppGUI::onDNATwistEditor() {
 
-	SETwistHelixEditor* c = static_cast<SETwistHelixEditor*>(SAMSON::getEditor(SBCContainerUUID("4B60FECA-2A79-680F-F289-B4908A924409"), SBUUID(SB_ELEMENT_UUID)));
-	SAMSON::setActiveEditor(c);
-	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SETwistHelixEditor* editor = static_cast<SETwistHelixEditor*>(SAMSON::getEditor(SBCContainerUUID("4B60FECA-2A79-680F-F289-B4908A924409"), SBUUID(SB_ELEMENT_UUID)));
+	if (editor) {
+
+		SAMSON::setActiveEditor(editor);
+		setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+
+	}
 
 }
 
 void SEAdenitaCoreSEAppGUI::onMergePartsEditor() {
 
-	SEMergePartsEditor* c = static_cast<SEMergePartsEditor*>(SAMSON::getEditor(SBCContainerUUID("EB812444-8EA8-BD83-988D-AFF5987461D8"), SBUUID(SB_ELEMENT_UUID)));
-	SAMSON::setActiveEditor(c);
-	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SEMergePartsEditor* editor = static_cast<SEMergePartsEditor*>(SAMSON::getEditor(SBCContainerUUID("EB812444-8EA8-BD83-988D-AFF5987461D8"), SBUUID(SB_ELEMENT_UUID)));
+	if (editor) {
+
+		SAMSON::setActiveEditor(editor);
+		setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+
+	}
 
 }
 
 void SEAdenitaCoreSEAppGUI::onCreateStrandEditor() {
 
-	SEDSDNACreatorEditor* c = static_cast<SEDSDNACreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("86204A08-DFD6-97A8-2BE2-4CFC8B4169A3"), SBUUID(SB_ELEMENT_UUID)));
-	SAMSON::setActiveEditor(c);
-	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SEDSDNACreatorEditor* editor = static_cast<SEDSDNACreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("86204A08-DFD6-97A8-2BE2-4CFC8B4169A3"), SBUUID(SB_ELEMENT_UUID)));
+	if (editor) {
+
+		SAMSON::setActiveEditor(editor);
+		setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+
+	}
 
 }
 
 void SEAdenitaCoreSEAppGUI::onNanotubeCreatorEditor() {
 
-	SENanotubeCreatorEditor* c = static_cast<SENanotubeCreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("4B6A0B18-48B5-233A-28A4-BA3EF3D56AB8"), SBUUID(SB_ELEMENT_UUID)));
-	SAMSON::setActiveEditor(c);
-	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SENanotubeCreatorEditor* editor = static_cast<SENanotubeCreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("4B6A0B18-48B5-233A-28A4-BA3EF3D56AB8"), SBUUID(SB_ELEMENT_UUID)));
+	if (editor) {
+
+		SAMSON::setActiveEditor(editor);
+		setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+
+	}
 
 }
 
 void SEAdenitaCoreSEAppGUI::onLatticeCreatorEditor() {
 
-	SELatticeCreatorEditor* c = static_cast<SELatticeCreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("EA67625E-89B5-2EEA-156D-FC836214B0E4"), SBUUID(SB_ELEMENT_UUID)));
-	SAMSON::setActiveEditor(c);
-	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SELatticeCreatorEditor* editor = static_cast<SELatticeCreatorEditor*>(SAMSON::getEditor(SBCContainerUUID("EA67625E-89B5-2EEA-156D-FC836214B0E4"), SBUUID(SB_ELEMENT_UUID)));
+	if (editor) {
+
+		SAMSON::setActiveEditor(editor);
+		setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+
+	}
 
 }
 
 void SEAdenitaCoreSEAppGUI::onWireframeEditor() {
 
-	SEWireframeEditor* c = static_cast<SEWireframeEditor*>(SAMSON::getEditor(SBCContainerUUID("F1F29042-3D87-DA61-BC5C-D3348EB2E1FA"), SBUUID(SB_ELEMENT_UUID)));
-	SAMSON::setActiveEditor(c);
-	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SEWireframeEditor* editor = static_cast<SEWireframeEditor*>(SAMSON::getEditor(SBCContainerUUID("F1F29042-3D87-DA61-BC5C-D3348EB2E1FA"), SBUUID(SB_ELEMENT_UUID)));
+	if (editor) {
+
+		SAMSON::setActiveEditor(editor);
+		setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+
+	}
 
 }
 
 void SEAdenitaCoreSEAppGUI::onTaggingEditor() {
 
-	SETaggingEditor* c = static_cast<SETaggingEditor*>(SAMSON::getEditor(SBCContainerUUID("473D2F88-5D06-25F5-EB58-053661504C43"), SBUUID(SB_ELEMENT_UUID)));
-	SAMSON::setActiveEditor(c);
-	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SETaggingEditor* editor = static_cast<SETaggingEditor*>(SAMSON::getEditor(SBCContainerUUID("473D2F88-5D06-25F5-EB58-053661504C43"), SBUUID(SB_ELEMENT_UUID)));
+	if (editor) {
+
+		SAMSON::setActiveEditor(editor);
+		setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+
+	}
 
 }
 
 void SEAdenitaCoreSEAppGUI::onTwisterEditor() {
 
-	SEDNATwisterEditor* c = static_cast<SEDNATwisterEditor*>(SAMSON::getEditor(SBCContainerUUID("677B1667-7856-12E6-5901-E8EAC729501A"), SBUUID(SB_ELEMENT_UUID)));
-	SAMSON::setActiveEditor(c);
-	setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+	SEDNATwisterEditor* editor = static_cast<SEDNATwisterEditor*>(SAMSON::getEditor(SBCContainerUUID("677B1667-7856-12E6-5901-E8EAC729501A"), SBUUID(SB_ELEMENT_UUID)));
+	if (editor) {
+
+		SAMSON::setActiveEditor(editor);
+		setHighlightEditor(qobject_cast<QToolButton*>(QObject::sender()));
+
+	}
 
 }
 
@@ -922,12 +945,12 @@ std::string SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(QString filename) {
 
 }
 
-void SEAdenitaCoreSEAppGUI::setHighlightEditor(QToolButton* b) {
+void SEAdenitaCoreSEAppGUI::setHighlightEditor(QToolButton* button) {
 
 	// remove current
 	if (highlightedEditor_ != nullptr) highlightedEditor_->setStyleSheet(QString("border: none"));
-	b->setStyleSheet(QString("border: 2px solid #FFFFFF"));
-	highlightedEditor_ = b;
+	button->setStyleSheet(QString("border: 2px solid #FFFFFF"));
+	highlightedEditor_ = button;
 
 }
 
@@ -937,9 +960,9 @@ void SEAdenitaCoreSEAppGUI::checkForLoadedParts() {
 	SBNodeIndexer nodeIndexer;
 	SAMSON::getActiveDocument()->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNPart")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
-	SB_FOR(SBNode* n, nodeIndexer) {
+	SB_FOR(SBNode* node, nodeIndexer) {
 
-		ADNPointer<ADNPart> part = static_cast<ADNPart*>(n);
+		ADNPointer<ADNPart> part = static_cast<ADNPart*>(node);
 		adenita->AddLoadedPartToNanorobot(part);
 
 	}
@@ -950,16 +973,16 @@ void SEAdenitaCoreSEAppGUI::keyPressEvent(QKeyEvent* event) {
 
 	if (event->modifiers() == Qt::ControlModifier) {
 	
-		SBProxy* ep = nullptr;
+		SBProxy* editorProxy = nullptr;
 
-		//if (event->key() == Qt::Key_D) ep = SAMSON::getProxy("SEDeleteEditor", SBUUID(SB_ELEMENT_UUID));
-		//if (event->key() == Qt::Key_B) ep = SAMSON::getProxy("SEBreakEditor", SBUUID(SB_ELEMENT_UUID));
-		//if (event->key() == Qt::Key_G) ep = SAMSON::getProxy("SEConnectSSDNAEditor", SBUUID(SB_ELEMENT_UUID));
+		//if (event->key() == Qt::Key_D) editorProxy = SAMSON::getProxy("SEDeleteEditor", SBUUID(SB_ELEMENT_UUID));
+		//if (event->key() == Qt::Key_B) editorProxy = SAMSON::getProxy("SEBreakEditor", SBUUID(SB_ELEMENT_UUID));
+		//if (event->key() == Qt::Key_G) editorProxy = SAMSON::getProxy("SEConnectSSDNAEditor", SBUUID(SB_ELEMENT_UUID));
 
-		if (ep) {
+		if (editorProxy) {
 
-			SBEditor * e = SAMSON::getEditor(ep->getUUID(), ep->getElementUUID());
-			SAMSON::setActiveEditor(e);
+			SBEditor * editor = SAMSON::getEditor(editorProxy->getUUID(), editorProxy->getElementUUID());
+			if (editor) SAMSON::setActiveEditor(editor);
 
 		}
 
@@ -1050,7 +1073,7 @@ void SEAdenitaCoreSEAppGUI::setupUI() {
 
 #ifdef ADENITA_DEBUG
 	QGroupBox* groupBoxDebug = new QGroupBox("Debug");
-	groupBoxDebug->setMinimumHeight(150);
+	groupBoxDebug->setMinimumHeight(120);
 	ui.verticalLayout->addWidget(groupBoxDebug);
 	FlowLayout* layoutDebug = new FlowLayout;
 	groupBoxDebug->setLayout(layoutDebug);
@@ -1067,7 +1090,9 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getMenuButtons() {
 		auto btnLoad = new QToolButton(this);
 		btnLoad->setObjectName(QStringLiteral("btnLoad"));
 		btnLoad->setText("Load\n");
-		btnLoad->setToolTip("Load structure");
+		btnLoad->setToolTip("<b>Load structure</b><br/><br/>"
+			"Load a DNA nanostructure from a file. "
+			"Possible choices are a cadnano design (for cadnano 2.5) as .json, a mesh in .ply (will be loaded using the Daedalus algorithm), or a .adnpart or .adn (custom Adenita formats).");
 		btnLoad->setIconSize(QSize(24, 24));
 		btnLoad->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnLoad->setAutoRaise(true);
@@ -1076,7 +1101,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getMenuButtons() {
 		auto btnSaveSelection = new QToolButton(this);
 		btnSaveSelection->setObjectName(QStringLiteral("btnSaveSelection"));
 		btnSaveSelection->setText("Save\nselection");
-		btnSaveSelection->setToolTip("Save selection");
+		btnSaveSelection->setToolTip("<b>Save selection</b><br/><br/>"
+			"Chose to save a component for later use in custom Adenita format (.adnpart).");
 		btnSaveSelection->setIconSize(QSize(24, 24));
 		btnSaveSelection->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnSaveSelection->setAutoRaise(true);
@@ -1085,7 +1111,9 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getMenuButtons() {
 		auto btnSaveAll = new QToolButton(this);
 		btnSaveAll->setObjectName(QStringLiteral("btnSaveAll"));
 		btnSaveAll->setText("Save all\n");
-		btnSaveAll->setToolTip("Save all");
+		btnSaveAll->setToolTip("<b>Save all</b><br/><br/>"
+			"Save all current DNA nanostructures in a .adn file."
+			"Note: systems not handled through Adenita won’t be saved.");
 		btnSaveAll->setIconSize(QSize(24, 24));
 		btnSaveAll->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnSaveAll->setAutoRaise(true);
@@ -1094,7 +1122,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getMenuButtons() {
 		auto btnExport = new QToolButton(this);
 		btnExport->setObjectName(QStringLiteral("btnExport"));
 		btnExport->setText("Export\n");
-		btnExport->setToolTip("Export");
+		btnExport->setToolTip("<b>Export</b><br/><br/>"
+			"Export as CSV sequence file or in a format appropiate for oxDNA.");
 		btnExport->setIconSize(QSize(24, 24));
 		btnExport->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnExport->setAutoRaise(true);
@@ -1165,7 +1194,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getEditSequencesButtons() {
 		auto btnSetScaff = new QToolButton(this);
 		btnSetScaff->setObjectName(QStringLiteral("btnSetScaff"));
 		btnSetScaff->setText("Set\nscaffold\n");
-		btnSetScaff->setToolTip("Set scaffold");
+		btnSetScaff->setToolTip("<b>Set scaffold</b><br/><br/>"
+			"All scaffolds from the selection will be assigned a sequence specified through the Options menu, scaffold nucleotide’s pairs will also be assigned the complementary base.");
 		btnSetScaff->setIconSize(QSize(24, 24));
 		btnSetScaff->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnSetScaff->setAutoRaise(true);
@@ -1183,7 +1213,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getEditSequencesButtons() {
 		auto btnSetStart = new QToolButton(this);
 		btnSetStart->setObjectName(QStringLiteral("btnSetStart"));
 		btnSetStart->setText("Set\nstart (5\')\n");
-		btnSetStart->setToolTip("Set start (5\')");
+		btnSetStart->setToolTip("<b>Set start (5\')</b><br/><br/>"
+			"Set any nucleotide as the new 5\' of its single strand.");
 		btnSetStart->setIconSize(QSize(24, 24));
 		btnSetStart->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnSetStart->setAutoRaise(true);
@@ -1192,7 +1223,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getEditSequencesButtons() {
 		auto btnCalculateBindingProperties = new QToolButton(this);
 		btnCalculateBindingProperties->setObjectName(QStringLiteral("btnCalculateBindingProperties"));
 		btnCalculateBindingProperties->setText("Calculate\nbinding\nproperties");
-		btnCalculateBindingProperties->setToolTip("Calculate binding properties");
+		btnCalculateBindingProperties->setToolTip("<b>Calculate binding properties</b><br/><br/>"
+			"If a path to <b>ntthal</b> has been specified in the Options menu, it will be used to calculate the melting temperatures and Gibbs free energies of all binding regions of a selected component.");
 		btnCalculateBindingProperties->setIconSize(QSize(24, 24));
 		btnCalculateBindingProperties->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnCalculateBindingProperties->setAutoRaise(true);
@@ -1201,7 +1233,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getEditSequencesButtons() {
 		auto btnTaggingEditor = new QToolButton(this);
 		btnTaggingEditor->setObjectName(QStringLiteral("btnTaggingEditor"));
 		btnTaggingEditor->setText("Tagging\neditor\n");
-		btnTaggingEditor->setToolTip("Tagging editor");
+		btnTaggingEditor->setToolTip("<b>Tagging editor</b><br/><br/>"
+			"Tag nucleotides or modify their base. The tag will appear when exporting sequences.");
 		btnTaggingEditor->setIconSize(QSize(24, 24));
 		btnTaggingEditor->setCheckable(true);
 		btnTaggingEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1250,7 +1283,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		auto btnBreakEditor = new QToolButton(this);
 		btnBreakEditor->setObjectName(QStringLiteral("btnBreakEditor"));
 		btnBreakEditor->setText("Break");
-		btnBreakEditor->setToolTip("Break editor");
+		btnBreakEditor->setToolTip("<b>Break editor</b><br/><br/>"
+			"Break ssDNA - break the bond between two consecutive nucleotides of the same strand.");
 		btnBreakEditor->setIconSize(QSize(24, 24));
 		btnBreakEditor->setCheckable(true);
 		btnBreakEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1260,7 +1294,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		auto btnDeleteEditor = new QToolButton(this);
 		btnDeleteEditor->setObjectName(QStringLiteral("btnDeleteEditor"));
 		btnDeleteEditor->setText("Delete");
-		btnDeleteEditor->setToolTip("Delete editor");
+		btnDeleteEditor->setToolTip("Delete editor\n\nDelete nucleotides from Adenita models");
 		btnDeleteEditor->setIconSize(QSize(24, 24));
 		btnDeleteEditor->setCheckable(true);
 		btnDeleteEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1270,7 +1304,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		auto btnConnectEditor = new QToolButton(this);
 		btnConnectEditor->setObjectName(QStringLiteral("btnConnectEditor"));
 		btnConnectEditor->setText("Connect");
-		btnConnectEditor->setToolTip("Connect editor");
+		btnConnectEditor->setToolTip("Connect editor\n\nConnect and create crossovers");
 		btnConnectEditor->setIconSize(QSize(24, 24));
 		btnConnectEditor->setCheckable(true);
 		btnConnectEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1280,7 +1314,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		auto btnMergePartsEditor = new QToolButton(this);
 		btnMergePartsEditor->setObjectName(QStringLiteral("btnMergePartsEditor"));
 		btnMergePartsEditor->setText("Merge parts");
-		btnMergePartsEditor->setToolTip("Merge parts editor");
+		btnMergePartsEditor->setToolTip("<b>Merge parts editor</b><br/><br/>"
+			"Merge components. Reorganize several components into one, or reassign single and double strands to other components. List of components and strands needs to be updated manually.");
 		btnMergePartsEditor->setIconSize(QSize(24, 24));
 		btnMergePartsEditor->setCheckable(true);
 		btnMergePartsEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1290,7 +1325,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		auto btnDNATwisterEditor = new QToolButton(this);
 		btnDNATwisterEditor->setObjectName(QStringLiteral("btnDNATwisterEditor"));
 		btnDNATwisterEditor->setText("DNA twister");
-		btnDNATwisterEditor->setToolTip("DNA twister editor");
+		btnDNATwisterEditor->setToolTip("<b>DNA twister editor</b><br/><br/>"
+			"Twist dsDNA along helical axis - modify the twist angle of a double-strand along the helical axis.");
 		btnDNATwisterEditor->setIconSize(QSize(24, 24));
 		btnDNATwisterEditor->setCheckable(true);
 		btnDNATwisterEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1300,7 +1336,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		auto btnTwisterEditor = new QToolButton(this);
 		btnTwisterEditor->setObjectName(QStringLiteral("btnTwisterEditor"));
 		btnTwisterEditor->setText("Twister");
-		btnTwisterEditor->setToolTip("Twister editor");
+		btnTwisterEditor->setToolTip("<b>Twister editor</b><br/><br/>"
+			"dsDNA Visualization Twister.<br/>Remove entire the twist of a double strand locally to observe the single strands that compose it as parallel lines.");
 		btnTwisterEditor->setIconSize(QSize(24, 24));
 		btnTwisterEditor->setCheckable(true);
 		btnTwisterEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1362,7 +1399,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getCreatorsButtons() {
 		QToolButton* btnDsDNACreatorEditor = new QToolButton;
 		btnDsDNACreatorEditor->setObjectName(QStringLiteral("btnDsDNACreatorEditor"));
 		btnDsDNACreatorEditor->setText("DsDNA\ncreator");
-		btnDsDNACreatorEditor->setToolTip("DsDNA creator editor");
+		btnDsDNACreatorEditor->setToolTip("<b>DsDNA creator editor</b><br/><br/>"
+			"Add a new single or double strand DNA (ssDNA or dsDNA) as a component to the design. They can also be circular.");
 		btnDsDNACreatorEditor->setIconSize(QSize(24, 24));
 		btnDsDNACreatorEditor->setCheckable(true);
 		btnDsDNACreatorEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1372,7 +1410,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getCreatorsButtons() {
 		QToolButton* btnNanotubeCreator = new QToolButton;
 		btnNanotubeCreator->setObjectName(QStringLiteral("btnNanotubeCreator"));
 		btnNanotubeCreator->setText("Nanotube\ncreator");
-		btnNanotubeCreator->setToolTip("Nanotube creator");
+		btnNanotubeCreator->setToolTip("<b>Nanotube creator</b><br/><br/>"
+			"DNA Nanotube Creator. Add a nanotube composed of double strands.");
 		btnNanotubeCreator->setIconSize(QSize(24, 24));
 		btnNanotubeCreator->setCheckable(true);
 		btnNanotubeCreator->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1382,7 +1421,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getCreatorsButtons() {
 		QToolButton* btnLatticeCreatorEditor = new QToolButton;
 		btnLatticeCreatorEditor->setObjectName(QStringLiteral("btnLatticeCreatorEditor"));
 		btnLatticeCreatorEditor->setText("Lattice\ncreator");
-		btnLatticeCreatorEditor->setToolTip("Lattice creator editor");
+		btnLatticeCreatorEditor->setToolTip("<b>Lattice creator editor</b><br/><br/>"
+			"Create dsDNA on a square or honeycomb lattice - add a lattice of double strands as a component.");
 		btnLatticeCreatorEditor->setIconSize(QSize(24, 24));
 		btnLatticeCreatorEditor->setCheckable(true);
 		btnLatticeCreatorEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1392,7 +1432,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getCreatorsButtons() {
 		QToolButton* btnWireframeEditor = new QToolButton;
 		btnWireframeEditor->setObjectName(QStringLiteral("btnWireframeEditor"));
 		btnWireframeEditor->setText("Wireframe\n");
-		btnWireframeEditor->setToolTip("Wireframe editor");
+		btnWireframeEditor->setToolTip("<b>Wireframe editor</b><br/><br/>"
+			"Generate a wireframe DNA nanostructures from the given shapes and add it to the design (uses the Daedalus algorithm).");
 		btnWireframeEditor->setIconSize(QSize(24, 24));
 		btnWireframeEditor->setCheckable(true);
 		btnWireframeEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);

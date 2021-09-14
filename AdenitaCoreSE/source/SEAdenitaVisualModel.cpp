@@ -1,4 +1,5 @@
 #include "SEAdenitaVisualModel.hpp"
+#include "SEAdenitaCoreSEApp.hpp"
 #include "SAMSON.hpp"
 #include "ADNLogger.hpp"
 #include "PICrossovers.hpp"
@@ -493,7 +494,7 @@ void SEAdenitaVisualModel::initDisplayIndices() {
 
 void SEAdenitaVisualModel::initDoubleStrands(bool createIndex /*= true*/) {
 
-	unsigned int nPositions = nanorobot_->GetNumberOfBaseSegments();
+	const unsigned int nPositions = nanorobot_->GetNumberOfBaseSegments();
 
 	nPositionsDS_ = nPositions;
 	positionsDS_ = ADNArray<float>(3, nPositions);
@@ -518,45 +519,66 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getAtomIndices() {
 ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 
 	auto singleStrands = nanorobot_->GetSingleStrands();
+	auto parts = nanorobot_->GetParts();
 
-	unsigned int nPositions = nanorobot_->GetNumberOfNucleotides();
-	unsigned int nCylinders = boost::numeric_cast<unsigned int>(nPositions - singleStrands.size());
+	// check the correspondance of the number of single strands
+
+	const int numberOfSingleStrandsUsingSAMSON = SAMSON::getActiveDocument()->countNodes((SBNode::GetClass() == std::string("ADNSingleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+	int numberOfSingleStrandsInAllParts = 0;
+	SB_FOR(auto part, parts) numberOfSingleStrandsInAllParts += nanorobot_->GetSingleStrands(part).size();
+	if (singleStrands.size() != numberOfSingleStrandsInAllParts || numberOfSingleStrandsUsingSAMSON != numberOfSingleStrandsInAllParts) {
+
+		std::cerr << "ERROR: The number of single strands in nanorobot does not correspond to their number in the data graph. " << 
+			"The total number in nanorobot is " << singleStrands.size() << " (the number in parts in nanorobot it is " << numberOfSingleStrandsInAllParts << ") and using SAMSON it is " << numberOfSingleStrandsUsingSAMSON << std::endl;
+
+	}
+
+	// check the correspondance of the number of nucleotides
+
+	const int numberOfNucleotidesUsingSAMSON = SAMSON::getActiveDocument()->countNodes((SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+	const int numberOfNucleotidesInNanorobot = nanorobot_->GetNumberOfNucleotides();
+	if (numberOfNucleotidesUsingSAMSON != numberOfNucleotidesInNanorobot) {
+
+		std::cerr << "ERROR: The number of nucleotides in nanorobot does not correspond to their number in the data graph. " <<
+			"The total number in nanorobot is " << numberOfNucleotidesInNanorobot << " and using SAMSON it is " << numberOfNucleotidesUsingSAMSON << std::endl;
+
+	}
+
+	const unsigned int nPositions = nanorobot_->GetNumberOfNucleotides();
+	const unsigned int nCylinders = boost::numeric_cast<unsigned int>(nPositions - singleStrands.size());
 
 	ADNArray<unsigned int> indices = ADNArray<unsigned int>(nCylinders * 2);
 
 	//this init can be optimized in the future
-
-	auto parts = nanorobot_->GetParts();
 
 	size_t sumNumEdges = 0;
 
 	SB_FOR(auto part, parts) {
 
 		auto singleStrands = nanorobot_->GetSingleStrands(part);
-		SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
-			auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
-			ADNPointer<ADNNucleotide> cur = nanorobot_->GetSingleStrandFivePrime(ss);
-			size_t curNCylinders = nucleotides.size() - 1; //todo fix this
+		SB_FOR(ADNPointer<ADNSingleStrand> singleStrand, singleStrands) {
+
+			auto nucleotides = nanorobot_->GetSingleStrandNucleotides(singleStrand);
+			ADNPointer<ADNNucleotide> currentNucleotide = nanorobot_->GetSingleStrandFivePrime(singleStrand);
+			const size_t curNCylinders = nucleotides.size() - 1; //todo fix this
 			ADNArray<unsigned int> curIndices = ADNArray<unsigned int>(2 * curNCylinders);
 
 			//looping using the next_ member variable of nucleotides
 			unsigned int j = 0;
-			while (nanorobot_->GetNucleotideNext(cur) != nullptr) {
+			while (nanorobot_->GetNucleotideNext(currentNucleotide) != nullptr) {
 
-				unsigned int curIndex;
-				curIndex = ntMap_[cur()];
-				//nucleotides.getIndex(cur(), curIndex);
-				unsigned int nextIndex;
-				auto next = nanorobot_->GetNucleotideNext(cur)();
-				nextIndex = ntMap_[next];
-				//nucleotides.getIndex(next, nextIndex);
+				unsigned int currentIndex = ntMap_[currentNucleotide()];
+				//nucleotides.getIndex(currentNucleotide(), currentIndex);
+				ADNNucleotide* nextNucleotide = nanorobot_->GetNucleotideNext(currentNucleotide)();
+				unsigned int nextIndex = ntMap_[nextNucleotide];
+				//nucleotides.getIndex(nextNucleotide, nextIndex);
 
-				curIndices(2 * j) = curIndex;
+				curIndices(2 * j) = currentIndex;
 				curIndices(2 * j + 1) = nextIndex;
 				j++;
 
-				cur = nanorobot_->GetNucleotideNext(cur);
+				currentNucleotide = nanorobot_->GetNucleotideNext(currentNucleotide);
 
 			}
 
@@ -580,10 +602,10 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getBaseSegmentIndices() {
 
 	auto parts = nanorobot_->GetParts();
 
-	unsigned int nDs = bsMap_.size();
+	const unsigned int nDs = bsMap_.size();
   
-	unsigned int nPositions = nanorobot_->GetNumberOfBaseSegments();
-	unsigned int nCylinders = boost::numeric_cast<unsigned int>(nPositions - nDs);
+	const unsigned int nPositions = nanorobot_->GetNumberOfBaseSegments();
+	const unsigned int nCylinders = boost::numeric_cast<unsigned int>(nPositions - nDs);
  
 	ADNArray<unsigned int> indices = ADNArray<unsigned int>(nCylinders * 2);
 
@@ -1773,16 +1795,17 @@ void SEAdenitaVisualModel::prepareNucleotides() {
 	SB_FOR(auto part, parts) {
 
 		auto singleStrands = nanorobot_->GetSingleStrands(part);
-		SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
+		SB_FOR(ADNPointer<ADNSingleStrand> singleStrand, singleStrands) {
 
-			auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+			auto nucleotides = nanorobot_->GetSingleStrandNucleotides(singleStrand);
 			SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
 				unsigned int index = ntMap_[nt()];
 
-				positionsNt_(index, 0) = nanorobot_->GetNucleotideBackbonePosition(nt)[0].getValue();
-				positionsNt_(index, 1) = nanorobot_->GetNucleotideBackbonePosition(nt)[1].getValue();
-				positionsNt_(index, 2) = nanorobot_->GetNucleotideBackbonePosition(nt)[2].getValue();
+				const Position3D nucleotideBackbonePosition = nanorobot_->GetNucleotideBackbonePosition(nt);
+				positionsNt_(index, 0) = nucleotideBackbonePosition[0].getValue();
+				positionsNt_(index, 1) = nucleotideBackbonePosition[1].getValue();
+				positionsNt_(index, 2) = nucleotideBackbonePosition[2].getValue();
 
 				colorsENt_.SetRow(index, nucleotideEColor_);
 				nodeIndicesNt_(index) = nt->getNodeIndex();
@@ -1795,7 +1818,7 @@ void SEAdenitaVisualModel::prepareNucleotides() {
 
 				auto type = nt->GetBaseSegment()->GetCellType();
 				if (type == CellType::LoopPair) {
-					radiiVNt_(index) = radiiVNt_(index) * 0.7f;;
+					radiiVNt_(index) = radiiVNt_(index) * 0.7f;
 				}
         
 				//strand direction
@@ -1803,7 +1826,7 @@ void SEAdenitaVisualModel::prepareNucleotides() {
 					radiiENt_(index) = config.nucleotide_E_radius;
 				}
 
-				if (!ss->isVisible()) {
+				if (!singleStrand->isVisible()) {
 
 					colorsVNt_(index, 3) = 0.0f;
 					radiiVNt_(index) = 0.0f;

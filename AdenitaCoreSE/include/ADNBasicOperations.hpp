@@ -39,7 +39,7 @@ namespace ADNBasicOperations {
     \param a ADNPointer to the ADNNucleotide which should be the new 5' of its strand
     \param whether to keep the sequence as it was (reset it from new 5' on)
   */
-  void SetStart(ADNPointer<ADNNucleotide> nt, bool resetSequence = false);
+  void SetStart(ADNPointer<ADNNucleotide> nucleotide, bool resetSequence = false);
   //! Moves an ADNDoubleStrand to another ADNPart
   /*!
     \param ADNPointer to the part that contains the double strand

@@ -295,7 +295,7 @@ public:
     \param a ADNPointer to the ADNNucleotide which should be the new 5' of its strand
     \param whether to keep the sequence as it was (reset it from new 5' on)
   */
-  void ShiftStart(ADNPointer<ADNNucleotide> nt, bool shiftSeq = false);
+  void ShiftStart(ADNPointer<ADNNucleotide> nucleotide, bool shiftSeq = false);
   /**
   * Returns the sequence of the strand
   * \param sequence from 5' to 3'

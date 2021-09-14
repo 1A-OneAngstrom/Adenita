@@ -1,8 +1,10 @@
 #include "SEAdenitaCoreSEApp.hpp"
 #include "SEAdenitaCoreSEAppGUI.hpp"
 #include "SEAdenitaVisualModelProperties.hpp"
+
 #include "PICrossovers.hpp"
 #include "DASAlgorithms.hpp"
+
 
 SEAdenitaCoreSEApp::SEAdenitaCoreSEApp() {
 
@@ -192,7 +194,7 @@ void SEAdenitaCoreSEApp::resetVisualModel() {
 
 	//create visual model per nanorobot
 
-	SEAdenitaVisualModel* adenitaVisualModel = static_cast<SEAdenitaVisualModel*>(SEAdenitaCoreSEApp::getVisualModel());
+	SEAdenitaVisualModel* adenitaVisualModel = SEAdenitaCoreSEApp::getVisualModel();
 
 	if (adenitaVisualModel) {
 
@@ -212,14 +214,14 @@ void SEAdenitaCoreSEApp::resetVisualModel() {
 
 }
 
-SBVisualModel* SEAdenitaCoreSEApp::getVisualModel() {
+SEAdenitaVisualModel* SEAdenitaCoreSEApp::getVisualModel() {
 
 	SBNodeIndexer nodeIndexer;
 	SAMSON::getActiveDocument()->getNodes(nodeIndexer, SBNode::VisualModel);
   
-	bool visualModelAlreadyExist = false;
 	SBVisualModel* visualModel = nullptr;
 	SEAdenitaVisualModel* adenitaVisualModel = nullptr;
+
 	SB_FOR(SBNode* node, nodeIndexer) {
 
 		if (node->getType() == SBNode::VisualModel) {
@@ -228,7 +230,6 @@ SBVisualModel* SEAdenitaCoreSEApp::getVisualModel() {
 			
 			if (visualModel->getProxy()->getName() == "SEAdenitaVisualModel" && visualModel->getProxy()->getElementUUID() == SBUUID(SB_ELEMENT_UUID)) {
 
-				visualModelAlreadyExist = true;
 				adenitaVisualModel = static_cast<SEAdenitaVisualModel*>(visualModel);
 				break;
 
@@ -251,7 +252,7 @@ void SEAdenitaCoreSEApp::BreakSingleStrand(bool fPrime) {
 	if (nts.size() == 1) {
 
 		ADNPointer<ADNNucleotide> nt = nts[0];
-		if (nt->GetEnd() != ThreePrime) {
+		if (nt->GetEnd() != End::ThreePrime) {
 
 			ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
 			bool circ = ss->IsCircular();
@@ -319,21 +320,26 @@ void SEAdenitaCoreSEApp::Kinetoplast(SBQuantity::length radius, SBPosition3 cent
 
 void SEAdenitaCoreSEApp::SetStart() {
 
-	auto nts = GetNanorobot()->GetSelectedNucleotides();
-	if (nts.size() > 1) {
+	auto nucleotides = GetNanorobot()->GetSelectedNucleotides();
+	if (nucleotides.size() > 1) {
+
 		// order the nts w.r.t. the single strand they belong
 		// and perform the operation only once per ss
-	}
-	else if (nts.size() == 1) {
 
-		auto nt = nts[0];
-		ADNBasicOperations::SetStart(nt, true);
+		SAMSON::informUser(QString("Adenita: Set 5'"), QString("Please select a single nucleotide you want to set as new 5'."));
+		return;
 
 	}
-	else if (nts.size() == 0) {
+	else if (nucleotides.size() == 1) {
 
-		SAMSON::informUser(QString("Adenita: Set 5'"), 
-		QString("Please select the nucleotide you want to set as new 5'."));
+		ADNNucleotide* nucleotide = nucleotides[0];
+		ADNBasicOperations::SetStart(nucleotide, true);
+
+	}
+	else if (nucleotides.size() == 0) {
+
+		SAMSON::informUser(QString("Adenita: Set 5'"), QString("Please select a nucleotide you want to set as new 5'."));
+		return;
 
 	}
 
@@ -452,11 +458,10 @@ void SEAdenitaCoreSEApp::ImportFromOxDNA(std::string topoFile, std::string confi
 
 void SEAdenitaCoreSEApp::FromDatagraph() {
 
-	SBDocument* doc = SAMSON::getActiveDocument();
-	SBNodeIndexer nodes;
-	doc->getNodes(nodes, SBNode::StructuralModel);
+	SBNodeIndexer nodeIndexer;
+	SAMSON::getActiveDocument()->getNodes(nodeIndexer, SBNode::StructuralModel);
 
-	SB_FOR(auto node, nodes) {
+	SB_FOR(auto node, nodeIndexer) {
 
 		if (node->isSelected()) {
 
@@ -493,13 +498,12 @@ void SEAdenitaCoreSEApp::HighlightPosXOs() {
 
 void SEAdenitaCoreSEApp::ExportToCanDo(QString filename) {
 
-	SBDocument* doc = SAMSON::getActiveDocument();
-	SBNodeIndexer nodes;
-	doc->getNodes(nodes, SBNode::StructuralModel);
+	SBNodeIndexer nodeIndexer;
+	SAMSON::getActiveDocument()->getNodes(nodeIndexer, SBNode::StructuralModel);
 
 	CollectionMap<ADNPart> parts;
 
-	SB_FOR(auto node, nodes) {
+	SB_FOR(auto node, nodeIndexer) {
 
 		if (node->isSelected()) {
 
@@ -510,7 +514,7 @@ void SEAdenitaCoreSEApp::ExportToCanDo(QString filename) {
 
 	}
 
-	if (nodes.size() == 1) {
+	if (nodeIndexer.size() == 1) {
 
 		ADNPointer<ADNPart> part = parts[0];
 		ADNLoader::OutputToCanDo(part, filename.toStdString());
@@ -527,13 +531,12 @@ void SEAdenitaCoreSEApp::ExportToCanDo(QString filename) {
 
 void SEAdenitaCoreSEApp::FixDesigns() {
 
-	SBDocument* doc = SAMSON::getActiveDocument();
-	SBNodeIndexer nodes;
-	doc->getNodes(nodes, SBNode::StructuralModel);
+	SBNodeIndexer nodeIndexer;
+	SAMSON::getActiveDocument()->getNodes(nodeIndexer, SBNode::StructuralModel);
 
 	CollectionMap<ADNPart> parts;
 
-	SB_FOR(auto node, nodes) {
+	SB_FOR(auto node, nodeIndexer) {
 
 		if (!node->isSelected()) continue;
 
@@ -718,16 +721,22 @@ void SEAdenitaCoreSEApp::ConnectToDocument() {
 
 ADNNanorobot * SEAdenitaCoreSEApp::GetNanorobot() {
 
-	auto doc = SAMSON::getActiveDocument();
+	SBDocument* document = SAMSON::getActiveDocument();
 	ADNNanorobot* nanorobot = nullptr;
-	if (nanorobots_.find(doc) == nanorobots_.end()) {
+
+	if (nanorobots_.find(document) == nanorobots_.end()) {
+
 		// create new nanorobot for this document
 		nanorobot = new ADNNanorobot();
-		nanorobots_.insert(std::make_pair(doc, nanorobot));
+		nanorobots_.insert(std::make_pair(document, nanorobot));
+
 	}
 	else {
-		nanorobot = nanorobots_.at(doc);
+
+		nanorobot = nanorobots_.at(document);
+
 	}
+
 	return nanorobot;
 
 }

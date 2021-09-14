@@ -1,6 +1,7 @@
 #pragma once 
 
 #include "SBDApp.hpp"
+
 #include "SEAdenitaCoreSEAppGUI.hpp"
 #include "ADNNanorobot.hpp"
 #include "ADNSaveAndLoad.hpp"
@@ -52,7 +53,7 @@ public :
 	void														GenerateSequence(double gcCont, int maxContGs, bool overwrite = true);
 
 	static void													resetVisualModel();														///< Resets the Adenita visual model in the active document if any, else creates one
-	static SBVisualModel*										getVisualModel();														///< Returns an Adenita visual model from the active document if any, else return nullptr
+	static SEAdenitaVisualModel*								getVisualModel();														///< Returns an Adenita visual model from the active document if any, else return nullptr
 
 	void														SetStart();
 	// Modifications
