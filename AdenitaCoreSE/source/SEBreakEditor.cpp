@@ -24,9 +24,9 @@ SEBreakEditor::~SEBreakEditor() {
 
 SEBreakEditorGUI* SEBreakEditor::getPropertyWidget() const { return static_cast<SEBreakEditorGUI*>(propertyWidget); }
 
-void SEBreakEditor::SetMode(bool five) {
+void SEBreakEditor::SetMode(bool fivePrimeModeFlag) {
 
-	fivePrimeMode_ = five;
+	fivePrimeMode_ = fivePrimeModeFlag;
 
 }
 
@@ -101,8 +101,8 @@ void SEBreakEditor::beginEditing() {
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
 
-	std::string iconPath = SB_ELEMENT_PATH + "/Resource/icons/break.png";
-	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
+	const QString iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/break.png");
+	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
 
 }
 
@@ -110,6 +110,8 @@ void SEBreakEditor::endEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function immediately before your editor becomes inactive (for example when another editor becomes active). 
 	// Implement this function if you need to clean some data structures.
+
+	SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
 
 	SAMSON::unsetViewportCursor();
 
@@ -154,9 +156,46 @@ void SEBreakEditor::mousePressEvent(QMouseEvent* event) {
 	// Implement this function to handle this event with your editor.
 
 	auto app = SEAdenitaCoreSEApp::getAdenitaApp();
-	auto nanorobot = app->GetNanorobot();
+	auto highlightedNucleotides = app->GetNanorobot()->GetHighlightedNucleotides();
+	auto numberOfHighlightedNucleotides = highlightedNucleotides.size();
 
-	app->BreakSingleStrand();
+	if (numberOfHighlightedNucleotides == 1) {
+
+		// Skip the following cases:
+		// 1. the nucleotide is not in a single strand
+		// 2. the nucleotide is the only nucleotide in the single strand
+		// 3. the cnuleotide is the end nucleotide, or there is no next or previous nucleotide 
+
+		auto highlightedNucleotide = highlightedNucleotides[0];
+		auto singleStrand = highlightedNucleotide->GetStrand();
+		auto nextNucleotide = highlightedNucleotide->GetNext();
+		auto prevNucleotide = highlightedNucleotide->GetPrev();
+
+		// clear the current selection
+
+		SAMSON::getActiveDocument()->clearSelection();
+
+		// select the nucleotide
+		//highlightedNucleotide->setSelectionFlag(true);
+
+		if (singleStrand == nullptr) {
+			SAMSON::informUser("Adenita - Break editor", "The nucleotide is not in any single strand - cannot break it.");
+		}
+		else if (singleStrand->getNumberOfNucleotides() == 1) {
+			SAMSON::informUser("Adenita - Break editor", "Cannot break a single strand that contains only one nucleotide. If you want to delete it use the Delete editor.");
+		}
+		else if (highlightedNucleotide->IsEnd() || nextNucleotide == nullptr || prevNucleotide == nullptr) {
+			SAMSON::informUser("Adenita - Break editor", "The nucleotide is the end nucleotide - cannot break here. If you want to delete this nucleotide use the Delete editor.");
+		}
+		else {
+
+			app->BreakSingleStrand(fivePrimeMode_);
+
+		}
+
+		event->accept();
+
+	}
 
 }
 

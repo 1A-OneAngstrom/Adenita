@@ -15,7 +15,7 @@
 
 /// This class implements an editor
 
-enum BendingType {
+enum class BendingType {
 	UNTWIST,
 	SPHEREVISIBILITY
 };

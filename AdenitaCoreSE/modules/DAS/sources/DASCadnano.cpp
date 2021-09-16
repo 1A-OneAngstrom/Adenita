@@ -332,7 +332,7 @@ void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPoi
         if (k == 0) {
           // even for a loop nfirst base is always BasePair
           ADNPointer<ADNCell> c = bs->GetCell();
-          if (c->GetType() == BasePair) {
+          if (c->GetType() == CellType::BasePair) {
             ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(c());
             if (left) bp->SetLeftNucleotide(nt);
             else bp->SetRightNucleotide(nt);
@@ -348,7 +348,7 @@ void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPoi
         else {
           // We have a loop
           ADNPointer<ADNCell> c = bs->GetCell();
-          if (c->GetType() == LoopPair) {
+          if (c->GetType() == CellType::LoopPair) {
             ADNPointer<ADNLoopPair> lp = static_cast<ADNLoopPair*>(c());
             ADNPointer<ADNLoop> loop;
             if (left) loop = lp->GetLeftLoop();

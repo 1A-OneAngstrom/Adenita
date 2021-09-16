@@ -31,65 +31,69 @@ void SENanotubeCreatorEditorGUI::saveSettings( SBGSettings *settings ) {
 
 }
 
-void SENanotubeCreatorEditorGUI::updateInfo(SBQuantity::length radius, int numDs, int numBp, bool clear)
-{
-  if (!clear) {
-    ui.txtInfo->setText("Radius (nm): " + QString::number(radius.getValue() / 1000));
-    ui.txtInfo->append("Number of double strands: " + QString::number(numDs));
-    ui.txtInfo->append("Length (base pairs): " + QString::number(numBp));
-  }
-  else {
-    ui.txtInfo->clear();
-  }
+void SENanotubeCreatorEditorGUI::updateInfo(SBQuantity::length radius, int numDs, int numBp, bool clear) {
+
+	if (!clear) {
+
+		ui.txtInfo->setText("Radius (nm): " + QString::number(radius.getValue() / 1000));
+		ui.txtInfo->append("Number of double strands: " + QString::number(numDs));
+		ui.txtInfo->append("Length (base pairs): " + QString::number(numBp));
+
+	}
+	else {
+		ui.txtInfo->clear();
+	}
+
 }
 
-void SENanotubeCreatorEditorGUI::onPredefinedNanotube(bool predefined)
-{
-  double radius = ui.spnRadius->value();
-  int numBp = ui.spnNumBp->value();
-  SENanotubeCreatorEditor* editor = getEditor();
-  editor->SetPredefined(predefined, radius, numBp);
+void SENanotubeCreatorEditorGUI::onPredefinedNanotube(bool predefined) {
+
+	double radius = ui.spnRadius->value();
+	int numBp = ui.spnNumBp->value();
+	getEditor()->SetPredefined(predefined, radius, numBp);
+
 }
 
-void SENanotubeCreatorEditorGUI::onRadiusChanged()
-{
-  double r = ui.spnRadius->value();
-  int numDs = ADNVectorMath::CalculateNanotubeDoubleStrands(SBQuantity::nanometer(r));
-  ui.spnNumDs->setValue(numDs);
-  SENanotubeCreatorEditor* editor = getEditor();
-  editor->SetRadius(r);
+void SENanotubeCreatorEditorGUI::onRadiusChanged() {
+
+	double r = ui.spnRadius->value();
+	int numDs = ADNVectorMath::CalculateNanotubeDoubleStrands(SBQuantity::nanometer(r));
+	ui.spnNumDs->setValue(numDs);
+	getEditor()->SetRadius(r);
+
 }
 
-void SENanotubeCreatorEditorGUI::onBpChanged()
-{
-  int bp = ui.spnNumBp->value();
-  SENanotubeCreatorEditor* editor = getEditor();
-  editor->SetBp(bp);
+void SENanotubeCreatorEditorGUI::onBpChanged() {
+
+	int bp = ui.spnNumBp->value();
+	getEditor()->SetBp(bp);
+
 }
 
-void SENanotubeCreatorEditorGUI::onNumDsChanged()
-{
-  int numDs = ui.spnNumDs->value();
-  auto r = ADNVectorMath::CalculateNanotubeRadius(numDs);
-  ui.spnRadius->setValue(r.getValue() / 1000.0);
+void SENanotubeCreatorEditorGUI::onNumDsChanged() {
+
+	int numDs = ui.spnNumDs->value();
+	auto r = ADNVectorMath::CalculateNanotubeRadius(numDs);
+	ui.spnRadius->setValue(r.getValue() / 1000.0);
+
 }
 
-void SENanotubeCreatorEditorGUI::onChangeRouting()
-{
-  RoutingType t = RoutingType::None;
+void SENanotubeCreatorEditorGUI::onChangeRouting() {
 
-  if (ui.chkRoutingSeamless->isChecked()) {
-    t = RoutingType::Seamless;
-  }
-  else if (ui.chkRoutingTiles->isChecked()) {
-    t = RoutingType::Tiles;
-  }
-  else if (ui.chkRoutingNonSeamless->isChecked()) {
-    t = RoutingType::NonSeamless;
-  }
+	RoutingType t = RoutingType::None;
 
-  SENanotubeCreatorEditor* editor = getEditor();
-  editor->SetRouting(t);
+	if (ui.chkRoutingSeamless->isChecked()) {
+		t = RoutingType::Seamless;
+	}
+	else if (ui.chkRoutingTiles->isChecked()) {
+		t = RoutingType::Tiles;
+	}
+	else if (ui.chkRoutingNonSeamless->isChecked()) {
+		t = RoutingType::NonSeamless;
+	}
+
+	getEditor()->SetRouting(t);
+
 }
 
 SBCContainerUUID SENanotubeCreatorEditorGUI::getUUID() const { return SBCContainerUUID( "23177033-1C9B-B441-1916-35EE442706CC" );}

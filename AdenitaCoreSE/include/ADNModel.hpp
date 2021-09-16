@@ -20,14 +20,14 @@
 /* Physical info and maps */
 using DNABlocks = SBResidue::ResidueType;
 
-enum End {
+enum class End {
   ThreePrime = 3,
   FivePrime = 5,
   NotEnd = 0,
   FiveAndThreePrime = 8,
 };
 
-enum CellType {
+enum class CellType {
   Undefined = -1,
   BasePair = 0,
   SkipPair = 1,

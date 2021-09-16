@@ -945,12 +945,34 @@ std::string SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(QString filename) {
 
 }
 
+void SEAdenitaCoreSEAppGUI::clearHighlightEditor() {
+
+	setHighlightEditor(nullptr);
+
+}
+
 void SEAdenitaCoreSEAppGUI::setHighlightEditor(QToolButton* button) {
 
 	// remove current
-	if (highlightedEditor_ != nullptr) highlightedEditor_->setStyleSheet(QString("border: none"));
-	button->setStyleSheet(QString("border: 2px solid #FFFFFF"));
-	highlightedEditor_ = button;
+	if (highlightedEditorButton_) {
+
+		//highlightedEditorButton_->setStyleSheet(QString("border: none"));
+		highlightedEditorButton_->setProperty("highlighting", "false");
+		highlightedEditorButton_->style()->unpolish(highlightedEditorButton_);
+		highlightedEditorButton_->style()->polish(highlightedEditorButton_);
+
+	}
+	
+	highlightedEditorButton_ = button;
+
+	if (highlightedEditorButton_) {
+
+		//highlightedEditorButton_->setStyleSheet(QString("border: 2px solid #FFFFFF"));
+		highlightedEditorButton_->setProperty("highlighting", "true");
+		highlightedEditorButton_->style()->unpolish(highlightedEditorButton_);
+		highlightedEditorButton_->style()->polish(highlightedEditorButton_);
+
+	}
 
 }
 
@@ -1066,6 +1088,11 @@ void SEAdenitaCoreSEAppGUI::setupUI() {
 	for (auto b : modelingButtons) layoutModeling->addWidget(b);
 	for (auto b : creatorsButtons) layoutCreators->addWidget(b);
 
+	for (auto b : menuButtons) setToolButtonStyleSheet(b);
+	for (auto b : editSequencesButtons) setToolButtonStyleSheet(b);
+	for (auto b : modelingButtons) setToolButtonStyleSheet(b);
+	for (auto b : creatorsButtons) setToolButtonStyleSheet(b);
+
 	layoutMenu->addSpacerItem(new QSpacerItem(1, 1, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed));
 	layoutEditSequences->addSpacerItem(new QSpacerItem(1, 1, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed));
 	layoutModeling->addSpacerItem(new QSpacerItem(1, 1, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed));
@@ -1080,6 +1107,22 @@ void SEAdenitaCoreSEAppGUI::setupUI() {
 	const std::vector<QPushButton*> debugButtons = getDebugButtons();
 	for (auto b : debugButtons) layoutDebug->addWidget(b);
 #endif
+
+}
+
+void SEAdenitaCoreSEAppGUI::setToolButtonStyleSheet(QToolButton* button) {
+
+	if (button) {
+
+		button->setStyleSheet(button->styleSheet() + R"(
+		QToolButton:hover { background: rgba(93,111,129,100); border-radius: 10px; }
+		QToolButton:pressed { background: rgba(93,111,129,255); border-radius: 10px; }
+		QToolButton[highlighting="true"] { background-color: rgba(49,148,128,120); border-radius: 10px; }
+		QToolButton[highlighting="true"]:hover { background-color: rgba(49,148,128,200); border-radius: 10px; }
+		QToolButton[highlighting="true"]:pressed { background-color: rgba(49,148,128,255); border-radius: 10px; }
+		)");
+
+	}
 
 }
 

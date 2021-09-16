@@ -4,7 +4,7 @@
 #include "ADNConstants.hpp"
 
 
-enum RoutingType {
+enum class RoutingType {
   None = 0,
   Seamless = 1,
   Tiles = 2,

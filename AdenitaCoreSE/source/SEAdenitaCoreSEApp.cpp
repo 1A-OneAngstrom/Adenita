@@ -243,29 +243,31 @@ SEAdenitaVisualModel* SEAdenitaCoreSEApp::getVisualModel() {
 
 }
 
-void SEAdenitaCoreSEApp::BreakSingleStrand(bool fPrime) {
+void SEAdenitaCoreSEApp::BreakSingleStrand(bool fivePrimeMode) {
 
 	mod_ = true;
 
-	ADNPointer<ADNNucleotide> breakNt = nullptr;
-	auto nts = GetNanorobot()->GetHighlightedNucleotides();
-	if (nts.size() == 1) {
+	ADNPointer<ADNNucleotide> breakNucleotide = nullptr;
+	auto nucleotides = GetNanorobot()->GetHighlightedNucleotides();
+	if (nucleotides.size() == 1) {
 
-		ADNPointer<ADNNucleotide> nt = nts[0];
-		if (nt->GetEnd() != End::ThreePrime) {
+		ADNPointer<ADNNucleotide> nucleotide = nucleotides[0];
+		if (nucleotide->GetEnd() != End::ThreePrime) {
 
-			ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
-			bool circ = ss->IsCircular();
+			ADNPointer<ADNSingleStrand> singleStrand = nucleotide->GetStrand();
+			const bool circular = singleStrand->IsCircular();
 
-			ADNPointer<ADNPart> part = GetNanorobot()->GetPart(ss);
+			ADNPointer<ADNPart> part = GetNanorobot()->GetPart(singleStrand);
+
 			// to break in the 5' or 3' direction
-			if (fPrime) breakNt = nt;
-			else breakNt = nt->GetNext(true);
-			if (breakNt != nullptr) {
+			if (fivePrimeMode) breakNucleotide = nucleotide;
+			else breakNucleotide = nucleotide->GetNext(true);
 
-				auto newStrands = ADNBasicOperations::BreakSingleStrand(part, breakNt);
+			if (breakNucleotide != nullptr) {
 
-				if (circ) {
+				auto newStrands = ADNBasicOperations::BreakSingleStrand(part, breakNucleotide);
+
+				if (circular) {
 					ADNBasicOperations::MergeSingleStrands(part, part, newStrands.second, newStrands.first);
 				}
 
@@ -278,6 +280,7 @@ void SEAdenitaCoreSEApp::BreakSingleStrand(bool fPrime) {
 	}
 
 	mod_ = false;
+
 }
 
 void SEAdenitaCoreSEApp::TwistDoubleHelix(CollectionMap<ADNDoubleStrand> dss, double angle) {

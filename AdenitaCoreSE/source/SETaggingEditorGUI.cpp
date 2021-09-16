@@ -73,9 +73,10 @@ QString SETaggingEditorGUI::getCitation() const {
 }
 
 void SETaggingEditorGUI::onModeChanged(bool tags) {
-  int m = 0;
-  if (!tags) m = 1;
 
-  SETaggingEditor* t = getEditor();
-  t->changeMode(m);
+	int m = 0;
+	if (!tags) m = 1;
+
+	getEditor()->changeMode(m);
+
 }

@@ -127,6 +127,8 @@ private:
 	void														SetSequence(ADNPointer<ADNPart> nanotube);
 	SBPosition3													GetSnappedPosition();
 
+	void														resetData();
+
 	bool														dsMode_ = true;  // true for dsDNA, false for ssDNA
 	bool														circular_ = false;  // if we are creating circular strands
 	bool														manual_ = false;
@@ -145,7 +147,7 @@ private:
 	float														opaqueness_ = 0.5f;
 	float														basePairRadius_ = 1000.0f;
 
-	ADNNanorobot*												nanorobot_;
+	ADNNanorobot*												nanorobot_{ nullptr };
 
 };
 

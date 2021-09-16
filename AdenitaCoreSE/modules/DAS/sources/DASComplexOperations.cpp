@@ -6,11 +6,11 @@ DASOperations::Connections DASOperations::PrepareStrandsForConnection(ADNPointer
 {
   Connections conn;
 
-  if (nt1->GetEnd() == ThreePrime && nt2->GetEnd() == ThreePrime) return conn;
+  if (nt1->GetEnd() == End::ThreePrime && nt2->GetEnd() == End::ThreePrime) return conn;
 
   // nt1 will be left as 3' while nt2 will be left as 5'
-  if (nt1->GetEnd() == FivePrime) {
-    if (nt2->GetEnd() == FivePrime) return conn;
+  if (nt1->GetEnd() == End::FivePrime) {
+    if (nt2->GetEnd() == End::FivePrime) return conn;
     ADNPointer<ADNNucleotide> tmp = nt1;
     nt1 = nt2;
     nt2 = tmp;
@@ -36,13 +36,13 @@ DASOperations::Connections DASOperations::PrepareStrandsForConnection(ADNPointer
     ADNPointer<ADNNucleotide> secondPrev = nullptr;
 
     // break first nucleotide in 3'
-    if (nt1->GetEnd() != ThreePrime) {
+    if (nt1->GetEnd() != End::ThreePrime) {
       firstNext = nt1->GetNext(true);
       auto p = ADNBasicOperations::BreakSingleStrand(part1, firstNext);
     }
 
     // break second nucleotide in 5'
-    if (nt2->GetEnd() != FivePrime) {
+    if (nt2->GetEnd() != End::FivePrime) {
       secondPrev = nt2->GetPrev();
       auto p = ADNBasicOperations::BreakSingleStrand(part2, nt2);
     }
@@ -211,7 +211,7 @@ void DASOperations::AddComplementaryStrands(ADNNanorobot* nanorobot, CollectionM
       nucleotides.addReferenceTarget(pair());
 
       auto cellType = bs->GetCellType();
-      if (cellType == BasePair) {
+      if (cellType == CellType::BasePair) {
         ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(bs->GetCell()());
         if (bp->IsLeft(nt)) {
           bp->SetRightNucleotide(pair);

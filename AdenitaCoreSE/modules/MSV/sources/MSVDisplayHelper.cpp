@@ -714,30 +714,22 @@ void ADNDisplayHelper::displayBaseVectors(ADNPointer<ADNNucleotide> nt, SBPositi
   displayVector(e3, pos, e3_c, 700);
 }
 
-void ADNDisplayHelper::displayText(SBPosition3 pos, std::string text /*= ""*/)
-{
+void ADNDisplayHelper::displayText(SBPosition3 pos, std::string text /*= ""*/) {
 
-  float * color = new float[4];
-  color[0] = 1.0f;
-  color[1] = 1.0f;
-  color[2] = 1.0f;
-  color[3] = 1.0f;
+    float color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
+    SAMSON::displayText(text, pos,
+        SAMSON::getViewportFont(),
+        //QFont(QString("Helvetica"), 40),
+        color);
 
-  SAMSON::displayText(
-    text,
-    pos,
-    QFont(QString("Helvetica"), 40),
-    color);
 }
 
-void ADNDisplayHelper::displayTextBottomLeft(std::string text /*= ""*/)
-{
-  SBPosition3 pos = SBPosition3(SBQuantity::nanometer(0),
-    SBQuantity::nanometer(10),
-    SBQuantity::nanometer(0));
+void ADNDisplayHelper::displayTextBottomLeft(std::string text /*= ""*/) {
 
-  displayText(pos, text);
+    SBPosition3 pos = SBPosition3(SBQuantity::nanometer(0), SBQuantity::nanometer(10), SBQuantity::nanometer(0));
+    displayText(pos, text);
+
 }
 
 void ADNDisplayHelper::displayTriangleMesh(DASPolyhedron * p)
@@ -831,7 +823,7 @@ void ADNDisplayHelper::displayPart(ADNPointer<ADNPart> part, float basePairRadiu
 			positions(index, 1) = (float)pos.v[1].getValue();
 			positions(index, 2) = (float)pos.v[2].getValue();
 
-      if (cell->GetType() == BasePair) {
+      if (cell->GetType() == CellType::BasePair) {
 
 				colorsV(index, 0) = config.double_strand_color[0];
 				colorsV(index, 1) = config.double_strand_color[1];

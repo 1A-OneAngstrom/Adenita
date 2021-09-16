@@ -113,6 +113,8 @@ public :
 	void														SetRadius(double radius);
 	void														SetBp(int bp);
 
+	void														resetData();
+
 private:
 
 	ADNPointer<ADNPart>											generateNanotube(bool mock = false);
@@ -120,10 +122,16 @@ private:
 	void														sendPartToAdenita(ADNPointer<ADNPart> nanotube);
 	void														updateGUI(SBQuantity::length radius, int numBp, bool clear = false);
 
-	DASCreatorEditors::UIData									positions_;
+	SBPosition3													firstPosition;
+	SBPosition3													secondPosition;
+	SBPosition3													thirdPosition;
 	bool														display_ = false;
 	ADNPointer<ADNPart>											tempPart_ = nullptr;
 	RoutingType													routing_ = RoutingType::None;
+
+	bool														isPressing = false;
+	bool														lengthSelected = false;
+
 	//! for manual setting of base pairs and double strands
 	bool														predefined_ = false;
 	int															numBp_ = 0;

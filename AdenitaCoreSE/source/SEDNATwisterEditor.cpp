@@ -208,8 +208,8 @@ void SEDNATwisterEditor::beginEditing() {
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
 
-	std::string iconPath = SB_ELEMENT_PATH + "/Resource/icons/twister.png";
-	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
+	//const QString iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/twister.png");
+	//SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
 
 }
 
@@ -217,6 +217,8 @@ void SEDNATwisterEditor::endEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function immediately before your editor becomes inactive (for example when another editor becomes active). 
 	// Implement this function if you need to clean some data structures.
+
+	SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
 
 	SAMSON::unsetViewportCursor();
 
@@ -327,6 +329,7 @@ void SEDNATwisterEditor::mousePressEvent(QMouseEvent* event) {
 			makeInvisible();
 
 		event->accept();
+		SAMSON::requestViewportUpdate();
 
 	}
 
@@ -347,6 +350,7 @@ void SEDNATwisterEditor::mouseReleaseEvent(QMouseEvent* event) {
 			reverseActionSphereActive_ = false;
 
 		event->accept();
+		SAMSON::requestViewportUpdate();
 
 	}
 

@@ -60,6 +60,8 @@ public:
 
 	static std::string											isCadnanoJsonFormat(QString filename);
 
+	void														clearHighlightEditor();
+
 public slots:
 
 	// Main
@@ -118,7 +120,7 @@ private:
 
 	void														setupUI();
 
-	void														setHighlightEditor(QToolButton* b);
+	void														setHighlightEditor(QToolButton* button = nullptr);
 
 	std::vector<QToolButton*>									menuButtons_;
 	std::vector<QToolButton*>									editSequencesButtons_;
@@ -132,9 +134,11 @@ private:
 	std::vector<QToolButton*>									getCreatorsButtons();
 	std::vector<QPushButton*>									getDebugButtons();
 
+	static void													setToolButtonStyleSheet(QToolButton* button);
+
 	Ui::SEAdenitaCoreSEAppGUIClass								ui;
 
-	QToolButton*												highlightedEditor_ = nullptr;
+	QToolButton*												highlightedEditorButton_ = nullptr;
 
 	QString														workingDirectory = QString();
 

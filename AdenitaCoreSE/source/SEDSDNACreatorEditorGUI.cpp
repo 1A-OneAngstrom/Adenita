@@ -32,71 +32,59 @@ void SEDSDNACreatorEditorGUI::saveSettings( SBGSettings *settings ) {
 
 }
 
-std::string SEDSDNACreatorEditorGUI::AskUserForSequence(int l)
-{
-  bool ok;
-  QString def = QString(l, 'N');
-  std::string title = "Base pairs: " + std::to_string(l);
-  QString seq = QInputDialog::getText(this, tr("Set sequence"), tr(title.c_str()), QLineEdit::Normal, def, &ok);
-  std::string res = "";
-  if (ok) {
-    res = seq.toStdString();
-  }
-  return res;
+std::string SEDSDNACreatorEditorGUI::AskUserForSequence(int l) {
+
+	bool ok;
+	QString def = QString(l, 'N');
+	const std::string title = "Base pairs: " + std::to_string(l);
+	const QString seq = QInputDialog::getText(this, tr("Set sequence"), tr(title.c_str()), QLineEdit::Normal, def, &ok);
+	std::string res = "";
+	if (ok)
+		res = seq.toStdString();
+
+	return res;
+
 }
 
-void SEDSDNACreatorEditorGUI::onSetDSDNA(bool b)
-{
-  SEDSDNACreatorEditor* t = getEditor();
-  t->SetMode(b);
+void SEDSDNACreatorEditorGUI::onSetDSDNA(bool b) {
+	getEditor()->SetMode(b);
 }
 
-void SEDSDNACreatorEditorGUI::onSetSSDNA(bool b)
-{
-  SEDSDNACreatorEditor* t = getEditor();
-  t->SetMode(!b);
+void SEDSDNACreatorEditorGUI::onSetSSDNA(bool b) {
+	getEditor()->SetMode(!b);
 }
 
-void SEDSDNACreatorEditorGUI::onSetCircular(bool c)
-{
-  SEDSDNACreatorEditor* t = getEditor();
-  t->SetCircular(c);
+void SEDSDNACreatorEditorGUI::onSetCircular(bool c) {
+	getEditor()->SetCircular(c);
 }
 
-void SEDSDNACreatorEditorGUI::onSetManual(bool b)
-{
-  SEDSDNACreatorEditor* t = getEditor();
-  t->SetManual(b);
+void SEDSDNACreatorEditorGUI::onSetManual(bool b) {
+	getEditor()->SetManual(b);
 }
 
-void SEDSDNACreatorEditorGUI::onSetNumNucleotides(int n)
-{
-  SEDSDNACreatorEditor* t = getEditor();
-  t->SetNumberNucleotides(n);
+void SEDSDNACreatorEditorGUI::onSetNumNucleotides(int n) {
+	getEditor()->SetNumberNucleotides(n);
 }
 
-void SEDSDNACreatorEditorGUI::onShowBox(bool s)
-{
-  SEDSDNACreatorEditor* t = getEditor();
-  t->SetShowBox(s);
-  if (s) {
-    onChangeBoxSize();
-  }
+void SEDSDNACreatorEditorGUI::onShowBox(bool s) {
+
+	getEditor()->SetShowBox(s);
+	if (s)
+		onChangeBoxSize();
+
 }
 
-void SEDSDNACreatorEditorGUI::onChangeBoxSize()
-{
-  double height = ui.spnBoxHeight->value();
-  double width = ui.spnBoxWidth->value();
-  double depth = ui.spnBoxDepth->value();
-  SEDSDNACreatorEditor* t = getEditor();
-  t->SetBoxSize(height, width, depth);
+void SEDSDNACreatorEditorGUI::onChangeBoxSize() {
+
+	const double height = ui.spnBoxHeight->value();
+	const double width = ui.spnBoxWidth->value();
+	const double depth = ui.spnBoxDepth->value();
+	getEditor()->SetBoxSize(height, width, depth);
+
 }
 
-void SEDSDNACreatorEditorGUI::onSetSequence(bool s)
-{
-  SEDSDNACreatorEditor* t = getEditor();
-  t->SetSequence(s);
+void SEDSDNACreatorEditorGUI::onSetSequence(bool s) {
+	getEditor()->SetSequence(s);
 }
 
 SBCContainerUUID SEDSDNACreatorEditorGUI::getUUID() const { return SBCContainerUUID( "751903AE-14BC-F0B9-01D9-D2CF8412AEF9" );}

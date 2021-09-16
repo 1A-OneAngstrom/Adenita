@@ -23,24 +23,25 @@ SETwistHelixEditor::~SETwistHelixEditor() {
 
 SETwistHelixEditorGUI* SETwistHelixEditor::getPropertyWidget() const { return static_cast<SETwistHelixEditorGUI*>(propertyWidget); }
 
-void SETwistHelixEditor::SetTwistAngle(double angle)
-{
-  twistAngle_ = angle;
+void SETwistHelixEditor::SetTwistAngle(double angle) {
 
-	if (twistAngle_ < 0) {
-		std::string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_twistMinus1BP.png";
-		SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
-	}
-	else {
-		std::string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_twistPlus1BP.png";
-		SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
-	}
+	twistAngle_ = angle;
+
+	QString iconPath;
+	if (twistAngle_ < 0)
+		iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/cursor_twistMinus1BP.png");
+	else
+		iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/cursor_twistPlus1BP.png");
+
+	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
+
 }
 
-void SETwistHelixEditor::SetMode(bool t)
-{
+void SETwistHelixEditor::SetMode(bool t) {
+
 	SETwistHelixEditorGUI* gui = getPropertyWidget();
 	gui->CheckPlusOrMinus(t);
+
 }
 
 SBCContainerUUID SETwistHelixEditor::getUUID() const { return SBCContainerUUID("4B60FECA-2A79-680F-F289-B4908A924409"); }
@@ -62,8 +63,7 @@ QPixmap SETwistHelixEditor::getLogo() const {
 
 }
 
-int SETwistHelixEditor::getFormat() const
-{
+int SETwistHelixEditor::getFormat() const {
 
 	// SAMSON Element generator pro tip: modify these default settings to configure the window
 	//
@@ -108,23 +108,24 @@ void SETwistHelixEditor::saveSettings(SBGSettings* settings) {
 
 }
 
-QString SETwistHelixEditor::getDescription() const
-{
+QString SETwistHelixEditor::getDescription() const {
+
 	return QObject::tr("Adenita | dsDNA Helical Twist");
+
 }
 
 void SETwistHelixEditor::beginEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
-	if (twistAngle_ < 0) {
-		std::string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_twistMinus1BP.png";
-		SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
-	}
-	else {
-		std::string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_twistPlus1BP.png";
-		SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
-	}
+
+	QString iconPath;
+	if (twistAngle_ < 0)
+		iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/cursor_twistMinus1BP.png");
+	else
+		iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/cursor_twistPlus1BP.png");
+
+	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
 
 }
 
@@ -132,7 +133,11 @@ void SETwistHelixEditor::endEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function immediately before your editor becomes inactive (for example when another editor becomes active). 
 	// Implement this function if you need to clean some data structures.
+
+	SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
+
 	SAMSON::unsetViewportCursor();
+
 }
 
 void SETwistHelixEditor::getActions(SBVector<SBAction*>& actionVector) {
@@ -147,7 +152,6 @@ void SETwistHelixEditor::display() {
 
 	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop. 
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
-
 
 }
 
@@ -172,20 +176,29 @@ void SETwistHelixEditor::mousePressEvent(QMouseEvent* event) {
 
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
-  if (event->buttons() == Qt::LeftButton) {
-    auto app = SEAdenitaCoreSEApp::getAdenitaApp();
-    auto nanorobot = app->GetNanorobot();
 
-    auto highlightedNucleotides = nanorobot->GetHighlightedNucleotides();
+	if (event->buttons() == Qt::LeftButton) {
 
-    CollectionMap<ADNDoubleStrand> highlightedDoubleStrands;
-    SB_FOR(ADNPointer<ADNNucleotide> nt, highlightedNucleotides) {
-      ADNPointer<ADNDoubleStrand> ds = nanorobot->GetDoubleStrand(nt);
-      highlightedDoubleStrands.addReferenceTarget(ds());
-    }
+		auto app = SEAdenitaCoreSEApp::getAdenitaApp();
+		auto nanorobot = app->GetNanorobot();
 
-    app->TwistDoubleHelix(highlightedDoubleStrands, twistAngle_);
-  }
+		auto highlightedNucleotides = nanorobot->GetHighlightedNucleotides();
+
+		CollectionMap<ADNDoubleStrand> highlightedDoubleStrands;
+		SB_FOR(ADNPointer<ADNNucleotide> nt, highlightedNucleotides) {
+
+			ADNPointer<ADNDoubleStrand> ds = nanorobot->GetDoubleStrand(nt);
+			highlightedDoubleStrands.addReferenceTarget(ds());
+
+		}
+
+		app->TwistDoubleHelix(highlightedDoubleStrands, twistAngle_);
+
+		event->accept();
+		SAMSON::requestViewportUpdate();
+
+	}
+
 }
 
 void SETwistHelixEditor::mouseReleaseEvent(QMouseEvent* event) {

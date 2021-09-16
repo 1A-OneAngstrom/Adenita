@@ -191,6 +191,10 @@ void SEMergePartsEditor::endEditing() {
 	// SAMSON Element generator pro tip: SAMSON calls this function immediately before your editor becomes inactive (for example when another editor becomes active). 
 	// Implement this function if you need to clean some data structures.
 
+	SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
+
+	SAMSON::unsetViewportCursor();
+
 }
 
 void SEMergePartsEditor::getActions(SBVector<SBAction*>& actionVector) {

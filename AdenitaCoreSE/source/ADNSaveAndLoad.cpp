@@ -104,7 +104,7 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value & val, double v
       // Load cells
       const rapidjson::Value& c = itr2->value["cell"];
       CellType typ = CellType(c["type"].GetInt());
-      if (typ == BasePair) {
+      if (typ == CellType::BasePair) {
         ADNPointer<ADNBasePair> bp_cell = new ADNBasePair();
         const rapidjson::Value& left = c["left"];
         const rapidjson::Value& right = c["right"];
@@ -123,11 +123,11 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value & val, double v
         bp_cell->AddPair(ntLeft, ntRight);
         bs->SetCell(bp_cell());
       }
-      else if (typ == SkipPair) {
+      else if (typ == CellType::SkipPair) {
         ADNPointer<ADNSkipPair> sk_cell = new ADNSkipPair();
         bs->SetCell(sk_cell());
       }
-      else if (typ == LoopPair) {
+      else if (typ == CellType::LoopPair) {
         ADNPointer<ADNLoopPair> lp_cell = new ADNLoopPair();
 
         const rapidjson::Value& left = c["leftLoop"];
@@ -295,11 +295,11 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(std::string filename)
       int nucleotideId = itr2->value["id"].GetInt();
 
       if (nucleotideId == fivePrimeId) {
-        nt->SetEnd(FivePrime);
+        nt->SetEnd(End::FivePrime);
         ss->SetFivePrime(nt);
       }
       if (nucleotideId == threePrimeId) {
-        nt->SetEnd(ThreePrime);
+        nt->SetEnd(End::ThreePrime);
         ss->SetThreePrime(nt);
       }
 
@@ -404,7 +404,7 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(std::string filename)
       // Load cells
       const rapidjson::Value& c = itr->value["cell"];
       CellType typ = CellType(c["type"].GetInt());
-      if (typ == BasePair) {
+      if (typ == CellType::BasePair) {
         ADNPointer<ADNBasePair> bp_cell = ADNPointer<ADNBasePair>(new ADNBasePair());
         
         const rapidjson::Value& left = c["left"];
@@ -430,7 +430,7 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(std::string filename)
 
         bs->SetCell(bp_cell());
       }
-      else if (typ == LoopPair) {
+      else if (typ == CellType::LoopPair) {
         ADNPointer<ADNLoopPair> lp_cell = ADNPointer<ADNLoopPair>(new ADNLoopPair());
         
         const rapidjson::Value& left = c["left_loop"];
@@ -615,7 +615,7 @@ void ADNLoader::SavePartToJson(ADNPointer<ADNPart> p, rapidjson::Writer<rapidjso
 
       auto type = bs->GetCellType();
       writer.Key("type");
-      writer.Int(type);
+      writer.Int(static_cast<int>(type));
 
       ADNPointer<ADNCell> cell = bs->GetCell();
       if (type == CellType::BasePair) {
@@ -1127,13 +1127,13 @@ void ADNLoader::SingleStrandsToOxDNA(CollectionMap<ADNSingleStrand> singleStrand
       std::string threePrime = "-1";
       auto ntPrev = nt->GetPrev(true);
       if (ntPrev != nullptr) {
-        if (ntPrev->GetEnd() == ThreePrime) threePrime = std::to_string(threePrimeId);
+        if (ntPrev->GetEnd() == End::ThreePrime) threePrime = std::to_string(threePrimeId);
         else threePrime = std::to_string(ntId - 1);
       }
       std::string fivePrime = "-1";
       auto ntNext = nt->GetNext(true);
       if (ntNext != nullptr) {
-        if (ntNext->GetEnd() == FivePrime) fivePrime = std::to_string(fivePrimeId);
+        if (ntNext->GetEnd() == End::FivePrime) fivePrime = std::to_string(fivePrimeId);
         else fivePrime = std::to_string(ntId + 1);
       }
 
@@ -1354,7 +1354,7 @@ void ADNLoader::OutputToCanDo(ADNNanorobot * nanorobot, std::string filename)
       triads.push_back(t);
 
       auto cell = bs->GetCell();
-      if (bs->GetCellType() == BasePair) {
+      if (bs->GetCellType() == CellType::BasePair) {
         ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(cell());
         int id1 = nucleotidesId[bp->GetLeftNucleotide()()];
         int id2 = nucleotidesId[bp->GetRightNucleotide()()];
@@ -1440,7 +1440,7 @@ void ADNLoader::OutputToCanDo(ADNPointer<ADNPart> part, std::string filename)
     triads.push_back(t);
 
     auto cell = bs->GetCell();
-    if (bs->GetCellType() == BasePair) {
+    if (bs->GetCellType() == CellType::BasePair) {
       ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(cell());
       int id1 = nucleotidesId[bp->GetLeftNucleotide()()];
       int id2 = nucleotidesId[bp->GetRightNucleotide()()];
@@ -1553,7 +1553,7 @@ void ADNLoader::BuildTopScalesParemetrized(ADNPointer<ADNPart> part, SBQuantity:
       double turningThreshold = 0.0;
       //if (pair == nullptr && nt->GetEnd() != NotEnd) breakDs = true;
       //else if (pair != nullptr && nt->GetEnd() == ThreePrime && pair->GetEnd() == FivePrime) breakDs = true;
-      if (nt->GetEnd() != ThreePrime) {
+      if (nt->GetEnd() != End::ThreePrime) {
         // if huge change in directionality, make new strand
         ADNPointer<ADNNucleotide> ntNext = nt->GetNext();
         ublas::vector<double> e3Next = ntNext->GetE3();
@@ -1563,7 +1563,7 @@ void ADNLoader::BuildTopScalesParemetrized(ADNPointer<ADNPart> part, SBQuantity:
         }
         if (theta < turningThreshold) breakDs = true;
       }
-      if (pair != nullptr && pair->GetEnd() != FivePrime) {
+      if (pair != nullptr && pair->GetEnd() != End::FivePrime) {
         // if huge change in directionality, make new strand
         ADNPointer<ADNNucleotide> pairPrev = pair->GetPrev();
         ublas::vector<double> e3Prev = pairPrev->GetE3();
@@ -1666,7 +1666,7 @@ void ADNLoader::BuildTopScales(ADNPointer<ADNPart> part)
       double turningThreshold = 0.0;
       //if (pair == nullptr && nt->GetEnd() != NotEnd) breakDs = true;
       //else if (pair != nullptr && nt->GetEnd() == ThreePrime && pair->GetEnd() == FivePrime) breakDs = true;
-      if (nt->GetEnd() != ThreePrime) {
+      if (nt->GetEnd() != End::ThreePrime) {
         // if huge change in directionality, make new strand
         ADNPointer<ADNNucleotide> ntNext = nt->GetNext();
         ublas::vector<double> e3Next = ntNext->GetE3();
@@ -1676,7 +1676,7 @@ void ADNLoader::BuildTopScales(ADNPointer<ADNPart> part)
         }
         if (theta < turningThreshold) breakDs = true;
       }
-      if (pair != nullptr && pair->GetEnd() != FivePrime) {
+      if (pair != nullptr && pair->GetEnd() != End::FivePrime) {
         // if huge change in directionality, make new strand
         ADNPointer<ADNNucleotide> pairPrev = pair->GetPrev();
         ublas::vector<double> e3Prev = pairPrev->GetE3();

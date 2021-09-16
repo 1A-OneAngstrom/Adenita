@@ -92,9 +92,10 @@ void SETaggingEditor::saveSettings(SBGSettings* settings) {
 
 }
 
-QString SETaggingEditor::getDescription() const
-{
+QString SETaggingEditor::getDescription() const {
+
 	return QObject::tr("Adenita | Tagging Editor");
+
 }
 
 void SETaggingEditor::beginEditing() {
@@ -102,8 +103,8 @@ void SETaggingEditor::beginEditing() {
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
 
-	std::string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_tagging.png";
-	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
+	const QString iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/cursor_tagging.png");
+	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
 
 }
 
@@ -111,6 +112,10 @@ void SETaggingEditor::endEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function immediately before your editor becomes inactive (for example when another editor becomes active). 
 	// Implement this function if you need to clean some data structures.
+
+	SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
+
+	SAMSON::unsetViewportCursor();
 
 }
 
@@ -128,10 +133,13 @@ void SETaggingEditor::display() {
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
 
 	if (mode_ == TaggingMode::Base) {
-		std::string base(1, ADNModel::GetResidueName(ntType_));
-		SBPosition3 pos = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+
+		const std::string base(1, ADNModel::GetResidueName(ntType_));
+		const SBPosition3 pos = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
 		ADNDisplayHelper::displayText(pos, base);
+
 	}
+
 }
 
 
@@ -157,7 +165,6 @@ void SETaggingEditor::mousePressEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-
 }
 
 void SETaggingEditor::mouseReleaseEvent(QMouseEvent* event) {
@@ -165,23 +172,34 @@ void SETaggingEditor::mouseReleaseEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-  auto nt = GetHighlightedNucleotide();
+	auto nucleotide = GetHighlightedNucleotide();
 
-  if (nt != nullptr) {
-    if (mode_ == TaggingMode::Tags) {
-      bool ok;
-      QString text = QInputDialog::getText(this, tr("Enter Nucleotide Tag"),
-        tr("Tag:"), QLineEdit::Normal, QString(), &ok);
-      if (ok && !text.isEmpty()) {
-        nt->setTag(text.toStdString());
-        nt->setSelectionFlag(true);
-      }
-    }
-    else if (mode_ == TaggingMode::Base) {
-      ADNBasicOperations::MutateNucleotide(nt, ntType_);
-    }
-	SEAdenitaCoreSEApp::resetVisualModel();
-  }
+	if (nucleotide != nullptr) {
+
+		if (mode_ == TaggingMode::Tags) {
+
+			bool ok;
+			const QString text = QInputDialog::getText(this, tr("Enter Nucleotide Tag"), tr("Tag:"), QLineEdit::Normal, QString(), &ok);
+			if (ok && !text.isEmpty()) {
+
+				nucleotide->setTag(text.toStdString());
+				nucleotide->setSelectionFlag(true);
+
+			}
+
+		}
+		else if (mode_ == TaggingMode::Base) {
+
+			ADNBasicOperations::MutateNucleotide(nucleotide, ntType_);
+
+		}
+
+		event->accept();
+
+		SEAdenitaCoreSEApp::resetVisualModel();
+
+	}
+
 }
 
 void SETaggingEditor::mouseMoveEvent(QMouseEvent* event) {
@@ -206,9 +224,13 @@ void SETaggingEditor::wheelEvent(QWheelEvent* event) {
 
 	QPoint numDegrees = event->angleDelta() / 8;
 	if (!numDegrees.isNull()) {
+
 		QPoint numSteps = numDegrees / 15;
 		ntType_ = GetNtType(numSteps);
+		event->accept();
+
 	}
+
 }
 
 void SETaggingEditor::keyPressEvent(QKeyEvent* event) {
@@ -249,61 +271,66 @@ void SETaggingEditor::onStructuralEvent(SBStructuralEvent* documentEvent) {
 
 }
 
-ADNPointer<ADNNucleotide> SETaggingEditor::GetHighlightedNucleotide()
-{
-  ADNPointer<ADNNucleotide> nt = nullptr;
-  auto highlightedNucleotides = SEAdenitaCoreSEApp::getAdenitaApp()->GetNanorobot()->GetHighlightedNucleotides();
+ADNPointer<ADNNucleotide> SETaggingEditor::GetHighlightedNucleotide() {
 
-  if (highlightedNucleotides.size() == 1) {
-    nt = highlightedNucleotides[0];
-  }
+	ADNPointer<ADNNucleotide> nucleotide = nullptr;
+	auto highlightedNucleotides = SEAdenitaCoreSEApp::getAdenitaApp()->GetNanorobot()->GetHighlightedNucleotides();
 
+	if (highlightedNucleotides.size() == 1)
+		nucleotide = highlightedNucleotides[0];
 
-  return nt;
+	return nucleotide;
+
 }
 
-void SETaggingEditor::changeMode(int mode)
-{
+void SETaggingEditor::changeMode(int mode) {
 	mode_ = TaggingMode(mode);
 }
 
-DNABlocks SETaggingEditor::GetNtType(QPoint numSteps)
-{
-  DNABlocks t = ntType_;
+DNABlocks SETaggingEditor::GetNtType(QPoint numSteps) {
 
-  std::map<int, DNABlocks> values = {
-    {0, DNABlocks::DA},
-    {1, DNABlocks::DT},
-    {2, DNABlocks::DC},
-    {3, DNABlocks::DG},
-    {4, DNABlocks::DI}
-  };
+	DNABlocks t = ntType_;
 
-  std::map<DNABlocks, int> indices = {
-    {DNABlocks::DA, 0},
-    {DNABlocks::DT, 1},
-    {DNABlocks::DC, 2},
-    {DNABlocks::DG, 3},
-    {DNABlocks::DI, 4}
-  };
+	std::map<int, DNABlocks> values = {
+		{0, DNABlocks::DA},
+		{1, DNABlocks::DT},
+		{2, DNABlocks::DC},
+		{3, DNABlocks::DG},
+		{4, DNABlocks::DI}
+	};
 
-  int currIndex = indices[t];
-  int newIndex = currIndex + numSteps.y();
-  // keep new index between 0 and 4
-  size_t numValues = values.size();
-  if (newIndex < 0) {
-    int turns = abs(newIndex);
-    std::div_t divresult;
-    divresult = std::div(turns, numValues);
-    newIndex = numValues - divresult.rem + 1;
-  }
-  else if (newIndex > 4) {
-    int turns = newIndex + 1; // take into account 0
-    std::div_t divresult;
-    divresult = std::div(turns, numValues);
-    newIndex = divresult.rem;
-  }
-  t = values[newIndex];
-  return t;
+	std::map<DNABlocks, int> indices = {
+		{DNABlocks::DA, 0},
+		{DNABlocks::DT, 1},
+		{DNABlocks::DC, 2},
+		{DNABlocks::DG, 3},
+		{DNABlocks::DI, 4}
+	};
+
+	int currIndex = indices[t];
+	int newIndex = currIndex + numSteps.y();
+	// keep new index between 0 and 4
+	size_t numValues = values.size();
+	if (newIndex < 0) {
+
+		int turns = abs(newIndex);
+		std::div_t divresult;
+		divresult = std::div(turns, numValues);
+		newIndex = numValues - divresult.rem + 1;
+
+	}
+	else if (newIndex > 4) {
+
+		int turns = newIndex + 1; // take into account 0
+		std::div_t divresult;
+		divresult = std::div(turns, numValues);
+		newIndex = divresult.rem;
+
+	}
+
+	t = values[newIndex];
+
+	return t;
+
 }
 

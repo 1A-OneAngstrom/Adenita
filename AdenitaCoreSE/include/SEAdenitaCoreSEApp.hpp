@@ -56,15 +56,19 @@ public :
 	static SEAdenitaVisualModel*								getVisualModel();														///< Returns an Adenita visual model from the active document if any, else return nullptr
 
 	void														SetStart();
+
 	// Modifications
-	void														BreakSingleStrand(bool fPrime = false);
+
+	void														BreakSingleStrand(bool fivePrimeMode = false);
 	void														TwistDoubleHelix(CollectionMap<ADNDoubleStrand> dss, double angle);
 	bool														CalculateBindingRegions(int oligoConc, int monovalentConc, int divalentConc);
 	void														MergeComponents(ADNPointer<ADNPart> p1, ADNPointer<ADNPart> p2);
 	void														MoveDoubleStrand(ADNPointer<ADNDoubleStrand> ds, ADNPointer<ADNPart> p);
 	void														MoveSingleStrand(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNPart> p);
 	void														CreateBasePair();
+
 	// Debug
+
 	void														AddNtThreeP(int numNt);
 	void														CenterPart();
 	void														LinearCatenanes(SBQuantity::length radius, SBPosition3 center, SBVector3 normal, int num);
@@ -84,11 +88,13 @@ public :
 	void														ConnectToDocument(SBDocument* doc);
 
 	// Helper functions
+
 	ADNNanorobot*												GetNanorobot();
 	static std::string											readScaffoldFilename(std::string filename);
 	QStringList													GetPartsNameList();
 
 	// Adding things to data graph
+
 	void														AddPartToActiveLayer(ADNPointer<ADNPart> part, bool positionsData = false);
 	void														AddConformationToActiveLayer(ADNPointer<ADNConformation> conf);
 	void														AddLoadedPartToNanorobot(ADNPointer<ADNPart> part);

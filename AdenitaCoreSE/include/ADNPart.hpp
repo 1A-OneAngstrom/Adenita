@@ -36,9 +36,9 @@ public:
 
   CollectionMap<ADNSingleStrand> GetSingleStrands() const;
   CollectionMap<ADNDoubleStrand> GetDoubleStrands() const;
-  CollectionMap<ADNBaseSegment> GetBaseSegments(CellType celltype = ALL) const;
+  CollectionMap<ADNBaseSegment> GetBaseSegments(CellType celltype = CellType::ALL) const;
   CollectionMap<ADNSingleStrand> GetScaffolds() const;
-  CollectionMap<ADNNucleotide> GetNucleotides(CellType celltype = ALL) const;
+  CollectionMap<ADNNucleotide> GetNucleotides(CellType celltype = CellType::ALL) const;
   CollectionMap<ADNAtom> GetAtoms() const;
 
   int GetNumberOfDoubleStrands() const;

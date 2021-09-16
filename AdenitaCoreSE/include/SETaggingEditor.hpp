@@ -20,12 +20,12 @@ class SB_EXPORT SETaggingEditor : public SBGEditor {
 
 public :
 
-	//enum TaggingShape {
+	//enum class TaggingShape {
 	//  Sphere,
 	//  Rod,
 	//  HisTag
 	//};
-	enum TaggingMode {
+	enum class TaggingMode {
 		Tags = 0,
 		Base = 1
 	};
@@ -117,7 +117,7 @@ public :
 
 	//@}
 
-	void changeMode(int mode);
+	void														changeMode(int mode);
 
 private:
 

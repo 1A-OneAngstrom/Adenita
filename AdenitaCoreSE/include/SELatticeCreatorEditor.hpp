@@ -16,7 +16,7 @@
 
 /// This class implements an editor
 
-enum ZLatticePattern {
+enum class ZLatticePattern {
 	ALLZ,
 	TRIANGLE,
 	CIRCLE
@@ -121,6 +121,8 @@ public :
 	void														setMaxYds(int val);
 	void														setMaxZBps(int val);
 
+	void														resetData();
+
 private:
 
 	ADNPointer<ADNPart>											generateLattice(bool mock = false);
@@ -130,7 +132,13 @@ private:
 	LatticeType													lType_ = LatticeType::Honeycomb;
 	VGrid														vGrid_;
 
-	DASCreatorEditors::UIData									positions_;
+	bool														isPressing = false;
+	bool														lengthSelected = false;
+	bool														heightSelected = false;
+
+	SBPosition3													firstPosition;
+	SBPosition3													secondPosition;
+	SBPosition3													thirdPosition;
 	bool														display_ = false;
 	ADNPointer<ADNPart>											tempPart_ = nullptr;
 

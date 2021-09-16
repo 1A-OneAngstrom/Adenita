@@ -104,7 +104,7 @@ public :
 
 	//@}
 
-	void														SetMode(bool five);
+	void														SetMode(bool fivePrimeModeFlag);
 
 private:
 

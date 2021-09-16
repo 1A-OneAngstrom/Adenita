@@ -75,8 +75,7 @@ QString SEBreakEditorGUI::getCitation() const {
 
 void SEBreakEditorGUI::onSetMode() {
 
-	bool m = ui.rdnFive->isChecked();
-	SEBreakEditor* editor = getEditor();
-	editor->SetMode(m);
+	const bool m = ui.rdnFive->isChecked();
+	getEditor()->SetMode(m);
 
 }

@@ -1,4 +1,3 @@
-#include "SEConnectSSDNAEditorGUI.hpp"
 #include "SEConnectSSDNAEditor.hpp"
 
 

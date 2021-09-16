@@ -145,7 +145,7 @@ void ADNPart::SetName(const std::string & name)
 CollectionMap<ADNBaseSegment> ADNPart::GetBaseSegments(CellType celltype) const 
 {
   CollectionMap<ADNBaseSegment> bsList;
-  if (celltype == ALL) {
+  if (celltype == CellType::ALL) {
     bsList = baseSegmentsIndex_;
   }
   else {

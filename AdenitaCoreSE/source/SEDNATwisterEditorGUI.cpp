@@ -33,15 +33,13 @@ void SEDNATwisterEditorGUI::saveSettings( SBGSettings *settings ) {
 
 void SEDNATwisterEditorGUI::setUntwistTwist() {
 
-	SEDNATwisterEditor* t = getEditor();
-	t->setBendingType(BendingType::UNTWIST);
+	getEditor()->setBendingType(BendingType::UNTWIST);
 
 }
 
 void SEDNATwisterEditorGUI::setInvisibleVisible() {
 
-	SEDNATwisterEditor* t = getEditor();
-	t->setBendingType(BendingType::SPHEREVISIBILITY);
+	getEditor()->setBendingType(BendingType::SPHEREVISIBILITY);
 
 }
 
@@ -69,7 +67,7 @@ QString SEDNATwisterEditorGUI::getName() const {
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your editor inside SAMSON
 
-	return "aDeNitA Teister Editor"; 
+	return "Adenita Twister Editor"; 
 
 }
 

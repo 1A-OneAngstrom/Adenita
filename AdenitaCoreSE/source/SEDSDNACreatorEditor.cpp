@@ -7,7 +7,8 @@
 SEDSDNACreatorEditor::SEDSDNACreatorEditor() {
 
 	// SAMSON Element generator pro tip: this default constructor is called when unserializing the node, so it should perform all default initializations.
-	SEConfig& config = SEConfig::GetInstance();
+	
+    SEConfig& config = SEConfig::GetInstance();
 
 	propertyWidget = new SEDSDNACreatorEditorGUI(this);
 	propertyWidget->loadDefaultSettings();
@@ -16,6 +17,7 @@ SEDSDNACreatorEditor::SEDSDNACreatorEditor() {
 	nanorobot_ = app->GetNanorobot();
 
 	basePairRadius_ = config.base_pair_radius;
+
 }
 
 SEDSDNACreatorEditor::~SEDSDNACreatorEditor() {
@@ -29,209 +31,232 @@ SEDSDNACreatorEditor::~SEDSDNACreatorEditor() {
 
 SEDSDNACreatorEditorGUI* SEDSDNACreatorEditor::getPropertyWidget() const { return static_cast<SEDSDNACreatorEditorGUI*>(propertyWidget); }
 
-void SEDSDNACreatorEditor::SetMode(bool m)
-{
+void SEDSDNACreatorEditor::SetMode(bool m) {
+
 	dsMode_ = m;
+
 }
 
-void SEDSDNACreatorEditor::SetShowBox(bool s)
-{
+void SEDSDNACreatorEditor::SetShowBox(bool s) {
+
 	showBox_ = s;
+
 }
 
-void SEDSDNACreatorEditor::SetBoxSize(double height, double width, double depth)
-{
+void SEDSDNACreatorEditor::SetBoxSize(double height, double width, double depth) {
+
 	boxHeight_ = SBQuantity::nanometer(height);
 	boxWidth_ = SBQuantity::nanometer(width);
 	boxDepth_ = SBQuantity::nanometer(depth);
+
 }
 
-void SEDSDNACreatorEditor::SetCircular(bool c)
-{
+void SEDSDNACreatorEditor::SetCircular(bool c) {
 	circular_ = c;
 }
 
-void SEDSDNACreatorEditor::SetManual(bool m)
-{
+void SEDSDNACreatorEditor::SetManual(bool m) {
 	manual_ = m;
 }
 
-void SEDSDNACreatorEditor::SetNumberNucleotides(int n)
-{
+void SEDSDNACreatorEditor::SetNumberNucleotides(int n) {
 	numNts_ = n;
 }
 
-void SEDSDNACreatorEditor::SetSequence(bool s)
-{
+void SEDSDNACreatorEditor::SetSequence(bool s) {
 	setSequence_ = s;
 }
 
-SBPosition3 SEDSDNACreatorEditor::GetSnappedPosition()
-{
-  SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+SBPosition3 SEDSDNACreatorEditor::GetSnappedPosition() {
 
-  if (snappingActive_) {
-    auto highlightedBaseSegments = nanorobot_->GetHighlightedBaseSegments();
-    auto highlightedBaseSegmentsFromNucleotides = nanorobot_->GetHighlightedBaseSegmentsFromNucleotides();
-    auto highlightedAtoms = nanorobot_->GetHighlightedAtoms();
+    SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
 
-    if (highlightedAtoms.size() == 1) {
-      currentPosition = highlightedAtoms[0]->getPosition();
-    }
-    else if (highlightedBaseSegments.size() == 1) {
-      currentPosition = highlightedBaseSegments[0]->GetPosition();
-    }
-    else if (highlightedBaseSegmentsFromNucleotides.size() == 1) {
-      currentPosition = highlightedBaseSegmentsFromNucleotides[0]->GetPosition();
-    }
-  }
+    if (snappingActive_) {
 
-  return currentPosition;
+        auto highlightedBaseSegments = nanorobot_->GetHighlightedBaseSegments();
+        auto highlightedBaseSegmentsFromNucleotides = nanorobot_->GetHighlightedBaseSegmentsFromNucleotides();
+        auto highlightedAtoms = nanorobot_->GetHighlightedAtoms();
+
+        if (highlightedAtoms.size() == 1) {
+            currentPosition = highlightedAtoms[0]->getPosition();
+        }
+        else if (highlightedBaseSegments.size() == 1) {
+            currentPosition = highlightedBaseSegments[0]->GetPosition();
+        }
+        else if (highlightedBaseSegmentsFromNucleotides.size() == 1) {
+            currentPosition = highlightedBaseSegmentsFromNucleotides[0]->GetPosition();
+        }
+
+    }
+
+    return currentPosition;
+
 }
 
-ADNPointer<ADNPart> SEDSDNACreatorEditor::generateStrand(bool mock)
-{
-  auto length = (positions_.SecondPosition - positions_.FirstPosition).norm();
-  auto numNucleotides = numNts_;
-  if (!manual_ || numNucleotides == 0) {
-    numNucleotides = round((length / SBQuantity::nanometer(ADNConstants::BP_RISE)).getValue());
-  }
-  // if (manual_) we already have the number of nucleotides, we just need a direction
+ADNPointer<ADNPart> SEDSDNACreatorEditor::generateStrand(bool mock) {
 
-  ADNPointer<ADNPart> part = nullptr;
+    auto length = (positions_.SecondPosition - positions_.FirstPosition).norm();
+    auto numNucleotides = numNts_;
+    if (!manual_ || numNucleotides == 0) {
 
-  if (numNucleotides > 0) {
-    part = new ADNPart();
+        numNucleotides = round((length / SBQuantity::nanometer(ADNConstants::BP_RISE)).getValue());
 
-    SBVector3 dir = (positions_.SecondPosition - positions_.FirstPosition).normalizedVersion();
+    }
+    // if (manual_) we already have the number of nucleotides, we just need a direction
+
+    ADNPointer<ADNPart> part = nullptr;
+
+    if (numNucleotides > 0) {
+
+        part = new ADNPart();
+
+        const SBVector3 dir = (positions_.SecondPosition - positions_.FirstPosition).normalizedVersion();
     
-    if (dsMode_) {
-      auto ds = DASCreator::CreateDoubleStrand(part, numNucleotides, positions_.FirstPosition, dir, mock);
+        if (dsMode_)
+            auto doubleStrand = DASCreator::CreateDoubleStrand(part, numNucleotides, positions_.FirstPosition, dir, mock);
+        else
+            auto singleStrand = DASCreator::CreateSingleStrand(part, numNucleotides, positions_.FirstPosition, dir, mock);
+
     }
-    else {
-      auto ss = DASCreator::CreateSingleStrand(part, numNucleotides, positions_.FirstPosition, dir, mock);
+
+    return part;
+
+}
+
+ADNPointer<ADNPart> SEDSDNACreatorEditor::generateCircularStrand(bool mock) {
+
+    ADNPointer<ADNPart> part = nullptr;
+
+    //auto radius = (positions_.SecondPosition - positions_.FirstPosition).norm();
+    double pi = atan(1) * 4;
+    auto numNucleotides = numNts_;
+    auto radius = numNucleotides * SBQuantity::nanometer(ADNConstants::BP_RISE) * 0.5 / pi;
+    if (!manual_ || numNucleotides == 0) {
+
+        radius = (positions_.SecondPosition - positions_.FirstPosition).norm();
+        numNucleotides = round((2 * pi * radius / SBQuantity::nanometer(ADNConstants::BP_RISE)).getValue());
+    
     }
-  }
 
-  return part;
-}
+    if (numNucleotides > 0) {
 
-ADNPointer<ADNPart> SEDSDNACreatorEditor::generateCircularStrand(bool mock)
-{
-  ADNPointer<ADNPart> part = nullptr;
+        if (dsMode_) part = DASCreator::CreateDSRing(radius, positions_.FirstPosition, positions_.FirstVector, mock);
+        else part = DASCreator::CreateSSRing(radius, positions_.FirstPosition, positions_.FirstVector, mock);
 
-  //auto radius = (positions_.SecondPosition - positions_.FirstPosition).norm();
-  double pi = atan(1) * 4;
-  auto numNucleotides = numNts_;
-  auto radius = numNucleotides * SBQuantity::nanometer(ADNConstants::BP_RISE) * 0.5 / pi;
-  if (!manual_ || numNucleotides == 0) {
-    radius = (positions_.SecondPosition - positions_.FirstPosition).norm();
-    numNucleotides = round((2 * pi * radius / SBQuantity::nanometer(ADNConstants::BP_RISE)).getValue());
-  }
-
-  if (numNucleotides > 0) {
-    if (dsMode_) part = DASCreator::CreateDSRing(radius, positions_.FirstPosition, positions_.FirstVector, mock);
-    else part = DASCreator::CreateSSRing(radius, positions_.FirstPosition, positions_.FirstVector, mock);
-  }
-
-  return part;
-}
-
-void SEDSDNACreatorEditor::displayBox()
-{
-  if (showBox_) {
-    // draw a box centered at origin
-    SBVector3 x = SBVector3(1.0, 0.0, 0.0);
-    SBVector3 y = SBVector3(0.0, 1.0, 0.0);
-    SBVector3 z = SBVector3(0.0, 0.0, 1.0);
-
-    auto xMax = boxWidth_ * 0.5;
-    auto xMin = -xMax;
-    auto yMax = boxHeight_ * 0.5;
-    auto yMin = -yMax;
-    auto zMax = boxDepth_ * 0.5;
-    auto zMin = -zMax;
-
-    SBPosition3 v1 = xMin * x + yMax * y + zMax * z;
-    SBPosition3 v2 = xMax * x + yMax * y + zMax * z;
-    SBPosition3 v3 = xMax * x + yMin * y + zMax * z;
-    SBPosition3 v4 = xMin * x + yMin * y + zMax * z;
-    SBPosition3 v5 = xMin * x + yMax * y + zMin * z;
-    SBPosition3 v6 = xMax * x + yMax * y + zMin * z;
-    SBPosition3 v7 = xMax * x + yMin * y + zMin * z;
-    SBPosition3 v8 = xMin * x + yMin * y + zMin * z;
-
-
-    ADNDisplayHelper::displayLine(v1, v2);
-    ADNDisplayHelper::displayLine(v2, v3);
-    ADNDisplayHelper::displayLine(v3, v4);
-    ADNDisplayHelper::displayLine(v4, v1);
-
-    ADNDisplayHelper::displayLine(v5, v6);
-    ADNDisplayHelper::displayLine(v6, v7);
-    ADNDisplayHelper::displayLine(v7, v8);
-    ADNDisplayHelper::displayLine(v8, v5);
-
-    ADNDisplayHelper::displayLine(v1, v5);
-    ADNDisplayHelper::displayLine(v2, v6);
-    ADNDisplayHelper::displayLine(v3, v7);
-    ADNDisplayHelper::displayLine(v4, v8);
-  }
-}
-
-void SEDSDNACreatorEditor::sendPartToAdenita(ADNPointer<ADNPart> nanotube)
-{
-  if (nanotube != nullptr) {
-    SetSequence(nanotube);
-
-    SEAdenitaCoreSEApp* adenita = static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
-    adenita->AddPartToActiveLayer(nanotube);
-	SEAdenitaCoreSEApp::resetVisualModel();
-  }
-}
-
-void SEDSDNACreatorEditor::SetSequence(ADNPointer<ADNPart> nanotube)
-{
-  if (setSequence_) {
-    auto singleStrands = nanotube->GetSingleStrands();
-    ADNPointer<ADNSingleStrand> ss = nullptr;
-    SB_FOR(ADNPointer<ADNSingleStrand> strand, singleStrands) {
-      ADNPointer<ADNNucleotide> fPrime = strand->GetFivePrime();
-      ADNPointer<ADNBaseSegment> bs = fPrime->GetBaseSegment();
-      SBPosition3 pos = bs->GetPosition();
-      if (pos == positions_.FirstPosition) {
-        ss = strand;
-        break;
-      }
     }
-    if (ss != nullptr) {
-      int length = ss->getNumberOfNucleotides();
-      SEDSDNACreatorEditorGUI* editor = getPropertyWidget();
-      std::string seq = editor->AskUserForSequence(length);
-      ss->SetSequence(seq);
-    }
-  }
+
+    return part;
+
 }
 
-void SEDSDNACreatorEditor::displayStrand()
-{
-  ADNDisplayHelper::displayPart(tempPart_, basePairRadius_, opaqueness_);
+void SEDSDNACreatorEditor::displayBox() {
 
-  //string text = "Opaqueness: ";
-  //stringstream s1;
-  //s1 << fixed << setprecision(2) << opaqueness_;
-  //text += s1.str();
+    if (showBox_) {
 
-  //text += ", Radius: ";
-  //stringstream s2;
-  //s2 << fixed << setprecision(2) << basePairRadius_;
-  //text += s2.str();
+        // draw a box centered at origin
+        const SBVector3 x = SBVector3(1.0, 0.0, 0.0);
+        const SBVector3 y = SBVector3(0.0, 1.0, 0.0);
+        const SBVector3 z = SBVector3(0.0, 0.0, 1.0);
 
-  SBPosition3 offset = SBPosition3(SBQuantity::nanometer(0),
-    SBQuantity::nanometer(-1),
-    SBQuantity::nanometer(0));
-  std::string text = std::to_string(tempPart_->GetNumberOfBaseSegments()) + "bp";
-  ADNDisplayHelper::displayText(SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport()) + offset, text);
+        const SBQuantity::length xMax = boxWidth_ * 0.5;
+        const SBQuantity::length xMin = -xMax;
+        const SBQuantity::length yMax = boxHeight_ * 0.5;
+        const SBQuantity::length yMin = -yMax;
+        const SBQuantity::length zMax = boxDepth_ * 0.5;
+        const SBQuantity::length zMin = -zMax;
+
+        const SBPosition3 v1 = xMin * x + yMax * y + zMax * z;
+        const SBPosition3 v2 = xMax * x + yMax * y + zMax * z;
+        const SBPosition3 v3 = xMax * x + yMin * y + zMax * z;
+        const SBPosition3 v4 = xMin * x + yMin * y + zMax * z;
+        const SBPosition3 v5 = xMin * x + yMax * y + zMin * z;
+        const SBPosition3 v6 = xMax * x + yMax * y + zMin * z;
+        const SBPosition3 v7 = xMax * x + yMin * y + zMin * z;
+        const SBPosition3 v8 = xMin * x + yMin * y + zMin * z;
+
+        ADNDisplayHelper::displayLine(v1, v2);
+        ADNDisplayHelper::displayLine(v2, v3);
+        ADNDisplayHelper::displayLine(v3, v4);
+        ADNDisplayHelper::displayLine(v4, v1);
+
+        ADNDisplayHelper::displayLine(v5, v6);
+        ADNDisplayHelper::displayLine(v6, v7);
+        ADNDisplayHelper::displayLine(v7, v8);
+        ADNDisplayHelper::displayLine(v8, v5);
+
+        ADNDisplayHelper::displayLine(v1, v5);
+        ADNDisplayHelper::displayLine(v2, v6);
+        ADNDisplayHelper::displayLine(v3, v7);
+        ADNDisplayHelper::displayLine(v4, v8);
+
+    }
+
+}
+
+void SEDSDNACreatorEditor::sendPartToAdenita(ADNPointer<ADNPart> nanotube) {
+
+    if (nanotube != nullptr) {
+
+        SetSequence(nanotube);
+
+        SEAdenitaCoreSEApp* adenita = static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
+        adenita->AddPartToActiveLayer(nanotube);
+        SEAdenitaCoreSEApp::resetVisualModel();
+
+    }
+
+}
+
+void SEDSDNACreatorEditor::SetSequence(ADNPointer<ADNPart> nanotube) {
+
+    if (setSequence_) {
+
+        auto singleStrands = nanotube->GetSingleStrands();
+        ADNPointer<ADNSingleStrand> singleStrand = nullptr;
+        SB_FOR(ADNPointer<ADNSingleStrand> currentSingleStrand, singleStrands) {
+
+            ADNPointer<ADNNucleotide> fPrime = currentSingleStrand->GetFivePrime();
+            ADNPointer<ADNBaseSegment> bs = fPrime->GetBaseSegment();
+            SBPosition3 pos = bs->GetPosition();
+            if (pos == positions_.FirstPosition) {
+
+                singleStrand = currentSingleStrand;
+                break;
+
+            }
+
+        }
+
+        if (singleStrand != nullptr) {
+
+            int length = singleStrand->getNumberOfNucleotides();
+            SEDSDNACreatorEditorGUI* editor = getPropertyWidget();
+            std::string seq = editor->AskUserForSequence(length);
+            singleStrand->SetSequence(seq);
+
+        }
+
+    }
+
+}
+
+void SEDSDNACreatorEditor::displayStrand() {
+
+    ADNDisplayHelper::displayPart(tempPart_, basePairRadius_, opaqueness_);
+
+    //string text = "Opaqueness: ";
+    //stringstream s1;
+    //s1 << fixed << setprecision(2) << opaqueness_;
+    //text += s1.str();
+
+    //text += ", Radius: ";
+    //stringstream s2;
+    //s2 << fixed << setprecision(2) << basePairRadius_;
+    //text += s2.str();
+
+    const SBPosition3 offset = SBPosition3(SBQuantity::nanometer(0.0), SBQuantity::nanometer(-1.0), SBQuantity::nanometer(0.0));
+    const std::string text = std::to_string(tempPart_->GetNumberOfBaseSegments()) + "bp";
+    ADNDisplayHelper::displayText(SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport()) + offset, text);
 
 }
 
@@ -286,9 +311,10 @@ void SEDSDNACreatorEditor::saveSettings(SBGSettings* settings) {
 
 }
 
-QString SEDSDNACreatorEditor::getDescription() const
-{
-	return QObject::tr("Adenita | DNA strands Editor");
+QString SEDSDNACreatorEditor::getDescription() const {
+
+	return QObject::tr("Adenita | DNA Strands Editor");
+
 }
 
 int SEDSDNACreatorEditor::getFormat() const {
@@ -308,8 +334,11 @@ void SEDSDNACreatorEditor::beginEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
-    std::string iconPath = SB_ELEMENT_PATH + "/Resource/icons/dsCreator.png";
-	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
+
+    //const QString iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/dsCreator.png");
+	//SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
+
+    resetData();
 
 }
 
@@ -317,7 +346,20 @@ void SEDSDNACreatorEditor::endEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function immediately before your editor becomes inactive (for example when another editor becomes active). 
 	// Implement this function if you need to clean some data structures.
-	SAMSON::unsetViewportCursor();
+
+    resetData();
+
+    SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
+	
+    SAMSON::unsetViewportCursor();
+
+}
+
+void SEDSDNACreatorEditor::resetData() {
+
+    DASCreatorEditors::resetPositions(positions_);
+    display_ = false;
+    tempPart_ == nullptr;
 
 }
 
@@ -334,34 +376,41 @@ void SEDSDNACreatorEditor::display() {
 	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop. 
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
 
-  SEConfig& config = SEConfig::GetInstance();
-  displayBox();
+    SEConfig& config = SEConfig::GetInstance();
+    displayBox();
 
-  if (display_) {
+    if (display_) {
     
-    if (positions_.positionsCounter == 1) {
+        if (positions_.positionsCounter == 1) {
 
-      positions_.SecondPosition = GetSnappedPosition();
+            positions_.SecondPosition = GetSnappedPosition();
 
-      ADNDisplayHelper::displayLine(positions_.FirstPosition, positions_.SecondPosition);
+            ADNDisplayHelper::displayLine(positions_.FirstPosition, positions_.SecondPosition);
+
+        }
+
+        if (config.preview_editor) {
+
+            if (!circular_) tempPart_ = generateStrand(true);
+            else tempPart_ = generateCircularStrand(true);
+
+        }
+
+        if (tempPart_ != nullptr) {
+
+            glEnable(GL_DEPTH_TEST);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+            displayStrand();
+
+            glDisable(GL_BLEND);
+            glDisable(GL_DEPTH_TEST);
+
+        }
+
     }
 
-    if (config.preview_editor) {
-      if (!circular_) tempPart_ = generateStrand(true);
-      else tempPart_ = generateCircularStrand(true);
-    }
-
-    if (tempPart_ != nullptr) {
-      glEnable(GL_DEPTH_TEST);
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-      displayStrand();
-
-      glDisable(GL_BLEND);
-      glDisable(GL_DEPTH_TEST);
-    }
-  }
 }
 
 void SEDSDNACreatorEditor::displayForShadow() {
@@ -386,13 +435,18 @@ void SEDSDNACreatorEditor::mousePressEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-  if (positions_.positionsCounter == 0) {
-    positions_.FirstPosition = GetSnappedPosition();
-    positions_.positionsCounter++;
+    if (positions_.positionsCounter == 0) {
 
-    positions_.FirstVector = SAMSON::getActiveCamera()->getBasisZ().normalizedVersion();
-    positions_.vectorsCounter++;
-  }
+        positions_.FirstPosition = GetSnappedPosition();
+        positions_.positionsCounter++;
+
+        positions_.FirstVector = SAMSON::getActiveCamera()->getBasisZ().normalizedVersion();
+        positions_.vectorsCounter++;
+
+        event->accept();
+
+    }
+
 }
 
 void SEDSDNACreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
@@ -400,33 +454,53 @@ void SEDSDNACreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-  if (positions_.positionsCounter == 1) {
-    //positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
-    positions_.positionsCounter++;
+    if (!display_) return;
 
-    ADNPointer<ADNPart> part = nullptr;
-    if (!circular_) part = generateStrand();
-    else part = generateCircularStrand();
-    if (part != nullptr) {
-      int test3 = part->GetNumberOfSingleStrands();
-      sendPartToAdenita(part);
-      DASCreatorEditors::resetPositions(positions_);
-      display_ = false;
-      tempPart_ == nullptr;
+    if (positions_.positionsCounter == 1) {
+
+        //positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+        positions_.SecondPosition = GetSnappedPosition();
+        positions_.positionsCounter++;
+
+        ADNPointer<ADNPart> part = nullptr;
+        if (!circular_) part = generateStrand();
+        else part = generateCircularStrand();
+
+        if (part != nullptr) {
+
+            //int test3 = part->GetNumberOfSingleStrands();
+            sendPartToAdenita(part);
+
+        }
+
+        resetData();
+
+        event->accept();
+
+        SAMSON::requestViewportUpdate();
+
     }
-  }
+
 }
 
 void SEDSDNACreatorEditor::mouseMoveEvent(QMouseEvent* event) {
 
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
-  if (event->buttons() == Qt::LeftButton) {
-    display_ = true;
-    //SAMSON::requestViewportUpdate();
-  }
 
-  SAMSON::requestViewportUpdate();
+    if (positions_.positionsCounter == 1) {
+
+        if (event->buttons() == Qt::LeftButton) {
+
+            display_ = true;
+            event->accept();
+
+        }
+
+        SAMSON::requestViewportUpdate();
+
+    }
+
 }
 
 void SEDSDNACreatorEditor::mouseDoubleClickEvent(QMouseEvent* event) {
@@ -447,33 +521,58 @@ void SEDSDNACreatorEditor::keyPressEvent(QKeyEvent* event) {
 
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
-  if (display_) {
-    SEConfig& config = SEConfig::GetInstance();
 
-    if (event->key() == Qt::Key_Up) {
-      opaqueness_ += 0.1f;
-      if (opaqueness_ > 1.0f) opaqueness_ = 1.0f;
+    if (display_) {
+
+        SEConfig& config = SEConfig::GetInstance();
+
+        if (event->key() == Qt::Key_Escape) {
+
+            resetData();
+            event->accept();
+
+        }
+        else if (event->key() == Qt::Key_Up) {
+
+            opaqueness_ += 0.1f;
+            if (opaqueness_ > 1.0f) opaqueness_ = 1.0f;
+            event->accept();
+
+        }
+        else if (event->key() == Qt::Key_Down) {
+
+            opaqueness_ -= 0.1f;
+            if (opaqueness_ < 0.0f) opaqueness_ = 0.0f;
+            event->accept();
+
+        } 
+        else if (event->key() == Qt::Key_Left) {
+
+            basePairRadius_ -= 100.0f;
+            if (basePairRadius_ < 200.0f) basePairRadius_ = 200.0f;
+            event->accept();
+
+        }
+        else if (event->key() == Qt::Key_Right) {
+
+            basePairRadius_ += 100.0f;
+            if (basePairRadius_ > config.base_pair_radius) basePairRadius_ = config.base_pair_radius;
+            event->accept();
+
+        }
+
+        SAMSON::requestViewportUpdate();
+
     }
-    else if (event->key() == Qt::Key_Down) {
-      opaqueness_ -= 0.1f;
-      if (opaqueness_ < 0.0f) opaqueness_ = 0.0f;
-    } 
-    else if (event->key() == Qt::Key_Left) {
-      basePairRadius_ -= 100.0f;
-      if (basePairRadius_ < 200.0f) basePairRadius_ = 200.0f;
-    }
-    else if (event->key() == Qt::Key_Right) {
-      basePairRadius_ += 100.0f;
-      if (basePairRadius_ > config.base_pair_radius) basePairRadius_ = config.base_pair_radius;
+
+    if (event->key() == Qt::Key_Control) {
+
+        snappingActive_ = false;
+
+        event->accept();
+
     }
 
-    SAMSON::requestViewportUpdate();
-
-  }
-
-  if (event->key() == Qt::Key_Control) {
-    snappingActive_ = false;
-  }
 }
 
 void SEDSDNACreatorEditor::keyReleaseEvent(QKeyEvent* event) {
@@ -481,10 +580,13 @@ void SEDSDNACreatorEditor::keyReleaseEvent(QKeyEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-  if (event->key() == Qt::Key_Control) {
-    snappingActive_ = true;
-  }
+    if (event->key() == Qt::Key_Control) {
 
+        snappingActive_ = true;
+
+        event->accept();
+
+    }
 
 }
 

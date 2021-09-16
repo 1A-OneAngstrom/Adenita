@@ -359,7 +359,7 @@ void DASBackToTheAtom::CheckDistances(ADNPointer<ADNPart> part)
         //msg = "\tBase Segments " + nextName + " and " + bs->getName() + " too close or too further away: " + std::to_string(distance.getValue()) + "pm";
         //logger.Log(msg);
       }
-      if (bs->GetCellType() == BasePair && bsNext->GetCellType() == BasePair) {
+      if (bs->GetCellType() == CellType::BasePair && bsNext->GetCellType() == CellType::BasePair) {
         ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(bs->GetCell()());
         ADNPointer<ADNBasePair> bpNext = static_cast<ADNBasePair*>(bsNext->GetCell()());
         ADNPointer<ADNNucleotide> left = bp->GetLeftNucleotide();
@@ -611,7 +611,7 @@ void DASBackToTheAtom::CreateBonds(ADNPointer<ADNPart> origami)
     }
 
     // create connection with previous nucleotide
-    if (nt->GetEnd() != FivePrime && nt->GetEnd() != FiveAndThreePrime) {
+    if (nt->GetEnd() != End::FivePrime && nt->GetEnd() != End::FiveAndThreePrime) {
       auto prevNt = nt->GetPrev(true);
       ADNPointer<ADNAtom> atP = *nt->GetAtomsByName("P").begin();
       ADNPointer<ADNAtom> atO3p = *prevNt->GetAtomsByName("O3'").begin();

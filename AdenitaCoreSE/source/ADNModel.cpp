@@ -74,7 +74,7 @@ void ADNNucleotide::serialize(SBCSerializer * serializer, const SBNodeIndexer & 
 {
   SBResidue::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
-  serializer->writeIntElement("end", end_);
+  serializer->writeIntElement("end", static_cast<int>(end_));
 
   //ADNPointer<ADNAtom> at = GetCenterAtom();
   SBPosition3 pos = GetPosition();
@@ -123,7 +123,7 @@ void ADNNucleotide::unserialize(SBCSerializer * serializer, const SBNodeIndexer 
 {
   SBResidue::unserialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
-  SetEnd(End(serializer->readIntElement()));
+  SetEnd(static_cast<End>(serializer->readIntElement()));
 
   //unsigned int idx = serializer->readUnsignedIntElement();
   //ADNPointer<ADNAtom> at = (ADNAtom*)nodeIndexer.getNode(idx);
@@ -217,7 +217,7 @@ ADNPointer<ADNNucleotide> ADNNucleotide::GetPrev(bool checkCircular) const
 
   if (checkCircular) {
     auto strand = GetStrand();
-    if (strand->IsCircular() && end_ == FivePrime) {
+    if (strand->IsCircular() && end_ == End::FivePrime) {
       p = strand->GetThreePrime();
     }
   }
@@ -382,7 +382,7 @@ std::string ADNNucleotide::getBaseSegmentType() const
 
 std::string ADNNucleotide::getEndType() const
 {
-  std::string s;
+  std::string s = std::string();
   if (end_ == End::FivePrime) {
     s = "5'";
   }
@@ -408,21 +408,17 @@ void ADNNucleotide::SetEnd(End e)
   end_ = e;
 }
 
-bool ADNNucleotide::IsEnd()
-{
-  bool isEnd = false;
-  if (end_ != NotEnd) isEnd = true;
-
-  return isEnd;
+bool ADNNucleotide::IsEnd() {
+  return (end_ != End::NotEnd);
 }
 
 void ADNNucleotide::Init()
 {
   SetType(DNABlocks::DI);
   ADNPointer<ADNBackbone> bb = new ADNBackbone();
-  bb->setName(getName() + " " + "Backbone");
+  bb->setName(getName() + " Backbone");
   ADNPointer<ADNSidechain> sc = new ADNSidechain();
-  sc->setName(getName() + " " + "Sidechain");
+  sc->setName(getName() + " Side chain");
   addChild(bb());
   addChild(sc());
 }
@@ -685,7 +681,7 @@ void ADNSingleStrand::AddNucleotideThreePrime(ADNPointer<ADNNucleotide> nt)
   addChild(nt());
   if (threePrime_ != nullptr) {
     if (threePrime_->GetEnd() == End::FiveAndThreePrime) threePrime_->SetEnd(End::FivePrime);
-    else threePrime_->SetEnd(NotEnd);
+    else threePrime_->SetEnd(End::NotEnd);
     nt->SetEnd(End::ThreePrime);
   }
   else {
@@ -700,8 +696,8 @@ void ADNSingleStrand::AddNucleotideFivePrime(ADNPointer<ADNNucleotide> nt)
 {
   if (fivePrime_ != nullptr) {
     if (fivePrime_->GetEnd() == End::FiveAndThreePrime) fivePrime_->SetEnd(End::ThreePrime);
-    else fivePrime_->SetEnd(NotEnd);
-    nt->SetEnd(FivePrime);
+    else fivePrime_->SetEnd(End::NotEnd);
+    nt->SetEnd(End::FivePrime);
   }
   else {
     // nt is also fivePrime_
@@ -908,13 +904,13 @@ DNABlocks ADNModel::ResidueNameToType(char n)
 std::string ADNModel::CellTypeToString(CellType t)
 {
   std::string typ = "Unknown";
-  if (t == BasePair) {
+  if (t == CellType::BasePair) {
     typ = "Base Pair";
   }
-  else if (t == LoopPair) {
+  else if (t == CellType::LoopPair) {
     typ = "Loop Pair";
   }
-  else if (t == SkipPair) {
+  else if (t == CellType::SkipPair) {
     typ = "Skip Pair";
   }
   return typ;
@@ -1083,13 +1079,13 @@ std::map<std::string, std::vector<std::string>> ADNModel::GetNucleotideBonds(DNA
 }
 
 ADNBaseSegment::ADNBaseSegment(CellType cellType) : PositionableSB(), Orientable(), SBStructuralGroup() {
-  if (cellType == BasePair) {
+  if (cellType == CellType::BasePair) {
     SetCell(new ADNBasePair());
   }
-  else if (cellType == LoopPair) {
+  else if (cellType == CellType::LoopPair) {
     SetCell(new ADNLoopPair());
   }
-  else if (cellType == SkipPair) {
+  else if (cellType == CellType::SkipPair) {
     SetCell(new ADNSkipPair());
   }
 }

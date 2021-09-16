@@ -33,71 +33,83 @@ void SETwistHelixEditorGUI::saveSettings( SBGSettings *settings ) {
 
 }
 
-void SETwistHelixEditorGUI::onMinus(bool checked)
-{
-  if (checked) {
-    SETwistHelixEditor* editor = getEditor();
-    double angle = -ADNConstants::BP_ROT;
-    editor->SetTwistAngle(angle);
+void SETwistHelixEditorGUI::onMinus(bool checked) {
 
-  }
+	if (checked) {
+
+		double angle = - ADNConstants::BP_ROT;
+		getEditor()->SetTwistAngle(angle);
+
+	}
+
 }
 
-void SETwistHelixEditorGUI::CheckPlusOrMinus(bool plus)
-{
-  if (plus) {
-    ui.rdoPlus->setChecked(true);
-    //onPlus(true);
-  }
-  else {
-    ui.rdoMinus->setChecked(true);
-    //onMinus(true);
-  }
+void SETwistHelixEditorGUI::CheckPlusOrMinus(bool plus) {
+
+	if (plus) {
+		ui.rdoPlus->setChecked(true);
+		//onPlus(true);
+	}
+	else {
+		ui.rdoMinus->setChecked(true);
+		//onMinus(true);
+	}
+
 }
 
-void SETwistHelixEditorGUI::onPlus(bool checked)
-{
-  if (checked) {
-    SETwistHelixEditor* editor = getEditor();
-    double angle = ADNConstants::BP_ROT;
-    editor->SetTwistAngle(angle);
-  }
+void SETwistHelixEditorGUI::onPlus(bool checked) {
+
+	if (checked) {
+
+		double angle = ADNConstants::BP_ROT;
+		getEditor()->SetTwistAngle(angle);
+
+	}
+
 }
 
-void SETwistHelixEditorGUI::onTwistAngle(bool checked)
-{
-  if (checked) {
-    SETwistHelixEditor* editor = getEditor();
-    double angle = ui.spnAngle->value();
-    editor->SetTwistAngle(angle);
-  }
+void SETwistHelixEditorGUI::onTwistAngle(bool checked) {
+
+	if (checked) {
+
+		double angle = ui.spnAngle->value();
+		getEditor()->SetTwistAngle(angle);
+
+	}
+
 }
 
-void SETwistHelixEditorGUI::onTwistTurns(bool checked)
-{
-  if (checked) {
-    SETwistHelixEditor* editor = getEditor();
-    double angle = ui.spnTurns->value() * ADNConstants::BP_ROT;
-    editor->SetTwistAngle(angle);
-  }
+void SETwistHelixEditorGUI::onTwistTurns(bool checked) {
+
+	if (checked) {
+
+		double angle = ui.spnTurns->value() * ADNConstants::BP_ROT;
+		getEditor()->SetTwistAngle(angle);
+
+	}
+
 }
 
-void SETwistHelixEditorGUI::onTwistAngleChanged(double angle)
-{
-  if (ui.rdoTwistAngle->isChecked()) {
-    SETwistHelixEditor* editor = getEditor();
-    double angle = ui.spnAngle->value();
-    editor->SetTwistAngle(angle);
-  }
+void SETwistHelixEditorGUI::onTwistAngleChanged(double angle) {
+
+	if (ui.rdoTwistAngle->isChecked()) {
+
+		double angle = ui.spnAngle->value();
+		getEditor()->SetTwistAngle(angle);
+
+	}
+
 }
 
-void SETwistHelixEditorGUI::onTwistTurnsChanged(int turns)
-{
-  if (ui.rdoTwistTurns->isChecked()) {
-    SETwistHelixEditor* editor = getEditor();
-    double angle = ui.spnTurns->value() * ADNConstants::BP_ROT;
-    editor->SetTwistAngle(angle);
-  }
+void SETwistHelixEditorGUI::onTwistTurnsChanged(int turns) {
+
+	if (ui.rdoTwistTurns->isChecked()) {
+
+		double angle = ui.spnTurns->value() * ADNConstants::BP_ROT;
+		getEditor()->SetTwistAngle(angle);
+
+	}
+
 }
 
 SBCContainerUUID SETwistHelixEditorGUI::getUUID() const { return SBCContainerUUID( "8D1CB60B-F52C-14C2-F72C-DB72B6361777" );}
