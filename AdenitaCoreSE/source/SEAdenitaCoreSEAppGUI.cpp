@@ -1063,6 +1063,11 @@ void SEAdenitaCoreSEAppGUI::setupUI() {
 	QGroupBox* groupBoxModeling = new QGroupBox("Modeling");
 	QGroupBox* groupBoxCreators = new QGroupBox("Creators");
 
+	groupBoxMenu->setMinimumHeight(50);
+	groupBoxEditSequences->setMinimumHeight(50);
+	groupBoxModeling->setMinimumHeight(50);
+	groupBoxCreators->setMinimumHeight(50);
+
 	ui.verticalLayout->addWidget(groupBoxMenu);
 	ui.verticalLayout->addWidget(groupBoxEditSequences);
 	ui.verticalLayout->addWidget(groupBoxModeling);

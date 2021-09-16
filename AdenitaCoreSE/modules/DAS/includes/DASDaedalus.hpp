@@ -93,7 +93,7 @@ struct EdgeProperty {
 /** \enum Daedalus::CrossoverType
  *  \brief The possible crossover types in DASDaedalus.
  */
-enum CrossoverType {
+enum class CrossoverType {
   kSingleXO,
   kDoubleXO,
 };

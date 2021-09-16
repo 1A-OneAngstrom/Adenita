@@ -33,63 +33,67 @@ void SEMergePartsEditorGUI::saveSettings( SBGSettings *settings ) {
 
 void SEMergePartsEditorGUI::updatePartsList() {
 
-  SEMergePartsEditor* editor = getEditor();
-  auto indexParts = editor->getPartsList();
-  auto indexElements = editor->getElementsList();
+	auto indexParts = getEditor()->getPartsList();
+	auto indexElements = getEditor()->getElementsList();
 
-  int sel1 = ui.cmbPart1->currentIndex();
-  int sel2 = ui.cmbPart2->currentIndex();
-  int sel3 = ui.cmbPartM->currentIndex();
-  int sel4 = ui.cmbElement->currentIndex();
-  ui.cmbPart1->clear();
-  ui.cmbPart2->clear();
-  ui.cmbPartM->clear();
-  ui.cmbElement->clear();
+	const int sel1 = ui.cmbPart1->currentIndex();
+	const int sel2 = ui.cmbPart2->currentIndex();
+	const int sel3 = ui.cmbPartM->currentIndex();
+	const int sel4 = ui.cmbElement->currentIndex();
+	ui.cmbPart1->clear();
+	ui.cmbPart2->clear();
+	ui.cmbPartM->clear();
+	ui.cmbElement->clear();
 
-  ui.cmbPart1->insertItem(0, QString::fromStdString("None"));
-  ui.cmbPart2->insertItem(0, QString::fromStdString("None"));
-  ui.cmbPartM->insertItem(0, QString::fromStdString("None"));
-  ui.cmbElement->insertItem(0, QString::fromStdString("None"));
+	ui.cmbPart1->insertItem(0, QString::fromStdString("None"));
+	ui.cmbPart2->insertItem(0, QString::fromStdString("None"));
+	ui.cmbPartM->insertItem(0, QString::fromStdString("None"));
+	ui.cmbElement->insertItem(0, QString::fromStdString("None"));
 
-  for (auto& pair : indexParts) {
-    int i = pair.first;
-    ADNPointer<ADNPart> p = pair.second;
-    std::string n = p->GetName();
-    ui.cmbPart1->insertItem(i, QString::fromStdString(n));
-    ui.cmbPart2->insertItem(i, QString::fromStdString(n));
-    ui.cmbPartM->insertItem(i, QString::fromStdString(n));
-  }
+	for (auto& pair : indexParts) {
 
-  for (auto& pair : indexElements) {
-    int i = pair.first;
-    auto p = pair.second;
-    std::string n = p.GetName();
+		int i = pair.first;
+		ADNPointer<ADNPart> p = pair.second;
+		std::string n = p->GetName();
+		ui.cmbPart1->insertItem(i, QString::fromStdString(n));
+		ui.cmbPart2->insertItem(i, QString::fromStdString(n));
+		ui.cmbPartM->insertItem(i, QString::fromStdString(n));
+
+	}
+
+	for (auto& pair : indexElements) {
+
+		int i = pair.first;
+		auto p = pair.second;
+		std::string n = p.GetName();
     
-    ui.cmbElement->insertItem(i, QString::fromStdString(n));
-  }
+		ui.cmbElement->insertItem(i, QString::fromStdString(n));
 
-  if (indexParts.find(sel1) != indexParts.end()) ui.cmbPart1->setCurrentIndex(sel1);
-  if (indexParts.find(sel2) != indexParts.end()) ui.cmbPart2->setCurrentIndex(sel2);
-  if (indexParts.find(sel3) != indexParts.end()) ui.cmbPartM->setCurrentIndex(sel3);
-  if (indexParts.find(sel4) != indexParts.end()) ui.cmbElement->setCurrentIndex(sel4);
+	}
+
+	if (indexParts.find(sel1) != indexParts.end()) ui.cmbPart1->setCurrentIndex(sel1);
+	if (indexParts.find(sel2) != indexParts.end()) ui.cmbPart2->setCurrentIndex(sel2);
+	if (indexParts.find(sel3) != indexParts.end()) ui.cmbPartM->setCurrentIndex(sel3);
+	if (indexParts.find(sel4) != indexParts.end()) ui.cmbElement->setCurrentIndex(sel4);
+
 }
 
-void SEMergePartsEditorGUI::onMerge()
-{
-  int sel1 = ui.cmbPart1->currentIndex();
-  int sel2 = ui.cmbPart2->currentIndex();
+void SEMergePartsEditorGUI::onMerge() {
 
-  SEMergePartsEditor* e = getEditor();
-  e->MergeParts(sel1, sel2);
+	int sel1 = ui.cmbPart1->currentIndex();
+	int sel2 = ui.cmbPart2->currentIndex();
+
+	getEditor()->MergeParts(sel1, sel2);
+
 }
 
-void SEMergePartsEditorGUI::onMove()
-{
-  int sel1 = ui.cmbElement->currentIndex();
-  int sel2 = ui.cmbPartM->currentIndex();
+void SEMergePartsEditorGUI::onMove() {
 
-  SEMergePartsEditor* e = getEditor();
-  e->MoveElement(sel1, sel2);
+	int sel1 = ui.cmbElement->currentIndex();
+	int sel2 = ui.cmbPartM->currentIndex();
+
+	getEditor()->MoveElement(sel1, sel2);
+
 }
 
 SBCContainerUUID SEMergePartsEditorGUI::getUUID() const { return SBCContainerUUID( "3F52AD7B-A478-D380-AA01-2041081D06CB" );}

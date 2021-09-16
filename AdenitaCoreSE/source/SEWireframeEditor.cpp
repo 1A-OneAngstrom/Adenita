@@ -25,134 +25,140 @@ SEWireframeEditor::~SEWireframeEditor() {
 
 SEWireframeEditorGUI* SEWireframeEditor::getPropertyWidget() const { return static_cast<SEWireframeEditorGUI*>(propertyWidget); }
 
-void SEWireframeEditor::setWireframeType(DASCreator::EditorType type)
-{
+void SEWireframeEditor::setWireframeType(DASCreator::EditorType type) {
+
 	wireframeType_ = type;
+
 }
 
-ADNPointer<ADNPart> SEWireframeEditor::generateCuboid(bool mock /*= false*/)
-{
-  SEConfig& config = SEConfig::GetInstance();
+ADNPointer<ADNPart> SEWireframeEditor::generateCuboid(bool mock /*= false*/) {
 
-  ADNPointer<ADNPart> part = nullptr;
+    SEConfig& config = SEConfig::GetInstance();
 
-  SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+    ADNPointer<ADNPart> part = nullptr;
 
-  int zSize = 31;
+    SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
 
-  SBQuantity::length faceRadius = (currentPosition - positions_.FirstPosition).norm();
+    int zSize = 31;
 
-  if (positions_.positionsCounter > 1) {
-    faceRadius = (positions_.SecondPosition - positions_.FirstPosition).norm();
-    SBQuantity::length zNM = (currentPosition - positions_.SecondPosition).norm();
-    zSize = DASDaedalus::CalculateEdgeSize(zNM);
-  }
+    SBQuantity::length faceRadius = (currentPosition - positions_.FirstPosition).norm();
 
-  int bpSize = DASDaedalus::CalculateEdgeSize(faceRadius * 2);
+    if (positions_.positionsCounter > 1) {
 
-  int xSize = bpSize;
-  int ySize = bpSize;
+        faceRadius = (positions_.SecondPosition - positions_.FirstPosition).norm();
+        SBQuantity::length zNM = (currentPosition - positions_.SecondPosition).norm();
+        zSize = DASDaedalus::CalculateEdgeSize(zNM);
 
-  if (mock) {
+    }
+
+    int bpSize = DASDaedalus::CalculateEdgeSize(faceRadius * 2);
+
+    int xSize = bpSize;
+    int ySize = bpSize;
+
+    if (mock) {
     
-    part = new ADNPart();
+        part = new ADNPart();
 
-    SBVector3 xDir(1.0, 0.0, 0.0);
-    SBVector3 yDir(0.0, 1.0, 0.0);
-    SBVector3 zDir(0.0, 0.0, 1.0);
+        const SBVector3 xDir(1.0, 0.0, 0.0);
+        const SBVector3 yDir(0.0, 1.0, 0.0);
+        const SBVector3 zDir(0.0, 0.0, 1.0);
 
-    SBQuantity::nanometer xLength = SBQuantity::nanometer(ADNConstants::BP_RISE * xSize);
-    SBQuantity::nanometer yLength = SBQuantity::nanometer(ADNConstants::BP_RISE * ySize);
-    SBQuantity::nanometer zLength = SBQuantity::nanometer(ADNConstants::BP_RISE * zSize);
+        const SBQuantity::nanometer xLength = SBQuantity::nanometer(ADNConstants::BP_RISE * xSize);
+        const SBQuantity::nanometer yLength = SBQuantity::nanometer(ADNConstants::BP_RISE * ySize);
+        const SBQuantity::nanometer zLength = SBQuantity::nanometer(ADNConstants::BP_RISE * zSize);
 
-    auto topLeftFront = positions_.FirstPosition;
+        auto topLeftFront = positions_.FirstPosition;
 
-    // create 12 double helices
-    DASCreator::AddDoubleStrandToADNPart(part, xSize, topLeftFront, xDir, true);
-    DASCreator::AddDoubleStrandToADNPart(part, ySize, topLeftFront, -yDir, true);
-    DASCreator::AddDoubleStrandToADNPart(part, zSize, topLeftFront, -zDir, true);
+        // create 12 double helices
+        DASCreator::AddDoubleStrandToADNPart(part, xSize, topLeftFront, xDir, true);
+        DASCreator::AddDoubleStrandToADNPart(part, ySize, topLeftFront, -yDir, true);
+        DASCreator::AddDoubleStrandToADNPart(part, zSize, topLeftFront, -zDir, true);
 
-    SBPosition3 bottomRightFront = topLeftFront + (xLength*xDir - yLength*yDir);
+        const SBPosition3 bottomRightFront = topLeftFront + (xLength*xDir - yLength*yDir);
 
-    DASCreator::AddDoubleStrandToADNPart(part, xSize, bottomRightFront, -xDir, true);
-    DASCreator::AddDoubleStrandToADNPart(part, ySize, bottomRightFront, yDir, true);
-    DASCreator::AddDoubleStrandToADNPart(part, zSize, bottomRightFront, -zDir, true);
+        DASCreator::AddDoubleStrandToADNPart(part, xSize, bottomRightFront, -xDir, true);
+        DASCreator::AddDoubleStrandToADNPart(part, ySize, bottomRightFront, yDir, true);
+        DASCreator::AddDoubleStrandToADNPart(part, zSize, bottomRightFront, -zDir, true);
 
-    SBPosition3 bottomLeftBack = topLeftFront - (yLength*yDir + zLength*zDir);
+        const SBPosition3 bottomLeftBack = topLeftFront - (yLength*yDir + zLength*zDir);
     
-    DASCreator::AddDoubleStrandToADNPart(part, xSize, bottomLeftBack, xDir, true);
-    DASCreator::AddDoubleStrandToADNPart(part, ySize, bottomLeftBack, yDir, true);
-    DASCreator::AddDoubleStrandToADNPart(part, zSize, bottomLeftBack, zDir, true);
+        DASCreator::AddDoubleStrandToADNPart(part, xSize, bottomLeftBack, xDir, true);
+        DASCreator::AddDoubleStrandToADNPart(part, ySize, bottomLeftBack, yDir, true);
+        DASCreator::AddDoubleStrandToADNPart(part, zSize, bottomLeftBack, zDir, true);
 
-    SBPosition3 topRightBack = topLeftFront + (xLength*xDir - zLength*zDir);
+        const SBPosition3 topRightBack = topLeftFront + (xLength*xDir - zLength*zDir);
 
-    DASCreator::AddDoubleStrandToADNPart(part, xSize, topRightBack, -xDir, true);
-    DASCreator::AddDoubleStrandToADNPart(part, ySize, topRightBack, -yDir, true);
-    DASCreator::AddDoubleStrandToADNPart(part, zSize, topRightBack, zDir, true);
+        DASCreator::AddDoubleStrandToADNPart(part, xSize, topRightBack, -xDir, true);
+        DASCreator::AddDoubleStrandToADNPart(part, ySize, topRightBack, -yDir, true);
+        DASCreator::AddDoubleStrandToADNPart(part, zSize, topRightBack, zDir, true);
+
+        return part;
+    
+    }
+    else {
+
+        part = new ADNPart();
+        DASPolyhedron p = DASPolyhedron();
+        std::map<int, SBPosition3> vertices;
+        std::map<int, std::vector<int>> faces;
+
+        const SBVector3 xDir(1.0, 0.0, 0.0);
+        const SBVector3 yDir(0.0, 1.0, 0.0);
+        const SBVector3 zDir(0.0, 0.0, 1.0);
+
+        const SBQuantity::nanometer xLength = SBQuantity::nanometer(ADNConstants::BP_RISE * xSize);
+        const SBQuantity::nanometer yLength = SBQuantity::nanometer(ADNConstants::BP_RISE * ySize);
+        const SBQuantity::nanometer zLength = SBQuantity::nanometer(ADNConstants::BP_RISE * zSize);
+
+        // current position is top-left
+        const SBPosition3 vertex1 = positions_.FirstPosition;
+        const SBPosition3 vertex2 = vertex1 + xLength*xDir;
+        const SBPosition3 vertex3 = vertex2 - yLength*yDir;
+        const SBPosition3 vertex4 = vertex3 - xLength*xDir;
+        const SBPosition3 vertex5 = vertex1 - zLength*zDir;
+        const SBPosition3 vertex6 = vertex5 + xLength*xDir;
+        const SBPosition3 vertex7 = vertex6 - yLength*yDir;
+        const SBPosition3 vertex8 = vertex7 - xLength*xDir;
+
+        vertices.insert(std::make_pair(0, vertex2));
+        vertices.insert(std::make_pair(1, vertex1));
+        vertices.insert(std::make_pair(2, vertex4));
+        vertices.insert(std::make_pair(3, vertex3));
+        vertices.insert(std::make_pair(4, vertex7));
+        vertices.insert(std::make_pair(5, vertex6));
+        vertices.insert(std::make_pair(6, vertex5));
+        vertices.insert(std::make_pair(7, vertex8));
+
+        // faces
+        std::vector<int> face1 = { 3, 0, 1, 2 };
+        std::vector<int> face2 = { 3, 4, 5, 0 };
+        std::vector<int> face3 = { 0, 5, 6, 1 };
+        std::vector<int> face4 = { 1, 6, 7, 2 };
+        std::vector<int> face5 = { 2, 7, 4, 3 };
+        std::vector<int> face6 = { 5, 4, 7, 6 };
+
+        faces.insert(std::make_pair(0, face1));
+        faces.insert(std::make_pair(1, face2));
+        faces.insert(std::make_pair(2, face3));
+        faces.insert(std::make_pair(3, face4));
+        faces.insert(std::make_pair(4, face5));
+        faces.insert(std::make_pair(5, face6));
+
+        p.BuildPolyhedron(vertices, faces);
+
+        DASDaedalus *alg = new DASDaedalus();
+        int minSize = std::min(bpSize, zSize);
+        std::string seq = "";
+        alg->SetMinEdgeLength(minSize);
+        part = alg->ApplyAlgorithm(seq, p, false);
+
+        if (part != nullptr) sendPartToAdenita(part);
+
+    }
 
     return part;
-    
-  } else {
-    part = new ADNPart();
-    DASPolyhedron p = DASPolyhedron();
-    std::map<int, SBPosition3> vertices;
-    std::map<int, std::vector<int>> faces;
 
-    SBVector3 xDir(1.0, 0.0, 0.0);
-    SBVector3 yDir(0.0, 1.0, 0.0);
-    SBVector3 zDir(0.0, 0.0, 1.0);
-
-    SBQuantity::nanometer xLength = SBQuantity::nanometer(ADNConstants::BP_RISE * xSize);
-    SBQuantity::nanometer yLength = SBQuantity::nanometer(ADNConstants::BP_RISE * ySize);
-    SBQuantity::nanometer zLength = SBQuantity::nanometer(ADNConstants::BP_RISE * zSize);
-
-    // current position is top-left
-    SBPosition3 vertex1 = positions_.FirstPosition;
-    SBPosition3 vertex2 = vertex1 + xLength*xDir;
-    SBPosition3 vertex3 = vertex2 - yLength*yDir;
-    SBPosition3 vertex4 = vertex3 - xLength*xDir;
-    SBPosition3 vertex5 = vertex1 - zLength*zDir;
-    SBPosition3 vertex6 = vertex5 + xLength*xDir;
-    SBPosition3 vertex7 = vertex6 - yLength*yDir;
-    SBPosition3 vertex8 = vertex7 - xLength*xDir;
-
-    vertices.insert(std::make_pair(0, vertex2));
-    vertices.insert(std::make_pair(1, vertex1));
-    vertices.insert(std::make_pair(2, vertex4));
-    vertices.insert(std::make_pair(3, vertex3));
-    vertices.insert(std::make_pair(4, vertex7));
-    vertices.insert(std::make_pair(5, vertex6));
-    vertices.insert(std::make_pair(6, vertex5));
-    vertices.insert(std::make_pair(7, vertex8));
-
-    // faces
-    std::vector<int> face1 = { 3, 0, 1, 2 };
-    std::vector<int> face2 = { 3, 4, 5, 0 };
-    std::vector<int> face3 = { 0, 5, 6, 1 };
-    std::vector<int> face4 = { 1, 6, 7, 2 };
-    std::vector<int> face5 = { 2, 7, 4, 3 };
-    std::vector<int> face6 = { 5, 4, 7, 6 };
-
-    faces.insert(std::make_pair(0, face1));
-    faces.insert(std::make_pair(1, face2));
-    faces.insert(std::make_pair(2, face3));
-    faces.insert(std::make_pair(3, face4));
-    faces.insert(std::make_pair(4, face5));
-    faces.insert(std::make_pair(5, face6));
-
-    p.BuildPolyhedron(vertices, faces);
-
-    DASDaedalus *alg = new DASDaedalus();
-    int minSize = std::min(bpSize, zSize);
-    std::string seq = "";
-    alg->SetMinEdgeLength(minSize);
-    part = alg->ApplyAlgorithm(seq, p, false);
-
-    if (part != nullptr) sendPartToAdenita(part);
-  }
-
-
-  return part;
 }
 
 ADNPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock)
@@ -162,96 +168,96 @@ ADNPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock)
 
   ADNPointer<ADNPart> part = nullptr;
   std::string filename;
-  if (wireframeType_ == DASCreator::Tetrahedron) {
+  if (wireframeType_ == DASCreator::EditorType::Tetrahedron) {
     part = new ADNPart();
     double a = sqrt(pow(radius.getValue(), 2) * 2);
     numNucleotides = a / (ADNConstants::BP_RISE * 1000) * 1.3;
     filename = SB_ELEMENT_PATH + "/Data/01_tetrahedron.ply";
 
-  } else if (wireframeType_ == DASCreator::Cube) {
+  } else if (wireframeType_ == DASCreator::EditorType::Cube) {
     part = new ADNPart();
     double a = sqrt(pow(radius.getValue(), 2) * 2);
     numNucleotides = a / (ADNConstants::BP_RISE * 1000);
     filename = SB_ELEMENT_PATH + "/Data/02_cube.ply";
-  } else if (wireframeType_ == DASCreator::Octahedron) {
+  } else if (wireframeType_ == DASCreator::EditorType::Octahedron) {
     part = new ADNPart();
     double a = sqrt(pow(radius.getValue(), 2) * 2);
     numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
     filename = SB_ELEMENT_PATH + "/Data/03_octahedron.ply";
   }
-  else if (wireframeType_ == DASCreator::Dodecahedron) {
+  else if (wireframeType_ == DASCreator::EditorType::Dodecahedron) {
     part = new ADNPart();
     double a = sqrt(pow(radius.getValue(), 2) * 2) / 2;
     numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
     filename = SB_ELEMENT_PATH + "/Data/04_dodecahedron.ply";
   }
-  else if (wireframeType_ == DASCreator::Icosahedron) {
+  else if (wireframeType_ == DASCreator::EditorType::Icosahedron) {
     part = new ADNPart();
     double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
     numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
     filename = SB_ELEMENT_PATH + "/Data/05_icosahedron.ply";
   }
-  else if (wireframeType_ == DASCreator::Icosahedron) {
+  else if (wireframeType_ == DASCreator::EditorType::Icosahedron) {
     part = new ADNPart();
     double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
     numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
     filename = SB_ELEMENT_PATH + "/Data/05_icosahedron.ply";
   }
-  else if (wireframeType_ == DASCreator::Cubocahedron) {
+  else if (wireframeType_ == DASCreator::EditorType::Cubocahedron) {
     part = new ADNPart();
     double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
     numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
     filename = SB_ELEMENT_PATH + "/Data/06_cuboctahedron.ply";
   }
-  else if (wireframeType_ == DASCreator::Icosidodecahedron) {
+  else if (wireframeType_ == DASCreator::EditorType::Icosidodecahedron) {
     part = new ADNPart();
     double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
     numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
     filename = SB_ELEMENT_PATH + "/Data/07_icosidodecahedron.ply";
   }
-  else if (wireframeType_ == DASCreator::Rhombicuboctahedron) {
+  else if (wireframeType_ == DASCreator::EditorType::Rhombicuboctahedron) {
     part = new ADNPart();
     double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
     numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
     filename = SB_ELEMENT_PATH + "/Data/08_rhombicuboctahedron.ply";
   }
-  else if (wireframeType_ == DASCreator::Snub_cube) {
+  else if (wireframeType_ == DASCreator::EditorType::Snub_cube) {
     part = new ADNPart();
     double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
     numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
     filename = SB_ELEMENT_PATH + "/Data/09_snub_cube.ply";
   }
-  else if (wireframeType_ == DASCreator::Truncated_cube) {
+  else if (wireframeType_ == DASCreator::EditorType::Truncated_cube) {
     part = new ADNPart();
     double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
     numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
     filename = SB_ELEMENT_PATH + "/Data/10_truncated_cube.ply";
   }
-  else if (wireframeType_ == DASCreator::Truncated_cuboctahedron) {
+  else if (wireframeType_ == DASCreator::EditorType::Truncated_cuboctahedron) {
     part = new ADNPart();
     double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
     numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
     filename = SB_ELEMENT_PATH + "/Data/11_truncated_cuboctahedron.ply";
   }
-  else if (wireframeType_ == DASCreator::Helix) {
+  else if (wireframeType_ == DASCreator::EditorType::Helix) {
     part = new ADNPart();
     double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
     numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
     filename = SB_ELEMENT_PATH + "/Data/49_helix.ply";
   }
-  else if (wireframeType_ == DASCreator::Stickman) {
+  else if (wireframeType_ == DASCreator::EditorType::Stickman) {
     part = new ADNPart();
     double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
     numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
     filename = SB_ELEMENT_PATH + "/Data/51_stickman.ply";
   }
-  else if (wireframeType_ == DASCreator::Bottle) {
+  else if (wireframeType_ == DASCreator::EditorType::Bottle) {
     part = new ADNPart();
     double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
     numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
     filename = SB_ELEMENT_PATH + "/Data/52_bottle.ply";
   }
-  else if (wireframeType_ == DASCreator::Bunny) {
+  else if (wireframeType_ == DASCreator::EditorType::Bunny) {
     part = new ADNPart();
     double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
     numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
@@ -280,26 +286,30 @@ ADNPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock)
   return part;
 }
 
-void SEWireframeEditor::sendPartToAdenita(ADNPointer<ADNPart> part)
-{
-  if (part != nullptr) {
+void SEWireframeEditor::sendPartToAdenita(ADNPointer<ADNPart> part) {
 
-    SEAdenitaCoreSEApp* adenita = static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
-    adenita->AddPartToActiveLayer(part);
-	SEAdenitaCoreSEApp::resetVisualModel();
-  }
+    if (part != nullptr) {
+
+        SEAdenitaCoreSEApp* adenita = static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
+        adenita->AddPartToActiveLayer(part);
+        SEAdenitaCoreSEApp::resetVisualModel();
+
+    }
+
 }
 
-ADNPointer<ADNPart> SEWireframeEditor::CreateMockDaedalusWireframe(DASPolyhedron & polyhedron, int min_edge_length)
-{
-  ADNPointer<ADNPart> mock = new ADNPart();
+ADNPointer<ADNPart> SEWireframeEditor::CreateMockDaedalusWireframe(DASPolyhedron & polyhedron, int min_edge_length) {
 
-  DASDaedalus *alg = new DASDaedalus();
-  alg->SetMinEdgeLength(min_edge_length);
-  alg->SetEdgeBps(min_edge_length, mock, polyhedron);
-  alg->SetVerticesPositions(mock, polyhedron, false);
-  alg->InitEdgeMap(mock, polyhedron);
-  return mock;
+    ADNPointer<ADNPart> mock = new ADNPart();
+
+    DASDaedalus *alg = new DASDaedalus();
+    alg->SetMinEdgeLength(min_edge_length);
+    alg->SetEdgeBps(min_edge_length, mock, polyhedron);
+    alg->SetVerticesPositions(mock, polyhedron, false);
+    alg->InitEdgeMap(mock, polyhedron);
+
+    return mock;
+
 }
 
 SBCContainerUUID SEWireframeEditor::getUUID() const { return SBCContainerUUID("ED358EAC-14D1-A0EA-9A3A-F8035E019249"); }
@@ -367,9 +377,10 @@ void SEWireframeEditor::saveSettings(SBGSettings* settings) {
 
 }
 
-QString SEWireframeEditor::getDescription() const
-{
+QString SEWireframeEditor::getDescription() const {
+
 	return QObject::tr("Adenita | Daedalus DNA Nanostructures");
+
 }
 
 void SEWireframeEditor::beginEditing() {
@@ -415,7 +426,7 @@ void SEWireframeEditor::display() {
 
     SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
 
-  if (wireframeType_ == DASCreator::Cuboid) {
+  if (wireframeType_ == DASCreator::EditorType::Cuboid) {
     if (positions_.positionsCounter < 3) {
       SBVector3 xDir(1.0, 0.0, 0.0);
       SBVector3 yDir(0.0, 1.0, 0.0);
@@ -500,7 +511,7 @@ void SEWireframeEditor::mousePressEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
   
-  if (wireframeType_ == DASCreator::Cuboid) {
+  if (wireframeType_ == DASCreator::EditorType::Cuboid) {
     if (positions_.positionsCounter == 0) {
       positions_.FirstPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
       positions_.positionsCounter++;
@@ -535,7 +546,7 @@ void SEWireframeEditor::mouseReleaseEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-  if (wireframeType_ == DASCreator::Cuboid) {
+  if (wireframeType_ == DASCreator::EditorType::Cuboid) {
     positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
     positions_.positionsCounter++;
   }
@@ -559,16 +570,18 @@ void SEWireframeEditor::mouseMoveEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-  if (event->buttons() == Qt::LeftButton) {
-    display_ = true;
-    //SAMSON::requestViewportUpdate();
+    if (event->buttons() == Qt::LeftButton) {
 
-    if (wireframeType_ == DASCreator::Cuboid) {
-      positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+        display_ = true;
+        event->accept();
+
+        if (wireframeType_ == DASCreator::EditorType::Cuboid)
+            positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+
     }
-  }
 
-  SAMSON::requestViewportUpdate();
+    SAMSON::requestViewportUpdate();
+
 }
 
 void SEWireframeEditor::mouseDoubleClickEvent(QMouseEvent* event) {
@@ -591,10 +604,14 @@ void SEWireframeEditor::keyPressEvent(QKeyEvent* event) {
 	// Implement this function to handle this event with your editor.
 
 	if (event->key() == Qt::Key_Escape) {
+
 		display_ = false;
 		DASCreatorEditors::resetPositions(positions_);
+        event->accept();
 		SAMSON::requestViewportUpdate();
+
 	}
+
 }
 
 void SEWireframeEditor::keyReleaseEvent(QKeyEvent* event) {

@@ -47,44 +47,48 @@ std::string SEDSDNACreatorEditorGUI::AskUserForSequence(int l) {
 }
 
 void SEDSDNACreatorEditorGUI::onSetDSDNA(bool b) {
-	getEditor()->SetMode(b);
+	getEditor()->setDoubleStrandMode(b);
 }
 
 void SEDSDNACreatorEditorGUI::onSetSSDNA(bool b) {
-	getEditor()->SetMode(!b);
+	getEditor()->setDoubleStrandMode(!b);
 }
 
 void SEDSDNACreatorEditorGUI::onSetCircular(bool c) {
-	getEditor()->SetCircular(c);
+	getEditor()->setCircularStrandsMode(c);
 }
 
 void SEDSDNACreatorEditorGUI::onSetManual(bool b) {
-	getEditor()->SetManual(b);
+	getEditor()->setManualFlag(b);
 }
 
 void SEDSDNACreatorEditorGUI::onSetNumNucleotides(int n) {
-	getEditor()->SetNumberNucleotides(n);
+	getEditor()->setNumberOfNucleotides(n);
 }
 
 void SEDSDNACreatorEditorGUI::onShowBox(bool s) {
 
-	getEditor()->SetShowBox(s);
+	getEditor()->setShowBoxFlag(s);
 	if (s)
 		onChangeBoxSize();
+	else
+		SAMSON::requestViewportUpdate();
 
 }
 
 void SEDSDNACreatorEditorGUI::onChangeBoxSize() {
 
-	const double height = ui.spnBoxHeight->value();
-	const double width = ui.spnBoxWidth->value();
-	const double depth = ui.spnBoxDepth->value();
-	getEditor()->SetBoxSize(height, width, depth);
+	const SBQuantity::nanometer height = SBQuantity::nanometer(ui.spnBoxHeight->value());
+	const SBQuantity::nanometer width  = SBQuantity::nanometer(ui.spnBoxWidth->value());
+	const SBQuantity::nanometer depth  = SBQuantity::nanometer(ui.spnBoxDepth->value());
+	getEditor()->setBoxSize(height, width, depth);
+
+	SAMSON::requestViewportUpdate();
 
 }
 
 void SEDSDNACreatorEditorGUI::onSetSequence(bool s) {
-	getEditor()->SetSequence(s);
+	getEditor()->setSequenceFlag(s);
 }
 
 SBCContainerUUID SEDSDNACreatorEditorGUI::getUUID() const { return SBCContainerUUID( "751903AE-14BC-F0B9-01D9-D2CF8412AEF9" );}

@@ -9,7 +9,7 @@
 // type of editor enumeration
 namespace DASCreator {
 
-  enum EditorType {
+  enum class EditorType {
     DoubleStrand, 
     Nanotube, 
     TwoDoubleHelices,

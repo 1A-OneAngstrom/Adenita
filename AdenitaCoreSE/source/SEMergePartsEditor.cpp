@@ -24,89 +24,101 @@ SEMergePartsEditor::~SEMergePartsEditor() {
 
 SEMergePartsEditorGUI* SEMergePartsEditor::getPropertyWidget() const { return static_cast<SEMergePartsEditorGUI*>(propertyWidget); }
 
-std::map<int, ADNPointer<ADNPart>> SEMergePartsEditor::getPartsList()
-{
-  indexParts_.clear();
-  int lastId = 0;
+std::map<int, ADNPointer<ADNPart>> SEMergePartsEditor::getPartsList() {
 
-  SEAdenitaCoreSEApp* t = SEAdenitaCoreSEApp::getAdenitaApp();
-  auto nr = t->GetNanorobot();
-  auto parts = nr->GetParts();
-  SB_FOR(ADNPointer<ADNPart> p, parts) {
-    ++lastId;
-    indexParts_.insert(std::make_pair(lastId, p));
-  }
-  return indexParts_;
+	indexParts_.clear();
+	int lastId = 0;
+
+	auto nr = SEAdenitaCoreSEApp::getAdenitaApp()->GetNanorobot();
+	auto parts = nr->GetParts();
+
+	SB_FOR(ADNPointer<ADNPart> p, parts) {
+
+		++lastId;
+		indexParts_.insert(std::make_pair(lastId, p));
+
+	}
+
+	return indexParts_;
+
 }
 
-std::map<int, SEMergePartsEditor::Element> SEMergePartsEditor::getElementsList()
-{
-  indexElements_.clear();
-  int lastId = 0;
+std::map<int, SEMergePartsEditor::Element> SEMergePartsEditor::getElementsList() {
 
-  SEAdenitaCoreSEApp* t = SEAdenitaCoreSEApp::getAdenitaApp();
-  auto nr = t->GetNanorobot();
-  auto parts = nr->GetParts();
-  SB_FOR(ADNPointer<ADNPart> p, parts) {
-    auto dss = p->GetDoubleStrands();
-    SB_FOR(ADNPointer<ADNDoubleStrand> ds, dss) {
-      ++lastId;
-      Element el;
-      el.type = 0;
-      el.ds = ds;
-      indexElements_.insert(std::make_pair(lastId, el));
-    }
-    auto sss = p->GetSingleStrands();
-    SB_FOR(ADNPointer<ADNSingleStrand> ss, sss) {
-      ++lastId;
-      Element el;
-      el.type = 1;
-      el.ss = ss;
-      indexElements_.insert(std::make_pair(lastId, el));
-    }
-  }
-  return indexElements_;
+	indexElements_.clear();
+	int lastId = 0;
+
+	auto nr = SEAdenitaCoreSEApp::getAdenitaApp()->GetNanorobot();
+	auto parts = nr->GetParts();
+	SB_FOR(ADNPointer<ADNPart> p, parts) {
+
+		auto dss = p->GetDoubleStrands();
+		SB_FOR(ADNPointer<ADNDoubleStrand> ds, dss) {
+
+			++lastId;
+			SEMergePartsEditor::Element el;
+			el.type = 0;
+			el.ds = ds;
+			indexElements_.insert(std::make_pair(lastId, el));
+
+		}
+		auto sss = p->GetSingleStrands();
+		SB_FOR(ADNPointer<ADNSingleStrand> ss, sss) {
+
+			++lastId;
+			SEMergePartsEditor::Element el;
+			el.type = 1;
+			el.ss = ss;
+			indexElements_.insert(std::make_pair(lastId, el));
+
+		}
+
+	}
+
+	return indexElements_;
+
 }
 
-void SEMergePartsEditor::MergeParts(int idx, int jdx)
-{
-  if (idx == jdx) return;
+void SEMergePartsEditor::MergeParts(int idx, int jdx) {
 
-  auto app = SEAdenitaCoreSEApp::getAdenitaApp();
-  app->SetMod(true);
+	if (idx == jdx) return;
 
-  ADNPointer<ADNPart> p1 = nullptr;
-  ADNPointer<ADNPart> p2 = nullptr;
-  if (indexParts_.find(idx) != indexParts_.end()) p1 = indexParts_.at(idx);
-  if (indexParts_.find(jdx) != indexParts_.end()) p2 = indexParts_.at(jdx);
-  if (p1 != nullptr && p2 != nullptr) {
-    SEAdenitaCoreSEApp* t = SEAdenitaCoreSEApp::getAdenitaApp();
-    t->MergeComponents(p1, p2);
-  }
+	auto app = SEAdenitaCoreSEApp::getAdenitaApp();
+	app->SetMod(true);
 
-  app->SetMod(false);
+	ADNPointer<ADNPart> p1 = nullptr;
+	ADNPointer<ADNPart> p2 = nullptr;
+	if (indexParts_.find(idx) != indexParts_.end()) p1 = indexParts_.at(idx);
+	if (indexParts_.find(jdx) != indexParts_.end()) p2 = indexParts_.at(jdx);
+
+	if (p1 != nullptr && p2 != nullptr)
+		app->MergeComponents(p1, p2);
+
+	app->SetMod(false);
+
 }
 
-void SEMergePartsEditor::MoveElement(int edx, int pdx)
-{
-  auto app = SEAdenitaCoreSEApp::getAdenitaApp();
-  app->SetMod(true);
+void SEMergePartsEditor::MoveElement(int edx, int pdx) {
 
-  ADNPointer<ADNPart> p = nullptr;
-  if (indexParts_.find(pdx) != indexParts_.end()) p = indexParts_.at(pdx);
-  Element el;
-  if (indexElements_.find(edx) != indexElements_.end()) el = indexElements_.at(edx);
-  if (p != nullptr && el.type != -1) {
-    SEAdenitaCoreSEApp* t = SEAdenitaCoreSEApp::getAdenitaApp();
-    if (el.type == 0) {
-      t->MoveDoubleStrand(el.ds, p);
-    }
-    else if (el.type == 1) {
-      t->MoveSingleStrand(el.ss, p);
-    }
-  }
+	auto app = SEAdenitaCoreSEApp::getAdenitaApp();
+	app->SetMod(true);
 
-  app->SetMod(false);
+	ADNPointer<ADNPart> p = nullptr;
+	if (indexParts_.find(pdx) != indexParts_.end()) p = indexParts_.at(pdx);
+	SEMergePartsEditor::Element el;
+	if (indexElements_.find(edx) != indexElements_.end()) el = indexElements_.at(edx);
+
+	if (p != nullptr && el.type != -1) {
+
+		if (el.type == 0)
+			app->MoveDoubleStrand(el.ds, p);
+		else if (el.type == 1)
+			app->MoveSingleStrand(el.ss, p);
+
+	}
+
+	app->SetMod(false);
+
 }
 
 SBCContainerUUID SEMergePartsEditor::getUUID() const { return SBCContainerUUID("EB812444-8EA8-BD83-988D-AFF5987461D8"); }

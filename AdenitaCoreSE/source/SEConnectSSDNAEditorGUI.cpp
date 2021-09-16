@@ -32,23 +32,20 @@ void SEConnectSSDNAEditorGUI::saveSettings( SBGSettings *settings ) {
 
 void SEConnectSSDNAEditorGUI::onSetSequence(QString seq) {
 
-	SEConnectSSDNAEditor* t = getEditor();
-	t->SetSequence(seq.toStdString());
+	getEditor()->setSequence(seq.toStdString());
 
 }
 
 void SEConnectSSDNAEditorGUI::onInsert(bool e) {
 
-	SEConnectSSDNAEditor* editor = getEditor();
-	editor->SetConcat(e);
+	getEditor()->setConcatFlag(e);
 
 }
 
 void SEConnectSSDNAEditorGUI::onAuto(bool e) {
 
 	ui.lineSequence->setDisabled(e);
-	SEConnectSSDNAEditor* editor = getEditor();
-	editor->SetAutoSequence(e);
+	getEditor()->setAutoSequenceFlag(e);
 
 }
 
@@ -96,7 +93,6 @@ QString SEConnectSSDNAEditorGUI::getCitation() const {
 void SEConnectSSDNAEditorGUI::onSelectMode() {
 
 	bool xo = ui.rdnSS->isChecked();
-	SEConnectSSDNAEditor* t = getEditor();
-	t->SetMode(xo);
+	getEditor()->setConnectionMode(xo);
 
 }

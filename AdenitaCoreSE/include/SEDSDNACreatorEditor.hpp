@@ -26,8 +26,8 @@ public :
 	/// \name Constructors and destructors
 	//@{
 
-	SEDSDNACreatorEditor();																													///< Builds an editor					
-	virtual ~SEDSDNACreatorEditor();																											///< Destructs the editor
+	SEDSDNACreatorEditor();																												///< Builds an editor					
+	virtual ~SEDSDNACreatorEditor();																									///< Destructs the editor
 
 	//@}
 
@@ -36,7 +36,7 @@ public :
 
 	virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
 	virtual QString												getName() const;														///< Returns the class name
-	virtual QString	                      getDescription() const;	                      ///< Returns the menu item text
+	virtual QString												getDescription() const;													///< Returns the menu item text
 	virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
 	virtual int													getFormat() const;														///< Returns the format
 	virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
@@ -108,13 +108,13 @@ public :
 
 	//@}
 
-	void														SetMode(bool m);
-	void														SetShowBox(bool s);
-	void														SetBoxSize(double height, double width, double depth);
-	void														SetCircular(bool c);
-	void														SetManual(bool m);
-	void														SetNumberNucleotides(int n);
-	void														SetSequence(bool s);
+	void														setDoubleStrandMode(bool m);
+	void														setShowBoxFlag(bool s);
+	void														setBoxSize(SBQuantity::nanometer height, SBQuantity::nanometer width, SBQuantity::nanometer depth);
+	void														setCircularStrandsMode(bool c);
+	void														setManualFlag(bool m);
+	void														setNumberOfNucleotides(int n);
+	void														setSequenceFlag(bool s);
 
 private:
 
@@ -123,31 +123,30 @@ private:
 	void														displayStrand();
 	void														displayBox();
 	void														sendPartToAdenita(ADNPointer<ADNPart> nanotube);
-	void														ShowBox();
-	void														SetSequence(ADNPointer<ADNPart> nanotube);
-	SBPosition3													GetSnappedPosition();
+	void														setSequence(ADNPointer<ADNPart> nanotube);
+	SBPosition3													getSnappedPosition();
 
 	void														resetData();
 
-	bool														dsMode_ = true;  // true for dsDNA, false for ssDNA
-	bool														circular_ = false;  // if we are creating circular strands
-	bool														manual_ = false;
-	int															numNts_ = 12;
+	bool														doubleStrandMode = true;  // true for dsDNA, false for ssDNA
+	bool														circularStrandsMode = false;  // if we are creating circular strands
+	bool														manualFlag = false;
+	int															numberOfNucleotides = 12;
 
-	DASCreatorEditors::UIData									positions_;
-	bool														display_ = false;
-	ADNPointer<ADNPart>											tempPart_ = nullptr;
-	bool														showBox_ = false;
-	SBQuantity::length											boxHeight_;
-	SBQuantity::length											boxWidth_;
-	SBQuantity::length											boxDepth_;
-	bool														setSequence_ = false;
-	bool														snappingActive_ = true;
+	DASCreatorEditors::UIData									positionData;
+	bool														displayFlag = false;
+	ADNPointer<ADNPart>											tempPart = nullptr;
+	bool														showBoxFlag = false;
+	SBQuantity::length											boxHeight = SBQuantity::length(0.0);
+	SBQuantity::length											boxWidth = SBQuantity::length(0.0);
+	SBQuantity::length											boxDepth = SBQuantity::length(0.0);
+	bool														sequenceFlag = false;
+	bool														snappingIsActive = true;
 
-	float														opaqueness_ = 0.5f;
-	float														basePairRadius_ = 1000.0f;
+	float														opaqueness = 0.5f;
+	float														basePairRadius = 1000.0f;
 
-	ADNNanorobot*												nanorobot_{ nullptr };
+	ADNNanorobot*												nanorobot{ nullptr };
 
 };
 

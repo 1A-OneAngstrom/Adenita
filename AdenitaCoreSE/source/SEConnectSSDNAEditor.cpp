@@ -24,28 +24,28 @@ SEConnectSSDNAEditor::~SEConnectSSDNAEditor() {
 
 SEConnectSSDNAEditorGUI* SEConnectSSDNAEditor::getPropertyWidget() const { return static_cast<SEConnectSSDNAEditorGUI*>(propertyWidget); }
 
-void SEConnectSSDNAEditor::SetMode(bool xo) {
+void SEConnectSSDNAEditor::setConnectionMode(bool xo) {
 	
-	if (xo) mode_ = ConnectionMode::Single;
-	else mode_ = ConnectionMode::Double;
+	if (xo) connectionMode = ConnectionMode::Single;
+	else connectionMode = ConnectionMode::Double;
 
 }
 
-void SEConnectSSDNAEditor::SetSequence(std::string seq) {
+void SEConnectSSDNAEditor::setSequence(std::string seq) {
 
-	sequence_ = seq;
-
-}
-
-void SEConnectSSDNAEditor::SetAutoSequence(bool s) {
-
-	autoSequence_ = s;
+	sequence = seq;
 
 }
 
-void SEConnectSSDNAEditor::SetConcat(bool c) {
+void SEConnectSSDNAEditor::setAutoSequenceFlag(bool s) {
 
-	concat_ = c;
+	autoSequenceFlag = s;
+
+}
+
+void SEConnectSSDNAEditor::setConcatFlag(bool c) {
+
+	concatFlag = c;
 
 }
 
@@ -127,8 +127,11 @@ void SEConnectSSDNAEditor::beginEditing() {
 	const QString iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/cursor_connectSS.png");
 	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
 
-	display_ = false;
+	displayFlag = false;
 	start_ = nullptr;
+
+	previousSelectionFilter = SAMSON::getCurrentSelectionFilter();
+	SAMSON::setCurrentSelectionFilter("Any node");
   
 }
 
@@ -137,10 +140,13 @@ void SEConnectSSDNAEditor::endEditing() {
 	// SAMSON Element generator pro tip: SAMSON calls this function immediately before your editor becomes inactive (for example when another editor becomes active). 
 	// Implement this function if you need to clean some data structures.
 
-	display_ = false;
+	displayFlag = false;
 	start_ = nullptr;
 
 	SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
+
+	if (SAMSON::getCurrentSelectionFilter() == "Any node")
+		SAMSON::setCurrentSelectionFilter(previousSelectionFilter);
 
 	SAMSON::unsetViewportCursor();
 
@@ -159,7 +165,7 @@ void SEConnectSSDNAEditor::display() {
 	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop. 
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
 
-	if (display_ && start_.isValid()) {
+	if (displayFlag && start_.isValid()) {
 
 		SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
     
@@ -200,7 +206,7 @@ void SEConnectSSDNAEditor::mousePressEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-	if (event->buttons() == Qt::LeftButton && !display_) {
+	if (event->buttons() == Qt::LeftButton && !displayFlag) {
 
 		//check if a nucleotide got selected
 
@@ -223,7 +229,7 @@ void SEConnectSSDNAEditor::mousePressEvent(QMouseEvent* event) {
 			nucleotide->setHighlightingFlag(false);
 			nucleotide->setSelectionFlag(true);
 			start_ = nucleotide;
-			display_ = true;
+			displayFlag = true;
 
 			// TODO: connect start_ to base event
 
@@ -240,11 +246,11 @@ void SEConnectSSDNAEditor::mouseReleaseEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-	if (!display_) return;
+	if (!displayFlag) return;
   
 	if (start_.isValid() && event->button() == Qt::LeftButton) {
 
-		display_ = false;
+		displayFlag = false;
 
 		auto app = SEAdenitaCoreSEApp::getAdenitaApp();
 		auto nanorobot = app->GetNanorobot();
@@ -267,20 +273,20 @@ void SEConnectSSDNAEditor::mouseReleaseEvent(QMouseEvent* event) {
 			}
 			else {
 
-				bool two = (mode_ == ConnectionMode::Double);
+				bool two = (connectionMode == ConnectionMode::Double);
 
 				std::string seq = "";
-				if (concat_) {
+				if (concatFlag) {
 
-					if (!autoSequence_) {
+					if (!autoSequenceFlag) {
 
-						seq = sequence_;
+						seq = sequence;
 
 					}
 					else {
 
 						auto dist = (endNulecotide->GetBaseSegment()->GetPosition() - startNulecotide->GetBaseSegment()->GetPosition()).norm();
-						int length = round((dist / SBQuantity::nanometer(ADNConstants::BP_RISE)).getValue()) - 6;
+						const int length = round((dist / SBQuantity::nanometer(ADNConstants::BP_RISE)).getValue()) - 6;
 
 						for (int i = 0; i < length; ++i)
 							seq += "N";
@@ -313,7 +319,7 @@ void SEConnectSSDNAEditor::mouseMoveEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-	if (display_) {
+	if (displayFlag) {
 
 		//if (event->button() == Qt::LeftButton)
 			event->accept();

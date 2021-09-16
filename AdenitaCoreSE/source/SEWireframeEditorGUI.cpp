@@ -81,77 +81,77 @@ void SEWireframeEditorGUI::saveSettings( SBGSettings *settings ) {
 
 void SEWireframeEditorGUI::onTetrahedronClicked()
 {
-	editor->setWireframeType(DASCreator::Tetrahedron);
+	editor->setWireframeType(DASCreator::EditorType::Tetrahedron);
 }
 
 void SEWireframeEditorGUI::onCubeClicked()
 {
-	editor->setWireframeType(DASCreator::Cube);
+	editor->setWireframeType(DASCreator::EditorType::Cube);
 }
 
 void SEWireframeEditorGUI::onCuboidClicked()
 {
-	editor->setWireframeType(DASCreator::Cuboid);
+	editor->setWireframeType(DASCreator::EditorType::Cuboid);
 }
 
 void SEWireframeEditorGUI::onOctahedronClicked()
 {
-	editor->setWireframeType(DASCreator::Octahedron);
+	editor->setWireframeType(DASCreator::EditorType::Octahedron);
 }
 
 void SEWireframeEditorGUI::onDodecahedronClicked()
 {
-	editor->setWireframeType(DASCreator::Dodecahedron);
+	editor->setWireframeType(DASCreator::EditorType::Dodecahedron);
 }
 
 void SEWireframeEditorGUI::onCubocahedronClicked()
 {
-	editor->setWireframeType(DASCreator::Cubocahedron);
+	editor->setWireframeType(DASCreator::EditorType::Cubocahedron);
 }
 
 void SEWireframeEditorGUI::onIcosahedronClicked()
 {
-	editor->setWireframeType(DASCreator::Icosahedron);
+	editor->setWireframeType(DASCreator::EditorType::Icosahedron);
 }
 
 void SEWireframeEditorGUI::onIcosidodecahedronClicked()
 {
-	editor->setWireframeType(DASCreator::Icosidodecahedron);
+	editor->setWireframeType(DASCreator::EditorType::Icosidodecahedron);
 }
 
 void SEWireframeEditorGUI::onRhombicuboctahedronClicked()
 {
-	editor->setWireframeType(DASCreator::Rhombicuboctahedron);
+	editor->setWireframeType(DASCreator::EditorType::Rhombicuboctahedron);
 }
 
 void SEWireframeEditorGUI::onSnubCubeClicked()
 {
-	editor->setWireframeType(DASCreator::Snub_cube);
+	editor->setWireframeType(DASCreator::EditorType::Snub_cube);
 }
 
 void SEWireframeEditorGUI::onTruncatedCubeClicked()
 {
-	editor->setWireframeType(DASCreator::Truncated_cube);
+	editor->setWireframeType(DASCreator::EditorType::Truncated_cube);
 }
 
 void SEWireframeEditorGUI::onTruncatedCuboctahedronClicked()
 {
-	editor->setWireframeType(DASCreator::Truncated_cuboctahedron);
+	editor->setWireframeType(DASCreator::EditorType::Truncated_cuboctahedron);
 }
 
 void SEWireframeEditorGUI::onHelixClicked()
 {
-	editor->setWireframeType(DASCreator::Helix);
+	editor->setWireframeType(DASCreator::EditorType::Helix);
 }
 
 void SEWireframeEditorGUI::onStickmanClicked()
 {
-	editor->setWireframeType(DASCreator::Stickman);
+	editor->setWireframeType(DASCreator::EditorType::Stickman);
 }
 
 void SEWireframeEditorGUI::onBunnyClicked()
 {
-	editor->setWireframeType(DASCreator::Bunny);
+	editor->setWireframeType(DASCreator::EditorType::Bunny);
 }
 
 SBCContainerUUID SEWireframeEditorGUI::getUUID() const { return SBCContainerUUID( "3A914FAF-691B-B3A1-3B91-58E77E7CCC6D" );}

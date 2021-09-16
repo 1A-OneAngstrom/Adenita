@@ -111,20 +111,22 @@ public :
 
 	//@}
 
-	void														SetMode(bool xo);
-	void														SetSequence(std::string seq);
-	void														SetAutoSequence(bool s);
-	void														SetConcat(bool c);
+	void														setConnectionMode(bool xo);
+	void														setSequence(std::string seq);
+	void														setAutoSequenceFlag(bool s);
+	void														setConcatFlag(bool c);
 
 private:
 
-	bool														display_ = false;
+	bool														displayFlag = false;
 	ADNPointer<ADNNucleotide>									start_;
 
-	ConnectionMode												mode_ = ConnectionMode::Single;
-	std::string													sequence_ = "";
-	bool														concat_ = false;
-	bool														autoSequence_ = false;
+	ConnectionMode												connectionMode = ConnectionMode::Single;
+	std::string													sequence = "";
+	bool														concatFlag = false;
+	bool														autoSequenceFlag = false;
+
+	std::string													previousSelectionFilter;
 
 };
 

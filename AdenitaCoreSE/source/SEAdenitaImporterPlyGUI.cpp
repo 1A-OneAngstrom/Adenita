@@ -1,8 +1,10 @@
 #include "SEAdenitaImporterPlyGUI.hpp"
 #include "SEAdenitaImporterPly.hpp"
+#include "ADNAuxiliary.hpp"
+
 #include "SAMSON.hpp"
 #include "SBGWindow.hpp"
-#include <QShortcut>
+
 
 SEAdenitaImporterPlyGUI::SEAdenitaImporterPlyGUI( SEAdenitaImporterPly* t ) : SBGFileImporter( t ) {
 
@@ -69,9 +71,6 @@ QString SEAdenitaImporterPlyGUI::getCitation() const {
 
 	// SAMSON Element generator pro tip: modify this function to add citation information
 
-	return
-		"If you use this importer in your work, please cite: <br/>"
-		"<br/>"
-		"[1] <a href=\"https://www.samson-connect.net\">https://www.samson-connect.net</a><br/>";
+	return ADNAuxiliary::AdenitaCitation();
 
 }

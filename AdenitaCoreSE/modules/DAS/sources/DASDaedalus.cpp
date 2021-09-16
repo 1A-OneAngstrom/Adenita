@@ -399,7 +399,7 @@ void DASDaedalus::CreateEdgeStaples(ADNPointer<ADNPart> origami) {
     int staple_length = edge_staple_span_;
     int num_staples = floor(aval_length / edge_staple_span_);
     // dirty fix for 31bp
-    if (c_type == kSingleXO) {
+    if (c_type == CrossoverType::kSingleXO) {
       num_staples = 1;
       staple_length = 10;
     }
@@ -446,7 +446,7 @@ void DASDaedalus::CreateEdgeStaples(ADNPointer<ADNPart> origami) {
         // Place crossover now
         int span_pos;
         int span_neg;
-        if (c_type == kDoubleXO) {
+        if (c_type == CrossoverType::kDoubleXO) {
           span_pos = 16;
           span_neg = 5;
           ADNPointer<ADNBaseSegment> bs_start = AdvanceBaseSegment((*lit)->firstBase_, start + span_pos);
@@ -485,10 +485,10 @@ void DASDaedalus::CreateEdgeStaples(ADNPointer<ADNPart> origami) {
 CrossoverType DASDaedalus::GetCrossoverType(int edge_length) {
   CrossoverType t;
   if (edge_length < 42) {
-    t = kSingleXO;
+    t = CrossoverType::kSingleXO;
   }
   else {
-    t = kDoubleXO;
+    t = CrossoverType::kDoubleXO;
   }
   return t;
 }
