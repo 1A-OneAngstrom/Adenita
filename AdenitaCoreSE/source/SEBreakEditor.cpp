@@ -24,9 +24,9 @@ SEBreakEditor::~SEBreakEditor() {
 
 SEBreakEditorGUI* SEBreakEditor::getPropertyWidget() const { return static_cast<SEBreakEditorGUI*>(propertyWidget); }
 
-void SEBreakEditor::SetMode(bool fivePrimeModeFlag) {
+void SEBreakEditor::setFivePrimeModeFlag(bool fivePrimeModeFlag) {
 
-	fivePrimeMode_ = fivePrimeModeFlag;
+	this->fivePrimeModeFlag = fivePrimeModeFlag;
 
 }
 
@@ -104,6 +104,9 @@ void SEBreakEditor::beginEditing() {
 	const QString iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/break.png");
 	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
 
+	previousSelectionFilter = SAMSON::getCurrentSelectionFilter();
+	SAMSON::setCurrentSelectionFilter("Any node");
+
 }
 
 void SEBreakEditor::endEditing() {
@@ -112,6 +115,9 @@ void SEBreakEditor::endEditing() {
 	// Implement this function if you need to clean some data structures.
 
 	SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
+
+	if (SAMSON::getCurrentSelectionFilter() == "Any node")
+		SAMSON::setCurrentSelectionFilter(previousSelectionFilter);
 
 	SAMSON::unsetViewportCursor();
 
@@ -189,7 +195,7 @@ void SEBreakEditor::mousePressEvent(QMouseEvent* event) {
 		}
 		else {
 
-			app->BreakSingleStrand(fivePrimeMode_);
+			app->BreakSingleStrand(fivePrimeModeFlag);
 
 		}
 
@@ -238,29 +244,5 @@ void SEBreakEditor::keyReleaseEvent(QKeyEvent* event) {
 
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
-
-}
-
-void SEBreakEditor::onBaseEvent(SBBaseEvent* baseEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle base events
-
-}
-
-void SEBreakEditor::onDocumentEvent(SBDocumentEvent* documentEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle document events 
-
-}
-
-void SEBreakEditor::onDynamicalEvent(SBDynamicalEvent* dynamicalEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle dynamical events 
-
-}
-
-void SEBreakEditor::onStructuralEvent(SBStructuralEvent* documentEvent) {
-	
-	// SAMSON Element generator pro tip: implement this function if you need to handle structural events
 
 }

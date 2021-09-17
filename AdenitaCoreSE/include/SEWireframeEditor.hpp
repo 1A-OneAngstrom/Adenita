@@ -90,16 +90,6 @@ public :
 
 	//@}
 
-	/// \name SAMSON Events
-	//@{
-
-	virtual void												onBaseEvent(SBBaseEvent* baseEvent);									///< Handles base events
-	virtual void												onDynamicalEvent(SBDynamicalEvent* dynamicalEvent);						///< Handles dynamical events
-	virtual void												onDocumentEvent(SBDocumentEvent* documentEvent);						///< Handles document events
-	virtual void												onStructuralEvent(SBStructuralEvent* documentEvent);					///< Handles structural events
-
-	//@}
-
 	/// \name GUI
 	//@{
 
@@ -124,7 +114,7 @@ private:
 	ADNPointer<ADNPart>											CreateMockDaedalusWireframe(DASPolyhedron& polyhedron, int min_edge_length);
 
 	DASCreatorEditors::UIData									positions_;
-	bool														display_ = false;
+	bool														displayFlag = false;
 	ADNPointer<ADNPart>											tempPart_ = nullptr;
 	DASCreator::EditorType										wireframeType_ = DASCreator::EditorType::Tetrahedron;
 

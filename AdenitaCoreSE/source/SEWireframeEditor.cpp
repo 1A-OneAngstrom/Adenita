@@ -161,129 +161,136 @@ ADNPointer<ADNPart> SEWireframeEditor::generateCuboid(bool mock /*= false*/) {
 
 }
 
-ADNPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock)
-{
-  auto radius = (positions_.SecondPosition - positions_.FirstPosition).norm();
-  unsigned int numNucleotides;
+ADNPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock) {
 
-  ADNPointer<ADNPart> part = nullptr;
-  std::string filename;
-  if (wireframeType_ == DASCreator::EditorType::Tetrahedron) {
-    part = new ADNPart();
+    auto radius = (positions_.SecondPosition - positions_.FirstPosition).norm();
+    unsigned int numNucleotides = 0;
+
+    ADNPointer<ADNPart> part = nullptr;
+    std::string filename = std::string();
+
     double a = sqrt(pow(radius.getValue(), 2) * 2);
-    numNucleotides = a / (ADNConstants::BP_RISE * 1000) * 1.3;
-    filename = SB_ELEMENT_PATH + "/Data/01_tetrahedron.ply";
 
-  } else if (wireframeType_ == DASCreator::EditorType::Cube) {
-    part = new ADNPart();
-    double a = sqrt(pow(radius.getValue(), 2) * 2);
-    numNucleotides = a / (ADNConstants::BP_RISE * 1000);
-    filename = SB_ELEMENT_PATH + "/Data/02_cube.ply";
-  } else if (wireframeType_ == DASCreator::EditorType::Octahedron) {
-    part = new ADNPart();
-    double a = sqrt(pow(radius.getValue(), 2) * 2);
-    numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
-    filename = SB_ELEMENT_PATH + "/Data/03_octahedron.ply";
-  }
-  else if (wireframeType_ == DASCreator::EditorType::Dodecahedron) {
-    part = new ADNPart();
-    double a = sqrt(pow(radius.getValue(), 2) * 2) / 2;
-    numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
-    filename = SB_ELEMENT_PATH + "/Data/04_dodecahedron.ply";
-  }
-  else if (wireframeType_ == DASCreator::EditorType::Icosahedron) {
-    part = new ADNPart();
-    double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
-    numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
-    filename = SB_ELEMENT_PATH + "/Data/05_icosahedron.ply";
-  }
-  else if (wireframeType_ == DASCreator::EditorType::Icosahedron) {
-    part = new ADNPart();
-    double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
-    numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
-    filename = SB_ELEMENT_PATH + "/Data/05_icosahedron.ply";
-  }
-  else if (wireframeType_ == DASCreator::EditorType::Cubocahedron) {
-    part = new ADNPart();
-    double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
-    numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
-    filename = SB_ELEMENT_PATH + "/Data/06_cuboctahedron.ply";
-  }
-  else if (wireframeType_ == DASCreator::EditorType::Icosidodecahedron) {
-    part = new ADNPart();
-    double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
-    numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
-    filename = SB_ELEMENT_PATH + "/Data/07_icosidodecahedron.ply";
-  }
-  else if (wireframeType_ == DASCreator::EditorType::Rhombicuboctahedron) {
-    part = new ADNPart();
-    double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
-    numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
-    filename = SB_ELEMENT_PATH + "/Data/08_rhombicuboctahedron.ply";
-  }
-  else if (wireframeType_ == DASCreator::EditorType::Snub_cube) {
-    part = new ADNPart();
-    double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
-    numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
-    filename = SB_ELEMENT_PATH + "/Data/09_snub_cube.ply";
-  }
-  else if (wireframeType_ == DASCreator::EditorType::Truncated_cube) {
-    part = new ADNPart();
-    double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
-    numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
-    filename = SB_ELEMENT_PATH + "/Data/10_truncated_cube.ply";
-  }
-  else if (wireframeType_ == DASCreator::EditorType::Truncated_cuboctahedron) {
-    part = new ADNPart();
-    double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
-    numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
-    filename = SB_ELEMENT_PATH + "/Data/11_truncated_cuboctahedron.ply";
-  }
-  else if (wireframeType_ == DASCreator::EditorType::Helix) {
-    part = new ADNPart();
-    double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
-    numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
-    filename = SB_ELEMENT_PATH + "/Data/49_helix.ply";
-  }
-  else if (wireframeType_ == DASCreator::EditorType::Stickman) {
-    part = new ADNPart();
-    double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
-    numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
-    filename = SB_ELEMENT_PATH + "/Data/51_stickman.ply";
-  }
-  else if (wireframeType_ == DASCreator::EditorType::Bottle) {
-    part = new ADNPart();
-    double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
-    numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
-    filename = SB_ELEMENT_PATH + "/Data/52_bottle.ply";
-  }
-  else if (wireframeType_ == DASCreator::EditorType::Bunny) {
-    part = new ADNPart();
-    double a = sqrt(pow(radius.getValue(), 2) * 2) / 4;
-    numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
-    filename = SB_ELEMENT_PATH + "/Data/53_bunny.ply";
-  }
-  int min_edge_size = 31;
-  if (numNucleotides > 31) {
-    int quot;
-    remquo(numNucleotides, 10.5, &quot);
-    min_edge_size = int(std::floor(float(quot * 10.5)));
-  }
+    if (wireframeType_ == DASCreator::EditorType::Tetrahedron) {
+        part = new ADNPart();
+        numNucleotides = a / (ADNConstants::BP_RISE * 1000) * 1.3;
+        filename = SB_ELEMENT_PATH + "/Data/01_tetrahedron.ply";
+    }
+    else if (wireframeType_ == DASCreator::EditorType::Cube) {
+        part = new ADNPart();
+        numNucleotides = a / (ADNConstants::BP_RISE * 1000);
+        filename = SB_ELEMENT_PATH + "/Data/02_cube.ply";
+    }
+    else if (wireframeType_ == DASCreator::EditorType::Octahedron) {
+        part = new ADNPart();
+        numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
+        filename = SB_ELEMENT_PATH + "/Data/03_octahedron.ply";
+    }
+    else if (wireframeType_ == DASCreator::EditorType::Dodecahedron) {
+        part = new ADNPart();
+        a /= 2;
+        numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
+        filename = SB_ELEMENT_PATH + "/Data/04_dodecahedron.ply";
+    }
+    else if (wireframeType_ == DASCreator::EditorType::Icosahedron) {
+        part = new ADNPart();
+        a /= 4;
+        numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
+        filename = SB_ELEMENT_PATH + "/Data/05_icosahedron.ply";
+    }
+    else if (wireframeType_ == DASCreator::EditorType::Cubocahedron) {
+        part = new ADNPart();
+        a /= 4;
+        numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
+        filename = SB_ELEMENT_PATH + "/Data/06_cuboctahedron.ply";
+    }
+    else if (wireframeType_ == DASCreator::EditorType::Icosidodecahedron) {
+        part = new ADNPart();
+        a /= 4;
+        numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
+        filename = SB_ELEMENT_PATH + "/Data/07_icosidodecahedron.ply";
+    }
+    else if (wireframeType_ == DASCreator::EditorType::Rhombicuboctahedron) {
+        part = new ADNPart();
+        a /= 4;
+        numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
+        filename = SB_ELEMENT_PATH + "/Data/08_rhombicuboctahedron.ply";
+    }
+    else if (wireframeType_ == DASCreator::EditorType::Snub_cube) {
+        part = new ADNPart();
+        a /= 4;
+        numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
+        filename = SB_ELEMENT_PATH + "/Data/09_snub_cube.ply";
+    }
+    else if (wireframeType_ == DASCreator::EditorType::Truncated_cube) {
+        part = new ADNPart();
+        a /= 4;
+        numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
+        filename = SB_ELEMENT_PATH + "/Data/10_truncated_cube.ply";
+    }
+    else if (wireframeType_ == DASCreator::EditorType::Truncated_cuboctahedron) {
+        part = new ADNPart();
+        a /= 4;
+        numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
+        filename = SB_ELEMENT_PATH + "/Data/11_truncated_cuboctahedron.ply";
+    }
+    else if (wireframeType_ == DASCreator::EditorType::Helix) {
+        part = new ADNPart();
+        a /= 4;
+        numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
+        filename = SB_ELEMENT_PATH + "/Data/49_helix.ply";
+    }
+    else if (wireframeType_ == DASCreator::EditorType::Stickman) {
+        part = new ADNPart();
+        a /= 4;
+        numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
+        filename = SB_ELEMENT_PATH + "/Data/51_stickman.ply";
+    }
+    else if (wireframeType_ == DASCreator::EditorType::Bottle) {
+        part = new ADNPart();
+        a /= 4;
+        numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
+        filename = SB_ELEMENT_PATH + "/Data/52_bottle.ply";
+    }
+    else if (wireframeType_ == DASCreator::EditorType::Bunny) {
+        part = new ADNPart();
+        a /= 4;
+        numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
+        filename = SB_ELEMENT_PATH + "/Data/53_bunny.ply";
+    }
 
-  DASPolyhedron polyhedron = DASPolyhedron(filename);
-  polyhedron.Center(positions_.FirstPosition);
+    int min_edge_size = 31;
+    if (numNucleotides > 31) {
 
-  if (mock) {
-    part = CreateMockDaedalusWireframe(polyhedron, min_edge_size);
-  }
-  else {
-    DASDaedalus *alg = new DASDaedalus();
-    alg->SetMinEdgeLength(min_edge_size);
-    std::string seq = "";
-    part = alg->ApplyAlgorithm(seq, polyhedron, false, true);
-  }
+        int quot;
+        remquo(numNucleotides, 10.5, &quot);
+        min_edge_size = int(std::floor(float(quot * 10.5)));
 
-  return part;
+    }
+
+    if (filename.size()) if (QFileInfo::exists(QString::fromStdString(filename))) {
+
+        DASPolyhedron polyhedron = DASPolyhedron(filename);
+        polyhedron.Center(positions_.FirstPosition);
+
+        if (mock) {
+
+            part = CreateMockDaedalusWireframe(polyhedron, min_edge_size);
+
+        }
+        else {
+
+            DASDaedalus* alg = new DASDaedalus();
+            alg->SetMinEdgeLength(min_edge_size);
+            std::string seq = "";
+            part = alg->ApplyAlgorithm(seq, polyhedron, false, true);
+
+        }
+
+    }
+
+    return part;
+
 }
 
 void SEWireframeEditor::sendPartToAdenita(ADNPointer<ADNPart> part) {
@@ -331,8 +338,7 @@ QPixmap SEWireframeEditor::getLogo() const {
 
 }
 
-int SEWireframeEditor::getFormat() const
-{
+int SEWireframeEditor::getFormat() const {
 
 	// SAMSON Element generator pro tip: modify these default settings to configure the window
 	//
@@ -419,70 +425,82 @@ void SEWireframeEditor::display() {
 
     SEConfig& config = SEConfig::GetInstance();
 
-    if (!display_) return;
+    if (!displayFlag) return;
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
 
-  if (wireframeType_ == DASCreator::EditorType::Cuboid) {
-    if (positions_.positionsCounter < 3) {
-      SBVector3 xDir(1.0, 0.0, 0.0);
-      SBVector3 yDir(0.0, 1.0, 0.0);
-      SBVector3 zDir(0.0, 0.0, 1.0);
+    if (wireframeType_ == DASCreator::EditorType::Cuboid) {
 
-      if (positions_.positionsCounter == 1) {
-        SBQuantity::length radius = (currentPosition - positions_.FirstPosition).norm();
-        SBQuantity::length side = 2 * radius;
-        auto xySide = DASDaedalus::CalculateEdgeSize(side);
-        SBPosition3 xPos = positions_.FirstPosition + SBQuantity::nanometer(xySide*ADNConstants::BP_RISE)*xDir;
-        SBPosition3 yPos = positions_.FirstPosition - SBQuantity::nanometer(xySide*ADNConstants::BP_RISE)*yDir;
+        if (positions_.positionsCounter < 3) {
 
-        std::string xyText = std::to_string(xySide) + " bp";
-        ADNDisplayHelper::displayLine(positions_.FirstPosition, xPos, xyText);
-        ADNDisplayHelper::displayLine(positions_.FirstPosition, yPos, xyText);
-        if (config.preview_editor) tempPart_ = generateCuboid(true);
-        ADNDisplayHelper::displayPart(tempPart_);
-      }
-      else if (positions_.positionsCounter == 2) {
-        SBQuantity::length radius = (positions_.SecondPosition - positions_.FirstPosition).norm();
-        SBQuantity::length side = 2 * radius;
-        auto xySide = DASDaedalus::CalculateEdgeSize(side);
-        auto zLength = DASDaedalus::CalculateEdgeSize((currentPosition - positions_.SecondPosition).norm());
-        SBPosition3 xPos = positions_.FirstPosition + SBQuantity::nanometer(xySide*ADNConstants::BP_RISE)*xDir;
-        SBPosition3 yPos = positions_.FirstPosition - SBQuantity::nanometer(xySide*ADNConstants::BP_RISE)*yDir;
-        SBPosition3 zPos = positions_.FirstPosition - SBQuantity::nanometer(zLength*ADNConstants::BP_RISE) *zDir;
+            SBVector3 xDir(1.0, 0.0, 0.0);
+            SBVector3 yDir(0.0, 1.0, 0.0);
+            SBVector3 zDir(0.0, 0.0, 1.0);
 
-        std::string xyText = std::to_string(xySide) + " bp";
-        std::string zText = std::to_string(zLength) + " bp";
-        ADNDisplayHelper::displayLine(positions_.FirstPosition, xPos, xyText);
-        ADNDisplayHelper::displayLine(positions_.FirstPosition, yPos, xyText);
-        ADNDisplayHelper::displayLine(positions_.FirstPosition, zPos, zText);
+            if (positions_.positionsCounter == 1) {
 
-        positions_.ThirdPosition = currentPosition;
+                SBQuantity::length radius = (currentPosition - positions_.FirstPosition).norm();
+                SBQuantity::length side = 2 * radius;
+                auto xySide = DASDaedalus::CalculateEdgeSize(side);
+                SBPosition3 xPos = positions_.FirstPosition + SBQuantity::nanometer(xySide*ADNConstants::BP_RISE)*xDir;
+                SBPosition3 yPos = positions_.FirstPosition - SBQuantity::nanometer(xySide*ADNConstants::BP_RISE)*yDir;
 
-        if (config.preview_editor) tempPart_ = generateCuboid(true);
-        ADNDisplayHelper::displayPart(tempPart_);
+                std::string xyText = std::to_string(xySide) + " bp";
+                ADNDisplayHelper::displayLine(positions_.FirstPosition, xPos, xyText);
+                ADNDisplayHelper::displayLine(positions_.FirstPosition, yPos, xyText);
+                if (config.preview_editor) tempPart_ = generateCuboid(true);
+                ADNDisplayHelper::displayPart(tempPart_);
 
-      }
-    }
-  }
-  else {
-    if (positions_.positionsCounter == 1) {
-      ADNDisplayHelper::displayLine(positions_.FirstPosition, currentPosition);
-      positions_.SecondPosition = currentPosition;
-    }
+            }
+            else if (positions_.positionsCounter == 2) {
 
-    if (config.preview_editor) {
-      tempPart_ = generateWireframe(true);
-      ADNDisplayHelper::displayPart(tempPart_, 1000.0f, 1.0f);
-    }
+                SBQuantity::length radius = (positions_.SecondPosition - positions_.FirstPosition).norm();
+                SBQuantity::length side = 2 * radius;
+                auto xySide = DASDaedalus::CalculateEdgeSize(side);
+                auto zLength = DASDaedalus::CalculateEdgeSize((currentPosition - positions_.SecondPosition).norm());
+                SBPosition3 xPos = positions_.FirstPosition + SBQuantity::nanometer(xySide*ADNConstants::BP_RISE)*xDir;
+                SBPosition3 yPos = positions_.FirstPosition - SBQuantity::nanometer(xySide*ADNConstants::BP_RISE)*yDir;
+                SBPosition3 zPos = positions_.FirstPosition - SBQuantity::nanometer(zLength*ADNConstants::BP_RISE) *zDir;
 
-    if (tempPart_ != nullptr) {
+                std::string xyText = std::to_string(xySide) + " bp";
+                std::string zText = std::to_string(zLength) + " bp";
+                ADNDisplayHelper::displayLine(positions_.FirstPosition, xPos, xyText);
+                ADNDisplayHelper::displayLine(positions_.FirstPosition, yPos, xyText);
+                ADNDisplayHelper::displayLine(positions_.FirstPosition, zPos, zText);
+
+                positions_.ThirdPosition = currentPosition;
+
+                if (config.preview_editor) tempPart_ = generateCuboid(true);
+                ADNDisplayHelper::displayPart(tempPart_);
+
+            }
+
+        }
 
     }
-  }
+    else {
+
+        if (positions_.positionsCounter == 1) {
+
+            ADNDisplayHelper::displayLine(positions_.FirstPosition, currentPosition);
+            positions_.SecondPosition = currentPosition;
+
+        }
+
+        if (config.preview_editor) {
+
+            tempPart_ = generateWireframe(true);
+            ADNDisplayHelper::displayPart(tempPart_, 1000.0f, 1.0f);
+
+        }
+
+        if (tempPart_ != nullptr) {
+        }
+
+    }
 
 	glDisable(GL_BLEND);
 	glDisable(GL_DEPTH_TEST);
@@ -511,34 +529,43 @@ void SEWireframeEditor::mousePressEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
   
-  if (wireframeType_ == DASCreator::EditorType::Cuboid) {
-    if (positions_.positionsCounter == 0) {
-      positions_.FirstPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
-      positions_.positionsCounter++;
+    if (wireframeType_ == DASCreator::EditorType::Cuboid) {
+
+        if (positions_.positionsCounter == 0) {
+
+            positions_.FirstPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+            positions_.positionsCounter++;
+
+        }
+        else if (positions_.positionsCounter == 2) {
+
+            positions_.ThirdPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+            positions_.positionsCounter++;
+
+            ADNPointer<ADNPart> part = generateCuboid();
+
+            sendPartToAdenita(part);
+            DASCreatorEditors::resetPositions(positions_);
+            displayFlag = false;
+            tempPart_ == nullptr;
+
+        }
+
     }
-    else if (positions_.positionsCounter == 2) {
-      positions_.ThirdPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
-      positions_.positionsCounter++;
+    else {
 
-      ADNPointer<ADNPart> part = generateCuboid();
+        if (positions_.positionsCounter == 0) {
 
-      sendPartToAdenita(part);
-      DASCreatorEditors::resetPositions(positions_);
-      display_ = false;
-      tempPart_ == nullptr;
+            positions_.FirstPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+            positions_.positionsCounter++;
+
+            positions_.FirstVector = SAMSON::getActiveCamera()->getBasisZ().normalizedVersion();
+            positions_.vectorsCounter++;
+
+        }
 
     }
-  }
-  else {
 
-    if (positions_.positionsCounter == 0) {
-      positions_.FirstPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
-      positions_.positionsCounter++;
-
-      positions_.FirstVector = SAMSON::getActiveCamera()->getBasisZ().normalizedVersion();
-      positions_.vectorsCounter++;
-    }
-  }
 }
 
 void SEWireframeEditor::mouseReleaseEvent(QMouseEvent* event) {
@@ -546,23 +573,30 @@ void SEWireframeEditor::mouseReleaseEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-  if (wireframeType_ == DASCreator::EditorType::Cuboid) {
-    positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
-    positions_.positionsCounter++;
-  }
-  else {
-    if (positions_.positionsCounter == 1) {
-      positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
-      positions_.positionsCounter++;
+    if (wireframeType_ == DASCreator::EditorType::Cuboid) {
 
-      ADNPointer<ADNPart> part = generateWireframe();
+        positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+        positions_.positionsCounter++;
 
-      sendPartToAdenita(part);
-      DASCreatorEditors::resetPositions(positions_);
-      display_ = false;
-      tempPart_ == nullptr;
     }
-  }
+    else {
+
+        if (positions_.positionsCounter == 1) {
+
+            positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+            positions_.positionsCounter++;
+
+            ADNPointer<ADNPart> part = generateWireframe();
+
+            sendPartToAdenita(part);
+            DASCreatorEditors::resetPositions(positions_);
+            displayFlag = false;
+            tempPart_ == nullptr;
+
+        }
+
+    }
+
 }
 
 void SEWireframeEditor::mouseMoveEvent(QMouseEvent* event) {
@@ -572,7 +606,7 @@ void SEWireframeEditor::mouseMoveEvent(QMouseEvent* event) {
 
     if (event->buttons() == Qt::LeftButton) {
 
-        display_ = true;
+        displayFlag = true;
         event->accept();
 
         if (wireframeType_ == DASCreator::EditorType::Cuboid)
@@ -605,7 +639,7 @@ void SEWireframeEditor::keyPressEvent(QKeyEvent* event) {
 
 	if (event->key() == Qt::Key_Escape) {
 
-		display_ = false;
+		displayFlag = false;
 		DASCreatorEditors::resetPositions(positions_);
         event->accept();
 		SAMSON::requestViewportUpdate();
@@ -618,29 +652,5 @@ void SEWireframeEditor::keyReleaseEvent(QKeyEvent* event) {
 
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
-
-}
-
-void SEWireframeEditor::onBaseEvent(SBBaseEvent* baseEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle base events
-
-}
-
-void SEWireframeEditor::onDocumentEvent(SBDocumentEvent* documentEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle document events 
-
-}
-
-void SEWireframeEditor::onDynamicalEvent(SBDynamicalEvent* dynamicalEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle dynamical events 
-
-}
-
-void SEWireframeEditor::onStructuralEvent(SBStructuralEvent* documentEvent) {
-	
-	// SAMSON Element generator pro tip: implement this function if you need to handle structural events
 
 }

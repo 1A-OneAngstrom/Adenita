@@ -85,7 +85,7 @@ ADNPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*
 	xyText_ += std::to_string(int(xNumStrands));
 	xyText_ += " ds / ";
 	auto xLen = SBQuantity::nanometer(x).getValue();
-	if (lType_ == LatticeType::Honeycomb)
+	if (latticeType == LatticeType::Honeycomb)
 		xLen *= 1.5;
 	xyText_ += std::to_string(int(xLen));
 	xyText_ += " nm; ";
@@ -255,7 +255,7 @@ void SELatticeCreatorEditor::resetData() {
 	firstPosition = SBPosition3();
 	secondPosition = SBPosition3();
 	thirdPosition = SBPosition3();
-	display_ = false;
+	displayFlag = false;
 	tempPart_ == nullptr;
 
 }
@@ -275,7 +275,7 @@ void SELatticeCreatorEditor::display() {
 
 	SEConfig& config = SEConfig::GetInstance();
 
-	if (display_) {
+	if (displayFlag) {
 
 		const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
 
@@ -343,7 +343,7 @@ void SELatticeCreatorEditor::mousePressEvent(QMouseEvent* event) {
 	/*
 	* The Flow should be the same as the flow for the DNA Nanotube creator:
 	* 1st mousePressEvent - set the first position and temporary second and third positions, set isPressing = true
-	* mouseMoveEvent - update the temporary second and third positions to display the mock up, set display_ = true
+	* mouseMoveEvent - update the temporary second and third positions to display the mock up, set displayFlag = true
 	* 1st mouseReleaseEvent - set the second position - the first dimension is set
 	* mouseMoveEvent - update the temporary third position to display the mock up
 	* 2nd mouseReleaseEvent - set the third position and generate the nanotube, then clean/reset the data
@@ -386,7 +386,7 @@ void SELatticeCreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-	if (!display_) return;
+	if (!displayFlag) return;
 
 	if (lengthSelected) event->accept();
 	if (!isPressing) return;
@@ -445,7 +445,7 @@ void SELatticeCreatorEditor::mouseMoveEvent(QMouseEvent* event) {
 
 	}
 
-	if (isPressing && hasLeftButton) display_ = true;
+	if (isPressing && hasLeftButton) displayFlag = true;
 
 	if (!hasMidButton && !hasLeftButton && !hasRightButton) {
 
@@ -499,7 +499,7 @@ void SELatticeCreatorEditor::keyPressEvent(QKeyEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-	if (display_) {
+	if (displayFlag) {
 
 		if (event->key() == Qt::Key::Key_Escape) {
 
@@ -546,34 +546,10 @@ void SELatticeCreatorEditor::keyReleaseEvent(QKeyEvent* event) {
 
 }
 
-void SELatticeCreatorEditor::onBaseEvent(SBBaseEvent* baseEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle base events
-
-}
-
-void SELatticeCreatorEditor::onDocumentEvent(SBDocumentEvent* documentEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle document events 
-
-}
-
-void SELatticeCreatorEditor::onDynamicalEvent(SBDynamicalEvent* dynamicalEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle dynamical events 
-
-}
-
-void SELatticeCreatorEditor::onStructuralEvent(SBStructuralEvent* documentEvent) {
-	
-	// SAMSON Element generator pro tip: implement this function if you need to handle structural events
-
-}
-
 void SELatticeCreatorEditor::setLatticeType(LatticeType type) {
 
 	vGrid_.CreateLattice(type);
-	lType_ = type;
+	latticeType = type;
 	SAMSON::getActiveCamera()->rightView();
 
 }

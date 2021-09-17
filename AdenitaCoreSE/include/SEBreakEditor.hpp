@@ -87,16 +87,6 @@ public :
 
 	//@}
 
-	/// \name SAMSON Events
-	//@{
-
-	virtual void												onBaseEvent(SBBaseEvent* baseEvent);									///< Handles base events
-	virtual void												onDynamicalEvent(SBDynamicalEvent* dynamicalEvent);						///< Handles dynamical events
-	virtual void												onDocumentEvent(SBDocumentEvent* documentEvent);						///< Handles document events
-	virtual void												onStructuralEvent(SBStructuralEvent* documentEvent);					///< Handles structural events
-
-	//@}
-
 	/// \name GUI
 	//@{
 
@@ -104,11 +94,13 @@ public :
 
 	//@}
 
-	void														SetMode(bool fivePrimeModeFlag);
+	void														setFivePrimeModeFlag(bool fivePrimeModeFlag);
 
 private:
 
-	bool														fivePrimeMode_ = true;
+	bool														fivePrimeModeFlag = true;
+
+	std::string													previousSelectionFilter;
 
 };
 

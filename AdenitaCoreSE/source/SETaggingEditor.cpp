@@ -247,30 +247,6 @@ void SETaggingEditor::keyReleaseEvent(QKeyEvent* event) {
 
 }
 
-void SETaggingEditor::onBaseEvent(SBBaseEvent* baseEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle base events
-
-}
-
-void SETaggingEditor::onDocumentEvent(SBDocumentEvent* documentEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle document events 
-
-}
-
-void SETaggingEditor::onDynamicalEvent(SBDynamicalEvent* dynamicalEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle dynamical events 
-
-}
-
-void SETaggingEditor::onStructuralEvent(SBStructuralEvent* documentEvent) {
-	
-	// SAMSON Element generator pro tip: implement this function if you need to handle structural events
-
-}
-
 ADNPointer<ADNNucleotide> SETaggingEditor::GetHighlightedNucleotide() {
 
 	ADNPointer<ADNNucleotide> nucleotide = nullptr;

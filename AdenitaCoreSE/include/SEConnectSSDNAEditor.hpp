@@ -94,16 +94,6 @@ public :
 
 	//@}
 
-	/// \name SAMSON Events
-	//@{
-
-	virtual void												onBaseEvent(SBBaseEvent* baseEvent);									///< Handles base events
-	virtual void												onDynamicalEvent(SBDynamicalEvent* dynamicalEvent);						///< Handles dynamical events
-	virtual void												onDocumentEvent(SBDocumentEvent* documentEvent);						///< Handles document events
-	virtual void												onStructuralEvent(SBStructuralEvent* documentEvent);					///< Handles structural events
-
-	//@}
-
 	/// \name GUI
 	//@{
 
@@ -116,10 +106,34 @@ public :
 	void														setAutoSequenceFlag(bool s);
 	void														setConcatFlag(bool c);
 
+	void														resetData();
+
+protected:
+
+	/// \name SAMSON Events
+	//@{
+
+	class Observer : public SBCReferenceTarget {
+
+		Observer(SEConnectSSDNAEditor* editor) { this->editor = editor; }
+		virtual ~Observer() {}
+
+		friend class SEConnectSSDNAEditor;
+
+		void														onBaseEvent(SBBaseEvent* event);
+
+		SEConnectSSDNAEditor*										editor{ nullptr };
+
+	};
+
+	SBPointer<Observer>											observer;
+
+	//@}
+
 private:
 
 	bool														displayFlag = false;
-	ADNPointer<ADNNucleotide>									start_;
+	ADNPointer<ADNNucleotide>									selectedStartNucleotide;
 
 	ConnectionMode												connectionMode = ConnectionMode::Single;
 	std::string													sequence = "";

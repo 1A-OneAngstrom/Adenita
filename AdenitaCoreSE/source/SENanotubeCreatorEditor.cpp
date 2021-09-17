@@ -24,9 +24,9 @@ SENanotubeCreatorEditor::~SENanotubeCreatorEditor() {
 
 SENanotubeCreatorEditorGUI* SENanotubeCreatorEditor::getPropertyWidget() const { return static_cast<SENanotubeCreatorEditorGUI*>(propertyWidget); }
 
-void SENanotubeCreatorEditor::SetRouting(RoutingType t) {
+void SENanotubeCreatorEditor::setRoutingType(RoutingType t) {
 
-	routing_ = t;
+	routingType = t;
 
 }
 
@@ -237,7 +237,7 @@ void SENanotubeCreatorEditor::resetData() {
 	firstPosition = SBPosition3();
 	secondPosition = SBPosition3();
 	thirdPosition = SBPosition3();
-	display_ = false;
+	displayFlag = false;
 	tempPart_ == nullptr;
 
 }
@@ -257,7 +257,7 @@ void SENanotubeCreatorEditor::display() {
 
 	SEConfig& config = SEConfig::GetInstance();
 
-	if (display_) {
+	if (displayFlag) {
 
 		const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
 
@@ -320,7 +320,7 @@ void SENanotubeCreatorEditor::mousePressEvent(QMouseEvent* event) {
 	/*
 	* The Flow should be the same as for the Carbon Nanotube creator:
 	* 1st mousePressEvent - set the first position and temporary second position, set isPressing = true
-	* mouseMoveEvent - update the temporary second position to display the mock up, set display_ = true
+	* mouseMoveEvent - update the temporary second position to display the mock up, set displayFlag = true
 	* 1st mouseReleaseEvent - set the second position - the length is set (lengthSelected = true)
 	* mouseMoveEvent - update the temporary third position to display the mock up 
 	* 2nd mouseReleaseEvent - set the third position and generate the nanotube, then clean/reset the data
@@ -363,7 +363,7 @@ void SENanotubeCreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-	if (!display_) return;
+	if (!displayFlag) return;
 
 	if (lengthSelected) event->accept();
 	if (!isPressing) return;
@@ -390,7 +390,7 @@ void SENanotubeCreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
 		//SAMSON::beginHolding("Add DNA nanotube");
 
 		ADNPointer<ADNPart> part = generateNanotube();
-		//DASRouter* router = DASRouter::GetRouter(routing_);
+		//DASRouter* router = DASRouter::GetRouter(routingType);
 		//router->Route(part);
 		sendPartToAdenita(part);
 
@@ -419,7 +419,7 @@ void SENanotubeCreatorEditor::mouseMoveEvent(QMouseEvent* event) {
 
 	}
 
-	if (isPressing && hasLeftButton) display_ = true;
+	if (isPressing && hasLeftButton) displayFlag = true;
 
 	if (!hasMidButton && !hasLeftButton && !hasRightButton) {
 
@@ -473,7 +473,7 @@ void SENanotubeCreatorEditor::keyPressEvent(QKeyEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-	if (display_) {
+	if (displayFlag) {
 
 		if (event->key() == Qt::Key_Escape) {
 
@@ -493,29 +493,5 @@ void SENanotubeCreatorEditor::keyReleaseEvent(QKeyEvent* event) {
 
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
-
-}
-
-void SENanotubeCreatorEditor::onBaseEvent(SBBaseEvent* baseEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle base events
-
-}
-
-void SENanotubeCreatorEditor::onDocumentEvent(SBDocumentEvent* documentEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle document events 
-
-}
-
-void SENanotubeCreatorEditor::onDynamicalEvent(SBDynamicalEvent* dynamicalEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle dynamical events 
-
-}
-
-void SENanotubeCreatorEditor::onStructuralEvent(SBStructuralEvent* documentEvent) {
-	
-	// SAMSON Element generator pro tip: implement this function if you need to handle structural events
 
 }

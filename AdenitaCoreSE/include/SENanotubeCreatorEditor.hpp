@@ -91,16 +91,6 @@ public :
 
 	//@}
 
-	/// \name SAMSON Events
-	//@{
-
-	virtual void												onBaseEvent(SBBaseEvent* baseEvent);									///< Handles base events
-	virtual void												onDynamicalEvent(SBDynamicalEvent* dynamicalEvent);						///< Handles dynamical events
-	virtual void												onDocumentEvent(SBDocumentEvent* documentEvent);						///< Handles document events
-	virtual void												onStructuralEvent(SBStructuralEvent* documentEvent);					///< Handles structural events
-
-	//@}
-
 	/// \name GUI
 	//@{
 
@@ -108,7 +98,7 @@ public :
 
 	//@}
 
-	void														SetRouting(RoutingType t);
+	void														setRoutingType(RoutingType t);
 	void														SetPredefined(bool predefined, double radius, int numBp);
 	void														SetRadius(double radius);
 	void														SetBp(int bp);
@@ -125,9 +115,9 @@ private:
 	SBPosition3													firstPosition;
 	SBPosition3													secondPosition;
 	SBPosition3													thirdPosition;
-	bool														display_ = false;
+	bool														displayFlag = false;
 	ADNPointer<ADNPart>											tempPart_ = nullptr;
-	RoutingType													routing_ = RoutingType::None;
+	RoutingType													routingType = RoutingType::None;
 
 	bool														isPressing = false;
 	bool														lengthSelected = false;

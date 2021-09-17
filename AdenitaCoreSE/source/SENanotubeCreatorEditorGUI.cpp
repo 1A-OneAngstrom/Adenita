@@ -92,7 +92,7 @@ void SENanotubeCreatorEditorGUI::onChangeRouting() {
 		t = RoutingType::NonSeamless;
 	}
 
-	getEditor()->SetRouting(t);
+	getEditor()->setRoutingType(t);
 
 }
 

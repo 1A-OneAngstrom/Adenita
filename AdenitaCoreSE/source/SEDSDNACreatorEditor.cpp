@@ -529,6 +529,7 @@ void SEDSDNACreatorEditor::keyPressEvent(QKeyEvent* event) {
 
             resetData();
             event->accept();
+            SAMSON::requestViewportUpdate();
 
         }
         else if (event->key() == Qt::Key_Up) {
@@ -536,6 +537,7 @@ void SEDSDNACreatorEditor::keyPressEvent(QKeyEvent* event) {
             opaqueness += 0.1f;
             if (opaqueness > 1.0f) opaqueness = 1.0f;
             event->accept();
+            SAMSON::requestViewportUpdate();
 
         }
         else if (event->key() == Qt::Key_Down) {
@@ -543,6 +545,7 @@ void SEDSDNACreatorEditor::keyPressEvent(QKeyEvent* event) {
             opaqueness -= 0.1f;
             if (opaqueness < 0.0f) opaqueness = 0.0f;
             event->accept();
+            SAMSON::requestViewportUpdate();
 
         } 
         else if (event->key() == Qt::Key_Left) {
@@ -550,6 +553,7 @@ void SEDSDNACreatorEditor::keyPressEvent(QKeyEvent* event) {
             basePairRadius -= 100.0f;
             if (basePairRadius < 200.0f) basePairRadius = 200.0f;
             event->accept();
+            SAMSON::requestViewportUpdate();
 
         }
         else if (event->key() == Qt::Key_Right) {
@@ -557,10 +561,9 @@ void SEDSDNACreatorEditor::keyPressEvent(QKeyEvent* event) {
             basePairRadius += 100.0f;
             if (basePairRadius > config.base_pair_radius) basePairRadius = config.base_pair_radius;
             event->accept();
+            SAMSON::requestViewportUpdate();
 
         }
-
-        SAMSON::requestViewportUpdate();
 
     }
 
@@ -569,6 +572,7 @@ void SEDSDNACreatorEditor::keyPressEvent(QKeyEvent* event) {
         snappingIsActive = false;
 
         event->accept();
+        SAMSON::requestViewportUpdate();
 
     }
 
@@ -586,29 +590,5 @@ void SEDSDNACreatorEditor::keyReleaseEvent(QKeyEvent* event) {
         event->accept();
 
     }
-
-}
-
-void SEDSDNACreatorEditor::onBaseEvent(SBBaseEvent* baseEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle base events
-
-}
-
-void SEDSDNACreatorEditor::onDocumentEvent(SBDocumentEvent* documentEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle document events 
-
-}
-
-void SEDSDNACreatorEditor::onDynamicalEvent(SBDynamicalEvent* dynamicalEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle dynamical events 
-
-}
-
-void SEDSDNACreatorEditor::onStructuralEvent(SBStructuralEvent* documentEvent) {
-	
-	// SAMSON Element generator pro tip: implement this function if you need to handle structural events
 
 }

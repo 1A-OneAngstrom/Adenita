@@ -97,16 +97,6 @@ public :
 
 	//@}
 
-	/// \name SAMSON Events
-	//@{
-
-	virtual void												onBaseEvent(SBBaseEvent* baseEvent);									///< Handles base events
-	virtual void												onDynamicalEvent(SBDynamicalEvent* dynamicalEvent);						///< Handles dynamical events
-	virtual void												onDocumentEvent(SBDocumentEvent* documentEvent);						///< Handles document events
-	virtual void												onStructuralEvent(SBStructuralEvent* documentEvent);					///< Handles structural events
-
-	//@}
-
 	void														setLatticeType(LatticeType type);
 	void														setZPattern(ZLatticePattern pattern);
 
@@ -129,7 +119,7 @@ private:
 	void														displayLattice();
 	void														sendPartToAdenita(ADNPointer<ADNPart> lattice);
 
-	LatticeType													lType_ = LatticeType::Honeycomb;
+	LatticeType													latticeType = LatticeType::Honeycomb;
 	VGrid														vGrid_;
 
 	bool														isPressing = false;
@@ -139,7 +129,7 @@ private:
 	SBPosition3													firstPosition;
 	SBPosition3													secondPosition;
 	SBPosition3													thirdPosition;
-	bool														display_ = false;
+	bool														displayFlag = false;
 	ADNPointer<ADNPart>											tempPart_ = nullptr;
 
 	int															maxXds_ = 32;
