@@ -273,46 +273,44 @@ void SELatticeCreatorEditor::display() {
 	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop. 
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
 
+	if (!displayFlag) return;
+
 	SEConfig& config = SEConfig::GetInstance();
 
-	if (displayFlag) {
+	const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
 
-		const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+	tempPart_ = generateLattice(true);
 
-		tempPart_ = generateLattice(true);
+	if (tempPart_ != nullptr) {
 
-		if (tempPart_ != nullptr) {
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-			glEnable(GL_DEPTH_TEST);
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		displayLattice();
 
-			displayLattice();
+		glDisable(GL_BLEND);
+		glDisable(GL_DEPTH_TEST);
 
-			glDisable(GL_BLEND);
-			glDisable(GL_DEPTH_TEST);
+	}
 
-		}
+	const SBPosition3 offset = SBPosition3(SBQuantity::angstrom(5), SBQuantity::angstrom(5), SBQuantity::angstrom(5));
 
-		const SBPosition3 offset = SBPosition3(SBQuantity::angstrom(5), SBQuantity::angstrom(5), SBQuantity::angstrom(5));
+	if (!lengthSelected) {
 
-		if (!lengthSelected) {
-
-			ADNDisplayHelper::displayLine(firstPosition, currentPosition);
+		ADNDisplayHelper::displayLine(firstPosition, currentPosition);
 			
-			const SBPosition3 xyPos = currentPosition + offset;
-			ADNDisplayHelper::displayText(xyPos, xyText_);
+		const SBPosition3 xyPos = currentPosition + offset;
+		ADNDisplayHelper::displayText(xyPos, xyText_);
 
-		}
-		else {
+	}
+	else {
 
-			ADNDisplayHelper::displayLine(firstPosition, secondPosition);
-			ADNDisplayHelper::displayLine(firstPosition, currentPosition);
+		ADNDisplayHelper::displayLine(firstPosition, secondPosition);
+		ADNDisplayHelper::displayLine(firstPosition, currentPosition);
 
-			const SBPosition3 zPos = currentPosition + offset;
-			ADNDisplayHelper::displayText(zPos, zText_);
-
-		}
+		const SBPosition3 zPos = currentPosition + offset;
+		ADNDisplayHelper::displayText(zPos, zText_);
 
 	}
 
@@ -419,7 +417,7 @@ void SELatticeCreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
 		sendPartToAdenita(part);
 
 		//SBCamera * camera = SAMSON::getActiveCamera()->rightView();
-		// 
+		
 		//SAMSON::endHolding();
 
 		resetData();

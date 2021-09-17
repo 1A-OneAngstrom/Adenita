@@ -3,10 +3,6 @@
 #include "SBGEditor.hpp"
 #include "SENanotubeCreatorEditorGUI.hpp"
 
-#include "SBBaseEvent.hpp"
-#include "SBDocumentEvent.hpp"
-#include "SBDynamicalEvent.hpp"
-#include "SBStructuralEvent.hpp"
 #include "SBAction.hpp"
 
 #include "ADNPart.hpp"

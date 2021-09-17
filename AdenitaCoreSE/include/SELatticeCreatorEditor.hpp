@@ -3,10 +3,6 @@
 #include "SBGEditor.hpp"
 #include "SELatticeCreatorEditorGUI.hpp"
 
-#include "SBBaseEvent.hpp"
-#include "SBDocumentEvent.hpp"
-#include "SBDynamicalEvent.hpp"
-#include "SBStructuralEvent.hpp"
 #include "SBAction.hpp"
 
 #include "ADNConstants.hpp"

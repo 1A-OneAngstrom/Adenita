@@ -3,10 +3,6 @@
 #include "SBGEditor.hpp"
 #include "SEWireframeEditorGUI.hpp"
 
-#include "SBBaseEvent.hpp"
-#include "SBDocumentEvent.hpp"
-#include "SBDynamicalEvent.hpp"
-#include "SBStructuralEvent.hpp"
 #include "SBAction.hpp"
 
 #include "ADNPart.hpp"
@@ -99,6 +95,8 @@ public :
 
 	void														setWireframeType(DASCreator::EditorType type);
 
+	void														resetData();
+
 private:
 
 	ADNPointer<ADNPart>											generateCuboid(bool mock = false);
@@ -111,12 +109,14 @@ private:
 	\param position of the center of the model
 	\param minimum edge length
 	*/
-	ADNPointer<ADNPart>											CreateMockDaedalusWireframe(DASPolyhedron& polyhedron, int min_edge_length);
+	ADNPointer<ADNPart>											createMockDaedalusWireframe(DASPolyhedron& polyhedron, int min_edge_length);
+
+	bool														isPressing = false;
 
 	DASCreatorEditors::UIData									positions_;
 	bool														displayFlag = false;
 	ADNPointer<ADNPart>											tempPart_ = nullptr;
-	DASCreator::EditorType										wireframeType_ = DASCreator::EditorType::Tetrahedron;
+	DASCreator::EditorType										wireframeType = DASCreator::EditorType::Tetrahedron;
 
 };
 

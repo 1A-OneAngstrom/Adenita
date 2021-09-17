@@ -19,7 +19,7 @@ namespace DASCreator {
     Octahedron,
     Dodecahedron,
     Icosahedron,
-    Cubocahedron, 
+    Cuboctahedron, 
     Icosidodecahedron, 
     Rhombicuboctahedron,
     Snub_cube,

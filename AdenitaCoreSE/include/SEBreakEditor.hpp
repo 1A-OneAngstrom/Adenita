@@ -3,11 +3,6 @@
 #include "SBGEditor.hpp"
 #include "SEBreakEditorGUI.hpp"
 
-#include "SBGApp.hpp" 
-#include "SBBaseEvent.hpp"
-#include "SBDocumentEvent.hpp"
-#include "SBDynamicalEvent.hpp"
-#include "SBStructuralEvent.hpp"
 #include "SBAction.hpp"
 
 /// This class implements an editor

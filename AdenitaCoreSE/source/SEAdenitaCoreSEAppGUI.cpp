@@ -29,13 +29,6 @@
 
 #include "SEAdenitaCoreSEAppGUIFlowLayout.hpp"
 
-#ifdef NDEBUG
-#define ADENITA_DEBUG
-#endif
-#ifdef _DEBUG
-#define ADENITA_DEBUG
-#endif
-
 SEAdenitaCoreSEAppGUI::SEAdenitaCoreSEAppGUI( SEAdenitaCoreSEApp* t ) : SBGApp( t ) {
 
 	setupUI();
@@ -1063,10 +1056,12 @@ void SEAdenitaCoreSEAppGUI::setupUI() {
 	QGroupBox* groupBoxModeling = new QGroupBox("Modeling");
 	QGroupBox* groupBoxCreators = new QGroupBox("Creators");
 
-	groupBoxMenu->setMinimumHeight(50);
-	groupBoxEditSequences->setMinimumHeight(50);
-	groupBoxModeling->setMinimumHeight(50);
-	groupBoxCreators->setMinimumHeight(50);
+	groupBoxMenu->setMinimumHeight(100);
+	groupBoxEditSequences->setMinimumHeight(120);
+	groupBoxModeling->setMinimumHeight(100);
+	groupBoxCreators->setMinimumHeight(100);
+
+	setMinimumHeight(500);
 
 	ui.verticalLayout->addWidget(groupBoxMenu);
 	ui.verticalLayout->addWidget(groupBoxEditSequences);
@@ -1111,6 +1106,8 @@ void SEAdenitaCoreSEAppGUI::setupUI() {
 	groupBoxDebug->setLayout(layoutDebug);
 	const std::vector<QPushButton*> debugButtons = getDebugButtons();
 	for (auto b : debugButtons) layoutDebug->addWidget(b);
+
+	setMinimumHeight(650);
 #endif
 
 }
@@ -1161,7 +1158,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getMenuButtons() {
 		btnSaveAll->setText("Save all\n");
 		btnSaveAll->setToolTip("<b>Save all</b><br/><br/>"
 			"Save all current DNA nanostructures in a .adn file."
-			"Note: systems not handled through Adenita won’t be saved.");
+			"Note: systems not handled through Adenita will not be saved.");
 		btnSaveAll->setIconSize(QSize(24, 24));
 		btnSaveAll->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnSaveAll->setAutoRaise(true);
@@ -1243,7 +1240,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getEditSequencesButtons() {
 		btnSetScaff->setObjectName(QStringLiteral("btnSetScaff"));
 		btnSetScaff->setText("Set\nscaffold\n");
 		btnSetScaff->setToolTip("<b>Set scaffold</b><br/><br/>"
-			"All scaffolds from the selection will be assigned a sequence specified through the Options menu, scaffold nucleotide’s pairs will also be assigned the complementary base.");
+			"All scaffolds from the selection will be assigned a sequence specified through the Options menu, scaffold nucleotide's pairs will also be assigned the complementary base.");
 		btnSetScaff->setIconSize(QSize(24, 24));
 		btnSetScaff->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnSetScaff->setAutoRaise(true);

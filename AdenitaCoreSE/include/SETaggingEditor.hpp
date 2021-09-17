@@ -3,10 +3,6 @@
 #include "SBGEditor.hpp"
 #include "SETaggingEditorGUI.hpp"
 
-#include "SBBaseEvent.hpp"
-#include "SBDocumentEvent.hpp"
-#include "SBDynamicalEvent.hpp"
-#include "SBStructuralEvent.hpp"
 #include "SBAction.hpp"
 
 #include "DASCreator.hpp"

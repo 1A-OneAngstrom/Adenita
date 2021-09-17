@@ -101,48 +101,37 @@ void ADNDisplayHelper::displayCylinder(SBPosition3 start, SBPosition3 end, std::
 
 }
 
-void ADNDisplayHelper::displayLine(ublas::vector<double> center, ublas::vector<double> dir, int length)
-{
-  ublas::vector<double> end = center + dir;
-  end = end * length;
+void ADNDisplayHelper::displayLine(ublas::vector<double> center, ublas::vector<double> dir, int length) {
 
-  SBPosition3 start = SBPosition3(
-    SBQuantity::picometer(center[0]),
-    SBQuantity::picometer(center[1]),
-    SBQuantity::picometer(center[2])
-    );
+    ublas::vector<double> end = center + dir;
+    end = end * length;
 
-  SBPosition3 end2 = SBPosition3(
-    SBQuantity::picometer(end2[0]),
-    SBQuantity::picometer(end2[1]),
-    SBQuantity::picometer(end2[2])
-    );
+    SBPosition3 start = SBPosition3(SBQuantity::picometer(center[0]), SBQuantity::picometer(center[1]), SBQuantity::picometer(center[2]));
+    //it was like that before, error?: SBPosition3 end2 = SBPosition3(SBQuantity::picometer(end2[0]), SBQuantity::picometer(end2[1]), SBQuantity::picometer(end2[2]));
+    SBPosition3 end2 = SBPosition3(SBQuantity::picometer(end[0]), SBQuantity::picometer(end[1]), SBQuantity::picometer(end[2]));
 
-  displayLine(start, end2);
+    displayLine(start, end2);
+
 }
 
 void ADNDisplayHelper::displayLengthText(SBPosition3 start, SBPosition3 end, std::string text) {
-  SBPosition3 center = (start + end) / 2;
-  if (text == "") {
-    double length = (end - start).norm().getValue();
-    length /= 1000;
 
-    std::stringstream stream;
-    stream << fixed << std::setprecision(2) << length;
-    std::string text = stream.str() + " nm";
-  }
+    const SBPosition3 center = 0.5 * (start + end);
+    if (text == "") {
 
-  float * color = new float[4];
-  color[0] = 1.0f;
-  color[1] = 1.0f;
-  color[2] = 1.0f;
-  color[3] = 1.0f;
+        const double length = SBQuantity::nanometer((end - start).norm()).getValue();
 
-  SAMSON::displayText(
-    text,
-    center,
-    QFont(QString("Helvetica"), 60),
-    color);
+        std::stringstream stream;
+        stream << fixed << std::setprecision(2) << length;
+        std::string text = stream.str() + " nm";
+
+    }
+
+    //float color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    //SAMSON::displayText(text, center, QFont(QString("Helvetica"), 60), color);
+
+    displayText(center, text);
+
 }
 
 void ADNDisplayHelper::displayDirectedCylinder(SBPosition3 start, SBPosition3 end)

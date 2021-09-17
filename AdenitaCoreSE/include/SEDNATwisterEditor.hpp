@@ -4,10 +4,6 @@
 #include "SEDNATwisterEditorGUI.hpp"
 #include "SEAdenitaCoreSEApp.hpp"
 
-#include "SBBaseEvent.hpp"
-#include "SBDocumentEvent.hpp"
-#include "SBDynamicalEvent.hpp"
-#include "SBStructuralEvent.hpp"
 #include "SBAction.hpp"
 
 #include "ADNNanorobot.hpp"

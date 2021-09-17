@@ -27,7 +27,7 @@ SEWireframeEditorGUI* SEWireframeEditor::getPropertyWidget() const { return stat
 
 void SEWireframeEditor::setWireframeType(DASCreator::EditorType type) {
 
-	wireframeType_ = type;
+	this->wireframeType = type;
 
 }
 
@@ -171,88 +171,88 @@ ADNPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock) {
 
     double a = sqrt(pow(radius.getValue(), 2) * 2);
 
-    if (wireframeType_ == DASCreator::EditorType::Tetrahedron) {
+    if (wireframeType == DASCreator::EditorType::Tetrahedron) {
         part = new ADNPart();
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) * 1.3;
         filename = SB_ELEMENT_PATH + "/Data/01_tetrahedron.ply";
     }
-    else if (wireframeType_ == DASCreator::EditorType::Cube) {
+    else if (wireframeType == DASCreator::EditorType::Cube) {
         part = new ADNPart();
         numNucleotides = a / (ADNConstants::BP_RISE * 1000);
         filename = SB_ELEMENT_PATH + "/Data/02_cube.ply";
     }
-    else if (wireframeType_ == DASCreator::EditorType::Octahedron) {
+    else if (wireframeType == DASCreator::EditorType::Octahedron) {
         part = new ADNPart();
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/03_octahedron.ply";
     }
-    else if (wireframeType_ == DASCreator::EditorType::Dodecahedron) {
+    else if (wireframeType == DASCreator::EditorType::Dodecahedron) {
         part = new ADNPart();
         a /= 2;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/04_dodecahedron.ply";
     }
-    else if (wireframeType_ == DASCreator::EditorType::Icosahedron) {
+    else if (wireframeType == DASCreator::EditorType::Icosahedron) {
         part = new ADNPart();
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/05_icosahedron.ply";
     }
-    else if (wireframeType_ == DASCreator::EditorType::Cubocahedron) {
+    else if (wireframeType == DASCreator::EditorType::Cuboctahedron) {
         part = new ADNPart();
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/06_cuboctahedron.ply";
     }
-    else if (wireframeType_ == DASCreator::EditorType::Icosidodecahedron) {
+    else if (wireframeType == DASCreator::EditorType::Icosidodecahedron) {
         part = new ADNPart();
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/07_icosidodecahedron.ply";
     }
-    else if (wireframeType_ == DASCreator::EditorType::Rhombicuboctahedron) {
+    else if (wireframeType == DASCreator::EditorType::Rhombicuboctahedron) {
         part = new ADNPart();
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/08_rhombicuboctahedron.ply";
     }
-    else if (wireframeType_ == DASCreator::EditorType::Snub_cube) {
+    else if (wireframeType == DASCreator::EditorType::Snub_cube) {
         part = new ADNPart();
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/09_snub_cube.ply";
     }
-    else if (wireframeType_ == DASCreator::EditorType::Truncated_cube) {
+    else if (wireframeType == DASCreator::EditorType::Truncated_cube) {
         part = new ADNPart();
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/10_truncated_cube.ply";
     }
-    else if (wireframeType_ == DASCreator::EditorType::Truncated_cuboctahedron) {
+    else if (wireframeType == DASCreator::EditorType::Truncated_cuboctahedron) {
         part = new ADNPart();
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/11_truncated_cuboctahedron.ply";
     }
-    else if (wireframeType_ == DASCreator::EditorType::Helix) {
+    else if (wireframeType == DASCreator::EditorType::Helix) {
         part = new ADNPart();
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/49_helix.ply";
     }
-    else if (wireframeType_ == DASCreator::EditorType::Stickman) {
+    else if (wireframeType == DASCreator::EditorType::Stickman) {
         part = new ADNPart();
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/51_stickman.ply";
     }
-    else if (wireframeType_ == DASCreator::EditorType::Bottle) {
+    else if (wireframeType == DASCreator::EditorType::Bottle) {
         part = new ADNPart();
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/52_bottle.ply";
     }
-    else if (wireframeType_ == DASCreator::EditorType::Bunny) {
+    else if (wireframeType == DASCreator::EditorType::Bunny) {
         part = new ADNPart();
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
@@ -275,7 +275,7 @@ ADNPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock) {
 
         if (mock) {
 
-            part = CreateMockDaedalusWireframe(polyhedron, min_edge_size);
+            part = createMockDaedalusWireframe(polyhedron, min_edge_size);
 
         }
         else {
@@ -305,7 +305,7 @@ void SEWireframeEditor::sendPartToAdenita(ADNPointer<ADNPart> part) {
 
 }
 
-ADNPointer<ADNPart> SEWireframeEditor::CreateMockDaedalusWireframe(DASPolyhedron & polyhedron, int min_edge_length) {
+ADNPointer<ADNPart> SEWireframeEditor::createMockDaedalusWireframe(DASPolyhedron & polyhedron, int min_edge_length) {
 
     ADNPointer<ADNPart> mock = new ADNPart();
 
@@ -410,6 +410,16 @@ void SEWireframeEditor::endEditing() {
 
 }
 
+void SEWireframeEditor::resetData() {
+
+    isPressing = false;
+
+    DASCreatorEditors::resetPositions(positions_);
+    displayFlag = false;
+    tempPart_ == nullptr;
+
+}
+
 void SEWireframeEditor::getActions(SBVector<SBAction*>& actionVector) {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function to show the user actions associated to your editor in context menus.
@@ -432,7 +442,7 @@ void SEWireframeEditor::display() {
 
     SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
 
-    if (wireframeType_ == DASCreator::EditorType::Cuboid) {
+    if (wireframeType == DASCreator::EditorType::Cuboid) {
 
         if (positions_.positionsCounter < 3) {
 
@@ -528,41 +538,52 @@ void SEWireframeEditor::mousePressEvent(QMouseEvent* event) {
 
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
-  
-    if (wireframeType_ == DASCreator::EditorType::Cuboid) {
 
-        if (positions_.positionsCounter == 0) {
+    if (isPressing) {
 
-            positions_.FirstPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
-            positions_.positionsCounter++;
-
-        }
-        else if (positions_.positionsCounter == 2) {
-
-            positions_.ThirdPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
-            positions_.positionsCounter++;
-
-            ADNPointer<ADNPart> part = generateCuboid();
-
-            sendPartToAdenita(part);
-            DASCreatorEditors::resetPositions(positions_);
-            displayFlag = false;
-            tempPart_ == nullptr;
-
-        }
+        event->accept();
+        return;
 
     }
-    else {
 
-        if (positions_.positionsCounter == 0) {
+    if (event->button() & Qt::LeftButton) {
 
-            positions_.FirstPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
-            positions_.positionsCounter++;
+        isPressing = true;
+        event->accept();
 
-            positions_.FirstVector = SAMSON::getActiveCamera()->getBasisZ().normalizedVersion();
-            positions_.vectorsCounter++;
+        if (wireframeType == DASCreator::EditorType::Cuboid) {
+
+            if (positions_.positionsCounter == 0) {
+
+                positions_.FirstPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+                positions_.SecondPosition = positions_.FirstPosition;
+                positions_.ThirdPosition = positions_.SecondPosition;
+                positions_.positionsCounter++;
+
+            }
+            else if (positions_.positionsCounter == 2) {
+
+                positions_.ThirdPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+
+            }
 
         }
+        else {
+
+            if (positions_.positionsCounter == 0) {
+
+                positions_.FirstPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+                positions_.SecondPosition = positions_.FirstPosition;
+                positions_.positionsCounter++;
+
+                positions_.FirstVector = SAMSON::getActiveCamera()->getBasisZ().normalizedVersion();
+                positions_.vectorsCounter++;
+
+            }
+
+        }
+
+        SAMSON::requestViewportUpdate();
 
     }
 
@@ -573,27 +594,64 @@ void SEWireframeEditor::mouseReleaseEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-    if (wireframeType_ == DASCreator::EditorType::Cuboid) {
+    if (!displayFlag) return;
 
-        positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
-        positions_.positionsCounter++;
+    if (!isPressing) return;
 
-    }
-    else {
+    if (event->button() & Qt::LeftButton) {
 
-        if (positions_.positionsCounter == 1) {
+        event->accept();
 
-            positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
-            positions_.positionsCounter++;
+        isPressing = false;
 
-            ADNPointer<ADNPart> part = generateWireframe();
+        if (wireframeType == DASCreator::EditorType::Cuboid) {
 
-            sendPartToAdenita(part);
-            DASCreatorEditors::resetPositions(positions_);
-            displayFlag = false;
-            tempPart_ == nullptr;
+            if (positions_.positionsCounter == 1) {
+                
+                positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+                positions_.positionsCounter++;
+
+                if (wireframeType == DASCreator::EditorType::Cuboid)
+                    positions_.ThirdPosition = positions_.SecondPosition;
+
+            }
+            if (positions_.positionsCounter == 2) {
+
+                positions_.ThirdPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+
+                //SAMSON::beginHolding("Add wireframe");
+
+                ADNPointer<ADNPart> part = generateCuboid();
+                sendPartToAdenita(part);
+
+                //SAMSON::endHolding();
+
+                resetData();
+
+            }
 
         }
+        else {
+
+            if (positions_.positionsCounter == 1) {
+
+                positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+                positions_.positionsCounter++;
+
+                //SAMSON::beginHolding("Add wireframe");
+
+                ADNPointer<ADNPart> part = generateWireframe();
+                sendPartToAdenita(part);
+
+                //SAMSON::endHolding();
+
+                resetData();
+
+            }
+
+        }
+
+        SAMSON::requestViewportUpdate();
 
     }
 
@@ -604,13 +662,45 @@ void SEWireframeEditor::mouseMoveEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-    if (event->buttons() == Qt::LeftButton) {
+    const bool hasMidButton = event->buttons() & Qt::MidButton;
+    const bool hasLeftButton = event->buttons() & Qt::LeftButton;
+    const bool hasRightButton = event->buttons() & Qt::RightButton;
 
-        displayFlag = true;
+    if (!hasLeftButton) {
+
+        isPressing = false;
+
+    }
+
+    if (isPressing && hasLeftButton) displayFlag = true;
+
+    if (!hasMidButton && !hasLeftButton && !hasRightButton) {
+
         event->accept();
 
-        if (wireframeType_ == DASCreator::EditorType::Cuboid)
-            positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+    }
+
+    if (positions_.positionsCounter == 1) {
+
+        positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+        if (wireframeType == DASCreator::EditorType::Cuboid)
+            positions_.ThirdPosition = positions_.SecondPosition;
+        event->accept();
+
+        //if (wireframeType == DASCreator::EditorType::Cuboid)
+        //    positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+
+    }
+    else if (positions_.positionsCounter == 2) {
+
+        if (wireframeType == DASCreator::EditorType::Cuboid) {
+
+            positions_.ThirdPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+            
+            if (!hasMidButton && !hasRightButton)
+                event->accept();
+
+        }
 
     }
 
@@ -622,6 +712,8 @@ void SEWireframeEditor::mouseDoubleClickEvent(QMouseEvent* event) {
 
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
+
+    if (isPressing) event->accept();
 
 }
 
@@ -637,14 +729,19 @@ void SEWireframeEditor::keyPressEvent(QKeyEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-	if (event->key() == Qt::Key_Escape) {
+    if (displayFlag) {
 
-		displayFlag = false;
-		DASCreatorEditors::resetPositions(positions_);
-        event->accept();
-		SAMSON::requestViewportUpdate();
+        if (event->key() == Qt::Key_Escape) {
 
-	}
+            event->accept();
+
+            resetData();
+
+            SAMSON::requestViewportUpdate();
+
+        }
+
+    }
 
 }
 

@@ -7,6 +7,12 @@
 #include <QToolButton>
 #include <QPushButton>
 
+#ifdef NDEBUG
+#define ADENITA_DEBUG
+#endif
+#ifdef _DEBUG
+#define ADENITA_DEBUG
+#endif
 
 class SEAdenitaCoreSEApp;
 

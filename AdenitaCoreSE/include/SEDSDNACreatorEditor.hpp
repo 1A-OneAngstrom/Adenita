@@ -5,10 +5,6 @@
 #include "SBGEditor.hpp"
 #include "SEDSDNACreatorEditorGUI.hpp"
 
-#include "SBBaseEvent.hpp"
-#include "SBDocumentEvent.hpp"
-#include "SBDynamicalEvent.hpp"
-#include "SBStructuralEvent.hpp"
 #include "SBAction.hpp"
 
 #include "ADNPart.hpp"
@@ -114,7 +110,7 @@ private:
 	void														displayBox();
 	void														sendPartToAdenita(ADNPointer<ADNPart> nanotube);
 	void														setSequence(ADNPointer<ADNPart> nanotube);
-	SBPosition3													getSnappedPosition();
+	SBPosition3													getSnappedPosition(const SBPosition3& currentPosition);
 
 	void														resetData();
 
@@ -123,6 +119,7 @@ private:
 	bool														manualFlag = false;
 	int															numberOfNucleotides = 12;
 
+	bool														isPressing = false;
 	DASCreatorEditors::UIData									positionData;
 	bool														displayFlag = false;
 	ADNPointer<ADNPart>											tempPart = nullptr;

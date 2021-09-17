@@ -277,8 +277,8 @@ ADNPointer<ADNDoubleStrand> DASCreator::AddRingToADNPart(ADNPointer<ADNPart> par
     if (!ssDNA) part->RegisterSingleStrand(ssRight);
   }
 
-  double pi = atan(1.0) * 4.0;
-  auto circumpherence = 2.0 * pi * radius;
+  const double pi = atan(1.0) * 4.0;
+  const SBQuantity::length circumpherence = 2.0 * pi * radius;
   // see how many nts fit in circumpherence using B-DNA
   int numNts = floor((circumpherence / SBQuantity::nanometer(ADNConstants::BP_RISE)).getValue());
   // recalculate number of nucleotides so 5' and 3' twisting meet

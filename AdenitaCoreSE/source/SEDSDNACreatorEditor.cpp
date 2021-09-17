@@ -32,43 +32,43 @@ SEDSDNACreatorEditorGUI* SEDSDNACreatorEditor::getPropertyWidget() const { retur
 
 void SEDSDNACreatorEditor::setDoubleStrandMode(bool m) {
 
-	doubleStrandMode = m;
+    this->doubleStrandMode = m;
 
 }
 
 void SEDSDNACreatorEditor::setShowBoxFlag(bool s) {
 
-	showBoxFlag = s;
+    this->showBoxFlag = s;
 
 }
 
 void SEDSDNACreatorEditor::setBoxSize(SBQuantity::nanometer height, SBQuantity::nanometer width, SBQuantity::nanometer depth) {
 
-	boxHeight = height;
-	boxWidth  = width;
-	boxDepth  = depth;
+	this->boxHeight = height;
+	this->boxWidth  = width;
+	this->boxDepth  = depth;
 
 }
 
 void SEDSDNACreatorEditor::setCircularStrandsMode(bool c) {
-	circularStrandsMode = c;
+    this->circularStrandsMode = c;
 }
 
 void SEDSDNACreatorEditor::setManualFlag(bool m) {
-	manualFlag = m;
+    this->manualFlag = m;
 }
 
 void SEDSDNACreatorEditor::setNumberOfNucleotides(int n) {
-	numberOfNucleotides = n;
+    this->numberOfNucleotides = n;
 }
 
 void SEDSDNACreatorEditor::setSequenceFlag(bool s) {
-	sequenceFlag = s;
+    this->sequenceFlag = s;
 }
 
-SBPosition3 SEDSDNACreatorEditor::getSnappedPosition() {
+SBPosition3 SEDSDNACreatorEditor::getSnappedPosition(const SBPosition3& currentPosition) {
 
-    SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+    SBPosition3 snappedPosition = currentPosition;
 
     if (snappingIsActive) {
 
@@ -76,19 +76,16 @@ SBPosition3 SEDSDNACreatorEditor::getSnappedPosition() {
         auto highlightedBaseSegmentsFromNucleotides = nanorobot->GetHighlightedBaseSegmentsFromNucleotides();
         auto highlightedAtoms = nanorobot->GetHighlightedAtoms();
 
-        if (highlightedAtoms.size() == 1) {
-            currentPosition = highlightedAtoms[0]->getPosition();
-        }
-        else if (highlightedBaseSegments.size() == 1) {
-            currentPosition = highlightedBaseSegments[0]->GetPosition();
-        }
-        else if (highlightedBaseSegmentsFromNucleotides.size() == 1) {
-            currentPosition = highlightedBaseSegmentsFromNucleotides[0]->GetPosition();
-        }
+        if (highlightedAtoms.size() == 1)
+            snappedPosition = highlightedAtoms[0]->getPosition();
+        else if (highlightedBaseSegments.size() == 1)
+            snappedPosition = highlightedBaseSegments[0]->GetPosition();
+        else if (highlightedBaseSegmentsFromNucleotides.size() == 1)
+            snappedPosition = highlightedBaseSegmentsFromNucleotides[0]->GetPosition();
 
     }
 
-    return currentPosition;
+    return snappedPosition;
 
 }
 
@@ -129,7 +126,7 @@ ADNPointer<ADNPart> SEDSDNACreatorEditor::generateCircularStrand(bool mock) {
     //auto radius = (positionData.SecondPosition - positionData.FirstPosition).norm();
     const double pi = atan(1) * 4;
     auto numNucleotides = numberOfNucleotides;
-    auto radius = numNucleotides * SBQuantity::nanometer(ADNConstants::BP_RISE) * 0.5 / pi;
+    SBQuantity::length radius = numNucleotides * SBQuantity::nanometer(ADNConstants::BP_RISE) * 0.5 / pi;
     if (!manualFlag || numNucleotides == 0) {
 
         radius = (positionData.SecondPosition - positionData.FirstPosition).norm();
@@ -137,7 +134,7 @@ ADNPointer<ADNPart> SEDSDNACreatorEditor::generateCircularStrand(bool mock) {
     
     }
 
-    if (numNucleotides > 0) {
+    if (numNucleotides > 6) {   // the smallets circle consists of 10 base pairs
 
         if (doubleStrandMode) part = DASCreator::CreateDSRing(radius, positionData.FirstPosition, positionData.FirstVector, mock);
         else part = DASCreator::CreateSSRing(radius, positionData.FirstPosition, positionData.FirstVector, mock);
@@ -356,6 +353,8 @@ void SEDSDNACreatorEditor::endEditing() {
 
 void SEDSDNACreatorEditor::resetData() {
 
+    isPressing = false;
+
     DASCreatorEditors::resetPositions(positionData);
     displayFlag = false;
     tempPart == nullptr;
@@ -382,7 +381,8 @@ void SEDSDNACreatorEditor::display() {
     
         if (positionData.positionsCounter == 1) {
 
-            positionData.SecondPosition = getSnappedPosition();
+            const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+            positionData.SecondPosition = getSnappedPosition(currentPosition);
 
             ADNDisplayHelper::displayLine(positionData.FirstPosition, positionData.SecondPosition);
 
@@ -434,15 +434,33 @@ void SEDSDNACreatorEditor::mousePressEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-    if (positionData.positionsCounter == 0) {
-
-        positionData.FirstPosition = getSnappedPosition();
-        positionData.positionsCounter++;
-
-        positionData.FirstVector = SAMSON::getActiveCamera()->getBasisZ().normalizedVersion();
-        positionData.vectorsCounter++;
+    if (isPressing) {
 
         event->accept();
+        return;
+
+    }
+
+    if (event->button() & Qt::LeftButton) {
+
+        resetData();
+
+        isPressing = true;
+        event->accept();
+
+        if (positionData.positionsCounter == 0) {
+
+            const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+            positionData.FirstPosition = getSnappedPosition(currentPosition);
+            positionData.SecondPosition = positionData.FirstPosition;
+            positionData.positionsCounter = 1;
+
+            positionData.FirstVector = SAMSON::getActiveCamera()->getBasisZ().normalizedVersion();
+            positionData.vectorsCounter = 1;
+
+        }
+
+        SAMSON::requestViewportUpdate();
 
     }
 
@@ -453,30 +471,66 @@ void SEDSDNACreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-    if (!displayFlag) return;
+    const bool isLeftButton = event->button() & Qt::LeftButton;
 
-    if (positionData.positionsCounter == 1) {
+    // takes care of the issue: press right mouse button then left mouse button, then release RMB, then LMB (so no holding) leads to camera editor, then move mouse and click LMB -> adds strands
 
-        //positionData.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
-        positionData.SecondPosition = getSnappedPosition();
-        positionData.positionsCounter++;
+    if (isPressing) event->accept();
 
-        ADNPointer<ADNPart> part = nullptr;
-        if (!circularStrandsMode) part = generateStrand();
-        else part = generateCircularStrand();
+    if (!displayFlag) {
 
-        if (part != nullptr) {
+        // takes care of the case when mouse has been pressed while editing, then the right click has been pressed leading to the camera editor,
+        // the the left mouse button has been released leaving the right mouse button pressed and having the camera editor active 
+        // meaning that the mouse move events were redirected to the camera editor
+        
+        //if (isLeftButton)
+            resetData();
 
-            //int test3 = part->GetNumberOfSingleStrands();
-            sendPartToAdenita(part);
+        return;
+
+    }
+
+    if (isPressing && isLeftButton) {
+
+        isPressing = false;
+
+        if (positionData.positionsCounter == 1) {
+
+            const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+            positionData.SecondPosition = getSnappedPosition(currentPosition);
+            positionData.positionsCounter = 2;
+
+            //SAMSON::beginHolding("Add DNA strands");
+
+            ADNPointer<ADNPart> part = nullptr;
+            if (!circularStrandsMode) part = generateStrand();
+            else part = generateCircularStrand();
+
+            if (part != nullptr) {
+
+                if (part->getNumberOfNucleotides() > 0) {
+
+                    //int test3 = part->GetNumberOfSingleStrands();
+                    sendPartToAdenita(part);
+
+                }
+                else {
+
+                    part = nullptr;
+
+                }
+
+            }
+
+            //SAMSON::endHolding();
+
+            resetData();
+
+            event->accept();
+
+            SAMSON::requestViewportUpdate();
 
         }
-
-        resetData();
-
-        event->accept();
-
-        SAMSON::requestViewportUpdate();
 
     }
 
@@ -487,18 +541,39 @@ void SEDSDNACreatorEditor::mouseMoveEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
+    const bool hasMidButton = event->buttons() & Qt::MidButton;
+    const bool hasLeftButton = event->buttons() & Qt::LeftButton;
+    const bool hasRightButton = event->buttons() & Qt::RightButton;
+
+    if (!hasLeftButton) {
+
+        if (isPressing)
+            resetData();
+
+    }
+
+    if (isPressing && hasLeftButton) displayFlag = true;
+
+    if (!hasMidButton && !hasLeftButton && !hasRightButton) {
+
+        event->accept();
+
+    }
+
     if (positionData.positionsCounter == 1) {
 
-        if (event->buttons() == Qt::LeftButton) {
+        if (hasLeftButton) {
 
-            displayFlag = true;
+            const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+            positionData.SecondPosition = getSnappedPosition(currentPosition);
+
             event->accept();
 
         }
 
-        SAMSON::requestViewportUpdate();
-
     }
+
+    SAMSON::requestViewportUpdate();
 
 }
 
@@ -506,6 +581,8 @@ void SEDSDNACreatorEditor::mouseDoubleClickEvent(QMouseEvent* event) {
 
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
+
+    if (isPressing) event->accept();
 
 }
 

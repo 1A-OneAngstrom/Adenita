@@ -50,28 +50,21 @@ public:
 	void														saveSettings(SBGSettings* settings);									///< Save GUI settings
 
 	//@}
-  public slots:
+public slots:
 
-	void														onTetrahedronClicked();
-	void														onCubeClicked();
-	void														onCuboidClicked();
-	void														onOctahedronClicked();
-	void														onDodecahedronClicked();
-	void														onCubocahedronClicked();
-	void														onIcosahedronClicked();
-	void														onIcosidodecahedronClicked();
-	void														onRhombicuboctahedronClicked();
-	void														onSnubCubeClicked();
-	void														onTruncatedCubeClicked();
-	void														onTruncatedCuboctahedronClicked();
-	void														onHelixClicked();
-	void														onStickmanClicked();
-	void														onBunnyClicked();
+	void														onCurrentWireframeTemplateChanged();
+
+protected:
+
+	void														showEvent(QShowEvent* event);
 
 private:
 
 	Ui::SEWireframeEditorGUIClass								ui;
 	SEWireframeEditor*											editor{ nullptr };
+
+	bool														uiInitializedFlag = false;												///< True if the UI has been initialized on the first show
+	void														initializeUI();
 
 };
 

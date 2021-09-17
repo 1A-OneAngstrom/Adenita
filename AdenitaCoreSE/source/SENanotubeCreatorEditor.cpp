@@ -255,41 +255,39 @@ void SENanotubeCreatorEditor::display() {
 	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop. 
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
 
+	if (!displayFlag) return;
+
 	SEConfig& config = SEConfig::GetInstance();
 
-	if (displayFlag) {
+	const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
 
-		const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+	if (!lengthSelected) {
 
-		if (!lengthSelected) {
+		ADNDisplayHelper::displayLine(firstPosition, currentPosition);
+		secondPosition = currentPosition;
 
-			ADNDisplayHelper::displayLine(firstPosition, currentPosition);
-			secondPosition = currentPosition;
+	}
+	else {
 
-		}
-		else {
+		ADNDisplayHelper::displayLine(firstPosition, secondPosition);
+		ADNDisplayHelper::displayLine(secondPosition, currentPosition);
 
-			ADNDisplayHelper::displayLine(firstPosition, secondPosition);
-			ADNDisplayHelper::displayLine(secondPosition, currentPosition);
+		thirdPosition = currentPosition;
 
-			thirdPosition = currentPosition;
+	}
 
-		}
+	if (config.preview_editor) tempPart_ = generateNanotube(true);
 
-		if (config.preview_editor) tempPart_ = generateNanotube(true);
+	if (tempPart_ != nullptr) {
 
-		if (tempPart_ != nullptr) {
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-			glEnable(GL_DEPTH_TEST);
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		displayNanotube();
 
-			displayNanotube();
-
-			glDisable(GL_BLEND);
-			glDisable(GL_DEPTH_TEST);
-
-		}
+		glDisable(GL_BLEND);
+		glDisable(GL_DEPTH_TEST);
 
 	}
 
