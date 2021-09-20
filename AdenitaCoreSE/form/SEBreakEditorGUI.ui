@@ -6,13 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>300</width>
-    <height>100</height>
+    <width>200</width>
+    <height>50</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>300</width>
+    <width>200</width>
+    <height>50</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>16777215</width>
     <height>100</height>
    </size>
   </property>
@@ -21,9 +27,23 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QGridLayout" name="gridLayout">
-     <item row="1" column="0">
-      <widget class="QRadioButton" name="rdnFive">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Mode:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="radioButtonThreePrime">
+       <property name="text">
+        <string>3'</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="radioButtonFivePrime">
        <property name="text">
         <string>5'</string>
        </property>
@@ -32,19 +52,18 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="QRadioButton" name="rdnThree">
-       <property name="text">
-        <string>3'</string>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
-      </widget>
-     </item>
-     <item row="0" column="0" colspan="2">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Mode:</string>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>5</width>
+         <height>1</height>
+        </size>
        </property>
-      </widget>
+      </spacer>
      </item>
     </layout>
    </item>
@@ -53,7 +72,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>rdnThree</sender>
+   <sender>radioButtonThreePrime</sender>
    <signal>toggled(bool)</signal>
    <receiver>SEBreakEditorGUIClass</receiver>
    <slot>onSetMode()</slot>
@@ -69,7 +88,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>rdnFive</sender>
+   <sender>radioButtonFivePrime</sender>
    <signal>toggled(bool)</signal>
    <receiver>SEBreakEditorGUIClass</receiver>
    <slot>onSetMode()</slot>

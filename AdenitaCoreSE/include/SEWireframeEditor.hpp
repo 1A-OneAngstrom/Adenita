@@ -99,7 +99,7 @@ public :
 
 private:
 
-	ADNPointer<ADNPart>											generateCuboid(bool mock = false);
+	ADNPointer<ADNPart>											generateCuboid(const SBPosition3& currentPosition, bool mock = false);
 	ADNPointer<ADNPart>											generateWireframe(bool mock = false);
 	void														sendPartToAdenita(ADNPointer<ADNPart> part);
 
@@ -113,9 +113,9 @@ private:
 
 	bool														isPressing = false;
 
-	DASCreatorEditors::UIData									positions_;
+	DASCreatorEditors::UIData									positionData;
 	bool														displayFlag = false;
-	ADNPointer<ADNPart>											tempPart_ = nullptr;
+	ADNPointer<ADNPart>											tempPart = nullptr;
 	DASCreator::EditorType										wireframeType = DASCreator::EditorType::Tetrahedron;
 
 };

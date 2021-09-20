@@ -48,7 +48,7 @@ QString SEBreakEditorGUI::getName() const {
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your editor inside SAMSON
 
-	return "Break strands"; 
+	return "Break Strands"; 
 
 }
 
@@ -75,6 +75,6 @@ QString SEBreakEditorGUI::getCitation() const {
 
 void SEBreakEditorGUI::onSetMode() {
 
-	getEditor()->setFivePrimeModeFlag(ui.rdnFive->isChecked());
+	getEditor()->setFivePrimeModeFlag(ui.radioButtonFivePrime->isChecked());
 
 }

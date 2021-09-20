@@ -448,8 +448,9 @@ void SEAdenitaCoreSEAppGUI::onCatenanes() {
 	number->setValue(2);
 
 	QLabel* radiusLabel = new QLabel();
-	radiusLabel->setText("Radius (nm)");
+	radiusLabel->setText("Radius");
 	QDoubleSpinBox* radius = new QDoubleSpinBox();
+	radius->setSuffix(" nm");
 	radius->setRange(0.0, 99999.9);
 	radius->setValue(20.0);
 	radius->setDecimals(2);
@@ -519,8 +520,9 @@ void SEAdenitaCoreSEAppGUI::onKinetoplast() {
 	cols->setValue(3);
 
 	QLabel* radiusLabel = new QLabel();
-	radiusLabel->setText("Radius (nm)");
+	radiusLabel->setText("Radius");
 	QDoubleSpinBox* radius = new QDoubleSpinBox();
+	radius->setSuffix(" nm");
 	radius->setRange(0.0, 99999.9);
 	radius->setValue(20.0);
 	radius->setDecimals(2);

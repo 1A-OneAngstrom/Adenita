@@ -49,30 +49,26 @@ void SELatticeCreatorEditorGUI::setSquare() {
 
 void SELatticeCreatorEditorGUI::onZPatternChanged(int index) {
 
-	if (index == 0)
-		getEditor()->setZPattern(ZLatticePattern::ALLZ);
-	else if (index == 1)
-		getEditor()->setZPattern(ZLatticePattern::TRIANGLE);
-	else if (index == 2)
-		getEditor()->setZPattern(ZLatticePattern::CIRCLE);
+	ZLatticePattern pattern = static_cast<ZLatticePattern>(index);
+	getEditor()->setZPattern(pattern);
 
 }
 
 void SELatticeCreatorEditorGUI::onMaxXdsChanged(int val) {
 
-	getEditor()->setMaxXds(val);
+	getEditor()->setMaxXDoubleStrands(val);
 
 }
 
 void SELatticeCreatorEditorGUI::onMaxYdsChanged(int val) {
 
-	getEditor()->setMaxYds(val);
+	getEditor()->setMaxYDoubleStrands(val);
 
 }
 
 void SELatticeCreatorEditorGUI::onMaxZBpsChanged(int val) {
 
-	getEditor()->setMaxZBps(val);
+	getEditor()->setMaxZBasePairs(val);
 
 }
 

@@ -27,16 +27,16 @@ SELatticeCreatorEditor::~SELatticeCreatorEditor() {
 
 SELatticeCreatorEditorGUI* SELatticeCreatorEditor::getPropertyWidget() const { return static_cast<SELatticeCreatorEditorGUI*>(propertyWidget); }
 
-void SELatticeCreatorEditor::setMaxXds(int val) {
-	maxXds_ = val;
+void SELatticeCreatorEditor::setMaxXDoubleStrands(int val) {
+	maxXDoubleStrands = val;
 }
 
-void SELatticeCreatorEditor::setMaxYds(int val) {
-	maxYds_ = val;
+void SELatticeCreatorEditor::setMaxYDoubleStrands(int val) {
+	maxYDoubleStrands = val;
 }
 
-void SELatticeCreatorEditor::setMaxZBps(int val) {
-	maxZBps_ = val;
+void SELatticeCreatorEditor::setMaxZBasePairs(int val) {
+	maxZBasePairs = val;
 }
 
 ADNPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*/) {
@@ -45,27 +45,26 @@ ADNPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*
 
 	ADNPointer<ADNPart> part = nullptr;
 
-	SBPosition3 firstPos = firstPosition;
-	SBPosition3 currentPos = secondPosition - firstPos;
+	SBPosition3 currentPos = secondPosition - firstPosition;
 
 	SBPosition3 xPos = currentPos;
 	xPos[1].setValue(0);
 	SBPosition3 yPos = currentPos;
 	yPos[2].setValue(0);
   
-	auto x = (xPos).norm();
-	auto y = (yPos).norm();
-	auto z = SBQuantity::nanometer(3.4);
+	const SBQuantity::nanometer x = xPos.norm();
+	const SBQuantity::nanometer y = yPos.norm();
+	SBQuantity::nanometer z = SBQuantity::nanometer(3.4);
 
 	if (!heightSelected) {
 
 		SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
-		z = (currentPosition - firstPos).norm();
+		z = (currentPosition - firstPosition).norm();
 
 	}
 	else if (heightSelected) {
 
-		z = (thirdPosition - firstPos).norm();
+		z = (thirdPosition - firstPosition).norm();
 
 	}
   
@@ -77,9 +76,9 @@ ADNPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*
 	if (yNumStrands < 1) yNumStrands = 1;
 	if (numBps < 1) numBps = 1;
 
-	if (xNumStrands > maxXds_)  xNumStrands = maxXds_;
-	if (yNumStrands > maxYds_)  yNumStrands = maxYds_;
-	if (numBps > maxZBps_)  numBps = maxZBps_;
+	if (xNumStrands > maxXDoubleStrands)  xNumStrands = maxXDoubleStrands;
+	if (yNumStrands > maxYDoubleStrands)  yNumStrands = maxYDoubleStrands;
+	if (numBps > maxZBasePairs)  numBps = maxZBasePairs;
 
 	xyText_ = "x: ";
 	xyText_ += std::to_string(int(xNumStrands));
@@ -127,7 +126,7 @@ ADNPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*
 
 void SELatticeCreatorEditor::displayLattice() {
 
-	ADNDisplayHelper::displayPart(tempPart_);
+	ADNDisplayHelper::displayPart(tempPart);
 
 }
 
@@ -256,7 +255,7 @@ void SELatticeCreatorEditor::resetData() {
 	secondPosition = SBPosition3();
 	thirdPosition = SBPosition3();
 	displayFlag = false;
-	tempPart_ == nullptr;
+	tempPart == nullptr;
 
 }
 
@@ -279,9 +278,9 @@ void SELatticeCreatorEditor::display() {
 
 	const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
 
-	tempPart_ = generateLattice(true);
+	tempPart = generateLattice(true);
 
-	if (tempPart_ != nullptr) {
+	if (tempPart != nullptr) {
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
@@ -356,10 +355,9 @@ void SELatticeCreatorEditor::mousePressEvent(QMouseEvent* event) {
 
 	if (event->button() & Qt::LeftButton) {
 
-		isPressing = true;
-		event->accept();
-
 		if (!lengthSelected) {
+
+			resetData();
 
 			SAMSON::getActiveCamera()->rightView();
 			firstPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
@@ -373,6 +371,10 @@ void SELatticeCreatorEditor::mousePressEvent(QMouseEvent* event) {
 
 		}
 
+		isPressing = true;
+
+		event->accept();
+
 		SAMSON::requestViewportUpdate();
 
 	}
@@ -384,12 +386,23 @@ void SELatticeCreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-	if (!displayFlag) return;
+	const bool isLeftButton = event->button() & Qt::LeftButton;
+
+	// takes care of the issue: press right mouse button then left mouse button, then release RMB, then LMB (so no holding) leads to camera editor, then move mouse and click LMB -> adds strands
+	if (isPressing) event->accept();
+
+	if (!displayFlag) {
+
+		//if (isLeftButton)
+		resetData();
+
+		return;
+
+	}
 
 	if (lengthSelected) event->accept();
-	if (!isPressing) return;
 
-	if (event->button() & Qt::LeftButton) {
+	if (isPressing && event->button() & Qt::LeftButton) {
 
 		event->accept();
 
@@ -403,6 +416,13 @@ void SELatticeCreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
 			// set final second position, the length is defined
 			lengthSelected = true;
 			secondPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+
+			if ((firstPosition - secondPosition).norm() < SBQuantity::angstrom(1.0)) {
+
+				resetData();
+
+			}
+
 			//SAMSON::getActiveCamera()->topView();
 			SAMSON::requestViewportUpdate();
 			return;
@@ -416,7 +436,7 @@ void SELatticeCreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
 		ADNPointer<ADNPart> part = generateLattice();
 		sendPartToAdenita(part);
 
-		//SBCamera * camera = SAMSON::getActiveCamera()->rightView();
+		//SAMSON::getActiveCamera()->rightView();
 		
 		//SAMSON::endHolding();
 
@@ -440,6 +460,8 @@ void SELatticeCreatorEditor::mouseMoveEvent(QMouseEvent* event) {
 	if (!hasLeftButton) {
 
 		isPressing = false;
+		if (isPressing)
+			resetData();
 
 	}
 

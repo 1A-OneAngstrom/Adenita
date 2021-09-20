@@ -103,9 +103,9 @@ public :
 
 	//@}
 
-	void														setMaxXds(int val);
-	void														setMaxYds(int val);
-	void														setMaxZBps(int val);
+	void														setMaxXDoubleStrands(int val);
+	void														setMaxYDoubleStrands(int val);
+	void														setMaxZBasePairs(int val);
 
 	void														resetData();
 
@@ -126,11 +126,11 @@ private:
 	SBPosition3													secondPosition;
 	SBPosition3													thirdPosition;
 	bool														displayFlag = false;
-	ADNPointer<ADNPart>											tempPart_ = nullptr;
+	ADNPointer<ADNPart>											tempPart = nullptr;
 
-	int															maxXds_ = 32;
-	int															maxYds_ = 30;
-	int															maxZBps_ = 400;
+	int															maxXDoubleStrands = 32;
+	int															maxYDoubleStrands = 30;
+	int															maxZBasePairs = 400;
 
 	std::string													xyText_ = "";
 	std::string													zText_ = "";

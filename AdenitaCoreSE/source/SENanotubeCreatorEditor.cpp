@@ -1,5 +1,6 @@
 #include "SENanotubeCreatorEditor.hpp"
 #include "SEAdenitaCoreSEApp.hpp"
+#include "DASCreator.hpp"
 
 #include "SAMSON.hpp"
 
@@ -26,44 +27,44 @@ SENanotubeCreatorEditorGUI* SENanotubeCreatorEditor::getPropertyWidget() const {
 
 void SENanotubeCreatorEditor::setRoutingType(RoutingType t) {
 
-	routingType = t;
+	this->routingType = t;
 
 }
 
-void SENanotubeCreatorEditor::SetPredefined(bool predefined, double radius, int numBp) {
+void SENanotubeCreatorEditor::setPredefined(bool predefined, const SBQuantity::length& radius, int numBp) {
 
-	predefined_ = false;
-	if (radius > 0.0 && numBp > 0) {
+	this->predefinedFlag = false;
+	if (radius > SBQuantity::length(0.0) && numBp > 0) {
 
-		predefined_ = predefined;
-		numBp_ = numBp;
-		radius_ = radius;
+		this->predefinedFlag = predefined;
+		this->numberOfBasePairs = numBp;
+		this->radius = radius;
 
 	}
 
 }
 
-void SENanotubeCreatorEditor::SetRadius(double radius) {
-	radius_ = radius;
+void SENanotubeCreatorEditor::setRadius(const SBQuantity::length& radius) {
+	this->radius = radius;
 }
 
-void SENanotubeCreatorEditor::SetBp(int bp) {
-	numBp_ = bp;
+void SENanotubeCreatorEditor::setNumberOfBasePairs(int bp) {
+	this->numberOfBasePairs = bp;
 }
 
 ADNPointer<ADNPart> SENanotubeCreatorEditor::generateNanotube(bool mock) {
 
 	ADNPointer<ADNPart> part = nullptr;
 
-	auto radius = (thirdPosition - secondPosition).norm();
-	auto roundHeight = (secondPosition - firstPosition).norm();
+	SBQuantity::length generateRadius = (thirdPosition - secondPosition).norm();
+	SBQuantity::length roundHeight = (secondPosition - firstPosition).norm();
 	auto numNucleotides = round((roundHeight / SBQuantity::nanometer(ADNConstants::BP_RISE)).getValue());
 	SBVector3 dir = (secondPosition - firstPosition).normalizedVersion();
 
-	if (predefined_) {
+	if (predefinedFlag) {
 
-		numNucleotides = numBp_;
-		radius = SBQuantity::nanometer(radius_);
+		numNucleotides = numberOfBasePairs;
+		generateRadius = radius;
 
 	}
 
@@ -71,26 +72,26 @@ ADNPointer<ADNPart> SENanotubeCreatorEditor::generateNanotube(bool mock) {
 
 		if (mock) {
 
-			if (!lengthSelected && !predefined_) {
+			if (!lengthSelected && !predefinedFlag) {
 
-				radius = SBQuantity::picometer(1.0);
-				part = DASCreator::CreateMockNanotube(radius, firstPosition, dir, numNucleotides);
+				generateRadius = SBQuantity::picometer(1.0);
+				part = DASCreator::CreateMockNanotube(generateRadius, firstPosition, dir, numNucleotides);
 
 			}
-			else if (lengthSelected || predefined_) {
+			else if (lengthSelected || predefinedFlag) {
 
-				part = DASCreator::CreateMockNanotube(radius, firstPosition, dir, numNucleotides);
+				part = DASCreator::CreateMockNanotube(generateRadius, firstPosition, dir, numNucleotides);
 
 			}
 
 		}
 		else {
 
-			part = DASCreator::CreateNanotube(radius, firstPosition, dir, numNucleotides);
+			part = DASCreator::CreateNanotube(generateRadius, firstPosition, dir, numNucleotides);
 
 		}
 
-		updateGUI(radius, numNucleotides);
+		updateGUI(generateRadius, numNucleotides);
 
 	}
 
@@ -98,9 +99,8 @@ ADNPointer<ADNPart> SENanotubeCreatorEditor::generateNanotube(bool mock) {
 
 }
 
-void SENanotubeCreatorEditor::displayNanotube()
-{
-	ADNDisplayHelper::displayPart(tempPart_);
+void SENanotubeCreatorEditor::displayNanotube() {
+	ADNDisplayHelper::displayPart(tempPart);
 }
 
 void SENanotubeCreatorEditor::sendPartToAdenita(ADNPointer<ADNPart> nanotube) {
@@ -238,7 +238,7 @@ void SENanotubeCreatorEditor::resetData() {
 	secondPosition = SBPosition3();
 	thirdPosition = SBPosition3();
 	displayFlag = false;
-	tempPart_ == nullptr;
+	tempPart == nullptr;
 
 }
 
@@ -276,9 +276,9 @@ void SENanotubeCreatorEditor::display() {
 
 	}
 
-	if (config.preview_editor) tempPart_ = generateNanotube(true);
+	if (config.preview_editor) tempPart = generateNanotube(true);
 
-	if (tempPart_ != nullptr) {
+	if (tempPart != nullptr) {
 
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
@@ -333,15 +333,15 @@ void SENanotubeCreatorEditor::mousePressEvent(QMouseEvent* event) {
 
 	if (event->button() & Qt::LeftButton) {
 
-		isPressing = true;
-		event->accept();
-
 		if (!lengthSelected) {
+
+			resetData();
 
 			updateGUI(SBQuantity::nanometer(0.0), 0, true);
 
 			firstPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
 			secondPosition = firstPosition;
+			thirdPosition = firstPosition;
 
 		}
 		else {
@@ -349,6 +349,10 @@ void SENanotubeCreatorEditor::mousePressEvent(QMouseEvent* event) {
 			thirdPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
 
 		}
+
+		isPressing = true;
+
+		event->accept();
 
 		SAMSON::requestViewportUpdate();
 
@@ -361,12 +365,23 @@ void SENanotubeCreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-	if (!displayFlag) return;
+	const bool isLeftButton = event->button() & Qt::LeftButton;
+
+	// takes care of the issue: press right mouse button then left mouse button, then release RMB, then LMB (so no holding) leads to camera editor, then move mouse and click LMB -> adds strands
+	if (isPressing) event->accept();
+
+	if (!displayFlag) {
+
+		//if (isLeftButton)
+			resetData();
+
+		return;
+
+	}
 
 	if (lengthSelected) event->accept();
-	if (!isPressing) return;
 
-	if (event->button() & Qt::LeftButton) {
+	if (isPressing && event->button() & Qt::LeftButton) {
 
 		event->accept();
 
@@ -380,6 +395,13 @@ void SENanotubeCreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
 			// set final second position, the length is defined
 			lengthSelected = true;
 			secondPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+
+			if ((firstPosition - secondPosition).norm() < SBQuantity::angstrom(1.0)) {
+
+				resetData();
+
+			}
+
 			SAMSON::requestViewportUpdate();
 			return;
 
@@ -414,6 +436,8 @@ void SENanotubeCreatorEditor::mouseMoveEvent(QMouseEvent* event) {
 	if (!hasLeftButton) {
 
 		isPressing = false;
+		if (isPressing)
+			resetData();
 
 	}
 

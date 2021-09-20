@@ -77,6 +77,6 @@ void SETaggingEditorGUI::onModeChanged(bool tags) {
 	int m = 0;
 	if (!tags) m = 1;
 
-	getEditor()->changeMode(m);
+	getEditor()->setTaggingMode(m);
 
 }

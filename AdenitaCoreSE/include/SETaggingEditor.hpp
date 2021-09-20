@@ -103,20 +103,17 @@ public :
 
 	//@}
 
-	void														changeMode(int mode);
+	void														setTaggingMode(int mode);
 
 private:
 
-	DNABlocks													GetNtType(QPoint numSteps);
+	DNABlocks													getNucleotideType(QPoint numSteps);
 
 	//TaggingShape												shape_ = TaggingShape::Sphere;
-	TaggingMode													mode_ = TaggingMode::Tags;
-	DNABlocks													ntType_ = DNABlocks::DI;
+	TaggingMode													taggingMode = TaggingMode::Tags;
+	DNABlocks													nucleotideType = DNABlocks::DI;
 
-	DASCreatorEditors::UIData									positions_;
-
-	float														opaqueness_ = 0.5f;
-	float														radius_ = 100.0f;
+	std::string													previousSelectionFilter;
 
 };
 

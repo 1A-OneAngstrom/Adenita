@@ -26,15 +26,6 @@ class SB_EXPORT SEAdenitaVisualModel : public SBMVisualModel {
 
 public :
 
-	enum class Scale {
-		ATOMS_STICKS = 0,
-		ATOMS_BALLS = 1,
-		NUCLEOTIDES = 2,
-		SINGLE_STRANDS = 3,
-		DOUBLE_STRANDS = 4,
-		OBJECTS = 5
-	};
-
 	/// \name Constructors and destructors
 	//@{
 
@@ -63,6 +54,15 @@ public :
 
 	/// \name Rendering options
 	//@{
+
+	enum class Scale {
+		ATOMS_STICKS = 0,
+		ATOMS_BALLS = 1,
+		NUCLEOTIDES = 2,
+		SINGLE_STRANDS = 3,
+		DOUBLE_STRANDS = 4,
+		OBJECTS = 5
+	};
 
 	float       												getScale() const;
 	void												        setScale(float scale);

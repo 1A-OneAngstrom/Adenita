@@ -52,15 +52,15 @@ public:
 
 	//@}
 
-	void														updateInfo(SBQuantity::length radius, int numDs, int numBp, bool clear = false);
+	void														updateInfo(const SBQuantity::length& radius, int numberOfDSDNA, int numberOfBasePairs, bool clear = false);
 
 public slots:
 
 	void														onChangeRouting();
 	void														onPredefinedNanotube(bool predefined);
 	void														onRadiusChanged();
-	void														onBpChanged();
-	void														onNumDsChanged();
+	void														onNumberOfBasePairsChanged();
+	void														onNumberOfDSDNAChanged();
 
 private:
 

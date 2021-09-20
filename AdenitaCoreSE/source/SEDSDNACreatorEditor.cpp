@@ -474,7 +474,6 @@ void SEDSDNACreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
     const bool isLeftButton = event->button() & Qt::LeftButton;
 
     // takes care of the issue: press right mouse button then left mouse button, then release RMB, then LMB (so no holding) leads to camera editor, then move mouse and click LMB -> adds strands
-
     if (isPressing) event->accept();
 
     if (!displayFlag) {

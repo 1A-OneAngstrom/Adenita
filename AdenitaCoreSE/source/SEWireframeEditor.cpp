@@ -31,22 +31,26 @@ void SEWireframeEditor::setWireframeType(DASCreator::EditorType type) {
 
 }
 
-ADNPointer<ADNPart> SEWireframeEditor::generateCuboid(bool mock /*= false*/) {
+ADNPointer<ADNPart> SEWireframeEditor::generateCuboid(const SBPosition3& currentPosition, bool mock /*= false*/) {
 
     SEConfig& config = SEConfig::GetInstance();
 
     ADNPointer<ADNPart> part = nullptr;
 
-    SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
-
     int zSize = 31;
 
-    SBQuantity::length faceRadius = (currentPosition - positions_.FirstPosition).norm();
+    SBQuantity::length faceRadius;
 
-    if (positions_.positionsCounter > 1) {
+    if (positionData.positionsCounter < 0) return nullptr;
+    else if (positionData.positionsCounter == 1) {
 
-        faceRadius = (positions_.SecondPosition - positions_.FirstPosition).norm();
-        SBQuantity::length zNM = (currentPosition - positions_.SecondPosition).norm();
+        faceRadius = (currentPosition - positionData.FirstPosition).norm();
+
+    }
+    else if (positionData.positionsCounter > 1) {
+
+        faceRadius = (positionData.SecondPosition - positionData.FirstPosition).norm();
+        SBQuantity::length zNM = (currentPosition - positionData.SecondPosition).norm();
         zSize = DASDaedalus::CalculateEdgeSize(zNM);
 
     }
@@ -56,19 +60,19 @@ ADNPointer<ADNPart> SEWireframeEditor::generateCuboid(bool mock /*= false*/) {
     int xSize = bpSize;
     int ySize = bpSize;
 
+    part = new ADNPart();
+
+    const SBVector3 xDir(1.0, 0.0, 0.0);
+    const SBVector3 yDir(0.0, 1.0, 0.0);
+    const SBVector3 zDir(0.0, 0.0, 1.0);
+
+    const SBQuantity::nanometer xLength = SBQuantity::nanometer(ADNConstants::BP_RISE * xSize);
+    const SBQuantity::nanometer yLength = SBQuantity::nanometer(ADNConstants::BP_RISE * ySize);
+    const SBQuantity::nanometer zLength = SBQuantity::nanometer(ADNConstants::BP_RISE * zSize);
+
     if (mock) {
-    
-        part = new ADNPart();
 
-        const SBVector3 xDir(1.0, 0.0, 0.0);
-        const SBVector3 yDir(0.0, 1.0, 0.0);
-        const SBVector3 zDir(0.0, 0.0, 1.0);
-
-        const SBQuantity::nanometer xLength = SBQuantity::nanometer(ADNConstants::BP_RISE * xSize);
-        const SBQuantity::nanometer yLength = SBQuantity::nanometer(ADNConstants::BP_RISE * ySize);
-        const SBQuantity::nanometer zLength = SBQuantity::nanometer(ADNConstants::BP_RISE * zSize);
-
-        auto topLeftFront = positions_.FirstPosition;
+        const SBPosition3 topLeftFront = positionData.FirstPosition;
 
         // create 12 double helices
         DASCreator::AddDoubleStrandToADNPart(part, xSize, topLeftFront, xDir, true);
@@ -98,28 +102,19 @@ ADNPointer<ADNPart> SEWireframeEditor::generateCuboid(bool mock /*= false*/) {
     }
     else {
 
-        part = new ADNPart();
         DASPolyhedron p = DASPolyhedron();
         std::map<int, SBPosition3> vertices;
         std::map<int, std::vector<int>> faces;
 
-        const SBVector3 xDir(1.0, 0.0, 0.0);
-        const SBVector3 yDir(0.0, 1.0, 0.0);
-        const SBVector3 zDir(0.0, 0.0, 1.0);
-
-        const SBQuantity::nanometer xLength = SBQuantity::nanometer(ADNConstants::BP_RISE * xSize);
-        const SBQuantity::nanometer yLength = SBQuantity::nanometer(ADNConstants::BP_RISE * ySize);
-        const SBQuantity::nanometer zLength = SBQuantity::nanometer(ADNConstants::BP_RISE * zSize);
-
         // current position is top-left
-        const SBPosition3 vertex1 = positions_.FirstPosition;
-        const SBPosition3 vertex2 = vertex1 + xLength*xDir;
-        const SBPosition3 vertex3 = vertex2 - yLength*yDir;
-        const SBPosition3 vertex4 = vertex3 - xLength*xDir;
-        const SBPosition3 vertex5 = vertex1 - zLength*zDir;
-        const SBPosition3 vertex6 = vertex5 + xLength*xDir;
-        const SBPosition3 vertex7 = vertex6 - yLength*yDir;
-        const SBPosition3 vertex8 = vertex7 - xLength*xDir;
+        const SBPosition3 vertex1 = positionData.FirstPosition;
+        const SBPosition3 vertex2 = vertex1 + xLength * xDir;
+        const SBPosition3 vertex3 = vertex2 - yLength * yDir;
+        const SBPosition3 vertex4 = vertex3 - xLength * xDir;
+        const SBPosition3 vertex5 = vertex1 - zLength * zDir;
+        const SBPosition3 vertex6 = vertex5 + xLength * xDir;
+        const SBPosition3 vertex7 = vertex6 - yLength * yDir;
+        const SBPosition3 vertex8 = vertex7 - xLength * xDir;
 
         vertices.insert(std::make_pair(0, vertex2));
         vertices.insert(std::make_pair(1, vertex1));
@@ -153,7 +148,7 @@ ADNPointer<ADNPart> SEWireframeEditor::generateCuboid(bool mock /*= false*/) {
         alg->SetMinEdgeLength(minSize);
         part = alg->ApplyAlgorithm(seq, p, false);
 
-        if (part != nullptr) sendPartToAdenita(part);
+        //if (part != nullptr) sendPartToAdenita(part);
 
     }
 
@@ -163,7 +158,7 @@ ADNPointer<ADNPart> SEWireframeEditor::generateCuboid(bool mock /*= false*/) {
 
 ADNPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock) {
 
-    auto radius = (positions_.SecondPosition - positions_.FirstPosition).norm();
+    auto radius = (positionData.SecondPosition - positionData.FirstPosition).norm();
     unsigned int numNucleotides = 0;
 
     ADNPointer<ADNPart> part = nullptr;
@@ -271,7 +266,7 @@ ADNPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock) {
     if (filename.size()) if (QFileInfo::exists(QString::fromStdString(filename))) {
 
         DASPolyhedron polyhedron = DASPolyhedron(filename);
-        polyhedron.Center(positions_.FirstPosition);
+        polyhedron.Center(positionData.FirstPosition);
 
         if (mock) {
 
@@ -414,9 +409,9 @@ void SEWireframeEditor::resetData() {
 
     isPressing = false;
 
-    DASCreatorEditors::resetPositions(positions_);
+    DASCreatorEditors::resetPositions(positionData);
     displayFlag = false;
-    tempPart_ == nullptr;
+    tempPart == nullptr;
 
 }
 
@@ -444,47 +439,47 @@ void SEWireframeEditor::display() {
 
     if (wireframeType == DASCreator::EditorType::Cuboid) {
 
-        if (positions_.positionsCounter < 3) {
+        if (positionData.positionsCounter < 3) {
 
             SBVector3 xDir(1.0, 0.0, 0.0);
             SBVector3 yDir(0.0, 1.0, 0.0);
             SBVector3 zDir(0.0, 0.0, 1.0);
 
-            if (positions_.positionsCounter == 1) {
+            if (positionData.positionsCounter == 1) {
 
-                SBQuantity::length radius = (currentPosition - positions_.FirstPosition).norm();
-                SBQuantity::length side = 2 * radius;
+                const SBQuantity::length radius = (currentPosition - positionData.FirstPosition).norm();
+                const SBQuantity::length side = 2 * radius;
                 auto xySide = DASDaedalus::CalculateEdgeSize(side);
-                SBPosition3 xPos = positions_.FirstPosition + SBQuantity::nanometer(xySide*ADNConstants::BP_RISE)*xDir;
-                SBPosition3 yPos = positions_.FirstPosition - SBQuantity::nanometer(xySide*ADNConstants::BP_RISE)*yDir;
+                const SBPosition3 xPos = positionData.FirstPosition + SBQuantity::nanometer(xySide*ADNConstants::BP_RISE)*xDir;
+                const SBPosition3 yPos = positionData.FirstPosition - SBQuantity::nanometer(xySide*ADNConstants::BP_RISE)*yDir;
 
-                std::string xyText = std::to_string(xySide) + " bp";
-                ADNDisplayHelper::displayLine(positions_.FirstPosition, xPos, xyText);
-                ADNDisplayHelper::displayLine(positions_.FirstPosition, yPos, xyText);
-                if (config.preview_editor) tempPart_ = generateCuboid(true);
-                ADNDisplayHelper::displayPart(tempPart_);
+                const std::string xyText = std::to_string(xySide) + " bp";
+                ADNDisplayHelper::displayLine(positionData.FirstPosition, xPos, xyText);
+                ADNDisplayHelper::displayLine(positionData.FirstPosition, yPos, xyText);
+                if (config.preview_editor) tempPart = generateCuboid(currentPosition, true);
+                ADNDisplayHelper::displayPart(tempPart);
 
             }
-            else if (positions_.positionsCounter == 2) {
+            else if (positionData.positionsCounter == 2) {
 
-                SBQuantity::length radius = (positions_.SecondPosition - positions_.FirstPosition).norm();
-                SBQuantity::length side = 2 * radius;
+                const SBQuantity::length radius = (positionData.SecondPosition - positionData.FirstPosition).norm();
+                const SBQuantity::length side = 2 * radius;
                 auto xySide = DASDaedalus::CalculateEdgeSize(side);
-                auto zLength = DASDaedalus::CalculateEdgeSize((currentPosition - positions_.SecondPosition).norm());
-                SBPosition3 xPos = positions_.FirstPosition + SBQuantity::nanometer(xySide*ADNConstants::BP_RISE)*xDir;
-                SBPosition3 yPos = positions_.FirstPosition - SBQuantity::nanometer(xySide*ADNConstants::BP_RISE)*yDir;
-                SBPosition3 zPos = positions_.FirstPosition - SBQuantity::nanometer(zLength*ADNConstants::BP_RISE) *zDir;
+                auto zLength = DASDaedalus::CalculateEdgeSize((currentPosition - positionData.SecondPosition).norm());
+                const SBPosition3 xPos = positionData.FirstPosition + SBQuantity::nanometer(xySide*ADNConstants::BP_RISE)*xDir;
+                const SBPosition3 yPos = positionData.FirstPosition - SBQuantity::nanometer(xySide*ADNConstants::BP_RISE)*yDir;
+                const SBPosition3 zPos = positionData.FirstPosition - SBQuantity::nanometer(zLength*ADNConstants::BP_RISE) *zDir;
 
-                std::string xyText = std::to_string(xySide) + " bp";
-                std::string zText = std::to_string(zLength) + " bp";
-                ADNDisplayHelper::displayLine(positions_.FirstPosition, xPos, xyText);
-                ADNDisplayHelper::displayLine(positions_.FirstPosition, yPos, xyText);
-                ADNDisplayHelper::displayLine(positions_.FirstPosition, zPos, zText);
+                const std::string xyText = std::to_string(xySide) + " bp";
+                const std::string zText = std::to_string(zLength) + " bp";
+                ADNDisplayHelper::displayLine(positionData.FirstPosition, xPos, xyText);
+                ADNDisplayHelper::displayLine(positionData.FirstPosition, yPos, xyText);
+                ADNDisplayHelper::displayLine(positionData.FirstPosition, zPos, zText);
 
-                positions_.ThirdPosition = currentPosition;
+                //positionData.ThirdPosition = currentPosition;
 
-                if (config.preview_editor) tempPart_ = generateCuboid(true);
-                ADNDisplayHelper::displayPart(tempPart_);
+                if (config.preview_editor) tempPart = generateCuboid(currentPosition, true);
+                ADNDisplayHelper::displayPart(tempPart);
 
             }
 
@@ -493,21 +488,18 @@ void SEWireframeEditor::display() {
     }
     else {
 
-        if (positions_.positionsCounter == 1) {
+        if (positionData.positionsCounter == 1) {
 
-            ADNDisplayHelper::displayLine(positions_.FirstPosition, currentPosition);
-            positions_.SecondPosition = currentPosition;
+            ADNDisplayHelper::displayLine(positionData.FirstPosition, currentPosition);
+            positionData.SecondPosition = currentPosition;
 
         }
 
         if (config.preview_editor) {
 
-            tempPart_ = generateWireframe(true);
-            ADNDisplayHelper::displayPart(tempPart_, 1000.0f, 1.0f);
+            tempPart = generateWireframe(true);
+            ADNDisplayHelper::displayPart(tempPart, 1000.0f, 1.0f);
 
-        }
-
-        if (tempPart_ != nullptr) {
         }
 
     }
@@ -548,40 +540,44 @@ void SEWireframeEditor::mousePressEvent(QMouseEvent* event) {
 
     if (event->button() & Qt::LeftButton) {
 
-        isPressing = true;
-        event->accept();
+        if (positionData.positionsCounter == 0)
+            resetData();
 
         if (wireframeType == DASCreator::EditorType::Cuboid) {
 
-            if (positions_.positionsCounter == 0) {
+            if (positionData.positionsCounter == 0) {
 
-                positions_.FirstPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
-                positions_.SecondPosition = positions_.FirstPosition;
-                positions_.ThirdPosition = positions_.SecondPosition;
-                positions_.positionsCounter++;
+                positionData.FirstPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+                positionData.SecondPosition = positionData.FirstPosition;
+                positionData.ThirdPosition = positionData.FirstPosition;
+                positionData.positionsCounter = 1;
 
             }
-            else if (positions_.positionsCounter == 2) {
+            else if (positionData.positionsCounter == 2) {
 
-                positions_.ThirdPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+                positionData.ThirdPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
 
             }
 
         }
         else {
 
-            if (positions_.positionsCounter == 0) {
+            if (positionData.positionsCounter == 0) {
 
-                positions_.FirstPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
-                positions_.SecondPosition = positions_.FirstPosition;
-                positions_.positionsCounter++;
+                positionData.FirstPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+                positionData.SecondPosition = positionData.FirstPosition;
+                positionData.positionsCounter = 1;
 
-                positions_.FirstVector = SAMSON::getActiveCamera()->getBasisZ().normalizedVersion();
-                positions_.vectorsCounter++;
+                positionData.FirstVector = SAMSON::getActiveCamera()->getBasisZ().normalizedVersion();
+                positionData.vectorsCounter = 1;
 
             }
 
         }
+
+        isPressing = true;
+
+        event->accept();
 
         SAMSON::requestViewportUpdate();
 
@@ -594,11 +590,21 @@ void SEWireframeEditor::mouseReleaseEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-    if (!displayFlag) return;
+    const bool isLeftButton = event->button() & Qt::LeftButton;
 
-    if (!isPressing) return;
+    // takes care of the issue: press right mouse button then left mouse button, then release RMB, then LMB (so no holding) leads to camera editor, then move mouse and click LMB -> adds strands
+    if (isPressing) event->accept();
 
-    if (event->button() & Qt::LeftButton) {
+    if (!displayFlag) {
+
+        //if (isLeftButton)
+        resetData();
+
+        return;
+
+    }
+
+    if (isPressing && event->button() & Qt::LeftButton) {
 
         event->accept();
 
@@ -606,22 +612,23 @@ void SEWireframeEditor::mouseReleaseEvent(QMouseEvent* event) {
 
         if (wireframeType == DASCreator::EditorType::Cuboid) {
 
-            if (positions_.positionsCounter == 1) {
+            if (positionData.positionsCounter == 1) {
                 
-                positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
-                positions_.positionsCounter++;
+                positionData.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+                positionData.positionsCounter = 2;
 
                 if (wireframeType == DASCreator::EditorType::Cuboid)
-                    positions_.ThirdPosition = positions_.SecondPosition;
+                    positionData.ThirdPosition = positionData.SecondPosition;
 
             }
-            if (positions_.positionsCounter == 2) {
+            else if (positionData.positionsCounter == 2) {
 
-                positions_.ThirdPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+                positionData.ThirdPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+                positionData.positionsCounter = 3;
 
-                //SAMSON::beginHolding("Add wireframe");
+                //SAMSON::beginHolding("Add cuboid");
 
-                ADNPointer<ADNPart> part = generateCuboid();
+                ADNPointer<ADNPart> part = generateCuboid(positionData.ThirdPosition);
                 sendPartToAdenita(part);
 
                 //SAMSON::endHolding();
@@ -633,10 +640,10 @@ void SEWireframeEditor::mouseReleaseEvent(QMouseEvent* event) {
         }
         else {
 
-            if (positions_.positionsCounter == 1) {
+            if (positionData.positionsCounter == 1) {
 
-                positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
-                positions_.positionsCounter++;
+                positionData.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+                positionData.positionsCounter = 2;
 
                 //SAMSON::beginHolding("Add wireframe");
 
@@ -680,22 +687,22 @@ void SEWireframeEditor::mouseMoveEvent(QMouseEvent* event) {
 
     }
 
-    if (positions_.positionsCounter == 1) {
+    if (positionData.positionsCounter == 1) {
 
-        positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+        positionData.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
         if (wireframeType == DASCreator::EditorType::Cuboid)
-            positions_.ThirdPosition = positions_.SecondPosition;
+            positionData.ThirdPosition = positionData.SecondPosition;
         event->accept();
 
         //if (wireframeType == DASCreator::EditorType::Cuboid)
-        //    positions_.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+        //    positionData.SecondPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
 
     }
-    else if (positions_.positionsCounter == 2) {
+    else if (positionData.positionsCounter == 2) {
 
         if (wireframeType == DASCreator::EditorType::Cuboid) {
 
-            positions_.ThirdPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+            positionData.ThirdPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
             
             if (!hasMidButton && !hasRightButton)
                 event->accept();

@@ -119,7 +119,7 @@ bool SEAdenitaVisualModelProperties::setup(SBNode* node) {
 
 void SEAdenitaVisualModelProperties::onSliderScaleChanged(int val) {
 
-	double scale = (double)val / 10.0f;
+	double scale = static_cast<double>(val) / 10.0;
 	visualModel->setScale(scale);// , true);
 	ui.lblScale->setText(QString::number(scale));
 	//SAMSON::requestViewportUpdate();
@@ -128,21 +128,21 @@ void SEAdenitaVisualModelProperties::onSliderScaleChanged(int val) {
 
 void SEAdenitaVisualModelProperties::onSliderVisibilityChanged(int val) {
 
-	visualModel->setVisibility(val / 100.0f);
+	visualModel->setVisibility(val / 100.0);
 	SAMSON::requestViewportUpdate();
 
 }
 
 void SEAdenitaVisualModelProperties::onSpinboxVisibilityChanged(double val) {
 
-	visualModel->setVisibility(val / 100.0f);
+	visualModel->setVisibility(val / 100.0);
 	SAMSON::requestViewportUpdate();
 
 }
 
 void SEAdenitaVisualModelProperties::onSliderDimensionChanged(int val) {
 
-	float dim = (float)val / 100.0f;
+	float dim = static_cast<double>(val) / 100.0;
 	visualModel->setDimension(dim);
 	ui.lblDimension->setText(QString::number(dim));
 	//SAMSON::requestViewportUpdate();

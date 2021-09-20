@@ -708,8 +708,7 @@ void SEAdenitaVisualModel::displayTransition(bool forSelection) {
 
 }
 
-void SEAdenitaVisualModel::prepareSticksToBalls(double iv)
-{
+void SEAdenitaVisualModel::prepareSticksToBalls(double iv) {
   
 }
 
@@ -1770,9 +1769,9 @@ void SEAdenitaVisualModel::display() {
 
 	//ADNLogger& logger = ADNLogger::GetLogger();
 
-	auto ed = SAMSON::getActiveEditor();
-	/*logger.Log(ed->getName());*/
-	if (ed->getName() == "SEERotation" || ed->getName() == "SEETranslation") {
+	SBEditor* activeEditor = SAMSON::getActiveEditor();
+	/*logger.Log(activeEditor->getName());*/
+	if (activeEditor->getName() == "SEERotation" || activeEditor->getName() == "SEETranslation") {
 
 		prepareDiscreteScalesDim();
 		setScale(scale_);

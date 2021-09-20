@@ -92,7 +92,7 @@ QString SEConnectSSDNAEditorGUI::getCitation() const {
 
 void SEConnectSSDNAEditorGUI::onSelectMode() {
 
-	bool xo = ui.rdnSS->isChecked();
+	const bool xo = ui.radioButtonSingleStrand->isChecked();
 	getEditor()->setConnectionMode(xo);
 
 }

@@ -106,6 +106,9 @@ void SETaggingEditor::beginEditing() {
 	const QString iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/cursor_tagging.png");
 	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
 
+	previousSelectionFilter = SAMSON::getCurrentSelectionFilter();
+	SAMSON::setCurrentSelectionFilter("Residues");
+
 }
 
 void SETaggingEditor::endEditing() {
@@ -114,6 +117,9 @@ void SETaggingEditor::endEditing() {
 	// Implement this function if you need to clean some data structures.
 
 	SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
+
+	if (SAMSON::getCurrentSelectionFilter() == "Residues")
+		SAMSON::setCurrentSelectionFilter(previousSelectionFilter);
 
 	SAMSON::unsetViewportCursor();
 
@@ -132,9 +138,9 @@ void SETaggingEditor::display() {
 	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop. 
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
 
-	if (mode_ == TaggingMode::Base) {
+	if (taggingMode == TaggingMode::Base) {
 
-		const std::string base(1, ADNModel::GetResidueName(ntType_));
+		const std::string base(1, ADNModel::GetResidueName(nucleotideType));
 		const SBPosition3 pos = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
 		ADNDisplayHelper::displayText(pos, base);
 
@@ -176,7 +182,7 @@ void SETaggingEditor::mouseReleaseEvent(QMouseEvent* event) {
 
 	if (nucleotide != nullptr) {
 
-		if (mode_ == TaggingMode::Tags) {
+		if (taggingMode == TaggingMode::Tags) {
 
 			bool ok;
 			const QString text = QInputDialog::getText(this, tr("Enter Nucleotide Tag"), tr("Tag:"), QLineEdit::Normal, QString(), &ok);
@@ -188,9 +194,9 @@ void SETaggingEditor::mouseReleaseEvent(QMouseEvent* event) {
 			}
 
 		}
-		else if (mode_ == TaggingMode::Base) {
+		else if (taggingMode == TaggingMode::Base) {
 
-			ADNBasicOperations::MutateNucleotide(nucleotide, ntType_);
+			ADNBasicOperations::MutateNucleotide(nucleotide, nucleotideType);
 
 		}
 
@@ -226,7 +232,7 @@ void SETaggingEditor::wheelEvent(QWheelEvent* event) {
 	if (!numDegrees.isNull()) {
 
 		QPoint numSteps = numDegrees / 15;
-		ntType_ = GetNtType(numSteps);
+		nucleotideType = getNucleotideType(numSteps);
 		event->accept();
 
 	}
@@ -259,13 +265,13 @@ ADNPointer<ADNNucleotide> SETaggingEditor::GetHighlightedNucleotide() {
 
 }
 
-void SETaggingEditor::changeMode(int mode) {
-	mode_ = TaggingMode(mode);
+void SETaggingEditor::setTaggingMode(int mode) {
+	taggingMode = TaggingMode(mode);
 }
 
-DNABlocks SETaggingEditor::GetNtType(QPoint numSteps) {
+DNABlocks SETaggingEditor::getNucleotideType(QPoint numSteps) {
 
-	DNABlocks t = ntType_;
+	DNABlocks t = nucleotideType;
 
 	std::map<int, DNABlocks> values = {
 		{0, DNABlocks::DA},

@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>460</width>
+    <width>378</width>
     <height>206</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>460</width>
+    <width>280</width>
     <height>177</height>
    </size>
   </property>
@@ -28,60 +28,80 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="4" column="1" colspan="2">
-      <widget class="QRadioButton" name="chkRoutingSeamless">
+     <item row="2" column="1">
+      <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>Seamless</string>
+        <string>Length</string>
        </property>
       </widget>
      </item>
-     <item row="3" column="1" colspan="2">
-      <widget class="QRadioButton" name="chkRoutingNone">
+     <item row="0" column="1">
+      <widget class="QLabel" name="label_4">
        <property name="text">
-        <string>None</string>
+        <string>Number of Double Strand DNA</string>
        </property>
-       <property name="checked">
-        <bool>true</bool>
+      </widget>
+     </item>
+     <item row="3" column="1" rowspan="2" colspan="2">
+      <widget class="QComboBox" name="comboBoxRouting">
+       <item>
+        <property name="text">
+         <string>None</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Seamless</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Tiles</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Non-seamless</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="3" column="0" rowspan="2">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Routing</string>
        </property>
       </widget>
      </item>
      <item row="1" column="2">
-      <widget class="QDoubleSpinBox" name="spnRadius">
+      <widget class="QDoubleSpinBox" name="doubleSpinBoxRadius">
+       <property name="suffix">
+        <string> nm</string>
+       </property>
        <property name="maximum">
         <double>1000.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QSpinBox" name="spinBoxNumberOfDSDNA">
+       <property name="maximum">
+        <number>9999</number>
        </property>
       </widget>
      </item>
      <item row="1" column="1">
       <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>Radius (nm)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="1" colspan="2">
-      <widget class="QRadioButton" name="chkRoutingTiles">
-       <property name="text">
-        <string>Tiles</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>Length (bp)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0" rowspan="4">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Select a routing</string>
+        <string>Radius</string>
        </property>
       </widget>
      </item>
      <item row="2" column="2">
-      <widget class="QSpinBox" name="spnNumBp">
+      <widget class="QSpinBox" name="spinBoxNumberOfBasePairs">
+       <property name="suffix">
+        <string> bp</string>
+       </property>
        <property name="minimum">
         <number>1</number>
        </property>
@@ -93,20 +113,6 @@
        </property>
       </widget>
      </item>
-     <item row="5" column="1" colspan="2">
-      <widget class="QRadioButton" name="chkRoutingNonSeamless">
-       <property name="text">
-        <string>Non-seamless</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLabel" name="label_4">
-       <property name="text">
-        <string>Num. DsDNA</string>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="0" rowspan="3">
       <widget class="QCheckBox" name="chkPredefined">
        <property name="text">
@@ -114,17 +120,10 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="3" rowspan="7">
+     <item row="5" column="0" colspan="3">
       <widget class="QTextEdit" name="txtInfo">
        <property name="readOnly">
         <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="2">
-      <widget class="QSpinBox" name="spnNumDs">
-       <property name="maximum">
-        <number>9999</number>
        </property>
       </widget>
      </item>
@@ -134,70 +133,6 @@
  </widget>
  <resources/>
  <connections>
-  <connection>
-   <sender>chkRoutingTiles</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>SENanotubeCreatorEditorGUIClass</receiver>
-   <slot>onChangeRouting()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>188</x>
-     <y>65</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>149</x>
-     <y>56</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>chkRoutingNonSeamless</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>SENanotubeCreatorEditorGUIClass</receiver>
-   <slot>onChangeRouting()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>188</x>
-     <y>88</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>149</x>
-     <y>56</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>chkRoutingNone</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>SENanotubeCreatorEditorGUIClass</receiver>
-   <slot>onChangeRouting()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>188</x>
-     <y>19</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>149</x>
-     <y>56</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>chkRoutingSeamless</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>SENanotubeCreatorEditorGUIClass</receiver>
-   <slot>onChangeRouting()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>188</x>
-     <y>42</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>149</x>
-     <y>56</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>chkPredefined</sender>
    <signal>toggled(bool)</signal>
@@ -215,10 +150,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>spnNumBp</sender>
+   <sender>spinBoxNumberOfBasePairs</sender>
    <signal>valueChanged(int)</signal>
    <receiver>SENanotubeCreatorEditorGUIClass</receiver>
-   <slot>onBpChanged()</slot>
+   <slot>onNumberOfBasePairsChanged()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>325</x>
@@ -231,7 +166,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>spnRadius</sender>
+   <sender>doubleSpinBoxRadius</sender>
    <signal>valueChanged(double)</signal>
    <receiver>SENanotubeCreatorEditorGUIClass</receiver>
    <slot>onRadiusChanged()</slot>
@@ -247,14 +182,30 @@
    </hints>
   </connection>
   <connection>
-   <sender>spnNumDs</sender>
+   <sender>spinBoxNumberOfDSDNA</sender>
    <signal>valueChanged(int)</signal>
    <receiver>SENanotubeCreatorEditorGUIClass</receiver>
-   <slot>onNumDsChanged()</slot>
+   <slot>onNumberOfDSDNAChanged()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>247</x>
      <y>21</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>229</x>
+     <y>102</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>comboBoxRouting</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>SENanotubeCreatorEditorGUIClass</receiver>
+   <slot>onChangeRouting()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>94</y>
     </hint>
     <hint type="destinationlabel">
      <x>229</x>
@@ -267,7 +218,7 @@
   <slot>onChangeRouting()</slot>
   <slot>onPredefinedNanotube(bool)</slot>
   <slot>onRadiusChanged()</slot>
-  <slot>onBpChanged()</slot>
-  <slot>onNumDsChanged()</slot>
+  <slot>onNumberOfBasePairsChanged()</slot>
+  <slot>onNumberOfDSDNAChanged()</slot>
  </slots>
 </ui>

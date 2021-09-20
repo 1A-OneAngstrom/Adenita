@@ -46,6 +46,8 @@ SB_CLASS_BEGIN(SEAdenitaVisualModel);
 
 		SB_ATTRIBUTE_READ_WRITE(bool, SEAdenitaVisualModel, ShowBasePairingFlag, "Show base pairing", "Properties");
 
+		SB_ATTRIBUTE_PUSH_BUTTON(SEAdenitaVisualModel, "Update", "Update", "Properties", update);
+
 	SB_INTERFACE_END;
 
 SB_CLASS_END(SEAdenitaVisualModel);

@@ -6,7 +6,6 @@
 #include "SBAction.hpp"
 
 #include "ADNPart.hpp"
-#include "DASCreator.hpp"
 #include "DASRouter.hpp"
 
 
@@ -95,9 +94,9 @@ public :
 	//@}
 
 	void														setRoutingType(RoutingType t);
-	void														SetPredefined(bool predefined, double radius, int numBp);
-	void														SetRadius(double radius);
-	void														SetBp(int bp);
+	void														setPredefined(bool predefined, const SBQuantity::length& radius, int numBp);
+	void														setRadius(const SBQuantity::length& radius);
+	void														setNumberOfBasePairs(int bp);
 
 	void														resetData();
 
@@ -112,16 +111,16 @@ private:
 	SBPosition3													secondPosition;
 	SBPosition3													thirdPosition;
 	bool														displayFlag = false;
-	ADNPointer<ADNPart>											tempPart_ = nullptr;
-	RoutingType													routingType = RoutingType::None;
-
 	bool														isPressing = false;
 	bool														lengthSelected = false;
 
+	ADNPointer<ADNPart>											tempPart = nullptr;
+	RoutingType													routingType = RoutingType::None;
+
 	//! for manual setting of base pairs and double strands
-	bool														predefined_ = false;
-	int															numBp_ = 0;
-	double														radius_ = 0.0;
+	bool														predefinedFlag = false;
+	int															numberOfBasePairs = 0;
+	SBQuantity::length											radius = SBQuantity::length(0.0);
 
 };
 

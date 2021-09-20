@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>300</width>
-    <height>100</height>
+    <width>250</width>
+    <height>80</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>300</width>
-    <height>100</height>
+    <width>200</width>
+    <height>80</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QFormLayout" name="formLayout">
+    <layout class="QGridLayout" name="gridLayout">
      <item row="0" column="0">
       <widget class="QRadioButton" name="rdbUntwist">
        <property name="text">
