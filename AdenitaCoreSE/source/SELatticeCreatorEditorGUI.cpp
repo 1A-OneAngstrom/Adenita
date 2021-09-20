@@ -7,6 +7,14 @@ SELatticeCreatorEditorGUI::SELatticeCreatorEditorGUI(SELatticeCreatorEditor* edi
 	ui.setupUi( this );
 	this->editor = editor;
 
+	ui.labelPatterns->setVisible(false);
+	ui.labelPatternsX->setVisible(false);
+	ui.labelPatternsY->setVisible(false);
+	ui.labelPatternsZ->setVisible(false);
+	ui.comboBoxXPattern->setVisible(false);
+	ui.comboBoxYPattern->setVisible(false);
+	ui.comboBoxZPattern->setVisible(false);
+
 }
 
 SELatticeCreatorEditorGUI::~SELatticeCreatorEditorGUI() {

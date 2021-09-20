@@ -91,8 +91,12 @@ void SEMergePartsEditor::MergeParts(int idx, int jdx) {
 	if (indexParts_.find(idx) != indexParts_.end()) p1 = indexParts_.at(idx);
 	if (indexParts_.find(jdx) != indexParts_.end()) p2 = indexParts_.at(jdx);
 
-	if (p1 != nullptr && p2 != nullptr)
+	if (p1 != nullptr && p2 != nullptr) {
+		
 		app->MergeComponents(p1, p2);
+		if (p2 != nullptr) p2->erase();
+
+	}
 
 	app->SetMod(false);
 

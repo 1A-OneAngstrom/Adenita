@@ -141,8 +141,8 @@ void SETaggingEditor::display() {
 	if (taggingMode == TaggingMode::Base) {
 
 		const std::string base(1, ADNModel::GetResidueName(nucleotideType));
-		const SBPosition3 pos = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
-		ADNDisplayHelper::displayText(pos, base);
+		const SBPosition3 position = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+		ADNDisplayHelper::displayText(position, base);
 
 	}
 
@@ -184,11 +184,13 @@ void SETaggingEditor::mouseReleaseEvent(QMouseEvent* event) {
 
 		if (taggingMode == TaggingMode::Tags) {
 
-			bool ok;
-			const QString text = QInputDialog::getText(this, tr("Enter Nucleotide Tag"), tr("Tag:"), QLineEdit::Normal, QString(), &ok);
-			if (ok && !text.isEmpty()) {
+			//bool ok;
+			//const QString tagText = QInputDialog::getText(this, tr("Enter Nucleotide Tag"), tr("Tag:"), QLineEdit::Normal, QString(), &ok);
+			QString tagText;
+			if (SAMSON::getStringFromUser("Enter Nucleotide Tag", tagText))
+			if (!tagText.isEmpty()) {
 
-				nucleotide->setTag(text.toStdString());
+				nucleotide->setTag(tagText.toStdString());
 				nucleotide->setSelectionFlag(true);
 
 			}
@@ -228,12 +230,16 @@ void SETaggingEditor::wheelEvent(QWheelEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-	QPoint numDegrees = event->angleDelta() / 8;
-	if (!numDegrees.isNull()) {
+	if (event->modifiers() == Qt::ControlModifier) {
 
-		QPoint numSteps = numDegrees / 15;
-		nucleotideType = getNucleotideType(numSteps);
-		event->accept();
+		QPoint numDegrees = event->angleDelta() / 8;
+		if (!numDegrees.isNull()) {
+
+			QPoint numSteps = numDegrees / 15;
+			nucleotideType = getNucleotideType(numSteps);
+			event->accept();
+
+		}
 
 	}
 

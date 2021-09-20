@@ -7,13 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>250</width>
-    <height>80</height>
+    <height>160</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>200</width>
-    <height>80</height>
+    <height>160</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -54,6 +54,16 @@
       </widget>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Tips: &lt;/p&gt;&lt;p&gt;- press &lt;span style=&quot; font-weight:600;&quot;&gt;Alt&lt;/span&gt; to switch between modes; &lt;/p&gt;&lt;p&gt;- hold &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl&lt;/span&gt; and use the &lt;span style=&quot; font-weight:600;&quot;&gt;mouse wheel&lt;/span&gt; to change the size of the sphere.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

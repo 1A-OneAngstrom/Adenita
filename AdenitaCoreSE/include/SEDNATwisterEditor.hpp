@@ -97,24 +97,37 @@ public :
 	SEDNATwisterEditorGUI*										getPropertyWidget() const;												///< Returns the property widget of the editor
 	void														setBendingType(BendingType type);
 
+	//@}
+
 private:
 
 	void														untwisting();
 	void														makeInvisible();
-	SBPosition3													GetSnappedPosition();
+	SBPosition3													getSnappedPosition(const SBPosition3& currentPosition);
+
+	void														updateEditorText();
+	void														updateForwardReverseState();
+
+	bool														altPressed = false;
+	SBPosition3													spherePosition;
+	std::string													editorText = "Untwisting";
+	BendingType													bendingType = BendingType::UNTWIST;
+	SBQuantity::length											sphereRadius = SBQuantity::nanometer(2.0);
+	bool														forwardActionSphereActive = false;
+	bool														reverseActionSphereActive = false;
+	bool														snappingActive = true;
+
+	ADNNanorobot*												nanorobot{ nullptr };
+
+	/// \name Display
+	//@{
+
+	float														positionData[3];
+	float														radiusData[1];
+	float														colorData[4];
+	unsigned int												flagData[1];
 
 	//@}
-	bool														altPressed_;
-	SBPosition3													spherePosition_;
-	SBPosition3													textPosition_;
-	std::string													text_;
-	SBQuantity::length											sphereRadius_;
-	bool														forwardActionSphereActive_;
-	bool														reverseActionSphereActive_;
-	bool														snappingActive_ = true;
-
-	BendingType													bendingType_ = BendingType::UNTWIST;
-	ADNNanorobot*												nanorobot_;
 
 };
 

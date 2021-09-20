@@ -12,19 +12,6 @@ SEDNATwisterEditor::SEDNATwisterEditor() {
 	propertyWidget = new SEDNATwisterEditorGUI(this);
 	propertyWidget->loadDefaultSettings();
 
-	forwardActionSphereActive_ = false;
-	reverseActionSphereActive_ = false;
-	sphereRadius_ = SBQuantity::angstrom(20.0f);
-	spherePosition_ = SBPosition3();
-	textPosition_ = SBPosition3();
-	altPressed_ = false;
-	text_ = "Untwisting";
-
-	auto app = SEAdenitaCoreSEApp::getAdenitaApp();
-	nanorobot_ = app->GetNanorobot();
-
-	SAMSON::requestViewportUpdate();
-
 }
 
 SEDNATwisterEditor::~SEDNATwisterEditor() {
@@ -40,96 +27,89 @@ SEDNATwisterEditorGUI* SEDNATwisterEditor::getPropertyWidget() const { return st
 
 void SEDNATwisterEditor::setBendingType(BendingType type) {
 
-	bendingType_ = type;
-
-	if (bendingType_ == BendingType::UNTWIST)
-		text_ = "Untwisting";
-	else if (bendingType_ == BendingType::SPHEREVISIBILITY)
-		text_ = "Invisible";
+	this->bendingType = type;
+	updateEditorText();
 
 }
 
 void SEDNATwisterEditor::untwisting() {
 
-	SBNodeIndexer nodes;
-	SAMSON::getActiveDocument()->getNodes(nodes, (SBNode::GetClass() == std::string("ADNBaseSegment")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+	SBNodeIndexer baseSegmentIndexer;
+	SAMSON::getActiveDocument()->getNodes(baseSegmentIndexer, (SBNode::GetClass() == std::string("ADNBaseSegment")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
 	DASBackToTheAtom btta;
 
-	SB_FOR(SBNode* node, nodes) {
+	SB_FOR(SBNode* node, baseSegmentIndexer) {
 
-		ADNPointer<ADNBaseSegment> bs = static_cast<ADNBaseSegment*>(node);
-		SBPosition3 pos = bs->GetPosition();
-		SBPosition3 vectorFromSphereCenter = pos - spherePosition_;
+		ADNPointer<ADNBaseSegment> baseSegment = static_cast<ADNBaseSegment*>(node);
+		const SBPosition3 baseSegmentPosition = baseSegment->GetPosition();
+		const SBQuantity::length distanceFromSphereCenter = (baseSegmentPosition - spherePosition).norm();
 
-		if (vectorFromSphereCenter.norm() < sphereRadius_) {
+		if (distanceFromSphereCenter < sphereRadius) {
 
-			vectorFromSphereCenter = vectorFromSphereCenter * (sphereRadius_ / vectorFromSphereCenter.norm());
-			if (forwardActionSphereActive_)
-				btta.UntwistNucleotidesPosition(bs);
-			else if (reverseActionSphereActive_)
-				btta.SetNucleotidePosition(bs, true);
+			if (forwardActionSphereActive)
+				btta.UntwistNucleotidesPosition(baseSegment);
+			else if (reverseActionSphereActive)
+				btta.SetNucleotidePosition(baseSegment, true);
 
 		}
 
 	}
 
-	SEAdenitaVisualModel* adenitaVisualModel = SEAdenitaCoreSEApp::getVisualModel();
-	if (adenitaVisualModel) adenitaVisualModel->update();
+	SEAdenitaCoreSEApp::resetVisualModel();
 
 }
 
 void SEDNATwisterEditor::makeInvisible() {
 
-	SBNodeIndexer nts;
-	SAMSON::getActiveDocument()->getNodes(nts, (SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+	SBNodeIndexer nucleotideIndexer;
+	SAMSON::getActiveDocument()->getNodes(nucleotideIndexer, (SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
-	SB_FOR(SBNode* node, nts) {
+	SB_FOR(SBNode* node, nucleotideIndexer) {
 
 		ADNPointer<ADNNucleotide> nt = static_cast<ADNNucleotide*>(node);
 
 		SBPosition3 pos = nt->GetPosition();
-		SBPosition3 vectorFromSphereCenter = pos - spherePosition_;
+		SBPosition3 vectorFromSphereCenter = pos - spherePosition;
 
-		if (vectorFromSphereCenter.norm() < sphereRadius_) {
+		if (vectorFromSphereCenter.norm() < sphereRadius) {
 
-			if (forwardActionSphereActive_)
+			if (forwardActionSphereActive)
 				nt->setVisibilityFlag(false);
-			else if (reverseActionSphereActive_)
+			else if (reverseActionSphereActive)
 				nt->setVisibilityFlag(true);
 
 		}
 
 	}
 
-	SEAdenitaVisualModel* adenitaVisualModel = SEAdenitaCoreSEApp::getVisualModel();
-	if (adenitaVisualModel) adenitaVisualModel->update();
+	SEAdenitaCoreSEApp::resetVisualModel();
 
 }
 
-SBPosition3 SEDNATwisterEditor::GetSnappedPosition() {
+SBPosition3 SEDNATwisterEditor::getSnappedPosition(const SBPosition3& currentPosition) {
 
-	SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+	SBPosition3 snappedPosition = currentPosition;
 
-	if (snappingActive_) {
+	if (snappingActive) {
 
-		auto highlightedBaseSegments = nanorobot_->GetHighlightedBaseSegments();
-		auto highlightedBaseSegmentsFromNucleotides = nanorobot_->GetHighlightedBaseSegmentsFromNucleotides();
-		auto highlightedAtoms = nanorobot_->GetHighlightedAtoms();
+		auto highlightedBaseSegments = nanorobot->GetHighlightedBaseSegments();
+		auto highlightedBaseSegmentsFromNucleotides = nanorobot->GetHighlightedBaseSegmentsFromNucleotides();
+		auto highlightedAtoms = nanorobot->GetHighlightedAtoms();
 
 		if (highlightedAtoms.size() == 1) {
-			currentPosition = highlightedAtoms[0]->getPosition();
+			snappedPosition = highlightedAtoms[0]->getPosition();
 		}
 		else if (highlightedBaseSegments.size() == 1) {
-			currentPosition = highlightedBaseSegments[0]->GetPosition();
+			snappedPosition = highlightedBaseSegments[0]->GetPosition();
 		}
 		else if (highlightedBaseSegmentsFromNucleotides.size() == 1) {
-			currentPosition = highlightedBaseSegmentsFromNucleotides[0]->GetPosition();
+			snappedPosition = highlightedBaseSegmentsFromNucleotides[0]->GetPosition();
 		}
 
 	}
 
-	return currentPosition;
+	return snappedPosition;
 
 }
 
@@ -177,7 +157,7 @@ QString SEDNATwisterEditor::getToolTip() const {
 	
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("dsDNA Visualization Twister"); 
+	return QObject::tr("Double Strand DNA Visualization Twister"); 
 
 }
 
@@ -199,7 +179,7 @@ void SEDNATwisterEditor::saveSettings(SBGSettings* settings) {
 
 QString SEDNATwisterEditor::getDescription() const {
 
-	return QObject::tr("Adenita | dsDNA Visualization Twister");
+	return QObject::tr("Adenita | Double Strand DNA Visualization Twister");
 
 }
 
@@ -211,6 +191,12 @@ void SEDNATwisterEditor::beginEditing() {
 	//const QString iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/twister.png");
 	//SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
 
+	nanorobot = SEAdenitaCoreSEApp::getAdenitaApp()->GetNanorobot();
+
+	altPressed = false;
+	forwardActionSphereActive = false;
+	reverseActionSphereActive = false;
+
 }
 
 void SEDNATwisterEditor::endEditing() {
@@ -218,9 +204,13 @@ void SEDNATwisterEditor::endEditing() {
 	// SAMSON Element generator pro tip: SAMSON calls this function immediately before your editor becomes inactive (for example when another editor becomes active). 
 	// Implement this function if you need to clean some data structures.
 
+	altPressed = false;
+	forwardActionSphereActive = false;
+	reverseActionSphereActive = false;
+
 	SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
 
-	SAMSON::unsetViewportCursor();
+	//SAMSON::unsetViewportCursor();
 
 }
 
@@ -236,46 +226,46 @@ void SEDNATwisterEditor::display() {
 
 	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop. 
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
-  
-	float position[3];
-	float radius[1];
-	float color[4];
-	unsigned int flag[1];
 
-	position[0] = spherePosition_[0].getValue();
-	position[1] = spherePosition_[1].getValue();
-	position[2] = spherePosition_[2].getValue();
+	updateEditorText();
 
-	radius[0] = sphereRadius_.getValue();
+	const SBPosition3 textOffset = SBPosition3(SBQuantity::angstrom(0.0), SBQuantity::angstrom(sphereRadius), SBQuantity::angstrom(0.0));
+	SBPosition3 textPosition = spherePosition - textOffset;
 
-	if (forwardActionSphereActive_) {
-		color[0] = 0.f;
-		color[1] = 1.f;
-		color[2] = 0.f;
-		color[3] = 0.3f;
+	positionData[0] = spherePosition[0].getValue();
+	positionData[1] = spherePosition[1].getValue();
+	positionData[2] = spherePosition[2].getValue();
+
+	radiusData[0] = sphereRadius.getValue();
+
+	if (forwardActionSphereActive) {
+		colorData[0] = 0.f;
+		colorData[1] = 1.f;
+		colorData[2] = 0.f;
+		colorData[3] = 0.3f;
 	}
-	else if (reverseActionSphereActive_) {
-		color[0] = 0.f;
-		color[1] = 0.f;
-		color[2] = 1.f;
-		color[3] = 0.3f;
+	else if (reverseActionSphereActive) {
+		colorData[0] = 0.f;
+		colorData[1] = 0.f;
+		colorData[2] = 1.f;
+		colorData[3] = 0.3f;
 	}
 	else {
-		color[0] = 0.f;
-		color[1] = 1.f;
-		color[2] = 1.f;
-		color[3] = 0.3f;
+		colorData[0] = 0.f;
+		colorData[1] = 1.f;
+		colorData[2] = 1.f;
+		colorData[3] = 0.3f;
 	}
 
-	flag[0] = 0;
+	flagData[0] = 0;
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_DEPTH_TEST);
 
-	SAMSON::displaySpheres(1, position, radius, color, flag);
+	SAMSON::displaySpheres(1, positionData, radiusData, colorData, flagData);
 
-	ADNDisplayHelper::displayText(textPosition_, text_);
+	ADNDisplayHelper::displayText(textPosition, editorText);
 
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
@@ -304,28 +294,18 @@ void SEDNATwisterEditor::mousePressEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-	bool isLeftButton = event->button() & Qt::LeftButton;
+	const bool isLeftButton = event->button() & Qt::LeftButton;
 
 	if (isLeftButton) {
 
-		if (event->button() == Qt::MouseButton::LeftButton && !altPressed_) {
+		updateForwardReverseState();
 
-			forwardActionSphereActive_ = true;
-			reverseActionSphereActive_ = false;
+		const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+		spherePosition = getSnappedPosition(currentPosition);
 
-		}
-		else if (event->button() == Qt::MouseButton::LeftButton && altPressed_) {
-
-			forwardActionSphereActive_ = false;
-			reverseActionSphereActive_ = true;
-
-		}
-
-		spherePosition_ = GetSnappedPosition();
-
-		if (bendingType_ == BendingType::UNTWIST)
+		if (bendingType == BendingType::UNTWIST)
 			untwisting();
-		else if (bendingType_ == BendingType::SPHEREVISIBILITY)
+		else if (bendingType == BendingType::SPHEREVISIBILITY)
 			makeInvisible();
 
 		event->accept();
@@ -340,14 +320,9 @@ void SEDNATwisterEditor::mouseReleaseEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-	bool isLeftButton = event->button() & Qt::LeftButton;
+	const bool isLeftButton = event->button() & Qt::LeftButton;
 
 	if (isLeftButton) {
-
-		if (event->button() == Qt::MouseButton::LeftButton && !altPressed_)
-			forwardActionSphereActive_ = false;
-		else if (event->button() == Qt::MouseButton::LeftButton && altPressed_)
-			reverseActionSphereActive_ = false;
 
 		event->accept();
 		SAMSON::requestViewportUpdate();
@@ -361,35 +336,29 @@ void SEDNATwisterEditor::mouseMoveEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-	bool isLeftButton = event->button() & Qt::LeftButton;
+	const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
+	spherePosition = getSnappedPosition(currentPosition);
 
-	if (isLeftButton) {
+	const bool hasLeftButton = event->buttons() & Qt::LeftButton;
 
-		spherePosition_ = GetSnappedPosition();
+	if (hasLeftButton) {
 
-		textPosition_ = spherePosition_;
+		updateForwardReverseState();
 
-		SBPosition3 offset = SBPosition3(
-			SBQuantity::angstrom(0),
-			SBQuantity::angstrom(sphereRadius_),
-			SBQuantity::angstrom(0));
+		if (forwardActionSphereActive || reverseActionSphereActive) {
 
-		textPosition_ -= offset;
-
-		if (forwardActionSphereActive_ || reverseActionSphereActive_) {
-
-			if (bendingType_ == BendingType::UNTWIST)
+			if (bendingType == BendingType::UNTWIST)
 				untwisting();
-			else if (bendingType_ == BendingType::SPHEREVISIBILITY)
+			else if (bendingType == BendingType::SPHEREVISIBILITY)
 				makeInvisible();
 
 		}
 
 		event->accept();
 
-		SAMSON::requestViewportUpdate();
-
 	}
+
+	SAMSON::requestViewportUpdate();
 
 }
 
@@ -405,11 +374,18 @@ void SEDNATwisterEditor::wheelEvent(QWheelEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-	int angle = event->delta();
-	sphereRadius_ = sphereRadius_ * pow(1.002, angle);
-	SAMSON::requestViewportUpdate();
+	if (event->modifiers() & Qt::ControlModifier) {
 
-	event->accept();
+		updateForwardReverseState();
+
+		int angle = event->delta();
+		sphereRadius = sphereRadius * pow(1.002, angle);
+
+		event->accept();
+
+		SAMSON::requestViewportUpdate();
+
+	}
 
 }
 
@@ -420,11 +396,9 @@ void SEDNATwisterEditor::keyPressEvent(QKeyEvent* event) {
 
 	if (event->key() == Qt::Key::Key_Alt) {
 
-		altPressed_ = true;
-		if (bendingType_ == BendingType::UNTWIST)
-			text_ = "Twisting";
-		else if (bendingType_ == BendingType::SPHEREVISIBILITY)
-			text_ = "Visible";
+		altPressed = true;
+		updateForwardReverseState();
+		updateEditorText();
 
 		event->accept();
 
@@ -441,15 +415,39 @@ void SEDNATwisterEditor::keyReleaseEvent(QKeyEvent* event) {
 
 	if (event->key() == Qt::Key::Key_Alt) {
 
-		altPressed_ = false;
-		if (bendingType_ == BendingType::UNTWIST)
-			text_ = "Untwisting";
-		else if (bendingType_ == BendingType::SPHEREVISIBILITY)
-			text_ = "Invisible";
+		altPressed = false;
+		updateForwardReverseState();
+		updateEditorText();
 
 		event->accept();
 
 		SAMSON::requestViewportUpdate();
+
+	}
+
+}
+
+void SEDNATwisterEditor::updateEditorText() {
+
+	if (bendingType == BendingType::UNTWIST)
+		editorText = (altPressed ? "Twisting" : "Untwisting");
+	else if (bendingType == BendingType::SPHEREVISIBILITY)
+		editorText = (altPressed ? "Visible" : "Invisible");
+
+}
+
+void SEDNATwisterEditor::updateForwardReverseState() {
+
+	if (!altPressed) {
+
+		forwardActionSphereActive = true;
+		reverseActionSphereActive = false;
+
+	}
+	else {
+
+		forwardActionSphereActive = false;
+		reverseActionSphereActive = true;
 
 	}
 
