@@ -652,9 +652,9 @@ void DASBackToTheAtom::FindAtomsPositions(ADNPointer<ADNNucleotide> nt)
   ublas::matrix<double> new_pos = ADNVectorMath::ApplyTransformation(transf, input);
   new_pos = ADNVectorMath::Translate(new_pos, t_vec);
   // Set new atom positions
-  auto ntLAtoms = nt->GetAtoms();
+  //auto ntLAtoms = nt->GetAtoms();
   int count = 0;
-  SB_FOR(ADNPointer<ADNAtom> n, ntLAtoms) {
+  SB_FOR(ADNPointer<ADNAtom> n, ntLeftAtoms) {
     ADNPointer<ADNAtom> atom = n;
     SBPosition3 pos = UblasToSBPosition(ublas::row(new_pos, count));
     atom->SetPosition(pos);

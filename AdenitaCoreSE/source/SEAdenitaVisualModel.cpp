@@ -549,6 +549,8 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 
 	ADNArray<unsigned int> indices = ADNArray<unsigned int>(nCylinders * 2);
 
+	//std::cout << "nPositions: " << nPositions << "\tnCylinders: " << nCylinders << "\tnCylinders x 2: " << nCylinders * 2 << std::endl;
+
 	//this init can be optimized in the future
 
 	size_t sumNumEdges = 0;
@@ -582,8 +584,18 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 
 			}
 
-			for (int k = 0; k < curNCylinders * 2; ++k)
+			for (int k = 0; k < curNCylinders * 2; ++k) {
+
+				if (sumNumEdges + k >= nCylinders * 2) {
+
+					std::cerr << "ERROR: \tindex is out of range: " << sumNumEdges + k << std::endl;
+					break;
+
+				}
+
 				indices(sumNumEdges + k) = curIndices(k);
+
+			}
 
 			sumNumEdges += (2 * curNCylinders);
 
@@ -630,6 +642,7 @@ void SEAdenitaVisualModel::prepareDimensions() {
 
 	if (conformations.size() <= 1) return;
 
+	// TODO: fix getting and determining 1D, 2D, 3D conformations
 	auto conf2D = conformations[1];
 	auto conf1D = conformations[2];
 
@@ -862,6 +875,7 @@ void SEAdenitaVisualModel::prepare1Dto2D(double iv) {
 		positions_(index, 2) = positionsNt1D_(index, 2) + iv * (positionsNt2D_(index, 2) - positionsNt1D_(index, 2));
 
 	}
+
 }
 
 void SEAdenitaVisualModel::prepare2Dto3D(double iv) {

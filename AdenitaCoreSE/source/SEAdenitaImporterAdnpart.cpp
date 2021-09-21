@@ -39,12 +39,17 @@ bool SEAdenitaImporterAdnpart::importFromFile(const std::string& fileName, const
 
 	if (!adenitaApp) return false;
 
-	QString fn = QString::fromStdString(fileName);
+	const QString fn = QString::fromStdString(fileName);
 	if (!QFileInfo::exists(fn)) return false;
 
 	// load the parts in the Adenita App
 
-	adenitaApp->LoadPart(fn);
+	if (!adenitaApp->loadPart(fn)) {
+
+		SAMSON::informUser("Adenita", "Sorry, could not load the adnpart file:\n" + QFileInfo(fn).fileName());
+		return false;
+
+	}
 
 	// add a visual model or reset the existing one
 

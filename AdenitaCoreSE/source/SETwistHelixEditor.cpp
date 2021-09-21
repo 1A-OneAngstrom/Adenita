@@ -88,7 +88,7 @@ QString SETwistHelixEditor::getToolTip() const {
 	
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Twist dsDNA along helical axis"); 
+	return QObject::tr("Twist double strand DNA along helical axis"); 
 
 }
 
@@ -125,6 +125,9 @@ void SETwistHelixEditor::beginEditing() {
 	else
 		iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/cursor_twistPlus1BP.png");
 
+	previousSelectionFilter = SAMSON::getCurrentSelectionFilter();
+	SAMSON::setCurrentSelectionFilter("Any node");
+
 	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
 
 }
@@ -135,6 +138,9 @@ void SETwistHelixEditor::endEditing() {
 	// Implement this function if you need to clean some data structures.
 
 	SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
+
+	if (SAMSON::getCurrentSelectionFilter() == "Any node")
+		SAMSON::setCurrentSelectionFilter(previousSelectionFilter);
 
 	SAMSON::unsetViewportCursor();
 
@@ -179,6 +185,8 @@ void SETwistHelixEditor::mousePressEvent(QMouseEvent* event) {
 
 	if (event->buttons() == Qt::LeftButton) {
 
+		event->accept();
+
 		auto app = SEAdenitaCoreSEApp::getAdenitaApp();
 		auto nanorobot = app->GetNanorobot();
 
@@ -194,7 +202,6 @@ void SETwistHelixEditor::mousePressEvent(QMouseEvent* event) {
 
 		app->TwistDoubleHelix(highlightedDoubleStrands, twistAngle_);
 
-		event->accept();
 		SAMSON::requestViewportUpdate();
 
 	}

@@ -240,8 +240,8 @@ std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOper
     if (ss->IsScaffold()) {
 
         // largest strand stays as scaffold
-        auto sizeF = ssFP->GetNucleotides().size();
-        auto sizeT = ssTP->GetNucleotides().size();
+        auto sizeF = ssFP->getNumberOfNucleotides();
+        auto sizeT = ssTP->getNumberOfNucleotides();
         if (sizeF > sizeT)
             ssFP->IsScaffold(true);
         else

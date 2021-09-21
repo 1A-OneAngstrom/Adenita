@@ -3,27 +3,35 @@
 #include "ADNSaveAndLoad.hpp"
 
 
-ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(std::string filename)
-{
-  FILE* fp = fopen(filename.c_str(), "rb");
-  char readBuffer[131072];
-  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-  rapidjson::Document d;
-  d.ParseStream(is);
+ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(std::string filename) {
 
-  // check for save version
-  double versionValue = 0.0;
-  if (rapidjson::Value* version = rapidjson::Pointer("/version").Get(d)) {
-    versionValue = version->GetDouble();
-  }
+    FILE* fp = fopen(filename.c_str(), "rb");
+    if (fp == nullptr) return nullptr;
 
-  if (versionValue < 0.4) {
-    return LoadPartFromJsonLegacy(filename);
-  }
+    char readBuffer[131072];
+    rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+    rapidjson::Document d;
+    d.ParseStream(is);
 
-  ADNPointer<ADNPart> part = LoadPartFromJson(d, versionValue);
+    // check for save version
+    double versionValue = 0.0;
+    if (rapidjson::Value* version = rapidjson::Pointer("/version").Get(d)) {
+        versionValue = version->GetDouble();
+    }
 
-  return part;
+    if (versionValue < 0.4) {
+
+        fclose(fp);
+        return LoadPartFromJsonLegacy(filename);
+
+    }
+
+    ADNPointer<ADNPart> part = LoadPartFromJson(d, versionValue);
+
+    fclose(fp);
+
+    return part;
+
 }
 
 ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value & val, double versionValue)
@@ -202,41 +210,54 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value & val, double v
   return part;
 }
 
-std::vector<ADNPointer<ADNPart>> ADNLoader::LoadPartsFromJson(std::string filename)
-{
-  std::vector<ADNPointer<ADNPart>> parts;
+std::vector<ADNPointer<ADNPart>> ADNLoader::LoadPartsFromJson(std::string filename) {
 
-  FILE* fp = fopen(filename.c_str(), "rb");
-  char readBuffer[131072];
-  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-  rapidjson::Document d;
-  d.ParseStream(is);
+    std::vector<ADNPointer<ADNPart>> parts;
 
-  // check for save version
-  double versionValue = 0.0;
-  if (rapidjson::Value* version = rapidjson::Pointer("/version").Get(d)) {
-    versionValue = version->GetDouble();
-  }
+    FILE* fp = fopen(filename.c_str(), "rb");
+    if (fp == nullptr) return parts;
 
-  if (versionValue < 0.4) return parts;
+    char readBuffer[131072];
+    rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+    rapidjson::Document d;
+    d.ParseStream(is);
 
-  rapidjson::Value& partList = d["parts"];
-  for (rapidjson::Value::MemberIterator itr = partList.MemberBegin(); itr != partList.MemberEnd(); ++itr) {
-    rapidjson::Value& v = itr->value;
-    ADNPointer<ADNPart> p = LoadPartFromJson(v, versionValue);
-    parts.push_back(p);
-  }
+    // check for save version
+    double versionValue = 0.0;
+    if (rapidjson::Value* version = rapidjson::Pointer("/version").Get(d)) {
+        versionValue = version->GetDouble();
+    }
 
-  return parts;
+    if (versionValue < 0.4) {
+
+        fclose(fp);
+        return parts;
+
+    }
+
+    rapidjson::Value& partList = d["parts"];
+    for (rapidjson::Value::MemberIterator itr = partList.MemberBegin(); itr != partList.MemberEnd(); ++itr) {
+
+        rapidjson::Value& v = itr->value;
+        ADNPointer<ADNPart> part = LoadPartFromJson(v, versionValue);
+        if (part != nullptr) parts.push_back(part);
+
+    }
+
+    fclose(fp);
+    return parts;
+
 }
 
-ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(std::string filename)
-{
+ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(std::string filename) {
+
   // ids are reset since old format didn't use unique ids
 
   ADNPointer<ADNPart> part = new ADNPart();
 
   FILE* fp = fopen(filename.c_str(), "rb");
+  if (fp == nullptr) return nullptr;
+
   char readBuffer[131072];
   rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
   rapidjson::Document d;
@@ -248,6 +269,7 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(std::string filename)
     versionValue = version->GetDouble();
   }
   else {
+    fclose(fp);
     std::string msg = "Format is too old and can't be loaded with the current Adenita version";
     ADNLogger::LogError(msg);
 	
@@ -1088,7 +1110,7 @@ void ADNLoader::SingleStrandsToOxDNA(CollectionMap<ADNSingleStrand> singleStrand
 
   // topology file header
   size_t numNt = 0;
-  SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) numNt += ss->GetNucleotides().size();
+  SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) numNt += ss->getNumberOfNucleotides();
   std::string numberNucleotides = std::to_string(numNt);
   std::string numberStrands = std::to_string(singleStrands.size());
 

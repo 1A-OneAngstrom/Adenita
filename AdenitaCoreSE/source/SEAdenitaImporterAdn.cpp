@@ -44,7 +44,7 @@ bool SEAdenitaImporterAdn::importFromFile(const std::string& fileName, const SBL
 
 	// load the parts in the Adenita App
 
-	adenitaApp->LoadParts(fn);
+	adenitaApp->loadParts(fn);
 
 	// add a visual model or reset the existing one
 

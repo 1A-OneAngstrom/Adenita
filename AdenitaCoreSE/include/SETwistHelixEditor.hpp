@@ -98,6 +98,8 @@ private:
 
 	double														twistAngle_ = 34.3;
 
+	std::string													previousSelectionFilter;
+
 };
 
 

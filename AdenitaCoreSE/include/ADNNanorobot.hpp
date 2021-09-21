@@ -1,223 +1,103 @@
 #pragma once
 
 #include "ADNConstants.hpp"
+#include "ADNMixins.hpp"
 #include "ADNPart.hpp"
 #include "ADNConformations.hpp"
 
+#define ADENITA_NANOROBOT_REGISTER_PARTS 0
+#define ADENITA_NANOROBOT_REGISTER_CONFORMATIONS 0
 
-//! ADNNanorobot: main interface to Adenita logical model.
+/// ADNNanorobot: main interface to Adenita logical model.
+
 class ADNNanorobot : public Nameable, public Positionable, public Orientable {
+
 public:
-  //! Default constructor
-  ADNNanorobot() : Nameable(), Positionable(), Orientable() {};
-  //! Copy constructor
-  ADNNanorobot(const ADNNanorobot &n);
-  //! Default destructor
-  ~ADNNanorobot() = default;
+  
+    ADNNanorobot() : Nameable(), Positionable(), Orientable() {};                                                                       ///< Default constructor
+	ADNNanorobot(const ADNNanorobot &n);                                                                                                ///< Copy constructor
+	~ADNNanorobot() = default;                                                                                                          ///< Default destructor
 
-  //! Operator =
-  ADNNanorobot& operator=(const ADNNanorobot& other);
+    ADNNanorobot&                                               operator=(const ADNNanorobot& other);                                   ///< Operator =
 
-  //! Adds an ADNPart to the internal part index
-  /*!
-    \param a pointer to the ADNPart you want to add. The ADNPart is added to the current layer.
-  */
-  void RegisterPart(ADNPointer<ADNPart> part);
-  //! Deletes an ADNPart from the internal part index
-  /*!
-    \param a pointer to the ADNPart you want to delete from the index. The ADNPart is removed from the parent.
-  */
-  void DeregisterPart(ADNPointer<ADNPart> part);
+	void                                                        RegisterPart(ADNPointer<ADNPart> part);                                 ///< Adds the ADNPart \p part to the internal part indexer
+	void                                                        DeregisterPart(ADNPointer<ADNPart> part);                               ///< Deletes the ADNPart \p part from the internal part indexer
 
-  //! Returns the number of double strands
-  int GetNumberOfDoubleStrands();
-  //! Returns the number of base segments
-  int GetNumberOfBaseSegments();
-  //! Returns the number of single strands
-  int GetNumberOfSingleStrands();
-  //! Returns the number of nucleotides
-  int GetNumberOfNucleotides();
+    int                                                         GetNumberOfDoubleStrands();                                             ///< Returns the number of double strands
+    int                                                         GetNumberOfBaseSegments();                                              ///< Returns the number of base segments
+    int                                                         GetNumberOfSingleStrands();                                             ///< Returns the number of single strands
+    int                                                         GetNumberOfNucleotides();                                               ///< Returns the number of nucleotides
 
-  //! Returns all the registered ADNPart
-  CollectionMap<ADNPart> GetParts() const;
-  //! Returns the part to which an ADNSingleStrand belongs
-  /*!
-    \param a pointer to a ADNSingleStrand
-    \return the ADNPart to which the ADNSingleStrand belongs to
-  */
-  ADNPointer<ADNPart> GetPart(ADNPointer<ADNSingleStrand> ss);
-  //! Returns the part to which an ADNDoubleStrand belongs
-  /*!
-    \param a pointer to a ADNDoubleStrand
-    \return the ADNPart to which the ADNDoubleStrand belongs to
-  */
-  ADNPointer<ADNPart> GetPart(ADNPointer<ADNDoubleStrand> ds);
-  //! Returns all the registered ADNSingleStrand
-  CollectionMap<ADNSingleStrand> GetSingleStrands() const;
-  //! Returns all currently selected ADNPart
-  CollectionMap<ADNPart> GetSelectedParts();
-  //! Returns all currently highlighted SBAtoms
-  CollectionMap<SBAtom> GetHighlightedAtoms();
-  //! Returns all currently highlighted ADNNucleotides
-  CollectionMap<ADNNucleotide> GetHighlightedNucleotides();
-  //! Returns all currently selected ADNNucleotides
-  CollectionMap<ADNNucleotide> GetSelectedNucleotides();
-  //! Returns all currently selected ADNBaseSegment 
-  CollectionMap<ADNBaseSegment> GetSelectedBaseSegmentsFromNucleotides();
-  //! Returns all currently highlighted ADNBaseSegments from Nucleotides
-  CollectionMap<ADNBaseSegment> GetHighlightedBaseSegmentsFromNucleotides();
-  //! Returns all currently highlighted ADNBaseSegments
-  CollectionMap<ADNBaseSegment> GetHighlightedBaseSegments();
-  //! Returns all currently selected ADNSingleStrand
-  CollectionMap<ADNSingleStrand> GetSelectedSingleStrands();
-  //! Returns all currently selected ADNDoubleStrand
-  CollectionMap<ADNDoubleStrand> GetSelectedDoubleStrands();
-  //! Returns all currently highlighted ADNDoubleStrand
-  CollectionMap<ADNDoubleStrand> GetHighlightedDoubleStrands();
-  //! Return the single strands of an ADNPart
-  /*!
-    \param a ADNPointer to a ADNPart
-    \return a CollectionMap of ADNSingleStrand
-  */
-  CollectionMap<ADNSingleStrand> GetSingleStrands(ADNPointer<ADNPart> p);
-  //! Removes a single strand from the ADNPart to which it belongs
-  /*!
-    \param a ADNPointer to a ADNSingleStrand. ADNSingleStrand is deleted
-  */
-  void RemoveSingleStrand(ADNPointer<ADNSingleStrand> ss);
-  //! Removes a double strand from the ADNPart to which it belongs
-  /*!
-    \param a ADNPointer to a ADNDoubleStrand. ADNDoubleStrand is deleted
-  */
-  void RemoveDoubleStrand(ADNPointer<ADNDoubleStrand> ds);
-  //! Adds a single strand to a ADNPart
-  /*!
-    \param a ADNPointer to a ADNSingleStrand
-    \param a ADNPointer to a ADNPart
-  */
-  void AddSingleStrand(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNPart> part);
-  //! Return the scaffolds of an ADNPart
-  /*!
-    \param a ADNPointer to a ADNPart
-    \return a CollectionMap of ADNSingleStrand
-  */
-  CollectionMap<ADNSingleStrand> GetScaffolds(ADNPointer<ADNPart> p);
-  //! Return the double strands of an ADNPart
-  /*!
-    \param a ADNPointer to a ADNPart
-    \return a CollectionMap of ADNSingleStrand
-  */
-  CollectionMap<ADNDoubleStrand> GetDoubleStrands(ADNPointer<ADNPart> p);
-  //! Return the double strands to which a nucleotide belongs
-  /*!
-    \param a ADNPointer to a ADNNucleotide
-    \return the ADNDoubleStrand to which it belongs
-  */
-  ADNPointer<ADNDoubleStrand> GetDoubleStrand(ADNPointer<ADNNucleotide> nt);
+    CollectionMap<ADNPart>                                      GetParts() const;                                                       ///< Returns all the registered ADNPart
+    
+    ADNPointer<ADNPart>                                         GetPart(ADNPointer<ADNSingleStrand> singleStrand);                      ///< Returns a pointer to the part to which an ADNSingleStrand \p singleStrand belongs
+    ADNPointer<ADNPart>                                         GetPart(ADNPointer<ADNDoubleStrand> doubleStrand);                      ///< Returns a pointer to the part to which an ADNDoubleStrand \p doubleStrand belongs
+    
+    CollectionMap<ADNSingleStrand>                              GetSingleStrands() const;                                               ///< Returns all the registered ADNSingleStrand
 
-  //! Return the nucleotides of a single strand
-  /*!
-    \param a ADNPointer to a ADNSingleStrand
-    \return a CollectionMap of ADNNucleotides
-  */
-  CollectionMap<ADNNucleotide> GetSingleStrandNucleotides(ADNPointer<ADNSingleStrand> ss);
+    CollectionMap<ADNPart>                                      GetSelectedParts();                                                     ///< Returns all currently selected ADNPart
+    CollectionMap<ADNSingleStrand>                              GetSelectedSingleStrands();                                             ///< Returns all currently selected ADNSingleStrand
+    CollectionMap<ADNDoubleStrand>                              GetSelectedDoubleStrands();                                             ///< Returns all currently selected ADNDoubleStrand
+    CollectionMap<ADNBaseSegment>                               GetSelectedBaseSegmentsFromNucleotides();                               ///< Returns all currently selected ADNBaseSegment 
+    CollectionMap<ADNNucleotide>                                GetSelectedNucleotides();                                               ///< Returns all currently selected ADNNucleotides
+    
+    CollectionMap<SBAtom>                                       GetHighlightedAtoms();                                                  ///< Returns all currently highlighted SBAtoms
+    CollectionMap<ADNNucleotide>                                GetHighlightedNucleotides();                                            ///< Returns all currently highlighted ADNNucleotides
+    CollectionMap<ADNBaseSegment>                               GetHighlightedBaseSegmentsFromNucleotides();                            ///< Returns all currently highlighted ADNBaseSegments from Nucleotides
+    CollectionMap<ADNBaseSegment>                               GetHighlightedBaseSegments();                                           ///< Returns all currently highlighted ADNBaseSegments
+    CollectionMap<ADNDoubleStrand>                              GetHighlightedDoubleStrands();                                          ///< Returns all currently highlighted ADNDoubleStrand
 
-  //! Return the single strand five prime nucleotide
-  /*!
-    \param a ADNPointer to a ADNSingleStrand
-    \return a ADNPointer to the five prime ADNNucleotide
-  */
-  ADNPointer<ADNNucleotide> GetSingleStrandFivePrime(ADNPointer<ADNSingleStrand> ss);
+    CollectionMap<ADNSingleStrand>                              GetSingleStrands(ADNPointer<ADNPart> part);                             ///< Return the single strands of the ADNPart \p part
+    
+    void                                                        RemoveSingleStrand(ADNPointer<ADNSingleStrand> singleStrand);           ///< Removes the single strand \p singleStrand from the ADNPart to which it belongs
+    void                                                        RemoveDoubleStrand(ADNPointer<ADNDoubleStrand> doubleStrand);           ///< Removes the double strand \p doubleStrand from the ADNPart to which it belongs
+    
+    void                                                        AddSingleStrand(ADNPointer<ADNSingleStrand> singleStrand, ADNPointer<ADNPart> part); ///< Adds a single strand to the ADNPart \p part
+    
+    CollectionMap<ADNSingleStrand>                              GetScaffolds(ADNPointer<ADNPart> part);                                 ///< Return the scaffolds of the ADNPart \p part
+    CollectionMap<ADNDoubleStrand>                              GetDoubleStrands(ADNPointer<ADNPart> part);                             ///< Return the double strands of the ADNPart \p part
+    
+    ADNPointer<ADNDoubleStrand>                                 GetDoubleStrand(ADNPointer<ADNNucleotide> nucleotide);                  ///< Return the double strands to which the nucleotide belongs
 
-  //! Return whether a single strand is a scaffold
-  /*!
-    \param a ADNPointer to a ADNSingleStrand
-    \return a bool value true if it is a scaffold
-  */
-  bool IsScaffold(ADNPointer<ADNSingleStrand> ss);
+    CollectionMap<ADNNucleotide>                                GetSingleStrandNucleotides(ADNPointer<ADNSingleStrand> singleStrand);   ///< Return the nucleotides of the single strand \p singleStrand
+    ADNPointer<ADNNucleotide>                                   GetSingleStrandFivePrime(ADNPointer<ADNSingleStrand> singleStrand);     ///< Return the five prime nucleotide of the single strand \p singleStrand 
 
-  //! Return if the nucleotide is 5', 3', neither or both
-  /*!
-    \param a ADNPointer to a ADNNucleotide
-    \return the End position on the strand
-  */
-  End GetNucleotideEnd(ADNPointer<ADNNucleotide> nt);
-  //! Return the nucleotide next on the single strand
-  /*!
-    \param a ADNPointer to a ADNNucleotide
-    \return a ADNPointer to the ADNNucleotide next on the single strand
-  */
-  ADNPointer<ADNNucleotide> GetNucleotideNext(ADNPointer<ADNNucleotide> nt, bool circular = false);
-  //! Return a nucleotide's pair
-  /*!
-    \param a ADNPointer to a ADNNucleotide
-    \return a ADNPointer to the ADNNucleotide pair
-  */
-  ADNPointer<ADNNucleotide> GetNucleotidePair(ADNPointer<ADNNucleotide> nt);
-  //! Return the position of a nucleotide
-  /*!
-    \param a ADNPointer to a ADNNucleotide
-    \return the positon of the nucleotide as SBPosition3
-  */
-  SBPosition3 GetNucleotidePosition(ADNPointer<ADNNucleotide> nt);
+    bool                                                        IsScaffold(ADNPointer<ADNSingleStrand> singleStrand);                   ///< Return whether a single strand is a scaffold
 
-  //! Return the position of the backbone of a nucleotide
-  /*!
-    \param a ADNPointer to a ADNNucleotide
-    \return the positon of the backbone of the nucleotide as SBPosition3
-  */
-  SBPosition3 GetNucleotideBackbonePosition(ADNPointer<ADNNucleotide> nt);
+    End                                                         GetNucleotideEnd(ADNPointer<ADNNucleotide> nucleotide);                 ///< Return if the nucleotide is 5', 3', neither or both
+    
+    ADNPointer<ADNNucleotide>                                   GetNucleotideNext(ADNPointer<ADNNucleotide> nucleotide, bool circular = false);   ///< Return the nucleotide next on the single strand
+    ADNPointer<ADNNucleotide>                                   GetNucleotidePair(ADNPointer<ADNNucleotide> nucleotide);                ///< Return a nucleotide's pair
+    
+    SBPosition3                                                 GetNucleotidePosition(ADNPointer<ADNNucleotide> nucleotide);            ///< Return the position of a nucleotide
+    SBPosition3                                                 GetNucleotideBackbonePosition(ADNPointer<ADNNucleotide> nucleotide);    ///< Return the position of the backbone of a nucleotide
+    SBPosition3                                                 GetNucleotideSidechainPosition(ADNPointer<ADNNucleotide> nucleotide);   ///< Return the position of the sidechain of a nucleotide
 
-  //! Return the position of the sidechain of a nucleotide
-  /*!
-    \param a ADNPointer to a ADNNucleotide
-    \return the positon of the sidechain of the nucleotide as SBPosition3
-  */
-  SBPosition3 GetNucleotideSidechainPosition(ADNPointer<ADNNucleotide> nt);
+    void                                                        HideCenterAtoms(ADNPointer<ADNNucleotide> nucleotide);                  ///< Hides center "mock" atom
 
-  //! Hides center "mock" atom
-  /*!
-    \param a ADNPointer to a ADNNucleotide
-  */
-  void HideCenterAtoms(ADNPointer<ADNNucleotide> nt);
+    
+    CollectionMap<ADNConformation>                              GetConformations();                                                     ///< Return all conformations
+    
+    void                                                        RegisterConformation(ADNPointer<ADNConformation> conformation);         ///< Register a conformation
 
-  //! Return all conformations
-  /*!
-    \return A CollectionMap with all conformations
-  */
-  CollectionMap<ADNConformation> GetConformations();
-  //! Return all conformations from a ADNPart
-  /*!
-    \param A ADNPointer to a ADNPart
-    \return A CollectionMap with all conformations belonging to a given ADNPart
-  */
-  CollectionMap<ADNConformation> GetConformations(ADNPointer<ADNPart> part);
-  //! Register a conformation
-  /*!
-    \param A ADNPart to whcih the conformation belongs to
-    \param A ADNPointer to a ADNConformation
-  */
-  void RegisterConformation(ADNPointer<ADNConformation> conformation);
-  //! Return the position of a nucleotide in a conformation
-  /*!
-    \param The conformation
-    \param a ADNPointer to the nucleotide
-    \return The position of the nucleotide in that conformation
-  */
-  SBPosition3 GetNucleotideBackbonePosition(ADNConformation  conformation, ADNPointer<ADNNucleotide> nt);
-  SBPosition3 GetNucleotideSidechainPosition(ADNConformation  conformation, ADNPointer<ADNNucleotide> nt);
+    SBPosition3                                                 GetNucleotideBackbonePosition(ADNConformation conformation, ADNPointer<ADNNucleotide> nucleotide);  ///< Return the position of the backbone of the nucleotide \p nucleotide in the conformation \p conformation
+    SBPosition3                                                 GetNucleotideSidechainPosition(ADNConformation conformation, ADNPointer<ADNNucleotide> nucleotide); ///< Return the position of the side chain of the nucleotide \p nucleotide in the conformation \p conformation
 
-  unsigned int UseSingleStrandId();
-  unsigned int UseDoubleStrandId();
-  unsigned int UsePartId();
+    unsigned int                                                UseSingleStrandId();
+    unsigned int                                                UseDoubleStrandId();
+    unsigned int                                                UsePartId();
 
-  // bounding box
-  std::pair<SBPosition3, SBPosition3> GetBoundingBox(CollectionMap<ADNPart> parts);
+    std::pair<SBPosition3, SBPosition3>                         GetBoundingBox(CollectionMap<ADNPart> parts);                           ///< bounding box
 
 private:
-  CollectionMap<ADNPart> partsIndex_;
-  CollectionMap<ADNConformation> conformationsIndex_;
 
-  // part id only for naming
-  unsigned int partId_ = 1;
+#if ADENITA_NANOROBOT_REGISTER_PARTS
+    CollectionMap<ADNPart>                                      partsIndex_;
+#endif
+#if ADENITA_NANOROBOT_REGISTER_CONFORMATIONS
+    CollectionMap<ADNConformation>                              conformationsIndex_;
+#endif
+
+    unsigned int                                                partId_ = 1;                                                            ///< part id only for naming
+
 };

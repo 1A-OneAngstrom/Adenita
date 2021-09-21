@@ -40,21 +40,31 @@ bool SEAdenitaImporterJson::importFromFile(const std::string& fileName, const SB
 
 	if (!adenitaApp) return false;
 
-	QString fn = QString::fromStdString(fileName);
+	const QString fn = QString::fromStdString(fileName);
 	if (!QFileInfo::exists(fn)) return false;
 
 	// load the parts in the Adenita App
 
 	// either cadnano or old Adenita format
-	std::string format = SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(fn);
+	const std::string format = SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(fn);
 	if (format == "cadnano") {
 
-		adenitaApp->ImportFromCadnano(fn);
+		if (!adenitaApp->importFromCadnano(fn, preferredFolder)) {
+
+			SAMSON::informUser("Adenita", "Sorry, could not load the cadnano file:\n" + QFileInfo(fn).fileName());
+			return false;
+
+		}
 
 	}
 	else if (format == "adenita") {
 
-		adenitaApp->LoadPart(fn);
+		if (!adenitaApp->loadPart(fn)) {
+
+			SAMSON::informUser("Adenita", "Sorry, could not load the adenita file:\n" + QFileInfo(fn).fileName());
+			return false;
+
+		}
 
 	}
 	else {

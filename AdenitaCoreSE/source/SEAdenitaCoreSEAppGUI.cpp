@@ -97,12 +97,22 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 		std::string format = SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(filename);
 		if (format == "cadnano") {
 
-			getApp()->ImportFromCadnano(filename);
+			if (!getApp()->importFromCadnano(filename)) {
+
+				SAMSON::informUser("Adenita", "Sorry, could not load the cadnano file:\n" + QFileInfo(filename).fileName());
+				return;
+
+			}
 
 		}
 		else if (format == "adenita") {
 
-			getApp()->LoadPart(filename);
+			if (!getApp()->loadPart(filename)) {
+
+				SAMSON::informUser("Adenita", "Sorry, could not load the adenita file:\n" + QFileInfo(filename).fileName());
+				return;
+
+			}
 
 		}
 		else {
@@ -130,12 +140,17 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 	}
 	else if (filename.endsWith(".adnpart")) {
 
-		getApp()->LoadPart(filename);
+		if (!getApp()->loadPart(filename)) {
+
+			SAMSON::informUser("Adenita", "Sorry, could not load the adnpart file:\n" + QFileInfo(filename).fileName());
+			return;
+
+		}
 
 	}
 	else if (filename.endsWith(".adn")) {
 
-		getApp()->LoadParts(filename);
+		getApp()->loadParts(filename);
 
 	}
 	else return;
@@ -266,9 +281,9 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 			auto bbSize = boundingBox.second - boundingBox.first;
 
 			ADNAuxiliary::OxDNAOptions options;
-			double sysX = bbSize[0].getValue() * 0.001;  // nm
-			double sysY = bbSize[1].getValue() * 0.001;  // nm
-			double sysZ = bbSize[2].getValue() * 0.001;  // nm
+			const double sysX = bbSize[0].getValue() * 0.001;  // nm
+			const double sysY = bbSize[1].getValue() * 0.001;  // nm
+			const double sysZ = bbSize[2].getValue() * 0.001;  // nm
 
 			double refVal = std::max(sysX, sysY);
 			refVal = std::max(refVal, sysZ);
@@ -1066,9 +1081,9 @@ void SEAdenitaCoreSEAppGUI::setupUI() {
 	setMinimumHeight(500);
 
 	ui.verticalLayout->addWidget(groupBoxMenu);
+	ui.verticalLayout->addWidget(groupBoxCreators);
 	ui.verticalLayout->addWidget(groupBoxEditSequences);
 	ui.verticalLayout->addWidget(groupBoxModeling);
-	ui.verticalLayout->addWidget(groupBoxCreators);
 
 	QHBoxLayout* layoutMenu = new QHBoxLayout;
 	QHBoxLayout* layoutEditSequences = new QHBoxLayout;
@@ -1331,7 +1346,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		btnBreakEditor->setObjectName(QStringLiteral("btnBreakEditor"));
 		btnBreakEditor->setText("Break");
 		btnBreakEditor->setToolTip("<b>Break editor</b><br/><br/>"
-			"Break ssDNA - break the bond between two consecutive nucleotides of the same strand.");
+			"Break single strand DNA (ssDNA) - break the bond between two consecutive nucleotides of the same strand.");
 		btnBreakEditor->setIconSize(QSize(24, 24));
 		btnBreakEditor->setCheckable(true);
 		btnBreakEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1341,7 +1356,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		auto btnDeleteEditor = new QToolButton(this);
 		btnDeleteEditor->setObjectName(QStringLiteral("btnDeleteEditor"));
 		btnDeleteEditor->setText("Delete");
-		btnDeleteEditor->setToolTip("Delete editor\n\nDelete nucleotides from Adenita models");
+		btnDeleteEditor->setToolTip("<b>Delete editor</b><br/><br/>Delete nucleotides from Adenita models");
 		btnDeleteEditor->setIconSize(QSize(24, 24));
 		btnDeleteEditor->setCheckable(true);
 		btnDeleteEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1351,7 +1366,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		auto btnConnectEditor = new QToolButton(this);
 		btnConnectEditor->setObjectName(QStringLiteral("btnConnectEditor"));
 		btnConnectEditor->setText("Connect");
-		btnConnectEditor->setToolTip("Connect editor\n\nConnect and create crossovers");
+		btnConnectEditor->setToolTip("<b>Connect editor</b><br/><br/>Connect and create crossovers");
 		btnConnectEditor->setIconSize(QSize(24, 24));
 		btnConnectEditor->setCheckable(true);
 		btnConnectEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1445,9 +1460,9 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getCreatorsButtons() {
 
 		QToolButton* btnDsDNACreatorEditor = new QToolButton;
 		btnDsDNACreatorEditor->setObjectName(QStringLiteral("btnDsDNACreatorEditor"));
-		btnDsDNACreatorEditor->setText("DsDNA\ncreator");
-		btnDsDNACreatorEditor->setToolTip("<b>DsDNA creator editor</b><br/><br/>"
-			"Add a new single or double strand DNA (ssDNA or dsDNA) as a component to the design. They can also be circular.");
+		btnDsDNACreatorEditor->setText("DNA strand\ncreator");
+		btnDsDNACreatorEditor->setToolTip("<b>Double and single strand DNA creator editor</b><br/><br/>"
+			"Add a new single or double strand DNA (ssDNA or dsDNA) as a component to the design. The strands can be either linear or circular.");
 		btnDsDNACreatorEditor->setIconSize(QSize(24, 24));
 		btnDsDNACreatorEditor->setCheckable(true);
 		btnDsDNACreatorEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);

@@ -152,26 +152,27 @@ void DASCadnano::ParseCadnanoLegacy(rapidjson::Document& d)
   vGrid_.CreateLattice(json_.lType_);
 }
 
-ADNPointer<ADNPart> DASCadnano::CreateCadnanoModel()
-{
-  ADNPointer<ADNPart> part = new ADNPart();
+ADNPointer<ADNPart> DASCadnano::CreateCadnanoModel() {
 
-  CreateEdgeMap(part);
-  ADNLogger::LogDebug(std::string("Cadnano module > Double strands created"));
-  CreateScaffold(part);
-  if (json_.scaffoldStartPositions_.size() > 0) {
-    ADNLogger::LogDebug(std::string("Cadnano module > Scaffold(s) created"));
-  }
-  else {
-    ADNLogger::LogError(std::string("Adenita couldn't detect a scaffold. Circular scaffolds won't be detected"));
-  }
-  CreateStaples(part);
-  ADNLogger::LogDebug(std::string("Cadnano module > Staples created"));
+    ADNPointer<ADNPart> part = new ADNPart();
 
-  return part;
+    CreateEdgeMap(part);
+    ADNLogger::LogDebug(std::string("Cadnano module > Double strands created"));
+    CreateScaffold(part);
+    if (json_.scaffoldStartPositions_.size() > 0) {
+        ADNLogger::LogDebug(std::string("Cadnano module > Scaffold(s) created"));
+    }
+    else {
+        ADNLogger::LogError(std::string("Adenita couldn't detect a scaffold. Circular scaffolds won't be detected"));
+    }
+    CreateStaples(part);
+    ADNLogger::LogDebug(std::string("Cadnano module > Staples created"));
+
+    return part;
+
 }
 
-void DASCadnano::CreateEdgeMap(ADNPointer<ADNPart> nanorobot)
+void DASCadnano::CreateEdgeMap(ADNPointer<ADNPart> part)
 {
   auto tubes = vGrid_.vDoubleStrands_;
   for (auto &tube : tubes) {
@@ -194,7 +195,7 @@ void DASCadnano::CreateEdgeMap(ADNPointer<ADNPart> nanorobot)
 
     // every tube is a double strand
     ADNPointer<ADNDoubleStrand> ds = new ADNDoubleStrand();
-    nanorobot->RegisterDoubleStrand(ds);
+    part->RegisterDoubleStrand(ds);
     bool firstBs = true;
     ds->SetInitialTwistAngle(initAng);
 
@@ -225,7 +226,7 @@ void DASCadnano::CreateEdgeMap(ADNPointer<ADNPart> nanorobot)
         else {
           bs->SetCell(new ADNBasePair());
         }
-        nanorobot->RegisterBaseSegmentEnd(ds, bs);
+        part->RegisterBaseSegmentEnd(ds, bs);
         bs->SetNumber(bs_number);
         bs->SetPosition(fp);
         bs->SetE3(ADNAuxiliary::SBVectorToUblasVector(dir));
@@ -239,7 +240,7 @@ void DASCadnano::CreateEdgeMap(ADNPointer<ADNPart> nanorobot)
   }
 }
 
-void DASCadnano::CreateScaffold(ADNPointer<ADNPart> nanorobot)
+void DASCadnano::CreateScaffold(ADNPointer<ADNPart> part)
 {
   for (auto &p : json_.scaffoldStartPositions_) {
     //look for stating point of scaffold in vstrand
@@ -250,15 +251,15 @@ void DASCadnano::CreateScaffold(ADNPointer<ADNPart> nanorobot)
     ADNPointer<ADNSingleStrand> scaff = new ADNSingleStrand();
     scaff->SetName("Scaffold");
     scaff->IsScaffold(true);
-    nanorobot->RegisterSingleStrand(scaff);
+    part->RegisterSingleStrand(scaff);
     AddSingleStrandToMap(scaff);
 
     //trace scaffold through vstrands
-    TraceSingleStrand(startVstrand, startVstrandPos, scaff, nanorobot);
+    TraceSingleStrand(startVstrand, startVstrandPos, scaff, part);
   }
 }
 
-void DASCadnano::CreateStaples(ADNPointer<ADNPart> nanorobot)
+void DASCadnano::CreateStaples(ADNPointer<ADNPart> part)
 {
   //find number of staples and their starting points
   std::vector<vec2> stapleStarts = json_.stapleStarts_;  //vstrand id and position on vstrand
@@ -280,14 +281,14 @@ void DASCadnano::CreateStaples(ADNPointer<ADNPart> nanorobot)
     staple->SetName("Staple" + std::to_string(sid));
     ++sid;
     staple->IsScaffold(false);
-    nanorobot->RegisterSingleStrand(staple);
+    part->RegisterSingleStrand(staple);
     AddSingleStrandToMap(staple);
 
-    TraceSingleStrand(vStrandId, z, staple, nanorobot, false);
+    TraceSingleStrand(vStrandId, z, staple, part, false);
   }
 }
 
-void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNPart> nanorobot, bool scaf)
+void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNPart> part, bool scaf)
 {
   //trace scaffold through vstrands
   auto& vstrands = json_.vstrands_;
@@ -313,7 +314,7 @@ void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPoi
         //add loop
         ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
         nt->Init();
-        nanorobot->RegisterNucleotideThreePrime(ss, nt);
+        part->RegisterNucleotideThreePrime(ss, nt);
         ntPositions_.insert(std::make_pair(nt(), count));
         ++count;
 
@@ -399,11 +400,11 @@ void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPoi
   }
 }
 
-void DASCadnano::CreateConformations(ADNPointer<ADNPart> nanorobot)
+void DASCadnano::CreateConformations(ADNPointer<ADNPart> part)
 {
-  std::string name = nanorobot->GetName();
+  std::string name = part->GetName();
   SBNodeIndexer nodeIndexer;
-  nanorobot->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNAtom")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+  part->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNAtom")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
   conformation3D_ = new SBMStructuralModelConformation(name + " 3D", nodeIndexer);
   conformation2D_ = new SBMStructuralModelConformation(name + " 2D", nodeIndexer);
@@ -492,15 +493,19 @@ SBPointer<SBMStructuralModelConformation> DASCadnano::Get1DConformation()
   return conformation1D_;
 }
 
-ADNPointer<ADNPart> DASCadnano::CreateCadnanoPart(std::string file)
-{
-  ParseJSON(file);
-  ADNLogger::LogDebug(std::string("Cadnano design parsed"));
-  if (vGrid_.vDoubleStrands_.size() == 0) {
-    SB_ERROR("Adenita couldn't create Cadnano model");
-    return new ADNPart();
-  }
-  return CreateCadnanoModel();
+ADNPointer<ADNPart> DASCadnano::CreateCadnanoPart(std::string file) {
+
+    ParseJSON(file);
+    ADNLogger::LogDebug(std::string("Cadnano design parsed"));
+    if (vGrid_.vDoubleStrands_.size() == 0) {
+
+        SB_ERROR("Adenita couldn't create Cadnano model");
+        return nullptr;
+
+    }
+
+    return CreateCadnanoModel();
+
 }
 
 DNABlocks DASCadnano::GetComplementaryBase(DNABlocks type) {

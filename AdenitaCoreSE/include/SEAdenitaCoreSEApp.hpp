@@ -42,11 +42,12 @@ public :
 
 	static SEAdenitaCoreSEApp*									getAdenitaApp();														///< Returns a pointer to the app's instance
 
-	void														LoadPart(QString filename);
-	void														LoadParts(QString filename);
+	bool														loadPart(const QString& filename, SBDDocumentFolder* preferredFolder = nullptr);
+	void														loadParts(const QString& filename, SBDDocumentFolder* preferredFolder = nullptr);
+
 	void														SaveFile(QString filename, ADNPointer<ADNPart> part = nullptr);
 	void														LoadPartWithDaedalus(QString filename, int minEdgeSize);
-	void														ImportFromCadnano(QString filename);
+	bool														importFromCadnano(const QString& filename, SBDDocumentFolder* preferredFolder = nullptr);
 	void														ExportToOxDNA(QString folder, ADNAuxiliary::OxDNAOptions options, CollectionMap<ADNPart> parts);
 	void														ExportToSequenceList(QString filename, CollectionMap<ADNPart> parts);
 	void														SetScaffoldSequence(std::string seq);
@@ -95,8 +96,8 @@ public :
 
 	// Adding things to data graph
 
-	void														AddPartToActiveLayer(ADNPointer<ADNPart> part, bool positionsData = false);
-	void														AddConformationToActiveLayer(ADNPointer<ADNConformation> conf);
+	void														AddPartToActiveLayer(ADNPointer<ADNPart> part, bool positionsData = false, SBFolder* preferredFolder = nullptr);
+	void														AddConformationToActiveLayer(ADNPointer<ADNConformation> conf, SBFolder* preferredFolder = nullptr);
 	void														AddLoadedPartToNanorobot(ADNPointer<ADNPart> part);
 
 	virtual void												keyPressEvent(QKeyEvent* event);
@@ -107,7 +108,7 @@ private:
 
 	void														ConnectStructuralSignalSlots(ADNPointer<ADNPart> part);
 
-	std::map<SBDocument*, ADNNanorobot*>						nanorobots_;
+	std::map<SBDocument*, ADNNanorobot*>						nanorobotMap;
 
 	bool														mod_ = false;
 

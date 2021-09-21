@@ -1,441 +1,630 @@
 #include "ADNPart.hpp"
 
-
-ADNPart::ADNPart(const ADNPart & n) : SBStructuralModel(n) 
-{
-  *this = n;
-}
-
-ADNPart & ADNPart::operator=(const ADNPart& other) 
-{
-  SBStructuralModel::operator =(other);  
-
-  if (this != &other) {
+ADNPart::ADNPart() : SBStructuralModel() {
     
-  }
+    InitBoundingBox();
 
-  return *this;
 }
 
-void ADNPart::serialize(SBCSerializer * serializer, const SBNodeIndexer & nodeIndexer, const SBVersionNumber & sdkVersionNumber, const SBVersionNumber & classVersionNumber) const
-{
-  SBStructuralModel::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
+ADNPart::ADNPart(const ADNPart & n) : SBStructuralModel(n) {
 
-  serializer->writeUnsignedIntElement("ntId", nucleotideId_);
-  serializer->writeUnsignedIntElement("ssId", singleStrandId_);
-  serializer->writeUnsignedIntElement("dsId", doubleStrandId_);
+    *this = n;
 
-  // atoms
-  serializer->writeUnsignedIntElement("numAtoms", atomsIndex_.size());
-  serializer->writeStartElement("atoms");
-  SB_FOR(ADNPointer<ADNAtom> n, atomsIndex_) {
-    unsigned int idx = nodeIndexer.getIndex(n());
-    serializer->writeUnsignedIntElement("atomIndex", idx);
-  }
-  serializer->writeEndElement();
-  //end atoms
-
-  // nucleotides
-  serializer->writeUnsignedIntElement("numNucleotides", nucleotidesIndex_.size());
-  serializer->writeStartElement("nucleotides");
-  SB_FOR(ADNPointer<ADNNucleotide> n, nucleotidesIndex_) {
-    unsigned int idx = nodeIndexer.getIndex(n());
-    serializer->writeUnsignedIntElement("ntIndex", idx);
-  }
-  serializer->writeEndElement();
-  //end nucleotides
-
-  // single strands
-  serializer->writeUnsignedIntElement("numSingleStrands", singleStrandsIndex_.size());
-  serializer->writeStartElement("singleStrands");
-  SB_FOR(ADNPointer<ADNSingleStrand> n, singleStrandsIndex_) {
-    unsigned int idx = nodeIndexer.getIndex(n());
-    serializer->writeUnsignedIntElement("ssIndex", idx);
-  }
-  serializer->writeEndElement();
-  //end single strands
-
-  // base segments
-  serializer->writeUnsignedIntElement("numBaseSegments", baseSegmentsIndex_.size());
-  serializer->writeStartElement("baseSegments");
-  SB_FOR(ADNPointer<ADNBaseSegment> n, baseSegmentsIndex_) {
-    unsigned int idx = nodeIndexer.getIndex(n());
-    serializer->writeUnsignedIntElement("bsIndex", idx);
-  }
-  serializer->writeEndElement();
-  //end base segments
-
-  // double strands
-  serializer->writeUnsignedIntElement("numDoubleStrands", doubleStrandsIndex_.size());
-  serializer->writeStartElement("double strands");
-  SB_FOR(ADNPointer<ADNDoubleStrand> n, doubleStrandsIndex_) {
-    unsigned int idx = nodeIndexer.getIndex(n());
-    serializer->writeUnsignedIntElement("dsIndex", idx);
-  }
-  serializer->writeEndElement();
-  //end double strands
 }
 
-void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & nodeIndexer, const SBVersionNumber & sdkVersionNumber, const SBVersionNumber & classVersionNumber)
-{
-  SBStructuralModel::unserialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
+ADNPart & ADNPart::operator=(const ADNPart& other) {
 
-  nucleotideId_ = serializer->readUnsignedIntElement();
-  singleStrandId_ = serializer->readUnsignedIntElement();
-  doubleStrandId_ = serializer->readUnsignedIntElement();
+    SBStructuralModel::operator =(other);  
 
-  // atoms index
-  unsigned int numAtoms = serializer->readUnsignedIntElement();
-  serializer->readStartElement();
-  for (unsigned int i = 0; i < numAtoms; ++i) {
-    unsigned int idx = serializer->readUnsignedIntElement();
-    atomsIndex_.addReferenceTarget((ADNAtom*)nodeIndexer.getNode(idx));
-  }
-  serializer->readEndElement();
-
-  // nucleotides index
-  unsigned int numNucleotides = serializer->readUnsignedIntElement();
-  serializer->readStartElement();
-  for (unsigned int i = 0; i < numNucleotides; ++i) {
-    unsigned int idx = serializer->readUnsignedIntElement();
-    nucleotidesIndex_.addReferenceTarget((ADNNucleotide*)nodeIndexer.getNode(idx));
-  }
-  serializer->readEndElement();
-
-  // single strands index
-  unsigned int numSingleStrands = serializer->readUnsignedIntElement();
-  serializer->readStartElement();
-  for (unsigned int i = 0; i < numSingleStrands; ++i) {
-    unsigned int idx = serializer->readUnsignedIntElement();
-    singleStrandsIndex_.addReferenceTarget((ADNSingleStrand*)nodeIndexer.getNode(idx));
-  }
-  serializer->readEndElement();
-
-  // base segments
-  unsigned int numBaseSegments = serializer->readUnsignedIntElement();
-  serializer->readStartElement();
-  for (unsigned int i = 0; i < numBaseSegments; ++i) {
-    unsigned int idx = serializer->readUnsignedIntElement();
-    baseSegmentsIndex_.addReferenceTarget((ADNBaseSegment*)nodeIndexer.getNode(idx));
-  }
-  serializer->readEndElement();
-
-  // double strands
-  unsigned int numDoubleStrands = serializer->readUnsignedIntElement();
-  serializer->readStartElement();
-  for (unsigned int i = 0; i < numDoubleStrands; ++i) {
-    unsigned int idx = serializer->readUnsignedIntElement();
-    doubleStrandsIndex_.addReferenceTarget((ADNDoubleStrand*)nodeIndexer.getNode(idx));
-  }
-  serializer->readEndElement();
-
-  loadedViaSAMSON(true);
-}
-
-std::string const & ADNPart::GetName() const
-{
-  return getName();
-}
-
-void ADNPart::SetName(const std::string & name)
-{
-  setName(name);
-}
-
-CollectionMap<ADNBaseSegment> ADNPart::GetBaseSegments(CellType celltype) const 
-{
-  CollectionMap<ADNBaseSegment> bsList;
-  if (celltype == CellType::ALL) {
-    bsList = baseSegmentsIndex_;
-  }
-  else {
-    SB_FOR(ADNPointer<ADNBaseSegment> bs, baseSegmentsIndex_) {
-      if (bs->GetCellType() == celltype) {
-        bsList.addReferenceTarget(bs());
-      }
+    if (this != &other) {
+    
     }
-  }
 
-  return bsList;
+    return *this;
+
 }
 
-CollectionMap<ADNSingleStrand> ADNPart::GetScaffolds() const 
-{
-  CollectionMap<ADNSingleStrand> chainList;
+void ADNPart::serialize(SBCSerializer * serializer, const SBNodeIndexer & nodeIndexer, const SBVersionNumber & sdkVersionNumber, const SBVersionNumber & classVersionNumber) const {
 
-  SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrandsIndex_) {
-    if (ss->IsScaffold()) {
-      chainList.addReferenceTarget(ss());
+    SBStructuralModel::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
+
+    serializer->writeUnsignedIntElement("ntId", nucleotideId_);
+    serializer->writeUnsignedIntElement("ssId", singleStrandId_);
+    serializer->writeUnsignedIntElement("dsId", doubleStrandId_);
+
+    // atoms
+    auto atomIndexer = GetAtoms();
+    serializer->writeUnsignedIntElement("numAtoms", atomIndexer.size());
+    serializer->writeStartElement("atoms");
+    SB_FOR(ADNPointer<ADNAtom> n, atomIndexer) {
+
+        unsigned int idx = nodeIndexer.getIndex(n());
+        serializer->writeUnsignedIntElement("atomIndex", idx);
+
     }
-  }
+    serializer->writeEndElement();
+    //end atoms
 
-  return chainList;
+    // nucleotides
+    auto nucleotideIndexer = GetNucleotides();
+    serializer->writeUnsignedIntElement("numNucleotides", nucleotideIndexer.size());
+    serializer->writeStartElement("nucleotides");
+    SB_FOR(ADNPointer<ADNNucleotide> n, nucleotideIndexer) {
+
+        unsigned int idx = nodeIndexer.getIndex(n());
+        serializer->writeUnsignedIntElement("ntIndex", idx);
+
+    }
+    serializer->writeEndElement();
+    //end nucleotides
+
+    // single strands
+    auto singleStrandIndexer = GetSingleStrands();
+    serializer->writeUnsignedIntElement("numSingleStrands", singleStrandIndexer.size());
+    serializer->writeStartElement("singleStrands");
+    SB_FOR(ADNPointer<ADNSingleStrand> n, singleStrandIndexer) {
+
+        unsigned int idx = nodeIndexer.getIndex(n());
+        serializer->writeUnsignedIntElement("ssIndex", idx);
+
+    }
+    serializer->writeEndElement();
+    //end single strands
+
+    // base segments
+    auto baseSegmentIndexer = GetBaseSegments();
+    serializer->writeUnsignedIntElement("numBaseSegments", baseSegmentIndexer.size());
+    serializer->writeStartElement("baseSegments");
+    SB_FOR(ADNPointer<ADNBaseSegment> n, baseSegmentIndexer) {
+
+        unsigned int idx = nodeIndexer.getIndex(n());
+        serializer->writeUnsignedIntElement("bsIndex", idx);
+
+    }
+    serializer->writeEndElement();
+    //end base segments
+
+    // double strands
+    auto doubleStrandIndexer = GetDoubleStrands();
+    serializer->writeUnsignedIntElement("numDoubleStrands", doubleStrandIndexer.size());
+    serializer->writeStartElement("double strands");
+    SB_FOR(ADNPointer<ADNDoubleStrand> n, doubleStrandIndexer) {
+
+        unsigned int idx = nodeIndexer.getIndex(n());
+        serializer->writeUnsignedIntElement("dsIndex", idx);
+
+    }
+    serializer->writeEndElement();
+    //end double strands
 }
 
-CollectionMap<ADNNucleotide> ADNPart::GetNucleotides(CellType celltype) const
-{
-  return nucleotidesIndex_;
+void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & nodeIndexer, const SBVersionNumber & sdkVersionNumber, const SBVersionNumber & classVersionNumber) {
+
+    SBStructuralModel::unserialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
+
+    nucleotideId_ = serializer->readUnsignedIntElement();
+    singleStrandId_ = serializer->readUnsignedIntElement();
+    doubleStrandId_ = serializer->readUnsignedIntElement();
+
+    // atoms index
+    unsigned int numAtoms = serializer->readUnsignedIntElement();
+    serializer->readStartElement();
+    for (unsigned int i = 0; i < numAtoms; ++i) {
+
+        unsigned int idx = serializer->readUnsignedIntElement();
+#if ADENITA_ADNPART_REGISTER_ATOMS
+        atomsIndex_.addReferenceTarget((ADNAtom*)nodeIndexer.getNode(idx));
+#endif
+
+    }
+    serializer->readEndElement();
+
+    // nucleotides index
+    unsigned int numNucleotides = serializer->readUnsignedIntElement();
+    serializer->readStartElement();
+    for (unsigned int i = 0; i < numNucleotides; ++i) {
+
+        unsigned int idx = serializer->readUnsignedIntElement();
+#if ADENITA_ADNPART_REGISTER_NUCLEOTIDES
+        nucleotidesIndex_.addReferenceTarget((ADNNucleotide*)nodeIndexer.getNode(idx));
+#endif
+
+    }
+    serializer->readEndElement();
+
+    // single strands index
+    unsigned int numSingleStrands = serializer->readUnsignedIntElement();
+    serializer->readStartElement();
+    for (unsigned int i = 0; i < numSingleStrands; ++i) {
+
+        unsigned int idx = serializer->readUnsignedIntElement();
+#if ADENITA_ADNPART_REGISTER_STRANDS
+        singleStrandsIndex_.addReferenceTarget((ADNSingleStrand*)nodeIndexer.getNode(idx));
+#else
+        // TODO
+#endif
+
+    }
+    serializer->readEndElement();
+
+    // base segments
+    unsigned int numBaseSegments = serializer->readUnsignedIntElement();
+    serializer->readStartElement();
+    for (unsigned int i = 0; i < numBaseSegments; ++i) {
+
+        unsigned int idx = serializer->readUnsignedIntElement();
+#if ADENITA_ADNPART_REGISTER_BASESEGMENTS
+        baseSegmentsIndex_.addReferenceTarget((ADNBaseSegment*)nodeIndexer.getNode(idx));
+#else
+        // TODO
+#endif
+
+    }
+    serializer->readEndElement();
+
+    // double strands
+    unsigned int numDoubleStrands = serializer->readUnsignedIntElement();
+    serializer->readStartElement();
+    for (unsigned int i = 0; i < numDoubleStrands; ++i) {
+
+        unsigned int idx = serializer->readUnsignedIntElement();
+#if ADENITA_ADNPART_REGISTER_STRANDS
+        doubleStrandsIndex_.addReferenceTarget((ADNDoubleStrand*)nodeIndexer.getNode(idx));
+#else
+        // TODO
+#endif
+
+    }
+    serializer->readEndElement();
+
+    setLoadedViaSAMSON(true);
+
 }
 
-int ADNPart::GetNumberOfNucleotides() const
-{
-  return boost::numeric_cast<int>(GetNucleotides().size());
+std::string const & ADNPart::GetName() const {
+    return getName();
 }
 
-int ADNPart::getNumberOfNucleotides() const
-{
-  return GetNumberOfNucleotides();
+void ADNPart::SetName(const std::string & name) {
+    setName(name);
 }
 
-int ADNPart::GetNumberOfAtoms() const
-{
-  return boost::numeric_cast<int>(GetAtoms().size());
+CollectionMap<ADNBaseSegment> ADNPart::GetBaseSegments(CellType celltype) const {
+
+#if ADENITA_ADNPART_REGISTER_BASESEGMENTS
+    auto baseSegmentIndexer = baseSegmentsIndex_;
+#else
+    SBNodeIndexer nodeIndexer;
+    getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNBaseSegment")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+
+    CollectionMap<ADNBaseSegment> baseSegmentIndexer;
+    SB_FOR(SBNode * node, nodeIndexer)
+        baseSegmentIndexer.addReferenceTarget(static_cast<ADNBaseSegment*>(node));
+#endif
+
+    CollectionMap<ADNBaseSegment> bsList;
+    if (celltype == CellType::ALL) {
+
+        bsList = baseSegmentIndexer;
+
+    }
+    else {
+
+        SB_FOR(ADNPointer<ADNBaseSegment> bs, baseSegmentIndexer) {
+
+            if (bs->GetCellType() == celltype)
+                bsList.addReferenceTarget(bs());
+
+        }
+
+    }
+
+    return bsList;
+
 }
 
-int ADNPart::getNumberOfAtoms() const
-{
-  return GetNumberOfAtoms();
+CollectionMap<ADNSingleStrand> ADNPart::GetScaffolds() const {
+
+    CollectionMap<ADNSingleStrand> chainList;
+
+    auto singleStrandIndexer = GetSingleStrands();
+
+    SB_FOR(ADNPointer<ADNSingleStrand> singleStrand, singleStrandIndexer) {
+
+        if (singleStrand->IsScaffold())
+            chainList.addReferenceTarget(singleStrand());
+
+    }
+
+    return chainList;
+
 }
 
-int ADNPart::GetNumberOfBaseSegments() const
-{
-  return boost::numeric_cast<int>(GetBaseSegments().size());
+CollectionMap<ADNNucleotide> ADNPart::GetNucleotides(CellType celltype) const {
+
+#if ADENITA_ADNPART_REGISTER_NUCLEOTIDES
+    return nucleotidesIndex_;
+#else
+    SBNodeIndexer nodeIndexer;
+    getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+
+    CollectionMap<ADNNucleotide> nucleotideIndexer;
+    SB_FOR(SBNode * node, nodeIndexer)
+        nucleotideIndexer.addReferenceTarget(static_cast<ADNNucleotide*>(node));
+
+    return nucleotideIndexer;
+#endif
+
 }
 
-int ADNPart::getNumberOfBaseSegments() const
-{
-  return GetNumberOfBaseSegments();
+int ADNPart::GetNumberOfNucleotides() const {
+    
+#if ADENITA_ADNPART_REGISTER_NUCLEOTIDES
+    return static_cast<int>(GetNucleotides().size());
+#else
+    return countNodes((SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+#endif
+
 }
 
-CollectionMap<ADNSingleStrand> ADNPart::GetSingleStrands() const
-{
-  return singleStrandsIndex_;
+int ADNPart::getNumberOfNucleotides() const {
+    return GetNumberOfNucleotides();
 }
 
-CollectionMap<ADNDoubleStrand> ADNPart::GetDoubleStrands() const
-{
-  return doubleStrandsIndex_;
+int ADNPart::GetNumberOfAtoms() const {
+
+#if ADENITA_ADNPART_REGISTER_ATOMS
+    return static_cast<int>(GetAtoms().size());
+#else
+    return countNodes((SBNode::GetClass() == std::string("ADNAtom")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+#endif
+
 }
 
-CollectionMap<ADNAtom> ADNPart::GetAtoms() const
-{
-  return atomsIndex_;
+int ADNPart::getNumberOfAtoms() const {
+    return GetNumberOfAtoms();
 }
 
-int ADNPart::GetNumberOfDoubleStrands() const
-{
-  return boost::numeric_cast<int>(GetDoubleStrands().size());
+int ADNPart::GetNumberOfBaseSegments() const {
+
+#if ADENITA_ADNPART_REGISTER_BASESEGMENTS
+    return static_cast<int>(GetBaseSegments().size());
+#else
+    return countNodes((SBNode::GetClass() == std::string("ADNBaseSegment")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+#endif
+
 }
 
-int ADNPart::getNumberOfDoubleStrands() const
-{
-  return GetNumberOfDoubleStrands();
+int ADNPart::getNumberOfBaseSegments() const {
+    return GetNumberOfBaseSegments();
 }
 
-int ADNPart::GetNumberOfSingleStrands() const
-{
-  return boost::numeric_cast<int>(GetSingleStrands().size());
+CollectionMap<ADNSingleStrand> ADNPart::GetSingleStrands() const {
+
+#if ADENITA_ADNPART_REGISTER_STRANDS
+    return singleStrandsIndex_;
+#else
+    SBNodeIndexer nodeIndexer;
+    getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNSingleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+
+    CollectionMap<ADNSingleStrand> strandIndexer;
+    SB_FOR(SBNode * node, nodeIndexer)
+        strandIndexer.addReferenceTarget(static_cast<ADNSingleStrand*>(node));
+
+    return strandIndexer;
+#endif
+
 }
 
-int ADNPart::getNumberOfSingleStrands() const
-{
-  return GetNumberOfSingleStrands();
+CollectionMap<ADNDoubleStrand> ADNPart::GetDoubleStrands() const {
+
+#if ADENITA_ADNPART_REGISTER_STRANDS
+    return doubleStrandsIndex_;
+#else
+    SBNodeIndexer nodeIndexer;
+    getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNDoubleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+
+    CollectionMap<ADNDoubleStrand> strandIndexer;
+    SB_FOR(SBNode * node, nodeIndexer)
+        strandIndexer.addReferenceTarget(static_cast<ADNDoubleStrand*>(node));
+
+    return strandIndexer;
+#endif
+
 }
 
-void ADNPart::DeregisterSingleStrand(ADNPointer<ADNSingleStrand> ss, bool removeFromParent, bool removeFromIndex) 
-{
-  if (removeFromParent) {
-    auto root = getStructuralRoot();
-    root->removeChild(ss());
-  }
+CollectionMap<ADNAtom> ADNPart::GetAtoms() const {
 
-  if (removeFromIndex) singleStrandsIndex_.removeReferenceTarget(ss());
+#if ADENITA_ADNPART_REGISTER_ATOMS
+    return atomsIndex_;
+#else
+    SBNodeIndexer nodeIndexer;
+    getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNAtom")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+
+    CollectionMap<ADNAtom> atomIndexer;
+    SB_FOR(SBNode * node, nodeIndexer)
+        atomIndexer.addReferenceTarget(static_cast<ADNAtom*>(node));
+
+    return atomIndexer;
+#endif
+
 }
 
-void ADNPart::DeregisterNucleotide(ADNPointer<ADNNucleotide> nt, bool removeFromSs, bool removeFromBs, bool removeFromIndex)
-{
-  if (removeFromSs) {
-    ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
-    ss->removeChild(nt());
-  }
-  if (removeFromBs) {
-    auto bs = nt->GetBaseSegment();
-    bs->RemoveNucleotide(nt);
-  }
+int ADNPart::GetNumberOfDoubleStrands() const {
+
+#if ADENITA_ADNPART_REGISTER_STRANDS
+    return static_cast<int>(GetDoubleStrands().size());
+#else
+    return countNodes((SBNode::GetClass() == std::string("ADNDoubleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+#endif
+
+}
+
+int ADNPart::getNumberOfDoubleStrands() const {
+    return GetNumberOfDoubleStrands();
+}
+
+int ADNPart::GetNumberOfSingleStrands() const {
+
+#if ADENITA_ADNPART_REGISTER_STRANDS
+    return static_cast<int>(GetSingleStrands().size());
+#else
+    return countNodes((SBNode::GetClass() == std::string("ADNSingleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+#endif
+
+}
+
+int ADNPart::getNumberOfSingleStrands() const {
+    return GetNumberOfSingleStrands();
+}
+
+void ADNPart::DeregisterSingleStrand(ADNPointer<ADNSingleStrand> ss, bool removeFromParent, bool removeFromIndex) {
+
+    if (removeFromParent)
+        removeChild(ss());
+
+#if ADENITA_ADNPART_REGISTER_STRANDS
+    if (removeFromIndex) singleStrandsIndex_.removeReferenceTarget(ss());
+#endif
+
+}
+
+void ADNPart::DeregisterNucleotide(ADNPointer<ADNNucleotide> nt, bool removeFromSs, bool removeFromBs, bool removeFromIndex) {
+
+    if (removeFromSs) {
+
+        ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
+        ss->removeChild(nt());
+
+    }
+    if (removeFromBs) {
+
+        auto bs = nt->GetBaseSegment();
+        bs->RemoveNucleotide(nt);
+
+    }
   
-  if (removeFromIndex) nucleotidesIndex_.removeReferenceTarget(nt());
+#if ADENITA_ADNPART_REGISTER_NUCLEOTIDES
+    if (removeFromIndex) nucleotidesIndex_.removeReferenceTarget(nt());
+#endif
+
 }
 
-void ADNPart::DeregisterDoubleStrand(ADNPointer<ADNDoubleStrand> ds, bool removeFromParent, bool removeFromIndex)
-{
-  if (removeFromParent) {
-    auto root = getStructuralRoot();
-    root->removeChild(ds());
-  }
+void ADNPart::DeregisterDoubleStrand(ADNPointer<ADNDoubleStrand> ds, bool removeFromParent, bool removeFromIndex) {
 
-  if (removeFromIndex) doubleStrandsIndex_.removeReferenceTarget(ds());
+    if (removeFromParent)
+        removeChild(ds());
+
+#if ADENITA_ADNPART_REGISTER_STRANDS
+    if (removeFromIndex) doubleStrandsIndex_.removeReferenceTarget(ds());
+#endif
+
 }
 
-void ADNPart::DeregisterBaseSegment(ADNPointer<ADNBaseSegment> bs, bool removeFromDs, bool removeFromIndex)
-{
-  if (removeFromDs) bs->getParent()->removeChild(bs());
-  if (removeFromIndex) baseSegmentsIndex_.removeReferenceTarget(bs());
+void ADNPart::DeregisterBaseSegment(ADNPointer<ADNBaseSegment> bs, bool removeFromDs, bool removeFromIndex) {
+
+    if (removeFromDs) 
+        if (bs->getParent())
+            bs->getParent()->removeChild(bs());
+
+#if ADENITA_ADNPART_REGISTER_BASESEGMENTS
+    if (removeFromIndex) baseSegmentsIndex_.removeReferenceTarget(bs());
+#endif
+
 }
 
-void ADNPart::DeregisterAtom(ADNPointer<ADNAtom> atom, bool removeFromAtom)
-{
-  if (removeFromAtom) atom->getParent()->removeChild(atom());
-  atomsIndex_.removeReferenceTarget(atom());
+void ADNPart::DeregisterAtom(ADNPointer<ADNAtom> atom, bool removeFromAtom) {
+
+    if (removeFromAtom) 
+        if (atom->getParent())
+            atom->getParent()->removeChild(atom());
+
+#if ADENITA_ADNPART_REGISTER_ATOMS
+    atomsIndex_.removeReferenceTarget(atom());
+#endif
+
 }
 
-bool ADNPart::loadedViaSAMSON()
-{
-  return loadedViaSAMSON_;
+bool ADNPart::isLoadedViaSAMSON() {
+    return loadedViaSAMSONFlag;
 }
 
-void ADNPart::loadedViaSAMSON(bool l)
-{
-  loadedViaSAMSON_ = l;
+void ADNPart::setLoadedViaSAMSON(bool l) {
+    loadedViaSAMSONFlag = l;
 }
 
-std::pair<SBPosition3, SBPosition3> ADNPart::GetBoundingBox()
-{
-  return std::pair<SBPosition3, SBPosition3>(minBox_, maxBox_);
+std::pair<SBPosition3, SBPosition3> ADNPart::GetBoundingBox() {
+    return std::pair<SBPosition3, SBPosition3>(minBox_, maxBox_);
 }
 
-void ADNPart::ResetBoundingBox()
-{
-  auto nts = GetNucleotides();
-  InitBoundingBox();
-  SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
+void ADNPart::ResetBoundingBox() {
+
+    auto nts = GetNucleotides();
+    InitBoundingBox();
+    SB_FOR(ADNPointer<ADNNucleotide> nt, nts)
+        SetBoundingBox(nt);
+
+}
+
+void ADNPart::SetBoundingBox(ADNPointer<ADNNucleotide> newNt) {
+
+    const SBPosition3 pos = newNt->GetBackbonePosition();
+    //boundingBox.bound(pos);
+    if (pos[0] < minBox_[0]) minBox_[0] = pos[0];
+    if (pos[1] < minBox_[1]) minBox_[1] = pos[1];
+    if (pos[2] < minBox_[2]) minBox_[2] = pos[2];
+    if (pos[0] > maxBox_[0]) maxBox_[0] = pos[0];
+    if (pos[1] > maxBox_[1]) maxBox_[1] = pos[1];
+    if (pos[2] > maxBox_[2]) maxBox_[2] = pos[2];
+
+}
+
+void ADNPart::SetBoundingBox(ADNPointer<ADNBaseSegment> newBs) {
+
+    const SBPosition3 pos = newBs->GetPosition();
+    //boundingBox.bound(pos);
+    if (pos[0] < minBox_[0]) minBox_[0] = pos[0];
+    if (pos[1] < minBox_[1]) minBox_[1] = pos[1];
+    if (pos[2] < minBox_[2]) minBox_[2] = pos[2];
+    if (pos[0] > maxBox_[0]) maxBox_[0] = pos[0];
+    if (pos[1] > maxBox_[1]) maxBox_[1] = pos[1];
+    if (pos[2] > maxBox_[2]) maxBox_[2] = pos[2];
+
+}
+
+void ADNPart::InitBoundingBox() {
+
+    const SBQuantity::picometer maxVal = SBQuantity::picometer(std::numeric_limits<double>::max());
+    minBox_ = SBPosition3(maxVal, maxVal, maxVal);
+    maxBox_ = SBPosition3(-maxVal, -maxVal, -maxVal);
+    //boundingBox = SBIAPosition3(maxVal, -maxVal, maxVal, -maxVal, maxVal, -maxVal);
+
+}
+
+void ADNPart::RegisterSingleStrand(ADNPointer<ADNSingleStrand> ss) {
+
+    if (ss->getName().empty()) {
+
+        ss->setName("Single Strand " + std::to_string(singleStrandId_));
+        ++singleStrandId_;
+
+    }
+
+    addChild(ss());
+
+#if ADENITA_ADNPART_REGISTER_STRANDS
+    singleStrandsIndex_.addReferenceTarget(ss());
+#endif
+
+}
+
+void ADNPart::RegisterNucleotideThreePrime(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nt, bool addToSs) {
+
+    if (nt->getName().empty()) {
+
+        nt->setName(ADNModel::GetResidueName(nt->GetType()) + " " + std::to_string(nucleotideId_));
+        ++nucleotideId_;
+
+    }
+    if (addToSs) ss->AddNucleotideThreePrime(nt);
+
+#if ADENITA_ADNPART_REGISTER_NUCLEOTIDES
+    nucleotidesIndex_.addReferenceTarget(nt());
+#endif
     SetBoundingBox(nt);
-  }
+
 }
 
-void ADNPart::SetBoundingBox(ADNPointer<ADNNucleotide> newNt)
-{
-  SBPosition3 pos = newNt->GetBackbonePosition();
-  if (pos[0] < minBox_[0]) minBox_[0] = pos[0];
-  if (pos[1] < minBox_[1]) minBox_[1] = pos[1];
-  if (pos[2] < minBox_[2]) minBox_[2] = pos[2];
-  if (pos[0] > maxBox_[0]) maxBox_[0] = pos[0];
-  if (pos[1] > maxBox_[1]) maxBox_[1] = pos[1];
-  if (pos[2] > maxBox_[2]) maxBox_[2] = pos[2];
+void ADNPart::RegisterNucleotideFivePrime(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nt, bool addToSs) {
+
+    if (nt->getName().empty()) {
+
+        nt->setName(ADNModel::GetResidueName(nt->GetType()) + " " + std::to_string(nucleotideId_));
+        ++nucleotideId_;
+
+    }
+
+    if (addToSs) ss->AddNucleotideFivePrime(nt);
+
+#if ADENITA_ADNPART_REGISTER_NUCLEOTIDES
+    nucleotidesIndex_.addReferenceTarget(nt());
+#endif
+    SetBoundingBox(nt);
+
 }
 
-void ADNPart::SetBoundingBox(ADNPointer<ADNBaseSegment> newBs)
-{
-  SBPosition3 pos = newBs->GetPosition();
-  if (pos[0] < minBox_[0]) minBox_[0] = pos[0];
-  if (pos[1] < minBox_[1]) minBox_[1] = pos[1];
-  if (pos[2] < minBox_[2]) minBox_[2] = pos[2];
-  if (pos[0] > maxBox_[0]) maxBox_[0] = pos[0];
-  if (pos[1] > maxBox_[1]) maxBox_[1] = pos[1];
-  if (pos[2] > maxBox_[2]) maxBox_[2] = pos[2];
+void ADNPart::RegisterNucleotide(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nt, ADNPointer<ADNNucleotide> ntNext, bool addToSs) {
+
+    if (nt->getName().empty()) {
+
+        nt->setName(ADNModel::GetResidueName(nt->GetType()) + " " + std::to_string(nucleotideId_));
+        ++nucleotideId_;
+
+    }
+
+    if (addToSs) ss->AddNucleotide(nt, ntNext);
+
+#if ADENITA_ADNPART_REGISTER_NUCLEOTIDES
+    nucleotidesIndex_.addReferenceTarget(nt());
+#endif
+    SetBoundingBox(nt);
+
 }
 
-void ADNPart::InitBoundingBox()
-{
-  auto maxVal = SBQuantity::picometer(std::numeric_limits<double>::max());
-  minBox_ = SBPosition3(maxVal, maxVal, maxVal);
-  maxBox_ = SBPosition3(-maxVal, -maxVal, -maxVal);
+void ADNPart::RegisterAtom(ADNPointer<ADNNucleotide> nt, NucleotideGroup g, ADNPointer<ADNAtom> at, bool create) {
+
+    if (create)
+        at->create();
+
+    nt->AddAtom(g, at);
+
+#if ADENITA_ADNPART_REGISTER_ATOMS
+    atomsIndex_.addReferenceTarget(at());
+#endif
+
 }
 
-void ADNPart::RegisterSingleStrand(ADNPointer<ADNSingleStrand> ss) 
-{
-  if (ss->getName().empty()) {
-    ss->setName("Single Strand " + std::to_string(singleStrandId_));
-    ++singleStrandId_;
-  }
+void ADNPart::RegisterAtom(ADNPointer<ADNBaseSegment> bs, ADNPointer<ADNAtom> at, bool create) {
 
-  auto root = getStructuralRoot();
-  root->addChild(ss());
+    if (create)
+        at->create();
 
-  singleStrandsIndex_.addReferenceTarget(ss());
+    bs->addChild(at());
+
+#if ADENITA_ADNPART_REGISTER_ATOMS
+    atomsIndex_.addReferenceTarget(at());
+#endif
+
 }
 
-void ADNPart::RegisterNucleotideThreePrime(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nt, bool addToSs)
-{
-  if (nt->getName().empty()) {
-    nt->setName(ADNModel::GetResidueName(nt->GetType()) + " " + std::to_string(nucleotideId_));
-    ++nucleotideId_;
-  }
-  if (addToSs) ss->AddNucleotideThreePrime(nt);
+void ADNPart::RegisterBaseSegmentEnd(ADNPointer<ADNDoubleStrand> ds, ADNPointer<ADNBaseSegment> bs, bool addToDs) {
 
-  nucleotidesIndex_.addReferenceTarget(nt());
-  SetBoundingBox(nt);
+    if (addToDs) ds->AddBaseSegmentEnd(bs);
+
+#if ADENITA_ADNPART_REGISTER_BASESEGMENTS
+    baseSegmentsIndex_.addReferenceTarget(bs());
+#endif
+    //SetBoundingBox(bs);
+
 }
 
-void ADNPart::RegisterNucleotideFivePrime(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nt, bool addToSs)
-{
-  if (nt->getName().empty()) {
-    nt->setName(ADNModel::GetResidueName(nt->GetType()) + " " + std::to_string(nucleotideId_));
-    ++nucleotideId_;
-  }
-
-  if (addToSs) ss->AddNucleotideFivePrime(nt);
-
-  nucleotidesIndex_.addReferenceTarget(nt());
-  SetBoundingBox(nt);
+unsigned int ADNPart::GetBaseSegmentIndex(ADNPointer<ADNBaseSegment> bs) {
+    return baseSegmentsIndex_.getIndex(bs());
 }
 
-void ADNPart::RegisterNucleotide(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nt, 
-  ADNPointer<ADNNucleotide> ntNext, bool addToSs)
-{
-  if (nt->getName().empty()) {
-    nt->setName(ADNModel::GetResidueName(nt->GetType()) + " " + std::to_string(nucleotideId_));
-    ++nucleotideId_;
-  }
+void ADNPart::RegisterDoubleStrand(ADNPointer<ADNDoubleStrand> ds) {
 
-  if (addToSs) ss->AddNucleotide(nt, ntNext);
+    if (ds->getName().empty()) {
 
-  nucleotidesIndex_.addReferenceTarget(nt());
-  SetBoundingBox(nt);
-}
+        ds->setName("Double Strand " + std::to_string(doubleStrandId_));
+        ++doubleStrandId_;
 
-void ADNPart::RegisterAtom(ADNPointer<ADNNucleotide> nt, NucleotideGroup g, ADNPointer<ADNAtom> at, bool create)
-{
-  if (create) {
-    at->create();
-  }
+    }
+    
+    addChild(ds());
 
-  nt->AddAtom(g, at);
+#if ADENITA_ADNPART_REGISTER_STRANDS
+    doubleStrandsIndex_.addReferenceTarget(ds());
+#endif
 
-  atomsIndex_.addReferenceTarget(at());
-}
-
-void ADNPart::RegisterAtom(ADNPointer<ADNBaseSegment> bs, ADNPointer<ADNAtom> at, bool create)
-{
-  if (create) {
-    at->create();
-  }
-
-  bs->addChild(at());
-
-  atomsIndex_.addReferenceTarget(at());
-}
-
-void ADNPart::RegisterBaseSegmentEnd(ADNPointer<ADNDoubleStrand> ds, ADNPointer<ADNBaseSegment> bs, bool addToDs)
-{
-  if (addToDs) ds->AddBaseSegmentEnd(bs);
-
-  baseSegmentsIndex_.addReferenceTarget(bs());
-  //SetBoundingBox(bs);
-}
-
-unsigned int ADNPart::GetBaseSegmentIndex(ADNPointer<ADNBaseSegment> bs)
-{
-  return baseSegmentsIndex_.getIndex(bs());
-}
-
-void ADNPart::RegisterDoubleStrand(ADNPointer<ADNDoubleStrand> ds) 
-{
-  if (ds->getName().empty()) {
-    ds->setName("Double Strand " + std::to_string(doubleStrandId_));
-    ++doubleStrandId_;
-  }
-  auto root = getStructuralRoot();
-  root->addChild(ds());
-
-  doubleStrandsIndex_.addReferenceTarget(ds());
 }

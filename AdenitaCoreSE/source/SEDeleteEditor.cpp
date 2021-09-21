@@ -188,8 +188,8 @@ void SEDeleteEditor::mousePressEvent(QMouseEvent* event) {
 				part->DeregisterSingleStrand(ss);
 
 			}
-			auto numBsNts = bs->GetNucleotides().size();
-			if (numBsNts == 0) {
+
+			if (bs->getNumberOfNucleotides() == 0) {
 
 				// if base segment is empty, delete
 				ADNBasicOperations::DeleteBaseSegment(part, bs);

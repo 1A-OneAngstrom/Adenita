@@ -32,19 +32,24 @@ SEAdenitaCoreSEApp* SEAdenitaCoreSEApp::getAdenitaApp() {
 
 }
 
-void SEAdenitaCoreSEApp::LoadPart(QString filename) {
+bool SEAdenitaCoreSEApp::loadPart(const QString& filename, SBDDocumentFolder* preferredFolder) {
 
-	SAMSON::setStatusMessage(QString("Loading component ") + filename);
+	SAMSON::setStatusMessage(QString("Loading component from ") + filename);
+
 	ADNPointer<ADNPart> part = ADNLoader::LoadPartFromJson(filename.toStdString());
-	AddPartToActiveLayer(part);
+	if (part == nullptr) return false;
+	AddPartToActiveLayer(part, false, preferredFolder);
+
+	return true;
 
 }
 
-void SEAdenitaCoreSEApp::LoadParts(QString filename) {
+void SEAdenitaCoreSEApp::loadParts(const QString& filename, SBDDocumentFolder* preferredFolder) {
 
 	SAMSON::setStatusMessage(QString("Loading components from ") + filename);
+
 	std::vector<ADNPointer<ADNPart>> parts = ADNLoader::LoadPartsFromJson(filename.toStdString());
-	for (ADNPointer<ADNPart> p : parts) AddPartToActiveLayer(p);
+	for (ADNPointer<ADNPart> part : parts) if (part != nullptr) AddPartToActiveLayer(part, false, preferredFolder);
 
 }
 
@@ -83,25 +88,37 @@ void SEAdenitaCoreSEApp::LoadPartWithDaedalus(QString filename, int minEdgeSize)
 
 }
 
-void SEAdenitaCoreSEApp::ImportFromCadnano(QString filename) {
+bool SEAdenitaCoreSEApp::importFromCadnano(const QString& filename, SBDDocumentFolder* preferredFolder) {
 
 	SAMSON::setStatusMessage(QString("Loading ") + filename);
 	DASCadnano cad = DASCadnano();
-	ADNPointer<ADNPart> part = new ADNPart();
-	std::string seq = "";
 
-	part = cad.CreateCadnanoPart(filename.toStdString());
+	ADNPointer<ADNPart> part = cad.CreateCadnanoPart(filename.toStdString());
+
+	if (part == nullptr) return false;
   
 	QFileInfo fi(filename);
 	QString s = fi.baseName();
 	part->SetName(s.toStdString());
 
-	AddPartToActiveLayer(part);
+	SBFolder* folderWithModel = new SBFolder(s.toStdString());
+
+	//SAMSON::beginHolding("Add cadnano model");
+	//SAMSON::hold(folderWithModel);
+	folderWithModel->create();
+	if (preferredFolder) preferredFolder->addChild(folderWithModel);
+	else SAMSON::getActiveDocument()->addChild(folderWithModel);
+
+	AddPartToActiveLayer(part, false, folderWithModel);
 
 	cad.CreateConformations(part);
-	AddConformationToActiveLayer(cad.Get3DConformation());
-	AddConformationToActiveLayer(cad.Get2DConformation());
-	AddConformationToActiveLayer(cad.Get1DConformation());
+	AddConformationToActiveLayer(cad.Get3DConformation(), folderWithModel);
+	AddConformationToActiveLayer(cad.Get2DConformation(), folderWithModel);
+	AddConformationToActiveLayer(cad.Get1DConformation(), folderWithModel);
+
+	//SAMSON::endHolding();
+
+	return true;
 
 }
 
@@ -727,16 +744,16 @@ ADNNanorobot * SEAdenitaCoreSEApp::GetNanorobot() {
 	SBDocument* document = SAMSON::getActiveDocument();
 	ADNNanorobot* nanorobot = nullptr;
 
-	if (nanorobots_.find(document) == nanorobots_.end()) {
+	if (nanorobotMap.find(document) == nanorobotMap.end()) {
 
 		// create new nanorobot for this document
 		nanorobot = new ADNNanorobot();
-		nanorobots_.insert(std::make_pair(document, nanorobot));
+		nanorobotMap.insert(std::make_pair(document, nanorobot));
 
 	}
 	else {
 
-		nanorobot = nanorobots_.at(document);
+		nanorobot = nanorobotMap.at(document);
 
 	}
 
@@ -771,21 +788,20 @@ QStringList SEAdenitaCoreSEApp::GetPartsNameList() {
 	QStringList names;
 
 	auto parts = GetNanorobot()->GetParts();
-	SB_FOR(ADNPointer<ADNPart> p, parts) {
-		std::string n = p->GetName();
-		names << n.c_str();
-	}
+	SB_FOR(ADNPointer<ADNPart> p, parts)
+		names << QString::fromStdString(p->GetName());
 
 	return names;
 
 }
 
-void SEAdenitaCoreSEApp::AddPartToActiveLayer(ADNPointer<ADNPart> part, bool positionsData) {
+void SEAdenitaCoreSEApp::AddPartToActiveLayer(ADNPointer<ADNPart> part, bool positionsData, SBFolder* preferredFolder) {
 
-	SEConfig& c = SEConfig::GetInstance();
-	if (c.auto_set_scaffold_sequence) {
+	if (part == nullptr) return;
 
-		SEAdenitaCoreSEAppGUI* gui = getGUI();
+	SEConfig& config = SEConfig::GetInstance();
+	if (config.auto_set_scaffold_sequence) {
+
 		std::string fname = SEAdenitaCoreSEAppGUI::getScaffoldFilename();
 		std::string seq = SEAdenitaCoreSEApp::readScaffoldFilename(fname);
 		auto scafs = part->GetScaffolds();
@@ -802,7 +818,6 @@ void SEAdenitaCoreSEApp::AddPartToActiveLayer(ADNPointer<ADNPart> part, bool pos
 	if (!positionsData) {
 
 		btta.SetNucleotidesPostions(part);
-		SEConfig& config = SEConfig::GetInstance();
 		if (config.use_atomic_details) {
 
 			btta.GenerateAllAtomModel(part);
@@ -818,33 +833,46 @@ void SEAdenitaCoreSEApp::AddPartToActiveLayer(ADNPointer<ADNPart> part, bool pos
 	//events
 	ConnectStructuralSignalSlots(part);
 
-	SAMSON::beginHolding("Add model");
+	//bool holding = SAMSON::isHolding();
+	//if (!holding) SAMSON::beginHolding("Add model");
+	//if (SAMSON::isHolding()) SAMSON::hold(part());
 	part->create();
-	SAMSON::getActiveDocument()->addChild(part());
-	SAMSON::endHolding();
+	
+	if (preferredFolder) preferredFolder->addChild(part());
+	else SAMSON::getActiveDocument()->addChild(part());
+
+	//if (!holding) SAMSON::endHolding();
 
 }
 
-void SEAdenitaCoreSEApp::AddConformationToActiveLayer(ADNPointer<ADNConformation> conf) {
+void SEAdenitaCoreSEApp::AddConformationToActiveLayer(ADNPointer<ADNConformation> conf, SBFolder* preferredFolder) {
+
+	if (conf == nullptr) return;
 
 	GetNanorobot()->RegisterConformation(conf);
 
+	//bool holding = SAMSON::isHolding();
+	//if (!holding) SAMSON::beginHolding("Add conformation");
+	//if (SAMSON::isHolding()) SAMSON::hold(conf());
 	conf->create();
 
-	SAMSON::getActiveDocument()->addChild(conf());
+	if (preferredFolder) preferredFolder->addChild(conf());
+	else SAMSON::getActiveDocument()->addChild(conf());
+
+	//if (!holding) SAMSON::endHolding();
 
 }
 
 void SEAdenitaCoreSEApp::AddLoadedPartToNanorobot(ADNPointer<ADNPart> part) {
 
-	if (part->loadedViaSAMSON()) {
+	if (part->isLoadedViaSAMSON()) {
 
 		GetNanorobot()->RegisterPart(part);
 
 		//events
 		ConnectStructuralSignalSlots(part);
 
-		part->loadedViaSAMSON(false);
+		part->setLoadedViaSAMSON(false);
 
 		SEAdenitaCoreSEApp::resetVisualModel();
 

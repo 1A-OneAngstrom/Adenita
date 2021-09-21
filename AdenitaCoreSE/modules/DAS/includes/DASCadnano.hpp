@@ -100,10 +100,10 @@ private:
   void ParseCadnanoLegacy(rapidjson::Document& d);
 
   ADNPointer<ADNPart> CreateCadnanoModel();
-  void CreateEdgeMap(ADNPointer<ADNPart> nanorobot);
-  void CreateScaffold(ADNPointer<ADNPart> nanorobot);
-  void CreateStaples(ADNPointer<ADNPart> nanorobot);
-  void TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNPart> nanorobot, bool scaf = true);
+  void CreateEdgeMap(ADNPointer<ADNPart> part);
+  void CreateScaffold(ADNPointer<ADNPart> part);
+  void CreateStaples(ADNPointer<ADNPart> part);
+  void TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNPart> part, bool scaf = true);
 
   static DNABlocks GetComplementaryBase(DNABlocks type);
   bool IsThereBase(vec4 data);
@@ -120,5 +120,5 @@ public:
   ADNPointer<ADNPart> CreateCadnanoPart(std::string file);
 
   //! once 3D model has been created, set 2D and 1D positions
-  void CreateConformations(ADNPointer<ADNPart> nanorobot);
+  void CreateConformations(ADNPointer<ADNPart> part);
 };
