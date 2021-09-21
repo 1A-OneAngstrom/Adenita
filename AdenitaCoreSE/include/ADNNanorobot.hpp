@@ -6,7 +6,7 @@
 #include "ADNConformations.hpp"
 
 #define ADENITA_NANOROBOT_REGISTER_PARTS 0
-#define ADENITA_NANOROBOT_REGISTER_CONFORMATIONS 0
+#define ADENITA_NANOROBOT_REGISTER_CONFORMATIONS 1
 
 /// ADNNanorobot: main interface to Adenita logical model.
 

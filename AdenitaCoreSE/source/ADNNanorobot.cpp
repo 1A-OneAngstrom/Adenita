@@ -510,11 +510,11 @@ CollectionMap<ADNConformation> ADNNanorobot::GetConformations() {
     SBNodeIndexer auxIndexer;
     SAMSON::getActiveDocument()->getNodes(auxIndexer, SBNode::Conformation);
 
-    SBNodeIndexer nodeIndexer;
-    SB_FOR(SBNode * node, auxIndexer)
-        node->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNConformation")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+    //SBNodeIndexer nodeIndexer;
+    //SB_FOR(SBNode * node, auxIndexer)
+    //    node->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNConformation")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
-    SB_FOR(SBNode * node, nodeIndexer)
+    SB_FOR(SBNode * node, auxIndexer)
         conformationIndexer.addReferenceTarget(static_cast<ADNConformation*>(node));
 
     return conformationIndexer;
