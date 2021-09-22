@@ -9,8 +9,12 @@ ADD_DEFINITIONS( -DSB_ELEMENT_UUID=${OUTPUT_UUID-VAR} )
 
 MESSAGE ( "-- ++ CREATING PROJECT OR MAKEFILE ---> ${OUTPUT_UUID} : ${OUTPUT_NAME}" )
 
-FILE ( GLOB_RECURSE ${OUTPUT_UUID}_externals_headers modules/*/*.hpp )
-FILE ( GLOB_RECURSE ${OUTPUT_UUID}_externals_sources modules/*/*.cpp )
+FILE ( GLOB_RECURSE ${OUTPUT_UUID}_DAS_headers modules/DAS/include/*.hpp )
+FILE ( GLOB_RECURSE ${OUTPUT_UUID}_MSV_headers modules/MSV/include/*.hpp )
+FILE ( GLOB_RECURSE ${OUTPUT_UUID}_PI_headers modules/PI/include/*.hpp )
+FILE ( GLOB_RECURSE ${OUTPUT_UUID}_DAS_sources modules/DAS/source/*.cpp )
+FILE ( GLOB_RECURSE ${OUTPUT_UUID}_MSV_sources modules/MSV/source/*.cpp )
+FILE ( GLOB_RECURSE ${OUTPUT_UUID}_PI_sources modules/PI/source/*.cpp )
 FILE ( GLOB_RECURSE ${OUTPUT_UUID}_headers include/*.hpp )
 FILE ( GLOB_RECURSE ${OUTPUT_UUID}_sources source/*.cpp )
 FILE ( GLOB_RECURSE ${OUTPUT_UUID}_resources resource/*.qrc )
@@ -20,9 +24,9 @@ FILE( GLOB_RECURSE ${OUTPUT_UUID}_ts resource/translations/*.ts )
 
 INCLUDE_DIRECTORIES ( include )
 INCLUDE_DIRECTORIES ( external/rapidjson/include )
-INCLUDE_DIRECTORIES ( modules/DAS/includes )
-INCLUDE_DIRECTORIES ( modules/MSV/includes )
-INCLUDE_DIRECTORIES ( modules/PI/includes )
+INCLUDE_DIRECTORIES ( modules/DAS/include )
+INCLUDE_DIRECTORIES ( modules/MSV/include )
+INCLUDE_DIRECTORIES ( modules/PI/include )
 INCLUDE_DIRECTORIES ( ${CMAKE_CURRENT_BINARY_DIR} )
 
 IF(QT_WRAP_CPP)
@@ -37,10 +41,14 @@ QT5_ADD_RESOURCES( ${OUTPUT_UUID}_RCC_GENERATED ${${OUTPUT_UUID}_resources} )
 
 QT5_ADD_TRANSLATION( ${OUTPUT_UUID}_QM  ${${OUTPUT_UUID}_ts} )
 
-SOURCE_GROUP ( include FILES ${${OUTPUT_UUID}_externals_headers} )
-SOURCE_GROUP ( source FILES ${${OUTPUT_UUID}_externals_sources} )
 SOURCE_GROUP ( include FILES ${${OUTPUT_UUID}_headers} )
 SOURCE_GROUP ( source FILES ${${OUTPUT_UUID}_sources} )
+SOURCE_GROUP ( include/DAS FILES ${${OUTPUT_UUID}_DAS_headers} )
+SOURCE_GROUP ( include/MSV FILES ${${OUTPUT_UUID}_MSV_headers} )
+SOURCE_GROUP ( include/PI FILES ${${OUTPUT_UUID}_PI_headers} )
+SOURCE_GROUP ( source/DAS FILES ${${OUTPUT_UUID}_DAS_sources} )
+SOURCE_GROUP ( source/MSV FILES ${${OUTPUT_UUID}_MSV_sources} )
+SOURCE_GROUP ( source/PI FILES ${${OUTPUT_UUID}_PI_sources} )
 SOURCE_GROUP ( resource FILES ${${OUTPUT_UUID}_resources} )
 SOURCE_GROUP ( form FILES ${${OUTPUT_UUID}_form} )
 SOURCE_GROUP ( translationFiles FILES ${${PROJECT_FOLDER_NAME}_QM} ${${OUTPUT_UUID}_ts} )
@@ -49,7 +57,7 @@ SOURCE_GROUP ( GeneratedFiles FILES ${${OUTPUT_UUID}_MOC_GENERATED} ${${OUTPUT_U
 
 ####################################################
 
-ADD_LIBRARY ( ${OUTPUT_NAME} SHARED ${${OUTPUT_UUID}_externals_headers} ${${OUTPUT_UUID}_externals_sources} ${${OUTPUT_UUID}_headers} ${${OUTPUT_UUID}_sources} ${${OUTPUT_UUID}_MOC_GENERATED} ${${OUTPUT_UUID}_UI_GENERATED} ${${OUTPUT_UUID}_RCC_GENERATED} ${${OUTPUT_UUID}_QM} )
+ADD_LIBRARY ( ${OUTPUT_NAME} SHARED ${${OUTPUT_UUID}_headers} ${${OUTPUT_UUID}_sources} ${${OUTPUT_UUID}_DAS_headers} ${${OUTPUT_UUID}_DAS_sources} ${${OUTPUT_UUID}_MSV_headers} ${${OUTPUT_UUID}_MSV_sources} ${${OUTPUT_UUID}_PI_headers} ${${OUTPUT_UUID}_PI_sources} ${${OUTPUT_UUID}_MOC_GENERATED} ${${OUTPUT_UUID}_UI_GENERATED} ${${OUTPUT_UUID}_RCC_GENERATED} ${${OUTPUT_UUID}_QM} )
 
 TARGET_LINK_LIBRARIES (${OUTPUT_NAME}
 						${QT_LIBRARIES}
