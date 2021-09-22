@@ -11,17 +11,17 @@
 
 /// This class implements an editor
 
-enum class BendingType {
-	UNTWIST,
-	SPHEREVISIBILITY
-};
-
 class SB_EXPORT SEDNATwisterEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT
 
 public :
+
+	enum class BendingType {
+		UNTWIST,
+		SPHEREVISIBILITY
+	};
 
 	/// \name Constructors and destructors
 	//@{

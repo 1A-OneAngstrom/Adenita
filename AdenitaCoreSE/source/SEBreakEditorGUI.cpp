@@ -22,6 +22,10 @@ void SEBreakEditorGUI::loadSettings( SBGSettings *settings ) {
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
+	const bool isFivePrime = settings->loadBoolValue("isFivePrime", false);
+	if (isFivePrime) ui.radioButtonFivePrime->setChecked(true);
+	else ui.radioButtonThreePrime->setChecked(true);
+
 }
 
 void SEBreakEditorGUI::saveSettings( SBGSettings *settings ) {
@@ -29,6 +33,8 @@ void SEBreakEditorGUI::saveSettings( SBGSettings *settings ) {
 	if ( settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
+
+	settings->saveValue("isFivePrime", ui.radioButtonFivePrime->isChecked());
 
 }
 
@@ -48,7 +54,7 @@ QString SEBreakEditorGUI::getName() const {
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your editor inside SAMSON
 
-	return "Break Strands"; 
+	return "Break DNA Strands";
 
 }
 

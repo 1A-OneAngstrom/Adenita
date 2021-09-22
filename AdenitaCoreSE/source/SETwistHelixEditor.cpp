@@ -23,12 +23,17 @@ SETwistHelixEditor::~SETwistHelixEditor() {
 
 SETwistHelixEditorGUI* SETwistHelixEditor::getPropertyWidget() const { return static_cast<SETwistHelixEditorGUI*>(propertyWidget); }
 
-void SETwistHelixEditor::SetTwistAngle(double angle) {
+void SETwistHelixEditor::setTwistAngle(double angle) {
 
-	twistAngle_ = angle;
+	this->twistAngle = angle;
+	updateCursor();
+
+}
+
+void SETwistHelixEditor::updateCursor() {
 
 	QString iconPath;
-	if (twistAngle_ < 0)
+	if (this->twistAngle < 0)
 		iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/cursor_twistMinus1BP.png");
 	else
 		iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/cursor_twistPlus1BP.png");
@@ -37,10 +42,9 @@ void SETwistHelixEditor::SetTwistAngle(double angle) {
 
 }
 
-void SETwistHelixEditor::SetMode(bool t) {
+void SETwistHelixEditor::setMode(bool t) {
 
-	SETwistHelixEditorGUI* gui = getPropertyWidget();
-	gui->CheckPlusOrMinus(t);
+	getPropertyWidget()->checkPlusOrMinus(t);
 
 }
 
@@ -88,7 +92,7 @@ QString SETwistHelixEditor::getToolTip() const {
 	
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Twist double strand DNA along helical axis"); 
+	return QObject::tr("Rotate double strand DNA along helical axis"); 
 
 }
 
@@ -110,7 +114,7 @@ void SETwistHelixEditor::saveSettings(SBGSettings* settings) {
 
 QString SETwistHelixEditor::getDescription() const {
 
-	return QObject::tr("Adenita | dsDNA Helical Twist");
+	return QObject::tr("Adenita | Rotate Double Strand DNA");
 
 }
 
@@ -119,16 +123,10 @@ void SETwistHelixEditor::beginEditing() {
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
 
-	QString iconPath;
-	if (twistAngle_ < 0)
-		iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/cursor_twistMinus1BP.png");
-	else
-		iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/cursor_twistPlus1BP.png");
+	updateCursor();
 
 	previousSelectionFilter = SAMSON::getCurrentSelectionFilter();
 	SAMSON::setCurrentSelectionFilter("Any node");
-
-	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
 
 }
 
@@ -200,7 +198,7 @@ void SETwistHelixEditor::mousePressEvent(QMouseEvent* event) {
 
 		}
 
-		app->TwistDoubleHelix(highlightedDoubleStrands, twistAngle_);
+		app->TwistDoubleHelix(highlightedDoubleStrands, twistAngle);
 
 		SAMSON::requestViewportUpdate();
 

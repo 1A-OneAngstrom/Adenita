@@ -25,8 +25,16 @@ SEAdenitaCoreSettingsGUI::SEAdenitaCoreSettingsGUI(QWidget *parent, Qt::WindowFl
 	dialogWindow->setWindowModality(Qt::ApplicationModal);
 
 	QObject::connect(ui.cmbScaffold, SIGNAL(currentIndexChanged(int)), this, SLOT(onChangeScaffold(int)));
-	QObject::connect(ui.dialogButtons, SIGNAL(accepted()), this, SLOT(accept()));
-	QObject::connect(ui.dialogButtons, SIGNAL(rejected()), this, SLOT(reject()));
+	QObject::connect(ui.pushButtonOK, SIGNAL(released()), this, SLOT(accept()));
+	QObject::connect(ui.pushButtonCancel, SIGNAL(released()), this, SLOT(reject()));
+	//QObject::connect(ui.pushButtonReset, SIGNAL(released()), this, SLOT(onResetToDefault()));
+	QObject::connect(ui.pushButtonSetPathNtthal, SIGNAL(released()), this, SLOT(onSetPathNtthal()));
+
+	ui.pushButtonReset->setVisible(false);
+
+}
+
+void SEAdenitaCoreSettingsGUI::onResetToDefault() {
 
 }
 
@@ -76,5 +84,11 @@ void SEAdenitaCoreSettingsGUI::accept() {
 	c.setScaffType(ui.cmbScaffold->currentIndex());
 	c.setNtthalExe(ui.lineNtthal->text().toStdString());
 	c.setCustomMeshModel(ui.rdbIterativeMesh->isChecked());
+
+}
+
+void SEAdenitaCoreSettingsGUI::reject() {
+
+	QDialog::reject();
 
 }

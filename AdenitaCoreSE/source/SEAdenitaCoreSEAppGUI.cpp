@@ -67,13 +67,13 @@ std::string SEAdenitaCoreSEAppGUI::getScaffoldFilename() {
 
 	std::string filename = "";
 	ADNAuxiliary::ScaffoldSeq type = ADNAuxiliary::ScaffoldSeq(c.scaffType);
-	if (type == ADNAuxiliary::m13mp18) {
+	if (type == ADNAuxiliary::ScaffoldSeq::m13mp18) {
 		filename = SB_ELEMENT_PATH + "/Data/m13mp18.fasta";
 	}
-	else if (type == ADNAuxiliary::p7249) {
+	else if (type == ADNAuxiliary::ScaffoldSeq::p7249) {
 		filename = SB_ELEMENT_PATH + "/Data/p7249.fasta";
 	}
-	else if (type == ADNAuxiliary::Custom) {
+	else if (type == ADNAuxiliary::ScaffoldSeq::Custom) {
 		filename = c.scaffCustomFilename;
 	}
 
@@ -594,6 +594,13 @@ void SEAdenitaCoreSEAppGUI::onKinetoplast() {
 }
 
 void SEAdenitaCoreSEAppGUI::onCalculateBindingProperties() {
+
+	if (getApp()->GetNanorobot()->GetSelectedParts().empty()) {
+
+		SAMSON::informUser(QString("Adenita: Calculate Thermodynamic Properties"), QString("The selection is empty. Please select one or more components."));
+		return;
+
+	}
 
 	QDialog dialog(this);
 	QFormLayout form(&dialog);
@@ -1294,8 +1301,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getEditSequencesButtons() {
 
 		auto btnTaggingEditor = new QToolButton(this);
 		btnTaggingEditor->setObjectName(QStringLiteral("btnTaggingEditor"));
-		btnTaggingEditor->setText("Tagging\neditor\n");
-		btnTaggingEditor->setToolTip("<b>Tagging editor</b><br/><br/>"
+		btnTaggingEditor->setText("Tag\nnucleotides\n");
+		btnTaggingEditor->setToolTip("<b>Tag nucleotides</b><br/><br/>"
 			"Tag nucleotides or modify their base. The tag will appear when exporting sequences.");
 		btnTaggingEditor->setIconSize(QSize(24, 24));
 		btnTaggingEditor->setCheckable(true);
@@ -1386,9 +1393,9 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 
 		auto btnDNATwisterEditor = new QToolButton(this);
 		btnDNATwisterEditor->setObjectName(QStringLiteral("btnDNATwisterEditor"));
-		btnDNATwisterEditor->setText("DNA twister");
+		btnDNATwisterEditor->setText("Rotate DNA");
 		btnDNATwisterEditor->setToolTip("<b>DNA twister editor</b><br/><br/>"
-			"Twist dsDNA along helical axis - modify the twist angle of a double-strand along the helical axis.");
+			"Rotate double strand DNA along helical axis - modify the twist angle of a double-strand along the helical axis.");
 		btnDNATwisterEditor->setIconSize(QSize(24, 24));
 		btnDNATwisterEditor->setCheckable(true);
 		btnDNATwisterEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1399,7 +1406,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		btnTwisterEditor->setObjectName(QStringLiteral("btnTwisterEditor"));
 		btnTwisterEditor->setText("Twister");
 		btnTwisterEditor->setToolTip("<b>Twister editor</b><br/><br/>"
-			"dsDNA Visualization Twister.<br/>Remove entire the twist of a double strand locally to observe the single strands that compose it as parallel lines.");
+			"Double Strand DNA Visualization Twister.<br/>Remove entire the twist of a double strand locally to observe the single strands that compose it as parallel lines. Twist back after.");
 		btnTwisterEditor->setIconSize(QSize(24, 24));
 		btnTwisterEditor->setCheckable(true);
 		btnTwisterEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1493,8 +1500,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getCreatorsButtons() {
 
 		QToolButton* btnWireframeEditor = new QToolButton;
 		btnWireframeEditor->setObjectName(QStringLiteral("btnWireframeEditor"));
-		btnWireframeEditor->setText("Wireframe\n");
-		btnWireframeEditor->setToolTip("<b>Wireframe editor</b><br/><br/>"
+		btnWireframeEditor->setText("Wireframe\ncreator");
+		btnWireframeEditor->setToolTip("<b>Wireframe creator editor</b><br/><br/>"
 			"Generate a wireframe DNA nanostructures from the given shapes and add it to the design (uses the Daedalus algorithm).");
 		btnWireframeEditor->setIconSize(QSize(24, 24));
 		btnWireframeEditor->setCheckable(true);

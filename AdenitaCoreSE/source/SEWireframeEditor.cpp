@@ -148,7 +148,11 @@ ADNPointer<ADNPart> SEWireframeEditor::generateCuboid(const SBPosition3& current
         alg->SetMinEdgeLength(minSize);
         part = alg->ApplyAlgorithm(seq, p, false);
 
-        //if (part != nullptr) sendPartToAdenita(part);
+        if (part != nullptr) {
+
+            part->setName(SEAdenitaCoreSEApp::getAdenitaApp()->getUniquePartName("Cuboid"));
+
+        }
 
     }
 
@@ -164,91 +168,108 @@ ADNPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock) {
     ADNPointer<ADNPart> part = nullptr;
     std::string filename = std::string();
 
+    std::string partName = "";
+
     double a = sqrt(pow(radius.getValue(), 2) * 2);
 
     if (wireframeType == DASCreator::EditorType::Tetrahedron) {
         part = new ADNPart();
+        partName = "Tetrahedron";
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) * 1.3;
         filename = SB_ELEMENT_PATH + "/Data/01_tetrahedron.ply";
     }
     else if (wireframeType == DASCreator::EditorType::Cube) {
         part = new ADNPart();
+        partName = "Cube";
         numNucleotides = a / (ADNConstants::BP_RISE * 1000);
         filename = SB_ELEMENT_PATH + "/Data/02_cube.ply";
     }
     else if (wireframeType == DASCreator::EditorType::Octahedron) {
         part = new ADNPart();
+        partName = "Octahedron";
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/03_octahedron.ply";
     }
     else if (wireframeType == DASCreator::EditorType::Dodecahedron) {
         part = new ADNPart();
+        partName = "Dodecahedron";
         a /= 2;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/04_dodecahedron.ply";
     }
     else if (wireframeType == DASCreator::EditorType::Icosahedron) {
         part = new ADNPart();
+        partName = "Icosahedron";
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/05_icosahedron.ply";
     }
     else if (wireframeType == DASCreator::EditorType::Cuboctahedron) {
         part = new ADNPart();
+        partName = "Cuboctahedron";
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/06_cuboctahedron.ply";
     }
     else if (wireframeType == DASCreator::EditorType::Icosidodecahedron) {
         part = new ADNPart();
+        partName = "Icosidodecahedron";
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/07_icosidodecahedron.ply";
     }
     else if (wireframeType == DASCreator::EditorType::Rhombicuboctahedron) {
         part = new ADNPart();
+        partName = "Rhombicuboctahedron";
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/08_rhombicuboctahedron.ply";
     }
     else if (wireframeType == DASCreator::EditorType::Snub_cube) {
         part = new ADNPart();
+        partName = "Snub cube";
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/09_snub_cube.ply";
     }
     else if (wireframeType == DASCreator::EditorType::Truncated_cube) {
         part = new ADNPart();
+        partName = "Truncated cube";
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/10_truncated_cube.ply";
     }
     else if (wireframeType == DASCreator::EditorType::Truncated_cuboctahedron) {
         part = new ADNPart();
+        partName = "Truncated cuboctahedron";
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/11_truncated_cuboctahedron.ply";
     }
     else if (wireframeType == DASCreator::EditorType::Helix) {
         part = new ADNPart();
+        partName = "Helix";
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/49_helix.ply";
     }
     else if (wireframeType == DASCreator::EditorType::Stickman) {
         part = new ADNPart();
+        partName = "Stickman";
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/51_stickman.ply";
     }
     else if (wireframeType == DASCreator::EditorType::Bottle) {
         part = new ADNPart();
+        partName = "Bottle";
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/52_bottle.ply";
     }
     else if (wireframeType == DASCreator::EditorType::Bunny) {
         part = new ADNPart();
+        partName = "Bunny";
         a /= 4;
         numNucleotides = a / (ADNConstants::BP_RISE * 1000) / 1.5;
         filename = SB_ELEMENT_PATH + "/Data/53_bunny.ply";
@@ -280,6 +301,12 @@ ADNPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock) {
             std::string seq = "";
             part = alg->ApplyAlgorithm(seq, polyhedron, false, true);
 
+            if (!partName.empty()) {
+
+                part->setName(SEAdenitaCoreSEApp::getAdenitaApp()->getUniquePartName(partName));
+
+            }
+
         }
 
     }
@@ -292,8 +319,7 @@ void SEWireframeEditor::sendPartToAdenita(ADNPointer<ADNPart> part) {
 
     if (part != nullptr) {
 
-        SEAdenitaCoreSEApp* adenita = static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
-        adenita->AddPartToActiveLayer(part);
+        SEAdenitaCoreSEApp::getAdenitaApp()->AddPartToActiveLayer(part);
         SEAdenitaCoreSEApp::resetVisualModel();
 
     }

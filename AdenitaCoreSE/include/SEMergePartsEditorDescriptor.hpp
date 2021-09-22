@@ -12,6 +12,7 @@
 SB_CLASS_BEGIN(SEMergePartsEditor);
 
 	SB_CLASS_TYPE(SBCClass::Editor);
+
         SB_CLASS_DESCRIPTION("Merge components into a new one");
 
 	SB_FACTORY_BEGIN;

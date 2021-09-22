@@ -94,7 +94,7 @@ void SETaggingEditor::saveSettings(SBGSettings* settings) {
 
 QString SETaggingEditor::getDescription() const {
 
-	return QObject::tr("Adenita | Tagging Editor");
+	return QObject::tr("Adenita | Tag Nucleotides");
 
 }
 

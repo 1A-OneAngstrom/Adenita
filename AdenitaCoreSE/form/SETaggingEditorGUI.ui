@@ -30,7 +30,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="rdoTags">
+      <widget class="QRadioButton" name="radioButtonTags">
        <property name="text">
         <string>Tags</string>
        </property>
@@ -40,7 +40,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="rdoBase">
+      <widget class="QRadioButton" name="radioButtonBase">
        <property name="text">
         <string>Base</string>
        </property>
@@ -66,7 +66,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>rdoTags</sender>
+   <sender>radioButtonTags</sender>
    <signal>toggled(bool)</signal>
    <receiver>SETaggingEditorGUIClass</receiver>
    <slot>onModeChanged(bool)</slot>

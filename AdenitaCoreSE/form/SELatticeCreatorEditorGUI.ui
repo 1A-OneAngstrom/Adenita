@@ -103,7 +103,7 @@
       </widget>
      </item>
      <item row="5" column="1" colspan="2">
-      <widget class="QSpinBox" name="spbMaxYds">
+      <widget class="QSpinBox" name="spinBoxMaxYds">
        <property name="maximum">
         <number>30</number>
        </property>
@@ -113,7 +113,7 @@
       </widget>
      </item>
      <item row="4" column="1" colspan="2">
-      <widget class="QSpinBox" name="spbMaxXds">
+      <widget class="QSpinBox" name="spinBoxMaxXds">
        <property name="maximum">
         <number>32</number>
        </property>
@@ -123,7 +123,7 @@
       </widget>
      </item>
      <item row="6" column="1" colspan="2">
-      <widget class="QSpinBox" name="spbMaxZBps">
+      <widget class="QSpinBox" name="spinBoxMaxZbp">
        <property name="maximum">
         <number>400</number>
        </property>
@@ -223,7 +223,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>spbMaxXds</sender>
+   <sender>spinBoxMaxXds</sender>
    <signal>valueChanged(int)</signal>
    <receiver>SELatticeCreatorEditorGUIClass</receiver>
    <slot>onMaxXdsChanged(int)</slot>
@@ -239,7 +239,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>spbMaxYds</sender>
+   <sender>spinBoxMaxYds</sender>
    <signal>valueChanged(int)</signal>
    <receiver>SELatticeCreatorEditorGUIClass</receiver>
    <slot>onMaxYdsChanged(int)</slot>
@@ -255,7 +255,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>spbMaxZBps</sender>
+   <sender>spinBoxMaxZbp</sender>
    <signal>valueChanged(int)</signal>
    <receiver>SELatticeCreatorEditorGUIClass</receiver>
    <slot>onMaxZBpsChanged(int)</slot>

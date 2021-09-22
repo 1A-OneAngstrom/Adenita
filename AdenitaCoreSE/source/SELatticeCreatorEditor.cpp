@@ -80,24 +80,24 @@ ADNPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*
 	if (yNumStrands > maxYDoubleStrands)  yNumStrands = maxYDoubleStrands;
 	if (numBps > maxZBasePairs)  numBps = maxZBasePairs;
 
-	xyText_ = "x: ";
-	xyText_ += std::to_string(int(xNumStrands));
-	xyText_ += " ds / ";
+	xyText = "x: ";
+	xyText += std::to_string(int(xNumStrands));
+	xyText += " ds / ";
 	auto xLen = SBQuantity::nanometer(x).getValue();
 	if (latticeType == LatticeType::Honeycomb)
 		xLen *= 1.5;
-	xyText_ += std::to_string(int(xLen));
-	xyText_ += " nm; ";
-	xyText_ += "y: ";
-	xyText_ += std::to_string(int(yNumStrands));
-	xyText_ += " ds / ";
-	xyText_ += std::to_string(int(SBQuantity::nanometer(y).getValue()));
-	xyText_ += " nm; ";
-	zText_ = "z: ";
-	zText_ += std::to_string(int(numBps));
-	zText_ += " bps / ";
-	zText_ += std::to_string(int(SBQuantity::nanometer(z).getValue()));
-	zText_ += " nm; ";
+	xyText += std::to_string(int(xLen));
+	xyText += " nm; ";
+	xyText += "y: ";
+	xyText += std::to_string(int(yNumStrands));
+	xyText += " ds / ";
+	xyText += std::to_string(int(SBQuantity::nanometer(y).getValue()));
+	xyText += " nm; ";
+	zText = "z: ";
+	zText += std::to_string(int(numBps));
+	zText += " bps / ";
+	zText += std::to_string(int(SBQuantity::nanometer(z).getValue()));
+	zText += " nm; ";
 
 	part = new ADNPart();
 
@@ -106,17 +106,25 @@ ADNPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*
 
 		for (int yt = 0; yt < yNumStrands; yt++) {
 
-			auto pos = vGrid_.GetGridCellPos3D(0, xt, yt);
+			auto pos = vGrid.GetGridCellPos3D(0, xt, yt);
 			pos += firstPosition;
 
 			int zLength = numBps;
-			if (zPattern_ == ZLatticePattern::TRIANGLE) {
+			if (zPattern == ZLatticePattern::TRIANGLE) {
 				zLength = (xt / xNumStrands) * numBps;
 			}
 
 			if (zLength > 0) auto ds = DASCreator::CreateDoubleStrand(part, zLength, pos, dir, mock);
 
 		}
+
+	}
+
+	if (!mock && part != nullptr) {
+
+		std::string partName = "Square lattice";
+		if (latticeType == LatticeType::Honeycomb) partName = "Honeycomb lattice";
+		part->setName(SEAdenitaCoreSEApp::getAdenitaApp()->getUniquePartName(partName));
 
 	}
 
@@ -134,9 +142,7 @@ void SELatticeCreatorEditor::sendPartToAdenita(ADNPointer<ADNPart> lattice) {
 
 	if (lattice != nullptr) {
 
-		lattice->SetName("Lattice Structure");
-
-		SEAdenitaCoreSEApp* adenita = static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
+		SEAdenitaCoreSEApp* adenita = SEAdenitaCoreSEApp::getAdenitaApp();
 		adenita->AddPartToActiveLayer(lattice);
 
 		//DASCadnano cad = DASCadnano();
@@ -195,7 +201,7 @@ QString SELatticeCreatorEditor::getToolTip() const {
 	
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Create dsDNA on a square or honeycomb lattice"); 
+	return QObject::tr("Create double strand DNA on a square or honeycomb lattice"); 
 
 }
 
@@ -217,7 +223,7 @@ void SELatticeCreatorEditor::saveSettings(SBGSettings* settings) {
 
 QString SELatticeCreatorEditor::getDescription() const {
 
-	return QObject::tr("Adenita | Lattice Editor");
+	return QObject::tr("Adenita | Lattice Creator");
 
 }
 
@@ -300,7 +306,7 @@ void SELatticeCreatorEditor::display() {
 		ADNDisplayHelper::displayLine(firstPosition, currentPosition);
 			
 		const SBPosition3 xyPos = currentPosition + offset;
-		ADNDisplayHelper::displayText(xyPos, xyText_);
+		ADNDisplayHelper::displayText(xyPos, xyText);
 
 	}
 	else {
@@ -309,7 +315,7 @@ void SELatticeCreatorEditor::display() {
 		ADNDisplayHelper::displayLine(firstPosition, currentPosition);
 
 		const SBPosition3 zPos = currentPosition + offset;
-		ADNDisplayHelper::displayText(zPos, zText_);
+		ADNDisplayHelper::displayText(zPos, zText);
 
 	}
 
@@ -568,7 +574,7 @@ void SELatticeCreatorEditor::keyReleaseEvent(QKeyEvent* event) {
 
 void SELatticeCreatorEditor::setLatticeType(LatticeType type) {
 
-	vGrid_.CreateLattice(type);
+	vGrid.CreateLattice(type);
 	latticeType = type;
 	SAMSON::getActiveCamera()->rightView();
 
@@ -576,6 +582,6 @@ void SELatticeCreatorEditor::setLatticeType(LatticeType type) {
 
 void SELatticeCreatorEditor::setZPattern(ZLatticePattern pattern) {
 
-	zPattern_ = pattern;
+	this->zPattern = pattern;
 
 }

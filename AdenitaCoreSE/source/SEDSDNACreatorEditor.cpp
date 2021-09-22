@@ -113,6 +113,14 @@ ADNPointer<ADNPart> SEDSDNACreatorEditor::generateStrand(bool mock) {
         else
             auto singleStrand = DASCreator::CreateSingleStrand(part, numNucleotides, positionData.FirstPosition, dir, mock);
 
+        if (!mock && part != nullptr) {
+
+            std::string partName = (doubleStrandMode ? "Double" : "Single");
+            partName += " strand structure";
+            part->setName(SEAdenitaCoreSEApp::getAdenitaApp()->getUniquePartName(partName));
+
+        }
+
     }
 
     return part;
@@ -136,8 +144,18 @@ ADNPointer<ADNPart> SEDSDNACreatorEditor::generateCircularStrand(bool mock) {
 
     if (numNucleotides > 6) {   // the smallets circle consists of 10 base pairs
 
-        if (doubleStrandMode) part = DASCreator::CreateDSRing(radius, positionData.FirstPosition, positionData.FirstVector, mock);
-        else part = DASCreator::CreateSSRing(radius, positionData.FirstPosition, positionData.FirstVector, mock);
+        if (doubleStrandMode)
+            part = DASCreator::CreateDSRing(radius, positionData.FirstPosition, positionData.FirstVector, mock);
+        else
+            part = DASCreator::CreateSSRing(radius, positionData.FirstPosition, positionData.FirstVector, mock);
+
+        if (!mock && part != nullptr) {
+
+            std::string partName = (doubleStrandMode ? "Double" : "Single");
+            partName += " strand circular structure";
+            part->setName(SEAdenitaCoreSEApp::getAdenitaApp()->getUniquePartName(partName));
+
+        }
 
     }
 
@@ -195,8 +213,7 @@ void SEDSDNACreatorEditor::sendPartToAdenita(ADNPointer<ADNPart> nanotube) {
 
         setSequence(nanotube);
 
-        SEAdenitaCoreSEApp* adenita = static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
-        adenita->AddPartToActiveLayer(nanotube);
+        SEAdenitaCoreSEApp::getAdenitaApp()->AddPartToActiveLayer(nanotube);
         SEAdenitaCoreSEApp::resetVisualModel();
 
     }
@@ -287,7 +304,7 @@ QString SEDSDNACreatorEditor::getToolTip() const {
 	
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Add ssDNA and dsDNA to your model"); 
+	return QObject::tr("Add single and double strand DNA to your model"); 
 
 }
 
@@ -309,7 +326,7 @@ void SEDSDNACreatorEditor::saveSettings(SBGSettings* settings) {
 
 QString SEDSDNACreatorEditor::getDescription() const {
 
-	return QObject::tr("Adenita | DNA Strands Editor");
+	return QObject::tr("Adenita | DNA Strands Creator");
 
 }
 

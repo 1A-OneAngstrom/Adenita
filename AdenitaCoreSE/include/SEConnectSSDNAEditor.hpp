@@ -14,17 +14,17 @@
 
 /// This class implements an editor
 
-enum class ConnectionMode {
-	Single,
-	Double
-};
-
 class SB_EXPORT SEConnectSSDNAEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT
 
 public :
+
+	enum class ConnectionMode {
+		Single,
+		Double
+	};
 
 	/// \name Constructors and destructors
 	//@{
@@ -133,7 +133,7 @@ protected:
 private:
 
 	bool														displayFlag = false;
-	ADNPointer<ADNNucleotide>									selectedStartNucleotide;
+	ADNPointer<ADNNucleotide>									selectedStartNucleotide = nullptr;
 
 	ConnectionMode												connectionMode = ConnectionMode::Single;
 	std::string													sequence = "";

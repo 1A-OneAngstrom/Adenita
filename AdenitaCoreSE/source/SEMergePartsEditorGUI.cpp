@@ -7,6 +7,11 @@ SEMergePartsEditorGUI::SEMergePartsEditorGUI(SEMergePartsEditor* editor) {
 	ui.setupUi( this );
 	this->editor = editor;
 
+	connect(ui.comboBoxMergeComponent1, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboBoxMergeComponent1CurrentIndexChanged(int)));
+	connect(ui.comboBoxMergeComponent2, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboBoxMergeComponent2CurrentIndexChanged(int)));
+	connect(ui.comboBoxMoveElement, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboBoxMoveElementCurrentIndexChanged(int)));
+	connect(ui.comboBoxMoveToComponent, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboBoxMoveToComponentCurrentIndexChanged(int)));
+
 }
 
 SEMergePartsEditorGUI::~SEMergePartsEditorGUI() {
@@ -36,28 +41,28 @@ void SEMergePartsEditorGUI::updatePartsList() {
 	auto indexParts = getEditor()->getPartsList();
 	auto indexElements = getEditor()->getElementsList();
 
-	const int sel1 = ui.cmbPart1->currentIndex();
-	const int sel2 = ui.cmbPart2->currentIndex();
-	const int sel3 = ui.cmbPartM->currentIndex();
-	const int sel4 = ui.cmbElement->currentIndex();
-	ui.cmbPart1->clear();
-	ui.cmbPart2->clear();
-	ui.cmbPartM->clear();
-	ui.cmbElement->clear();
+	const int sel1 = ui.comboBoxMergeComponent1->currentIndex();
+	const int sel2 = ui.comboBoxMergeComponent2->currentIndex();
+	const int sel3 = ui.comboBoxMoveToComponent->currentIndex();
+	const int sel4 = ui.comboBoxMoveElement->currentIndex();
+	ui.comboBoxMergeComponent1->clear();
+	ui.comboBoxMergeComponent2->clear();
+	ui.comboBoxMoveToComponent->clear();
+	ui.comboBoxMoveElement->clear();
 
-	ui.cmbPart1->insertItem(0, QString::fromStdString("None"));
-	ui.cmbPart2->insertItem(0, QString::fromStdString("None"));
-	ui.cmbPartM->insertItem(0, QString::fromStdString("None"));
-	ui.cmbElement->insertItem(0, QString::fromStdString("None"));
+	ui.comboBoxMergeComponent1->insertItem(0, QString::fromStdString("None"));
+	ui.comboBoxMergeComponent2->insertItem(0, QString::fromStdString("None"));
+	ui.comboBoxMoveToComponent->insertItem(0, QString::fromStdString("None"));
+	ui.comboBoxMoveElement->insertItem(0, QString::fromStdString("None"));
 
 	for (auto& pair : indexParts) {
 
 		int i = pair.first;
 		ADNPointer<ADNPart> p = pair.second;
 		std::string n = p->GetName();
-		ui.cmbPart1->insertItem(i, QString::fromStdString(n));
-		ui.cmbPart2->insertItem(i, QString::fromStdString(n));
-		ui.cmbPartM->insertItem(i, QString::fromStdString(n));
+		ui.comboBoxMergeComponent1->insertItem(i, QString::fromStdString(n));
+		ui.comboBoxMergeComponent2->insertItem(i, QString::fromStdString(n));
+		ui.comboBoxMoveToComponent->insertItem(i, QString::fromStdString(n));
 
 	}
 
@@ -67,21 +72,49 @@ void SEMergePartsEditorGUI::updatePartsList() {
 		auto p = pair.second;
 		std::string n = p.GetName();
     
-		ui.cmbElement->insertItem(i, QString::fromStdString(n));
+		ui.comboBoxMoveElement->insertItem(i, QString::fromStdString(n));
 
 	}
 
-	if (indexParts.find(sel1) != indexParts.end()) ui.cmbPart1->setCurrentIndex(sel1);
-	if (indexParts.find(sel2) != indexParts.end()) ui.cmbPart2->setCurrentIndex(sel2);
-	if (indexParts.find(sel3) != indexParts.end()) ui.cmbPartM->setCurrentIndex(sel3);
-	if (indexParts.find(sel4) != indexParts.end()) ui.cmbElement->setCurrentIndex(sel4);
+	if (indexParts.find(sel1) != indexParts.end()) ui.comboBoxMergeComponent1->setCurrentIndex(sel1);
+	if (indexParts.find(sel2) != indexParts.end()) ui.comboBoxMergeComponent2->setCurrentIndex(sel2);
+	if (indexParts.find(sel3) != indexParts.end()) ui.comboBoxMoveToComponent->setCurrentIndex(sel3);
+	if (indexParts.find(sel4) != indexParts.end()) ui.comboBoxMoveElement->setCurrentIndex(sel4);
+
+}
+
+void SEMergePartsEditorGUI::onComboBoxMergeComponent1CurrentIndexChanged(int index) {
+
+	SAMSON::getActiveDocument()->clearSelection();
+	getEditor()->selectComponent(index);
+
+}
+
+void SEMergePartsEditorGUI::onComboBoxMergeComponent2CurrentIndexChanged(int index) {
+
+	SAMSON::getActiveDocument()->clearSelection();
+	getEditor()->selectComponent(index);
+
+}
+
+void SEMergePartsEditorGUI::onComboBoxMoveElementCurrentIndexChanged(int index) {
+
+	SAMSON::getActiveDocument()->clearSelection();
+	getEditor()->selectElement(index);
+
+}
+
+void SEMergePartsEditorGUI::onComboBoxMoveToComponentCurrentIndexChanged(int index) {
+
+	SAMSON::getActiveDocument()->clearSelection();
+	getEditor()->selectComponent(index);
 
 }
 
 void SEMergePartsEditorGUI::onMerge() {
 
-	int sel1 = ui.cmbPart1->currentIndex();
-	int sel2 = ui.cmbPart2->currentIndex();
+	int sel1 = ui.comboBoxMergeComponent1->currentIndex();
+	int sel2 = ui.comboBoxMergeComponent2->currentIndex();
 
 	getEditor()->MergeParts(sel1, sel2);
 
@@ -89,8 +122,8 @@ void SEMergePartsEditorGUI::onMerge() {
 
 void SEMergePartsEditorGUI::onMove() {
 
-	int sel1 = ui.cmbElement->currentIndex();
-	int sel2 = ui.cmbPartM->currentIndex();
+	int sel1 = ui.comboBoxMoveElement->currentIndex();
+	int sel2 = ui.comboBoxMoveToComponent->currentIndex();
 
 	getEditor()->MoveElement(sel1, sel2);
 
@@ -112,7 +145,7 @@ QString SEMergePartsEditorGUI::getName() const {
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your editor inside SAMSON
 
-	return "Component Editor"; 
+	return "Merge Components Editor"; 
 
 }
 

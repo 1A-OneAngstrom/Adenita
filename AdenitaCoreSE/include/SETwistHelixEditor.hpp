@@ -90,13 +90,15 @@ public :
 
 	//@}
 
-	void														SetTwistAngle(double angle);
+	void														setTwistAngle(double angle);
+	void														updateCursor();
+
 	//! For use from Adenita App, to keep coherence in the GUIs
-	void														SetMode(bool t);
+	void														setMode(bool t);
 
 private:
 
-	double														twistAngle_ = 34.3;
+	double														twistAngle = 34.3;
 
 	std::string													previousSelectionFilter;
 

@@ -92,7 +92,9 @@ public :
 
 	ADNNanorobot*												GetNanorobot();
 	static std::string											readScaffoldFilename(std::string filename);
-	QStringList													GetPartsNameList();
+
+	QStringList													getListOfPartNames();
+	std::string													getUniquePartName(const std::string& partName);
 
 	// Adding things to data graph
 

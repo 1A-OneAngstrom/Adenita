@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>389</width>
-    <height>330</height>
+    <width>400</width>
+    <height>300</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -15,6 +15,12 @@
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>400</width>
+    <height>300</height>
+   </size>
   </property>
   <property name="focusPolicy">
    <enum>Qt::ClickFocus</enum>
@@ -24,11 +30,15 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QGridLayout" name="gridLayout">
-     <property name="sizeConstraint">
-      <enum>QLayout::SetNoConstraint</enum>
-     </property>
-     <item row="0" column="1" colspan="2">
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Scaffold</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
       <widget class="QComboBox" name="cmbScaffold">
        <item>
         <property name="text">
@@ -47,55 +57,15 @@
        </item>
       </widget>
      </item>
-     <item row="10" column="1" colspan="2">
-      <widget class="QPushButton" name="btnSetPathNtthal">
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>Browse</string>
+        <string>Custom scaffold</string>
        </property>
       </widget>
      </item>
-     <item row="6" column="0" colspan="3">
-      <widget class="QCheckBox" name="chkInterpolateDim">
-       <property name="text">
-        <string>Interpolate Dimensions</string>
-       </property>
-       <property name="checked">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0" colspan="3">
-      <widget class="QCheckBox" name="chkOverlay">
-       <property name="text">
-        <string>Show overlay</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0" colspan="3">
-      <widget class="QCheckBox" name="chkAutoScaffold">
-       <property name="text">
-        <string>Automatically set the scaffold sequence</string>
-       </property>
-       <property name="checked">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="11" column="0" colspan="3">
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="10" column="0">
-      <widget class="QLineEdit" name="lineNtthal">
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="lineCustomScaffold">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -104,35 +74,59 @@
        </property>
       </widget>
      </item>
-     <item row="12" column="0" colspan="3">
-      <widget class="QDialogButtonBox" name="dialogButtons">
-       <property name="standardButtons">
-        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0" colspan="3">
-      <widget class="QCheckBox" name="chkXODisplay">
+    </layout>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="chkAutoScaffold">
+     <property name="text">
+      <string>Automatically set the scaffold sequence</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="chkOverlay">
+     <property name="text">
+      <string>Show overlay</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="chkXODisplay">
+     <property name="text">
+      <string>Display possible crossovers</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="chkInterpolateDim">
+     <property name="text">
+      <string>Interpolate Dimensions</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QRadioButton" name="rdbDaedalushMesh">
        <property name="text">
-        <string>Display possible crossovers</string>
+        <string>Daedalus mesh model</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="label">
+     <item>
+      <widget class="QRadioButton" name="rdbIterativeMesh">
        <property name="text">
-        <string>Scaffold</string>
+        <string>Iterative Mesh Model</string>
        </property>
       </widget>
      </item>
-     <item row="9" column="0" colspan="3">
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>Path to ntthal:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="0" colspan="3">
+     <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -145,8 +139,19 @@
        </property>
       </spacer>
      </item>
-     <item row="1" column="0" colspan="3">
-      <widget class="QLineEdit" name="lineCustomScaffold">
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Path to ntthal:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineNtthal">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -155,17 +160,96 @@
        </property>
       </widget>
      </item>
-     <item row="7" column="0">
-      <widget class="QRadioButton" name="rdbDaedalushMesh">
+     <item>
+      <widget class="QPushButton" name="pushButtonSetPathNtthal">
+       <property name="minimumSize">
+        <size>
+         <width>75</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="text">
-        <string>Daedalus mesh model</string>
+        <string>Browse...</string>
        </property>
       </widget>
      </item>
-     <item row="7" column="1" colspan="2">
-      <widget class="QRadioButton" name="rdbIterativeMesh">
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonOK">
+       <property name="minimumSize">
+        <size>
+         <width>75</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
+       </property>
        <property name="text">
-        <string>Iterative Mesh Model</string>
+        <string>OK</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonCancel">
+       <property name="minimumSize">
+        <size>
+         <width>75</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonReset">
+       <property name="minimumSize">
+        <size>
+         <width>75</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Reset</string>
        </property>
       </widget>
      </item>
@@ -174,24 +258,7 @@
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>btnSetPathNtthal</sender>
-   <signal>released()</signal>
-   <receiver>SEAdenitaCoreSettingsGUI</receiver>
-   <slot>onSetPathNtthal()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>330</x>
-     <y>241</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>194</x>
-     <y>164</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
  <slots>
   <slot>onSetPathNtthal()</slot>
  </slots>

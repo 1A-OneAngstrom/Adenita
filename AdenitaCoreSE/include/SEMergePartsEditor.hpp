@@ -113,10 +113,13 @@ public :
 	void														MergeParts(int idx, int jdx);
 	void														MoveElement(int edx, int pdx);
 
+	void														selectComponent(int idx);
+	void														selectElement(int idx);
+
 private:
 
-	std::map<int, ADNPointer<ADNPart>>							indexParts_;
-	std::map<int, Element>										indexElements_;
+	std::map<int, ADNPointer<ADNPart>>							mapOfParts;
+	std::map<int, Element>										mapOfElements;
 
 };
 

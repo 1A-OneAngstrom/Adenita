@@ -12,6 +12,7 @@
 SB_CLASS_BEGIN(SEWireframeEditor);
 
 	SB_CLASS_TYPE(SBCClass::Editor);
+
         SB_CLASS_DESCRIPTION("Create a wireframe nanostructure");
 
 	SB_FACTORY_BEGIN;

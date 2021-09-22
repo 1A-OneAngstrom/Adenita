@@ -12,6 +12,7 @@
 SB_CLASS_BEGIN(SETwistHelixEditor);
 
 	SB_CLASS_TYPE(SBCClass::Editor);
+
         SB_CLASS_DESCRIPTION("Twist double helices along its axis");
 
 	SB_FACTORY_BEGIN;

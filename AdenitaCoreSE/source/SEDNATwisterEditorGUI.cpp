@@ -33,13 +33,13 @@ void SEDNATwisterEditorGUI::saveSettings( SBGSettings *settings ) {
 
 void SEDNATwisterEditorGUI::setUntwistTwist() {
 
-	getEditor()->setBendingType(BendingType::UNTWIST);
+	getEditor()->setBendingType(SEDNATwisterEditor::BendingType::UNTWIST);
 
 }
 
 void SEDNATwisterEditorGUI::setInvisibleVisible() {
 
-	getEditor()->setBendingType(BendingType::SPHEREVISIBILITY);
+	getEditor()->setBendingType(SEDNATwisterEditor::BendingType::SPHEREVISIBILITY);
 
 }
 

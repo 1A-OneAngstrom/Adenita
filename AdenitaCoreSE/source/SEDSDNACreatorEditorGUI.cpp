@@ -22,6 +22,21 @@ void SEDSDNACreatorEditorGUI::loadSettings( SBGSettings *settings ) {
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
+	const bool isDSDNA = settings->loadBoolValue("isDSDNA", true);
+	if (isDSDNA) ui.radioButtonDSDNA->setChecked(true);
+	else ui.radioButtonSSDNA->setChecked(true);
+
+	ui.checkBoxSetScaffold->setChecked(settings->loadBoolValue("setScaffold", false));
+
+	ui.checkBoxCircular->setChecked(settings->loadBoolValue("circular", false));
+	ui.checkBoxManual->setChecked(settings->loadBoolValue("manual", false));
+	ui.spinBoxNumberNucleotides->setValue(settings->loadIntValue("numberNucleotides", 12));
+
+	ui.groupBoxShowBox->setChecked(settings->loadBoolValue("showBox", false));
+	ui.doubleSpinBoxHeight->setValue(settings->loadDoubleValue("boxHeight", 100.0));
+	ui.doubleSpinBoxWidth->setValue(settings->loadDoubleValue("boxWidth", 100.0));
+	ui.doubleSpinBoxDepth->setValue(settings->loadDoubleValue("boxDepth", 100.0));
+
 }
 
 void SEDSDNACreatorEditorGUI::saveSettings( SBGSettings *settings ) {
@@ -29,6 +44,18 @@ void SEDSDNACreatorEditorGUI::saveSettings( SBGSettings *settings ) {
 	if ( settings == nullptr ) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
+
+	settings->saveValue("isDSDNA", ui.radioButtonDSDNA->isChecked());
+	settings->saveValue("setScaffold", ui.checkBoxSetScaffold->isChecked());
+
+	settings->saveValue("circular", ui.checkBoxCircular->isChecked());
+	settings->saveValue("manual", ui.checkBoxManual->isChecked());
+	settings->saveValue("numberNucleotides", ui.spinBoxNumberNucleotides->value());
+
+	settings->saveValue("showBox", ui.groupBoxShowBox->isChecked());
+	settings->saveValue("boxHeight", ui.doubleSpinBoxHeight->value());
+	settings->saveValue("boxWidth", ui.doubleSpinBoxWidth->value());
+	settings->saveValue("boxDepth", ui.doubleSpinBoxDepth->value());
 
 }
 
@@ -78,9 +105,9 @@ void SEDSDNACreatorEditorGUI::onShowBox(bool s) {
 
 void SEDSDNACreatorEditorGUI::onChangeBoxSize() {
 
-	const SBQuantity::nanometer height = SBQuantity::nanometer(ui.spnBoxHeight->value());
-	const SBQuantity::nanometer width  = SBQuantity::nanometer(ui.spnBoxWidth->value());
-	const SBQuantity::nanometer depth  = SBQuantity::nanometer(ui.spnBoxDepth->value());
+	const SBQuantity::nanometer height = SBQuantity::nanometer(ui.doubleSpinBoxHeight->value());
+	const SBQuantity::nanometer width  = SBQuantity::nanometer(ui.doubleSpinBoxWidth->value());
+	const SBQuantity::nanometer depth  = SBQuantity::nanometer(ui.doubleSpinBoxDepth->value());
 	getEditor()->setBoxSize(height, width, depth);
 
 	SAMSON::requestViewportUpdate();

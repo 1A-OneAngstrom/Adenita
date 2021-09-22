@@ -95,6 +95,12 @@ ADNPointer<ADNPart> SENanotubeCreatorEditor::generateNanotube(bool mock) {
 
 	}
 
+	if (!mock && part != nullptr) {
+
+		part->setName(SEAdenitaCoreSEApp::getAdenitaApp()->getUniquePartName("Nanotube"));
+
+	}
+
 	return part;
 
 }
@@ -107,8 +113,7 @@ void SENanotubeCreatorEditor::sendPartToAdenita(ADNPointer<ADNPart> nanotube) {
 
 	if (nanotube != nullptr) {
 
-		SEAdenitaCoreSEApp* adenita = static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID)));
-		adenita->AddPartToActiveLayer(nanotube);
+		SEAdenitaCoreSEApp::getAdenitaApp()->AddPartToActiveLayer(nanotube);
 		SEAdenitaCoreSEApp::resetVisualModel();
 
 	}
@@ -200,7 +205,7 @@ void SENanotubeCreatorEditor::saveSettings(SBGSettings* settings) {
 
 QString SENanotubeCreatorEditor::getDescription() const {
 
-	return QObject::tr("Adenita | DNA Nanotube Editor");
+	return QObject::tr("Adenita | DNA Nanotube Creator");
 
 }
 

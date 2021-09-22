@@ -21,6 +21,10 @@ void SETaggingEditorGUI::loadSettings( SBGSettings *settings ) {
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
+	const bool isTags = settings->loadBoolValue("isTags", true);
+	if (isTags) ui.radioButtonTags->setChecked(true);
+	else ui.radioButtonBase->setChecked(true);
+
 }
 
 void SETaggingEditorGUI::saveSettings( SBGSettings *settings ) {
@@ -28,6 +32,8 @@ void SETaggingEditorGUI::saveSettings( SBGSettings *settings ) {
 	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
+
+	settings->saveValue("isTags", ui.radioButtonTags->isChecked());
 
 }
 
@@ -47,7 +53,7 @@ QString SETaggingEditorGUI::getName() const {
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your editor inside SAMSON
 
-	return "Tagging Editor"; 
+	return "Tag Nucleotides"; 
 
 }
 

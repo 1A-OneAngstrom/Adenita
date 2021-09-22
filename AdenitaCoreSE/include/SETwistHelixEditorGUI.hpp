@@ -20,7 +20,7 @@ public:
 	/// \name Constructors and destructors
 	//@{
 
-  SETwistHelixEditorGUI(SETwistHelixEditor* editor);																					///< Constructs a GUI for the editor
+	SETwistHelixEditorGUI(SETwistHelixEditor* editor);																					///< Constructs a GUI for the editor
 	virtual ~SETwistHelixEditorGUI();																									///< Destructs the GUI of the editor
 
 	//@}
@@ -28,7 +28,7 @@ public:
 	/// \name Editor
 	//@{
 
-  SETwistHelixEditor*											getEditor() const;														///< Returns a pointer to the editor
+	SETwistHelixEditor*											getEditor() const;														///< Returns a pointer to the editor
 
 	//@}
 
@@ -52,7 +52,7 @@ public:
 	//@}
 
 	//! Sets the mode to plus or minus, for use with Adenita App menu
-	void														CheckPlusOrMinus(bool plus);
+	void														checkPlusOrMinus(bool plus);
 
 public slots:
 

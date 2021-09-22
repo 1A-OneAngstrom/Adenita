@@ -22,50 +22,21 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="3" column="0" colspan="2">
-      <widget class="Line" name="line_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <widget class="QSpinBox" name="spnTurns">
-       <property name="minimum">
-        <number>-99</number>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="0">
-      <widget class="QRadioButton" name="rdoMinus">
+      <widget class="QRadioButton" name="radioButtonMinusBP">
+       <property name="toolTip">
+        <string>Check to twist by a base pair turn in negative direction.</string>
+       </property>
        <property name="text">
         <string> -1BP</string>
        </property>
       </widget>
      </item>
-     <item row="4" column="1">
-      <widget class="QRadioButton" name="rdoTwistTurns">
-       <property name="text">
-        <string>Twist Turns</string>
+     <item row="1" column="0">
+      <widget class="QRadioButton" name="radioButtonPlusBP">
+       <property name="toolTip">
+        <string>Check to twist by a base pair turn in positive direction.</string>
        </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QRadioButton" name="rdoTwistAngle">
-       <property name="text">
-        <string>Twist Angle</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0" colspan="2">
-      <widget class="Line" name="line">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QRadioButton" name="rdoPlus">
        <property name="text">
         <string>+ 1BP</string>
        </property>
@@ -75,20 +46,63 @@
       </widget>
      </item>
      <item row="2" column="0">
-      <widget class="QDoubleSpinBox" name="spnAngle">
+      <widget class="QRadioButton" name="radioButtonTwistAngle">
+       <property name="toolTip">
+        <string>Check to twist by an angle.</string>
+       </property>
+       <property name="text">
+        <string>Twist Angle</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QDoubleSpinBox" name="doubleSpinBoxAngle">
+       <property name="minimum">
+        <double>-360.000000000000000</double>
+       </property>
        <property name="maximum">
         <double>360.000000000000000</double>
        </property>
       </widget>
      </item>
+     <item row="3" column="0">
+      <widget class="QRadioButton" name="radioButtonTwistTurns">
+       <property name="toolTip">
+        <string>Check to twist by the number of base pair turns.</string>
+       </property>
+       <property name="text">
+        <string>Twist Turns</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QSpinBox" name="spinBoxTurns">
+       <property name="minimum">
+        <number>-99</number>
+       </property>
+      </widget>
+     </item>
     </layout>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>
  <resources/>
  <connections>
   <connection>
-   <sender>spnAngle</sender>
+   <sender>doubleSpinBoxAngle</sender>
    <signal>valueChanged(double)</signal>
    <receiver>SETwistHelixEditorGUIClass</receiver>
    <slot>onTwistAngleChanged(double)</slot>
@@ -104,7 +118,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>spnTurns</sender>
+   <sender>spinBoxTurns</sender>
    <signal>valueChanged(int)</signal>
    <receiver>SETwistHelixEditorGUIClass</receiver>
    <slot>onTwistTurnsChanged(int)</slot>
@@ -120,7 +134,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>rdoPlus</sender>
+   <sender>radioButtonPlusBP</sender>
    <signal>toggled(bool)</signal>
    <receiver>SETwistHelixEditorGUIClass</receiver>
    <slot>onPlus(bool)</slot>
@@ -136,7 +150,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>rdoMinus</sender>
+   <sender>radioButtonMinusBP</sender>
    <signal>toggled(bool)</signal>
    <receiver>SETwistHelixEditorGUIClass</receiver>
    <slot>onMinus(bool)</slot>
@@ -152,7 +166,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>rdoTwistAngle</sender>
+   <sender>radioButtonTwistAngle</sender>
    <signal>toggled(bool)</signal>
    <receiver>SETwistHelixEditorGUIClass</receiver>
    <slot>onTwistAngle(bool)</slot>
@@ -168,7 +182,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>rdoTwistTurns</sender>
+   <sender>radioButtonTwistTurns</sender>
    <signal>toggled(bool)</signal>
    <receiver>SETwistHelixEditorGUIClass</receiver>
    <slot>onTwistTurn(bool)</slot>

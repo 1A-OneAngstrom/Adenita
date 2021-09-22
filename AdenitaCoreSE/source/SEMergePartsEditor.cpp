@@ -26,7 +26,7 @@ SEMergePartsEditorGUI* SEMergePartsEditor::getPropertyWidget() const { return st
 
 std::map<int, ADNPointer<ADNPart>> SEMergePartsEditor::getPartsList() {
 
-	indexParts_.clear();
+	mapOfParts.clear();
 	int lastId = 0;
 
 	auto nr = SEAdenitaCoreSEApp::getAdenitaApp()->GetNanorobot();
@@ -34,18 +34,18 @@ std::map<int, ADNPointer<ADNPart>> SEMergePartsEditor::getPartsList() {
 
 	SB_FOR(ADNPointer<ADNPart> p, parts) {
 
-		++lastId;
-		indexParts_.insert(std::make_pair(lastId, p));
+		++lastId; // the 0-th element in the comboBox is None
+		mapOfParts.insert(std::make_pair(lastId, p));
 
 	}
 
-	return indexParts_;
+	return mapOfParts;
 
 }
 
 std::map<int, SEMergePartsEditor::Element> SEMergePartsEditor::getElementsList() {
 
-	indexElements_.clear();
+	mapOfElements.clear();
 	int lastId = 0;
 
 	auto nr = SEAdenitaCoreSEApp::getAdenitaApp()->GetNanorobot();
@@ -55,41 +55,64 @@ std::map<int, SEMergePartsEditor::Element> SEMergePartsEditor::getElementsList()
 		auto dss = p->GetDoubleStrands();
 		SB_FOR(ADNPointer<ADNDoubleStrand> ds, dss) {
 
-			++lastId;
+			++lastId; // the 0-th element in the comboBox is None
 			SEMergePartsEditor::Element el;
 			el.type = 0;
 			el.ds = ds;
-			indexElements_.insert(std::make_pair(lastId, el));
+			mapOfElements.insert(std::make_pair(lastId, el));
 
 		}
 		auto sss = p->GetSingleStrands();
 		SB_FOR(ADNPointer<ADNSingleStrand> ss, sss) {
 
-			++lastId;
+			++lastId; // the 0-th element in the comboBox is None
 			SEMergePartsEditor::Element el;
 			el.type = 1;
 			el.ss = ss;
-			indexElements_.insert(std::make_pair(lastId, el));
+			mapOfElements.insert(std::make_pair(lastId, el));
 
 		}
 
 	}
 
-	return indexElements_;
+	return mapOfElements;
+
+}
+
+void SEMergePartsEditor::selectComponent(int idx) {
+
+	if (mapOfParts.find(idx) != mapOfParts.end())
+		mapOfParts[idx]->setSelectionFlag(true);
+
+}
+
+void SEMergePartsEditor::selectElement(int idx) {
+
+	if (mapOfElements.find(idx) != mapOfElements.end()) {
+
+		if (mapOfElements[idx].ss != nullptr) mapOfElements[idx].ss->setSelectionFlag(true);
+		if (mapOfElements[idx].ds != nullptr) mapOfElements[idx].ds->setSelectionFlag(true);
+
+	}
 
 }
 
 void SEMergePartsEditor::MergeParts(int idx, int jdx) {
 
-	if (idx == jdx) return;
+	if (idx == jdx) {
+
+		SAMSON::informUser("Adenita", "Cannot merge a component with itself.\nPlease select two different components.");
+		return;
+
+	}
 
 	auto app = SEAdenitaCoreSEApp::getAdenitaApp();
 	app->SetMod(true);
 
 	ADNPointer<ADNPart> p1 = nullptr;
 	ADNPointer<ADNPart> p2 = nullptr;
-	if (indexParts_.find(idx) != indexParts_.end()) p1 = indexParts_.at(idx);
-	if (indexParts_.find(jdx) != indexParts_.end()) p2 = indexParts_.at(jdx);
+	if (mapOfParts.find(idx) != mapOfParts.end()) p1 = mapOfParts.at(idx);
+	if (mapOfParts.find(jdx) != mapOfParts.end()) p2 = mapOfParts.at(jdx);
 
 	if (p1 != nullptr && p2 != nullptr) {
 		
@@ -108,9 +131,9 @@ void SEMergePartsEditor::MoveElement(int edx, int pdx) {
 	app->SetMod(true);
 
 	ADNPointer<ADNPart> p = nullptr;
-	if (indexParts_.find(pdx) != indexParts_.end()) p = indexParts_.at(pdx);
+	if (mapOfParts.find(pdx) != mapOfParts.end()) p = mapOfParts.at(pdx);
 	SEMergePartsEditor::Element el;
-	if (indexElements_.find(edx) != indexElements_.end()) el = indexElements_.at(edx);
+	if (mapOfElements.find(edx) != mapOfElements.end()) el = mapOfElements.at(edx);
 
 	if (p != nullptr && el.type != -1) {
 
@@ -191,7 +214,7 @@ void SEMergePartsEditor::saveSettings(SBGSettings* settings) {
 
 QString SEMergePartsEditor::getDescription() const {
 
-	return QObject::tr("Adenita | Merge Adenita Components");
+	return QObject::tr("Adenita | Merge Components");
 
 }
 
@@ -199,6 +222,8 @@ void SEMergePartsEditor::beginEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
+
+	getPropertyWidget()->updatePartsList();
 
 }
 

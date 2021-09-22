@@ -74,7 +74,7 @@ QString SEBreakEditor::getToolTip() const {
 	
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Break ssDNA"); 
+	return QObject::tr("Break Single Strand DNA"); 
 
 }
 
@@ -94,7 +94,7 @@ void SEBreakEditor::saveSettings(SBGSettings * settings) {
 
 }
 
-QString SEBreakEditor::getDescription() const { return QObject::tr("Adenita | Break ssDNA"); }
+QString SEBreakEditor::getDescription() const { return QObject::tr("Adenita | Break Single Strand DNA"); }
 
 void SEBreakEditor::beginEditing() {
 

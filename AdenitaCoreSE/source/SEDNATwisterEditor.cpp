@@ -157,7 +157,7 @@ QString SEDNATwisterEditor::getToolTip() const {
 	
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Double Strand DNA Visualization Twister"); 
+	return QObject::tr("Twist/Untwist Double Strand DNA"); 
 
 }
 
@@ -179,7 +179,7 @@ void SEDNATwisterEditor::saveSettings(SBGSettings* settings) {
 
 QString SEDNATwisterEditor::getDescription() const {
 
-	return QObject::tr("Adenita | Double Strand DNA Visualization Twister");
+	return QObject::tr("Adenita | Twist/Untwist Double Strand DNA");
 
 }
 

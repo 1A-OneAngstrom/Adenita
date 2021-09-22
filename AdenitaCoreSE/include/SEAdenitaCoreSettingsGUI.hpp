@@ -24,10 +24,11 @@ public:
 
 public slots:
 
-	void onChangeScaffold(int idx);
-	void onSetPathNtthal();
-	void accept();
-	void reject() { QDialog::reject(); };
+	void														onChangeScaffold(int idx);
+	void														onSetPathNtthal();
+	void														accept();
+	void														reject();
+	void														onResetToDefault();
 
 private:
 

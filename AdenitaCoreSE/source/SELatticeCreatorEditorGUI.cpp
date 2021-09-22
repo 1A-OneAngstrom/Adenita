@@ -29,6 +29,14 @@ void SELatticeCreatorEditorGUI::loadSettings( SBGSettings *settings ) {
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
+	const bool isSquareLattice = settings->loadBoolValue("isSquareLattice", false);
+	if (isSquareLattice) ui.radioButtonSquareLattice->setChecked(true);
+	else ui.radioButtonHoneycombLattice->setChecked(true);
+
+	ui.spinBoxMaxXds->setValue(settings->loadIntValue("spinBoxMaxXds", 32));
+	ui.spinBoxMaxYds->setValue(settings->loadIntValue("spinBoxMaxYds", 30));
+	ui.spinBoxMaxZbp->setValue(settings->loadIntValue("spinBoxMaxZbp", 400));
+
 }
 
 void SELatticeCreatorEditorGUI::saveSettings( SBGSettings *settings ) {
@@ -37,27 +45,33 @@ void SELatticeCreatorEditorGUI::saveSettings( SBGSettings *settings ) {
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
+	settings->saveValue("isSquareLattice", ui.radioButtonSquareLattice->isChecked());
+
+	settings->saveValue("spinBoxMaxXds", ui.spinBoxMaxXds->value());
+	settings->saveValue("spinBoxMaxYds", ui.spinBoxMaxYds->value());
+	settings->saveValue("spinBoxMaxZbp", ui.spinBoxMaxZbp->value());
+
 }
 
 void SELatticeCreatorEditorGUI::setHoneycomb() {
 
 	getEditor()->setLatticeType(LatticeType::Honeycomb);
-	ui.spbMaxXds->setMaximum(32);
-	ui.spbMaxYds->setMaximum(30);
+	ui.spinBoxMaxXds->setMaximum(32);
+	ui.spinBoxMaxYds->setMaximum(30);
 
 }
 
 void SELatticeCreatorEditorGUI::setSquare() {
 
 	getEditor()->setLatticeType(LatticeType::Square);
-	ui.spbMaxXds->setMaximum(50);
-	ui.spbMaxYds->setMaximum(50);
+	ui.spinBoxMaxXds->setMaximum(50);
+	ui.spinBoxMaxYds->setMaximum(50);
 
 }
 
 void SELatticeCreatorEditorGUI::onZPatternChanged(int index) {
 
-	ZLatticePattern pattern = static_cast<ZLatticePattern>(index);
+	SELatticeCreatorEditor::ZLatticePattern pattern = static_cast<SELatticeCreatorEditor::ZLatticePattern>(index);
 	getEditor()->setZPattern(pattern);
 
 }

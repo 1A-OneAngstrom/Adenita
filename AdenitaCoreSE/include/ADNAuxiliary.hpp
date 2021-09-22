@@ -1,14 +1,18 @@
 #pragma once
 
 #include <string>
-#include <boost/numeric/conversion/cast.hpp>
+
 #include <QString>
 #include <QTextStream>
 #include <QFile>
-#include <SAMSON.hpp>
+
+#include <boost/numeric/conversion/cast.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
+
+#include <SAMSON.hpp>
+
 #include <ADNConfig.hpp>
 
 
@@ -20,17 +24,17 @@ namespace ADNAuxiliary {
 
     using namespace ublas;
 
-    enum SelectionFlag {
-        Unselected = 0,
-        Selected = 1
-    };
+    //enum SelectionFlag {
+    //    Unselected = 0,
+    //    Selected = 1
+    //};
 
-    enum VisibilityFlag {
-        Invisible = 0,
-        Visible = 1
-    };
+    //enum VisibilityFlag {
+    //    Invisible = 0,
+    //    Visible = 1
+    //};
 
-    enum SortingType {
+    enum class SortingType {
         StrandID = 0,
         Length = 1,
         GCCont = 2,
@@ -38,13 +42,13 @@ namespace ADNAuxiliary {
         Gibbs = 4
     };
 
-    enum OverlayType {
+    enum class OverlayType{
         NoOverlay = 0,
         Crossovers = 1,
         PossibleCrossovers = 2
     };
 
-    enum ScaffoldSeq {
+    enum class ScaffoldSeq {
         m13mp18 = 0,
         p7249 = 1,
         Custom = 2,
@@ -57,20 +61,20 @@ namespace ADNAuxiliary {
         double r;
     };
 
-    enum OxDNAInteractionType {
+    enum class OxDNAInteractionType {
         DNA = 0,
         DNA2 = 1,
         Patchy = 2,
         LJ = 3,
     };
 
-    enum OxDNASimulationType {
+    enum class OxDNASimulationType {
         MD = 0,
         MC = 1,
         VMMC = 2,
     };
 
-    enum OxDNABackend {
+    enum class OxDNABackend {
         CPU = 0,
         CUDA = 1,
     };

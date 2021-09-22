@@ -12,18 +12,18 @@
 
 /// This class implements an editor
 
-enum class ZLatticePattern {
-	ALLZ,
-	TRIANGLE,
-	CIRCLE
-};
-
 class SB_EXPORT SELatticeCreatorEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT
 
 public :
+
+	enum class ZLatticePattern {
+		ALLZ,
+		TRIANGLE,
+		CIRCLE
+	};
 
 	/// \name Constructors and destructors
 	//@{
@@ -116,7 +116,7 @@ private:
 	void														sendPartToAdenita(ADNPointer<ADNPart> lattice);
 
 	LatticeType													latticeType = LatticeType::Honeycomb;
-	VGrid														vGrid_;
+	VGrid														vGrid;
 
 	bool														isPressing = false;
 	bool														lengthSelected = false;
@@ -132,10 +132,10 @@ private:
 	int															maxYDoubleStrands = 30;
 	int															maxZBasePairs = 400;
 
-	std::string													xyText_ = "";
-	std::string													zText_ = "";
+	std::string													xyText = "";
+	std::string													zText = "";
 
-	ZLatticePattern												zPattern_ = ZLatticePattern::ALLZ;
+	ZLatticePattern												zPattern = ZLatticePattern::ALLZ;
 
 };
 

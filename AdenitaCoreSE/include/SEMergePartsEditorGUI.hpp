@@ -20,7 +20,7 @@ public:
 	/// \name Constructors and destructors
 	//@{
 
-  SEMergePartsEditorGUI(SEMergePartsEditor* editor);																					///< Constructs a GUI for the editor
+	SEMergePartsEditorGUI(SEMergePartsEditor* editor);																					///< Constructs a GUI for the editor
 	virtual ~SEMergePartsEditorGUI();																									///< Destructs the GUI of the editor
 
 	//@}
@@ -28,7 +28,7 @@ public:
 	/// \name Editor
 	//@{
 
-  SEMergePartsEditor*											getEditor() const;														///< Returns a pointer to the editor
+	SEMergePartsEditor*											getEditor() const;														///< Returns a pointer to the editor
 
 	//@}
 
@@ -54,6 +54,10 @@ public:
 public slots:
 
 	void														updatePartsList();
+	void														onComboBoxMergeComponent1CurrentIndexChanged(int index);
+	void														onComboBoxMergeComponent2CurrentIndexChanged(int index);
+	void														onComboBoxMoveElementCurrentIndexChanged(int index);
+	void														onComboBoxMoveToComponentCurrentIndexChanged(int index);
 	void														onMerge();
 	void														onMove();
 

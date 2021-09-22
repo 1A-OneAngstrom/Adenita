@@ -353,7 +353,17 @@ void SEAdenitaCoreSEApp::SetStart() {
 	else if (nucleotides.size() == 1) {
 
 		ADNNucleotide* nucleotide = nucleotides[0];
-		ADNBasicOperations::SetStart(nucleotide, true);
+		if (nucleotide->GetEnd() != End::FivePrime) {
+
+			ADNBasicOperations::SetStart(nucleotide, true);
+
+		}
+		else {
+
+			SAMSON::informUser(QString("Adenita: Set 5'"), QString("This nucleotide is already 5'."));
+			return;
+
+		}
 
 	}
 	else if (nucleotides.size() == 0) {
@@ -398,8 +408,8 @@ bool SEAdenitaCoreSEApp::CalculateBindingRegions(int oligoConc, int monovalentCo
 
 	if (parts.size() == 0) {
 
-		SAMSON::informUser(QString("Adenita: Calculate Thermodynamic Properties"), 
-		QString("Please select one or more components."));
+		SAMSON::informUser(QString("Adenita: Calculate Thermodynamic Properties"), QString("The selection is empty. Please select one or more components."));
+		return false;
 
 	}
 
@@ -783,7 +793,7 @@ std::string SEAdenitaCoreSEApp::readScaffoldFilename(std::string filename) {
 
 }
 
-QStringList SEAdenitaCoreSEApp::GetPartsNameList() {
+QStringList SEAdenitaCoreSEApp::getListOfPartNames() {
 
 	QStringList names;
 
@@ -792,6 +802,23 @@ QStringList SEAdenitaCoreSEApp::GetPartsNameList() {
 		names << QString::fromStdString(p->GetName());
 
 	return names;
+
+}
+
+std::string SEAdenitaCoreSEApp::getUniquePartName(const std::string& partName) {
+
+	QString uniquePartName = QString::fromStdString(partName);
+	unsigned int idx = 1;
+	QStringList partNames = getListOfPartNames();
+
+	while (partNames.contains(uniquePartName)) {
+
+		++idx;
+		uniquePartName = QString::fromStdString(partName) + " " + QString::number(idx);
+
+	}
+
+	return uniquePartName.toStdString();
 
 }
 
