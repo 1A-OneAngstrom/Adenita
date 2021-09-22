@@ -40,6 +40,8 @@ using DNABlocks = SBResidue::ResidueType;
 
 using NucleotideGroup = SBNode::Type;
 
+#if 0
+// used as a base class of the ADNNanorobot class, while there was no need for naming
 class Nameable {
 
 public:
@@ -58,6 +60,7 @@ private:
     std::string name_;
 
 };
+#endif
 
 class Positionable {
 

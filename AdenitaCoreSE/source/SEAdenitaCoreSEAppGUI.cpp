@@ -190,7 +190,7 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 	std::map<int, ADNPointer<ADNPart>> indexParts;
 	SB_FOR(ADNPointer<ADNPart> p, parts) {
 
-		std::string n = p->GetName();
+		std::string n = p->getName();
 		typeSelection->insertItem(i, QString::fromStdString(n));
 		indexParts.insert(std::make_pair(i, p));
 		++i;
@@ -365,11 +365,11 @@ void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 	auto parts = nr->GetParts();
 	int i = 0;
 	std::map<int, ADNPointer<ADNPart>> indexParts;
-	SB_FOR(ADNPointer<ADNPart> p, parts) {
+	SB_FOR(ADNPointer<ADNPart> part, parts) {
 
-		std::string n = p->GetName();
+		std::string n = part->getName();
 		typeSelection->insertItem(i, QString::fromStdString(n));
-		indexParts.insert(std::make_pair(i, p));
+		indexParts.insert(std::make_pair(i, part));
 		++i;
 
 	}

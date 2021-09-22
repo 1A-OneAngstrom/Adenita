@@ -576,7 +576,8 @@ void SELatticeCreatorEditor::setLatticeType(LatticeType type) {
 
 	vGrid.CreateLattice(type);
 	latticeType = type;
-	SAMSON::getActiveCamera()->rightView();
+	if (this == SAMSON::getActiveEditor())
+		SAMSON::getActiveCamera()->rightView();
 
 }
 

@@ -23,7 +23,7 @@ void SETwistHelixEditorGUI::loadSettings( SBGSettings *settings ) {
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
-	int currentMode = settings->loadIntValue("currentMode", 1);
+	const int currentMode = settings->loadIntValue("currentMode", 1);
 	if (currentMode == 0) ui.radioButtonMinusBP->setChecked(true);
 	else if (currentMode == 1) ui.radioButtonPlusBP->setChecked(true);
 	else if (currentMode == 2) ui.radioButtonTwistAngle->setChecked(true);
@@ -31,6 +31,8 @@ void SETwistHelixEditorGUI::loadSettings( SBGSettings *settings ) {
 
 	ui.doubleSpinBoxAngle->setValue(settings->loadDoubleValue("angle", 0.0));
 	ui.spinBoxTurns->setValue(settings->loadIntValue("nTurns", 0));
+
+	updateAngleInEditor();
 
 }
 
@@ -52,14 +54,20 @@ void SETwistHelixEditorGUI::saveSettings( SBGSettings *settings ) {
 
 }
 
-void SETwistHelixEditorGUI::onMinus(bool checked) {
+void SETwistHelixEditorGUI::updateAngleInEditor() {
 
-	if (checked) {
+	double angle = 0.0;
 
-		double angle = - ADNConstants::BP_ROT;
-		getEditor()->setTwistAngle(angle);
+	if (ui.radioButtonPlusBP->isChecked())
+		angle = ADNConstants::BP_ROT;
+	else if (ui.radioButtonMinusBP->isChecked())
+		angle = - ADNConstants::BP_ROT;
+	else if (ui.radioButtonTwistAngle->isChecked())
+		angle = ui.doubleSpinBoxAngle->value();
+	else if (ui.radioButtonTwistTurns->isChecked())
+		angle = ui.spinBoxTurns->value() * ADNConstants::BP_ROT;
 
-	}
+	getEditor()->setTwistAngle(angle);
 
 }
 
@@ -78,56 +86,43 @@ void SETwistHelixEditorGUI::checkPlusOrMinus(bool plus) {
 
 void SETwistHelixEditorGUI::onPlus(bool checked) {
 
-	if (checked) {
+	if (checked)
+		updateAngleInEditor();
 
-		double angle = ADNConstants::BP_ROT;
-		getEditor()->setTwistAngle(angle);
+}
 
-	}
+void SETwistHelixEditorGUI::onMinus(bool checked) {
+
+	if (checked)
+		updateAngleInEditor();
 
 }
 
 void SETwistHelixEditorGUI::onTwistAngle(bool checked) {
 
-	if (checked) {
-
-		double angle = ui.doubleSpinBoxAngle->value();
-		getEditor()->setTwistAngle(angle);
-
-	}
+	if (checked)
+		updateAngleInEditor();
 
 }
 
 void SETwistHelixEditorGUI::onTwistTurns(bool checked) {
 
-	if (checked) {
-
-		double angle = ui.spinBoxTurns->value() * ADNConstants::BP_ROT;
-		getEditor()->setTwistAngle(angle);
-
-	}
+	if (checked)
+		updateAngleInEditor();
 
 }
 
 void SETwistHelixEditorGUI::onTwistAngleChanged(double angle) {
 
-	if (ui.radioButtonTwistAngle->isChecked()) {
-
-		double angle = ui.doubleSpinBoxAngle->value();
-		getEditor()->setTwistAngle(angle);
-
-	}
+	if (ui.radioButtonTwistAngle->isChecked())
+		updateAngleInEditor();
 
 }
 
 void SETwistHelixEditorGUI::onTwistTurnsChanged(int turns) {
 
-	if (ui.radioButtonTwistTurns->isChecked()) {
-
-		double angle = ui.spinBoxTurns->value() * ADNConstants::BP_ROT;
-		getEditor()->setTwistAngle(angle);
-
-	}
+	if (ui.radioButtonTwistTurns->isChecked())
+		updateAngleInEditor();
 
 }
 

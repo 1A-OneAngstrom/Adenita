@@ -51,7 +51,9 @@ public:
 
 	//@}
 
-  std::string AskUserForSequence(int l);
+	std::string													AskUserForSequence(int l);
+
+	void														updateBoxSize();
 
 public slots:
 

@@ -28,28 +28,13 @@ void ADNAtom::unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIn
 
 }
 
-std::string const& ADNAtom::GetName() const {
-	return getName();
-}
+SBNode* ADNAtom::getNucleotide() const {
 
-void ADNAtom::SetName(const std::string& name) {
-	setName(name);
-}
+	if (getParent()) if (getParent()->getParent()) if (getParent()->getParent()->getType() == SBNode::Residue)
+		return getParent()->getParent();
 
-Position3D const& ADNAtom::GetPosition() const {
-	return getPosition();
-}
+	return nullptr;
 
-void ADNAtom::SetPosition(Position3D const& newPosition) {
-	setPosition(newPosition);
-}
-
-SBNode* ADNAtom::getNt() const {
-	return getParent()->getParent();
-}
-
-SBNode* ADNAtom::getNtGroup() const {
-	return getParent();
 }
 
 bool ADNAtom::IsInADNBackbone() {

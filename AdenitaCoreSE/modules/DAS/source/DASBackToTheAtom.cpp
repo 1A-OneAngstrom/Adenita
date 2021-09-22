@@ -217,12 +217,12 @@ ublas::matrix<double> DASBackToTheAtom::CreatePositionsMatrix(NtPair pair)
   ublas::matrix<double> positions(rows_left + rows_right, cols);
   int i = 0;
   SB_FOR(ADNPointer<ADNAtom> n, ntLeftAtoms) {
-    ublas::vector<double> ac_blas = ADNAuxiliary::SBPositionToUblas(n->GetPosition());
+    ublas::vector<double> ac_blas = ADNAuxiliary::SBPositionToUblas(n->getPosition());
     ublas::row(positions, i) = ac_blas;
     ++i;
   }
   SB_FOR(ADNPointer<ADNAtom> n, ntRightAtoms) {
-    ublas::vector<double> ac_blas = ADNAuxiliary::SBPositionToUblas(n->GetPosition());
+    ublas::vector<double> ac_blas = ADNAuxiliary::SBPositionToUblas(n->getPosition());
     ublas::row(positions, i) = ac_blas;
     ++i;
   }
@@ -326,7 +326,7 @@ void DASBackToTheAtom::CheckDistances(ADNPointer<ADNPart> part)
   SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
     int start = 0;
     auto nt = ss->GetFivePrime();
-    std::string msg = " string " + ss->GetName();
+    std::string msg = " string " + ss->getName();
     ADNLogger::LogDebug(msg);
     while (nt != nullptr)
     {
@@ -341,7 +341,7 @@ void DASBackToTheAtom::CheckDistances(ADNPointer<ADNPart> part)
         start = 1;
       }
       prevPos = nt->GetPosition();
-      prevName = nt->GetName();
+      prevName = nt->getName();
       nt = nt->GetNext();
     }
   }
@@ -590,9 +590,9 @@ void DASBackToTheAtom::CreateBonds(ADNPointer<ADNPart> origami)
 
     SB_FOR(ADNPointer<ADNAtom> at, atoms) {
       ADNPointer<ADNAtom> atC = nullptr;
-      std::string atName = at->GetName();
+      std::string atName = at->getName();
       if (connections.find(atName) != connections.end()) {
-        auto conns = connections.at(at->GetName());
+        auto conns = connections.at(at->getName());
         for (std::string name : conns) {
           auto lst = nt->GetAtomsByName(name);
           if (lst.size() == 1) {
@@ -632,7 +632,7 @@ void DASBackToTheAtom::FindAtomsPositions(ADNPointer<ADNNucleotide> nt)
   ublas::matrix<double> positions(rows, cols);
   int i = 0;
   SB_FOR(ADNPointer<ADNAtom> n, ntLeftAtoms) {
-    ublas::vector<double> ac_blas = ADNAuxiliary::SBPositionToUblas(n->GetPosition());
+    ublas::vector<double> ac_blas = ADNAuxiliary::SBPositionToUblas(n->getPosition());
     ublas::row(positions, i) = ac_blas;
     ++i;
   }
@@ -657,7 +657,7 @@ void DASBackToTheAtom::FindAtomsPositions(ADNPointer<ADNNucleotide> nt)
   SB_FOR(ADNPointer<ADNAtom> n, ntLeftAtoms) {
     ADNPointer<ADNAtom> atom = n;
     SBPosition3 pos = UblasToSBPosition(ublas::row(new_pos, count));
-    atom->SetPosition(pos);
+    atom->setPosition(pos);
     ++count;
   }
 }
@@ -672,8 +672,8 @@ void DASBackToTheAtom::PopulateWithMockAtoms(ADNPointer<ADNPart> origami, bool p
     auto cBB = bb->GetCenterAtom();
     auto cSC = sc->GetCenterAtom();
     if (positionsFromNucleotide) {
-      cBB->SetPosition(nt->GetBackbonePosition());
-      cSC->SetPosition(nt->GetSidechainPosition());
+      cBB->setPosition(nt->GetBackbonePosition());
+      cSC->setPosition(nt->GetSidechainPosition());
     }
     
     origami->RegisterAtom(nt, NucleotideGroup::Backbone, cBB, createAtoms);
@@ -753,7 +753,7 @@ std::tuple<SBPosition3, SBPosition3, SBPosition3> DASBackToTheAtom::CalculateCen
   ublas::matrix<double> positions = ublas::matrix<double>(0, 3);
   auto ntAtoms = nt->GetAtoms();
   SB_FOR(ADNPointer<ADNAtom> n, ntAtoms) {
-    ublas::vector<double> ac_blas = ADNAuxiliary::SBPositionToUblas(n->GetPosition());
+    ublas::vector<double> ac_blas = ADNAuxiliary::SBPositionToUblas(n->getPosition());
     ADNVectorMath::AddRowToMatrix(positions, ac_blas);
     if (n->IsInADNBackbone()) {
       ADNVectorMath::AddRowToMatrix(positions_bb, ac_blas);
@@ -786,7 +786,7 @@ std::tuple<SBPosition3, SBPosition3, SBPosition3> DASBackToTheAtom::CalculateCen
   double totalSCMass(0.0);
   SB_FOR(ADNPointer<ADNAtom> n, ntAtoms) {
     double mass = n->getAtomicWeight().getValue();
-    ublas::vector<double> ac_blas = mass * ADNAuxiliary::SBPositionToUblas(n->GetPosition());
+    ublas::vector<double> ac_blas = mass * ADNAuxiliary::SBPositionToUblas(n->getPosition());
     totalMass += mass;
     ADNVectorMath::AddRowToMatrix(positions, ac_blas);
     if (n->IsInADNBackbone()) {
@@ -822,7 +822,7 @@ SBPosition3 DASBackToTheAtom::UblasToSBPosition(ublas::vector<double> vec) {
 ADNPointer<ADNAtom> DASBackToTheAtom::CopyAtom(ADNPointer<ADNAtom> atom)
 {
   ADNPointer<ADNAtom> newAt = new ADNAtom();
-  newAt->SetPosition(atom->GetPosition());
+  newAt->setPosition(atom->getPosition());
   newAt->setElementType(atom->getElementType());
   newAt->setName(atom->getName());
   return newAt;
@@ -844,15 +844,15 @@ void DASBackToTheAtom::SetReferenceFrame(NtPair pair) {
   std::vector<int> sidechain_indices;
   int idx = 0;
   SB_FOR(ADNPointer<ADNAtom> a, atoms) {
-    positions.push_back(ADNAuxiliary::SBPositionToVector(a->GetPosition()));
-    if (a->GetName() == "C1'") {
-      c1_prime_left_std = ADNAuxiliary::SBPositionToVector(a->GetPosition());
+    positions.push_back(ADNAuxiliary::SBPositionToVector(a->getPosition()));
+    if (a->getName() == "C1'") {
+      c1_prime_left_std = ADNAuxiliary::SBPositionToVector(a->getPosition());
     }
-    if (a->GetName() == "C5'") {
-      c5_prime_left_std = ADNAuxiliary::SBPositionToVector(a->GetPosition());
+    if (a->getName() == "C5'") {
+      c5_prime_left_std = ADNAuxiliary::SBPositionToVector(a->getPosition());
     }
-    if (a->GetName() == "C3'") {
-      c3_prime_left_std = ADNAuxiliary::SBPositionToVector(a->GetPosition());
+    if (a->getName() == "C3'") {
+      c3_prime_left_std = ADNAuxiliary::SBPositionToVector(a->getPosition());
     }
     if (!a->IsInADNBackbone()) {
       sidechain_indices.push_back(idx);
@@ -861,15 +861,15 @@ void DASBackToTheAtom::SetReferenceFrame(NtPair pair) {
   }
   atoms = nt_right->GetAtoms();
   SB_FOR(ADNPointer<ADNAtom> a, atoms) {
-    positions.push_back(ADNAuxiliary::SBPositionToVector(a->GetPosition()));
-    if (a->GetName() == "C1'") {
-      c1_prime_right_std = ADNAuxiliary::SBPositionToVector(a->GetPosition());
+    positions.push_back(ADNAuxiliary::SBPositionToVector(a->getPosition()));
+    if (a->getName() == "C1'") {
+      c1_prime_right_std = ADNAuxiliary::SBPositionToVector(a->getPosition());
     }
-    if (a->GetName() == "C5'") {
-      c5_prime_right_std = ADNAuxiliary::SBPositionToVector(a->GetPosition());
+    if (a->getName() == "C5'") {
+      c5_prime_right_std = ADNAuxiliary::SBPositionToVector(a->getPosition());
     }
-    if (a->GetName() == "C3'") {
-      c3_prime_right_std = ADNAuxiliary::SBPositionToVector(a->GetPosition());
+    if (a->getName() == "C3'") {
+      c3_prime_right_std = ADNAuxiliary::SBPositionToVector(a->getPosition());
     }
     if (!a->IsInADNBackbone()) {
       sidechain_indices.push_back(idx);
@@ -929,7 +929,7 @@ int DASBackToTheAtom::SetAtomsPositions(CollectionMap<ADNAtom> atoms, ublas::mat
     pos[0] = SBQuantity::angstrom(np[0] * 0.01); // we need to convert from picometers
     pos[1] = SBQuantity::angstrom(np[1] * 0.01);
     pos[2] = SBQuantity::angstrom(np[2] * 0.01);
-    a->SetPosition(pos);
+    a->setPosition(pos);
     ++r_id;
   }
 
@@ -1054,7 +1054,7 @@ void DASBackToTheAtom::LoadNucleotides() {
     std::vector<std::vector<double>> positions;
     std::vector<std::vector<double>> base_plane;
     SB_FOR(ADNPointer<ADNAtom> a, atoms) {
-      auto coords = ADNAuxiliary::SBPositionToVector(a->GetPosition());
+      auto coords = ADNAuxiliary::SBPositionToVector(a->getPosition());
       positions.push_back(coords);
     }
     // Set same coordinate system for all nucleotides
@@ -1157,7 +1157,7 @@ std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>> DASBackToTheAtom
       ADNPointer<ADNAtom> atom = new ADNAtom();
       std::string name = s.substr(12, 4);
       boost::trim(name);
-      atom->SetName(name);
+      atom->setName(name);
       atom->setElementType(ADNModel::GetElementType(name));
       std::string x = s.substr(30, 8);
       std::string y = s.substr(38, 8);
@@ -1166,15 +1166,15 @@ std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>> DASBackToTheAtom
       pos[0] = SBQuantity::angstrom(std::stod(x));
       pos[1] = SBQuantity::angstrom(std::stod(y));
       pos[2] = SBQuantity::angstrom(std::stod(z));
-      atom->SetPosition(pos);
+      atom->setPosition(pos);
       if (r_num_f == -1) {
         NucleotideGroup g = SBNode::SideChain;
-        if (ADNModel::IsAtomInBackboneByName(atom->GetName())) g = SBNode::Backbone;
+        if (ADNModel::IsAtomInBackboneByName(atom->getName())) g = SBNode::Backbone;
         nt_left->AddAtom(g, atom);
       }
       else {
         NucleotideGroup g = SBNode::SideChain;
-        if (ADNModel::IsAtomInBackboneByName(atom->GetName())) g = SBNode::Backbone;
+        if (ADNModel::IsAtomInBackboneByName(atom->getName())) g = SBNode::Backbone;
         nt_right->AddAtom(g, atom);
       }
       atoms_by_pdb_id.insert(std::make_pair(p_id, atom));
@@ -1321,7 +1321,7 @@ ADNPointer<ADNNucleotide> DASBackToTheAtom::ParsePDB(std::string source) {
       ADNPointer<ADNAtom> atom = new ADNAtom();
       std::string name = s.substr(12, 4);
       boost::trim(name);
-      atom->SetName(name);
+      atom->setName(name);
       std::string x = s.substr(30, 8);
       std::string y = s.substr(38, 8);
       std::string z = s.substr(46, 8);
@@ -1329,9 +1329,9 @@ ADNPointer<ADNNucleotide> DASBackToTheAtom::ParsePDB(std::string source) {
       pos[0] = SBQuantity::angstrom(std::stod(x));
       pos[1] = SBQuantity::angstrom(std::stod(y));
       pos[2] = SBQuantity::angstrom(std::stod(z));
-      atom->SetPosition(pos);
+      atom->setPosition(pos);
       NucleotideGroup g = SBNode::SideChain;
-      if (ADNModel::IsAtomInBackboneByName(atom->GetName())) g = SBNode::Backbone;
+      if (ADNModel::IsAtomInBackboneByName(atom->getName())) g = SBNode::Backbone;
       nt->AddAtom(g, atom);
     }
     if (record_name == "CONECT") {

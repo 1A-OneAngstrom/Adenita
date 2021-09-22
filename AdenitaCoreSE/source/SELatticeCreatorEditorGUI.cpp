@@ -30,12 +30,26 @@ void SELatticeCreatorEditorGUI::loadSettings( SBGSettings *settings ) {
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
 	const bool isSquareLattice = settings->loadBoolValue("isSquareLattice", false);
-	if (isSquareLattice) ui.radioButtonSquareLattice->setChecked(true);
-	else ui.radioButtonHoneycombLattice->setChecked(true);
+	if (isSquareLattice) {
+
+		ui.radioButtonSquareLattice->setChecked(true);
+		setSquare();
+
+	}
+	else {
+
+		ui.radioButtonHoneycombLattice->setChecked(true);
+		setHoneycomb();
+
+	}
 
 	ui.spinBoxMaxXds->setValue(settings->loadIntValue("spinBoxMaxXds", 32));
 	ui.spinBoxMaxYds->setValue(settings->loadIntValue("spinBoxMaxYds", 30));
 	ui.spinBoxMaxZbp->setValue(settings->loadIntValue("spinBoxMaxZbp", 400));
+
+	getEditor()->setMaxXDoubleStrands(ui.spinBoxMaxXds->value());
+	getEditor()->setMaxYDoubleStrands(ui.spinBoxMaxYds->value());
+	getEditor()->setMaxZBasePairs(ui.spinBoxMaxZbp->value());
 
 }
 

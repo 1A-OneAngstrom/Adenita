@@ -103,7 +103,7 @@ public :
 
 	//@}
 
-	void														setTaggingMode(int mode);
+	void														setTaggingMode(TaggingMode mode);
 
 private:
 

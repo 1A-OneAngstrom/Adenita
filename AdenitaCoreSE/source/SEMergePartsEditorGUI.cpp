@@ -58,8 +58,8 @@ void SEMergePartsEditorGUI::updatePartsList() {
 	for (auto& pair : indexParts) {
 
 		int i = pair.first;
-		ADNPointer<ADNPart> p = pair.second;
-		std::string n = p->GetName();
+		ADNPointer<ADNPart> part = pair.second;
+		std::string n = part->getName();
 		ui.comboBoxMergeComponent1->insertItem(i, QString::fromStdString(n));
 		ui.comboBoxMergeComponent2->insertItem(i, QString::fromStdString(n));
 		ui.comboBoxMoveToComponent->insertItem(i, QString::fromStdString(n));
@@ -69,8 +69,8 @@ void SEMergePartsEditorGUI::updatePartsList() {
 	for (auto& pair : indexElements) {
 
 		int i = pair.first;
-		auto p = pair.second;
-		std::string n = p.GetName();
+		auto element = pair.second;
+		std::string n = element.GetName();
     
 		ui.comboBoxMoveElement->insertItem(i, QString::fromStdString(n));
 

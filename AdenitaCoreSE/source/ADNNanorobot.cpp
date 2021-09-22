@@ -1,7 +1,7 @@
 #include "ADNNanorobot.hpp"
 
 
-ADNNanorobot::ADNNanorobot(const ADNNanorobot & n) : Nameable(n), Positionable(n), Orientable(n) {
+ADNNanorobot::ADNNanorobot(const ADNNanorobot & n) {//: Nameable(n), Positionable(n), Orientable(n) {
 
     *this = n;
 
@@ -9,9 +9,9 @@ ADNNanorobot::ADNNanorobot(const ADNNanorobot & n) : Nameable(n), Positionable(n
 
 ADNNanorobot & ADNNanorobot::operator=(const ADNNanorobot& other) {
 
-    Nameable::operator =(other);
-    Positionable::operator =(other);
-    Orientable::operator =(other);
+    //Nameable::operator =(other);
+    //Positionable::operator =(other);
+    //Orientable::operator =(other);
 
     return *this;
 

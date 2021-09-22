@@ -96,6 +96,8 @@ public :
 	QStringList													getListOfPartNames();
 	std::string													getUniquePartName(const std::string& partName);
 
+	SBPosition3													getSnappedPosition(const SBPosition3& currentPosition);
+
 	// Adding things to data graph
 
 	void														AddPartToActiveLayer(ADNPointer<ADNPart> part, bool positionsData = false, SBFolder* preferredFolder = nullptr);

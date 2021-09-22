@@ -22,8 +22,18 @@ void SETaggingEditorGUI::loadSettings( SBGSettings *settings ) {
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
 	const bool isTags = settings->loadBoolValue("isTags", true);
-	if (isTags) ui.radioButtonTags->setChecked(true);
-	else ui.radioButtonBase->setChecked(true);
+	if (isTags) {
+
+		ui.radioButtonTags->setChecked(true);
+		getEditor()->setTaggingMode(SETaggingEditor::TaggingMode::Tags);
+
+	}
+	else {
+
+		ui.radioButtonBase->setChecked(true);
+		getEditor()->setTaggingMode(SETaggingEditor::TaggingMode::Base);
+
+	}
 
 }
 
@@ -78,11 +88,11 @@ QString SETaggingEditorGUI::getCitation() const {
 
 }
 
-void SETaggingEditorGUI::onModeChanged(bool tags) {
+void SETaggingEditorGUI::onModeChanged() {
 
-	int m = 0;
-	if (!tags) m = 1;
-
-	getEditor()->setTaggingMode(m);
+	if (ui.radioButtonTags->isChecked())
+		getEditor()->setTaggingMode(SETaggingEditor::TaggingMode::Tags);
+	else
+		getEditor()->setTaggingMode(SETaggingEditor::TaggingMode::Base);
 
 }

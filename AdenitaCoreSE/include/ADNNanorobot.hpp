@@ -10,11 +10,11 @@
 
 /// ADNNanorobot: main interface to Adenita logical model.
 
-class ADNNanorobot : public Nameable, public Positionable, public Orientable {
+class ADNNanorobot {//: public Nameable, public Positionable, public Orientable {
 
 public:
   
-    ADNNanorobot() : Nameable(), Positionable(), Orientable() {};                                                                       ///< Default constructor
+    ADNNanorobot() {};// : Nameable(), Positionable(), Orientable() {};                                                                       ///< Default constructor
 	ADNNanorobot(const ADNNanorobot &n);                                                                                                ///< Copy constructor
 	~ADNNanorobot() = default;                                                                                                          ///< Default destructor
 

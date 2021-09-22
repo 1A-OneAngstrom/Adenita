@@ -13,8 +13,6 @@ SEDSDNACreatorEditor::SEDSDNACreatorEditor() {
 	propertyWidget = new SEDSDNACreatorEditorGUI(this);
 	propertyWidget->loadDefaultSettings();
 
-	nanorobot = SEAdenitaCoreSEApp::getAdenitaApp()->GetNanorobot();
-
 	basePairRadius = config.base_pair_radius;
 
 }
@@ -68,24 +66,10 @@ void SEDSDNACreatorEditor::setSequenceFlag(bool s) {
 
 SBPosition3 SEDSDNACreatorEditor::getSnappedPosition(const SBPosition3& currentPosition) {
 
-    SBPosition3 snappedPosition = currentPosition;
+    if (snappingIsActive)
+        return SEAdenitaCoreSEApp::getAdenitaApp()->getSnappedPosition(currentPosition);
 
-    if (snappingIsActive) {
-
-        auto highlightedBaseSegments = nanorobot->GetHighlightedBaseSegments();
-        auto highlightedBaseSegmentsFromNucleotides = nanorobot->GetHighlightedBaseSegmentsFromNucleotides();
-        auto highlightedAtoms = nanorobot->GetHighlightedAtoms();
-
-        if (highlightedAtoms.size() == 1)
-            snappedPosition = highlightedAtoms[0]->getPosition();
-        else if (highlightedBaseSegments.size() == 1)
-            snappedPosition = highlightedBaseSegments[0]->GetPosition();
-        else if (highlightedBaseSegmentsFromNucleotides.size() == 1)
-            snappedPosition = highlightedBaseSegmentsFromNucleotides[0]->GetPosition();
-
-    }
-
-    return snappedPosition;
+    return currentPosition;
 
 }
 

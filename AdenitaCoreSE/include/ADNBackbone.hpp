@@ -16,19 +16,17 @@ public:
 	ADNBackbone(const ADNBackbone& other);
 	~ADNBackbone() = default;
 
-	ADNBackbone& operator=(const ADNBackbone& other);
+	ADNBackbone&												operator=(const ADNBackbone& other);
 
-	void serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const;														///< Serializes the node
-	void unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0));											///< Unserializes the node
+	void														serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const;														///< Serializes the node
+	void														unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0));											///< Unserializes the node
 
-	bool AddAtom(ADNPointer<ADNAtom> atom);
-	bool DeleteAtom(ADNPointer<ADNAtom> atom);
-	CollectionMap<ADNAtom> GetAtoms() const;
-	int getNumberOfAtoms() const;
+	bool														AddAtom(ADNPointer<ADNAtom> atom);
+	bool														DeleteAtom(ADNPointer<ADNAtom> atom);
+	CollectionMap<ADNAtom>										GetAtoms() const;
+	int															getNumberOfAtoms() const;
 
-	NucleotideGroup GetGroupType();
-
-	ADNPointer<ADNNucleotide> GetNucleotide() const;
+	ADNPointer<ADNNucleotide>									GetNucleotide() const;
 
 };
 

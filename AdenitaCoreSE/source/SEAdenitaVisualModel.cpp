@@ -2326,9 +2326,9 @@ void SEAdenitaVisualModel::prepareAtoms()
 
           auto index = atomMap_[a()];
 
-          positionsAtom_(index, 0) = a->GetPosition()[0].getValue();
-          positionsAtom_(index, 1) = a->GetPosition()[1].getValue();
-          positionsAtom_(index, 2) = a->GetPosition()[2].getValue();
+          positionsAtom_(index, 0) = a->getPosition()[0].getValue();
+          positionsAtom_(index, 1) = a->getPosition()[1].getValue();
+          positionsAtom_(index, 2) = a->getPosition()[2].getValue();
 
           auto color = curColors->GetColor(a);
           colorsVAtom_.SetRow(index, color);

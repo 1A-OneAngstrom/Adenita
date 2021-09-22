@@ -8,7 +8,7 @@ ADNPointer<ADNSingleStrand> ADNBasicOperations::MergeSingleStrands(ADNPointer<AD
     else if (second_strand == nullptr) return first_strand;
 
   ADNPointer<ADNSingleStrand> ss = ADNPointer<ADNSingleStrand>(new ADNSingleStrand());
-  ss->SetName("Merged Strand");
+  ss->setName("Merged Strand");
   ss->create();
   part1->RegisterSingleStrand(ss);
 
@@ -202,11 +202,11 @@ std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOper
     // 2. the nucleotide nt has not next or previous nucleotide (it's and end nucleotide)
 
     ADNPointer<ADNSingleStrand> ssFP = new ADNSingleStrand();
-    ssFP->SetName("Broken Strand 1");
+    ssFP->setName("Broken Strand 1");
     ssFP->create();
     part->RegisterSingleStrand(ssFP);
     ADNPointer<ADNSingleStrand> ssTP = new ADNSingleStrand();
-    ssTP->SetName("Broken Strand 2");
+    ssTP->setName("Broken Strand 2");
     ssTP->create();
     part->RegisterSingleStrand(ssTP);
 
@@ -611,7 +611,7 @@ void ADNBasicOperations::CenterPart(ADNPointer<ADNPart> part)
       if (config.use_atomic_details) {
         auto atoms = nt->GetAtoms();
         SB_FOR(ADNPointer<ADNAtom> a, atoms) {
-          a->SetPosition(a->GetPosition() + trans);
+          a->setPosition(a->getPosition() + trans);
         }
       }
     }
@@ -623,7 +623,7 @@ SBPosition3 ADNBasicOperations::CalculateCenterOfMass(ADNPointer<ADNPart> part)
   auto atoms = part->GetAtoms();
   SBPosition3 cm(SBQuantity::picometer(0.0));
   SB_FOR(ADNPointer<ADNAtom> a, atoms) {
-    cm += a->GetPosition();
+    cm += a->getPosition();
   }
   auto sz = atoms.size();
   cm *= (1.0 / sz);

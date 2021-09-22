@@ -21,8 +21,7 @@ SB_CLASS_BEGIN(ADNAtom);
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNAtom, Nt, "Nucleotide", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNAtom, NtGroup, "Nucleotide group", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNAtom, Nucleotide, "Nucleotide", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(SBPosition3 const&, ADNAtom, Position, "Position", "Adenita");
 
 

@@ -181,14 +181,6 @@ void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & node
 
 }
 
-std::string const & ADNPart::GetName() const {
-    return getName();
-}
-
-void ADNPart::SetName(const std::string & name) {
-    setName(name);
-}
-
 CollectionMap<ADNBaseSegment> ADNPart::GetBaseSegments(CellType celltype) const {
 
 #if ADENITA_ADNPART_REGISTER_BASESEGMENTS

@@ -49,7 +49,9 @@ bool ADNBackbone::AddAtom(ADNPointer<ADNAtom> atom) {
 }
 
 bool ADNBackbone::DeleteAtom(ADNPointer<ADNAtom> atom) {
+
     return removeChild(atom());
+
 }
 
 int ADNBackbone::getNumberOfAtoms() const {
@@ -62,10 +64,16 @@ CollectionMap<ADNAtom> ADNBackbone::GetAtoms() const {
 
     CollectionMap<ADNAtom> atomList;
 
+#if 1
+    SBNodeIndexer nodeIndexer;
+    getNodes(nodeIndexer, SBNode::IsType(SBNode::Atom) && (SBNode::GetClass() == std::string("ADNAtom")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+    SB_FOR(SBNode * n, nodeIndexer)
+        atomList.addReferenceTarget(static_cast<ADNAtom*>(n));
+#else
     auto children = *getChildren();
     SB_FOR(SBStructuralNode * n, children) {
 
-        if (n->getType() == SBNode::Atom) {
+        if (n->getType() == SBNode::Atom /*&& n->getProxy()->getElementUUID() == SBUUID(SB_ELEMENT_UUID)*/) {
 
             ADNAtom* a = static_cast<ADNAtom*>(n);
             atomList.addReferenceTarget(a);
@@ -73,18 +81,17 @@ CollectionMap<ADNAtom> ADNBackbone::GetAtoms() const {
         }
 
     }
+#endif
 
     return atomList;
 
 }
 
-NucleotideGroup ADNBackbone::GetGroupType() {
-    return getType();
-}
-
 ADNPointer<ADNNucleotide> ADNBackbone::GetNucleotide() const {
 
-    auto nt = static_cast<ADNNucleotide*>(getParent());
-    return ADNPointer<ADNNucleotide>(nt);
+    if (getParent()) if (getParent()->getType() == SBNode::Residue)
+        return ADNPointer<ADNNucleotide>(static_cast<ADNNucleotide*>(getParent()));
+
+    return nullptr;
 
 }

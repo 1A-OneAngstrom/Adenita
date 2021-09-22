@@ -63,7 +63,7 @@ void SEAdenitaCoreSEApp::SaveFile(QString filename, ADNPointer<ADNPart> part) {
 	}
 	else {
 
-		SAMSON::setStatusMessage(QString("Saving ") + QString::fromStdString(part->GetName()) + QString(" to ") + filename);
+		SAMSON::setStatusMessage(QString("Saving ") + QString::fromStdString(part->getName()) + QString(" to ") + filename);
 		ADNLoader::SavePartToJson(part, filename.toStdString());
 
 	}
@@ -82,7 +82,7 @@ void SEAdenitaCoreSEApp::LoadPartWithDaedalus(QString filename, int minEdgeSize)
 
 	QFileInfo fi(filename);
 	QString s = fi.baseName();
-	part->SetName(s.toStdString());
+	part->setName(s.toStdString());
 
 	AddPartToActiveLayer(part);
 
@@ -99,7 +99,7 @@ bool SEAdenitaCoreSEApp::importFromCadnano(const QString& filename, SBDDocumentF
   
 	QFileInfo fi(filename);
 	QString s = fi.baseName();
-	part->SetName(s.toStdString());
+	part->setName(s.toStdString());
 
 	SBFolder* folderWithModel = new SBFolder(s.toStdString());
 
@@ -622,7 +622,7 @@ void SEAdenitaCoreSEApp::FixDesigns() {
 		SB_FOR(ADNPointer<ADNSingleStrand> ss, strands) {
 
 			ADNPointer<ADNSingleStrand> newSs = new ADNSingleStrand();
-			newSs->SetName(ss->GetName());
+			newSs->setName(ss->getName());
 			newSs->IsScaffold(ss->IsScaffold());
 			newSs->create();
 			part->RegisterSingleStrand(newSs);
@@ -799,7 +799,7 @@ QStringList SEAdenitaCoreSEApp::getListOfPartNames() {
 
 	auto parts = GetNanorobot()->GetParts();
 	SB_FOR(ADNPointer<ADNPart> p, parts)
-		names << QString::fromStdString(p->GetName());
+		names << QString::fromStdString(p->getName());
 
 	return names;
 
@@ -819,6 +819,27 @@ std::string SEAdenitaCoreSEApp::getUniquePartName(const std::string& partName) {
 	}
 
 	return uniquePartName.toStdString();
+
+}
+
+SBPosition3 SEAdenitaCoreSEApp::getSnappedPosition(const SBPosition3& currentPosition) {
+
+	SBPosition3 snappedPosition = currentPosition;
+
+	ADNNanorobot* nanorobot = GetNanorobot();
+
+	auto highlightedBaseSegments = nanorobot->GetHighlightedBaseSegments();
+	auto highlightedBaseSegmentsFromNucleotides = nanorobot->GetHighlightedBaseSegmentsFromNucleotides();
+	auto highlightedAtoms = nanorobot->GetHighlightedAtoms();
+
+	if (highlightedAtoms.size() == 1)
+		snappedPosition = highlightedAtoms[0]->getPosition();
+	else if (highlightedBaseSegments.size() == 1)
+		snappedPosition = highlightedBaseSegments[0]->GetPosition();
+	else if (highlightedBaseSegmentsFromNucleotides.size() == 1)
+		snappedPosition = highlightedBaseSegmentsFromNucleotides[0]->GetPosition();
+
+	return snappedPosition;
 
 }
 

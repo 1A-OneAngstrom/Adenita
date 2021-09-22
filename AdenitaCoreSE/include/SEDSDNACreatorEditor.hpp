@@ -133,8 +133,6 @@ private:
 	float														opaqueness = 0.5f;
 	float														basePairRadius = 1000.0f;
 
-	ADNNanorobot*												nanorobot{ nullptr };
-
 };
 
 

@@ -72,9 +72,6 @@ public:
 	// overload position to retrieve it from bb and sc
 	Position3D GetPosition() const;
 
-	std::string const& GetName() const;
-	void SetName(const std::string& name);
-
 	void AddAtom(NucleotideGroup g, ADNPointer<ADNAtom> a);
 	void DeleteAtom(NucleotideGroup g, ADNPointer<ADNAtom> a);
 	CollectionMap<ADNAtom> GetAtoms();

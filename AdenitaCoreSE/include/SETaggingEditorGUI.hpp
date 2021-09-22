@@ -53,7 +53,7 @@ public:
 
 public slots:
 
-	void														onModeChanged(bool tags);
+	void														onModeChanged();
 
 private:
 

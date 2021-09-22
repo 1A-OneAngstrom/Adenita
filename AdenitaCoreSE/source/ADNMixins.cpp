@@ -1,7 +1,7 @@
 #include "ADNMixins.hpp"
 #include "ADNAtom.hpp"
 
-
+#if 0
 Nameable::Nameable(const Nameable& other) {
 
     *this = other;
@@ -10,9 +10,8 @@ Nameable::Nameable(const Nameable& other) {
 
 Nameable& Nameable::operator=(const Nameable& other) {
 
-    if (&other == this) {
+    if (&other == this)
         return *this;
-    }
 
     SetName(other.GetName());
 
@@ -27,6 +26,7 @@ void Nameable::SetName(std::string name) {
 std::string Nameable::GetName() const {
     return name_;
 }
+#endif
 
 Positionable::Positionable(const Positionable& other) {
     *this = other;

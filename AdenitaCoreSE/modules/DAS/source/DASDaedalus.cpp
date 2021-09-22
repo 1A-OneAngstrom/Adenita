@@ -58,7 +58,7 @@ ADNPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, DASPolyhedron &
   }
 
   ADNPointer<ADNSingleStrand> scaff = new ADNSingleStrand();
-  scaff->SetName("Scaffold");
+  scaff->setName("Scaffold");
   scaff->IsScaffold(true);
   chains_.insert(std::make_pair(0, scaff));
 
@@ -966,7 +966,7 @@ ADNPointer<ADNNucleotide> DASDaedalus::AdvanceNucleotide(ADNPointer<ADNNucleotid
 ADNPointer<ADNSingleStrand> DASDaedalus::CreateEdgeChain(ADNPointer<ADNPart> origami, ADNPointer<ADNBaseSegment> bs, int c_id, int pos_span, int neg_span) {
 
   ADNPointer<ADNSingleStrand> chain = new ADNSingleStrand();
-  chain->SetName("Edge Staple " + std::to_string(c_id));
+  chain->setName("Edge Staple " + std::to_string(c_id));
 
   unsigned int nt_id = 0;
   bool fst = true;
@@ -1026,7 +1026,7 @@ ADNPointer<ADNSingleStrand> DASDaedalus::CreateEdgeChain(ADNPointer<ADNPart> ori
 
 ADNPointer<ADNSingleStrand> DASDaedalus::CreateVertexChain(ADNPointer<ADNPart> part, int c_id, std::vector<DASHalfEdge*>ps, EdgeBps &lengths) {
   ADNPointer<ADNSingleStrand> chain = new ADNSingleStrand();
-  chain->SetName("Vertex Staple " + std::to_string(c_id));
+  chain->setName("Vertex Staple " + std::to_string(c_id));
 
   bool beg = false;
   int len = 0;

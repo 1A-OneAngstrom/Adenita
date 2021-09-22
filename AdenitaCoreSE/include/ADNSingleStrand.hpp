@@ -23,9 +23,6 @@ public:
     void serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const;														///< Serializes the node
     void unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0));											///< Unserializes the node
 
-    std::string const& GetName() const;
-    void SetName(const std::string& name);
-
     ADNPointer<ADNNucleotide> GetFivePrime();
     SBNode* getFivePrime() const;
     ADNPointer<ADNNucleotide> GetThreePrime();

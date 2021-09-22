@@ -132,7 +132,7 @@ void ADNNucleotide::unserialize(SBCSerializer* serializer, const SBNodeIndexer& 
 void ADNNucleotide::SetType(DNABlocks t) {
 
     setResidueType(t);
-    SetName(ADNModel::GetResidueName(t) + std::to_string(getNodeIndex()));
+    setName(ADNModel::GetResidueName(t) + std::to_string(getNodeIndex()));
 
 }
 
@@ -213,14 +213,6 @@ SBNode* ADNNucleotide::getSingleStrand() const {
 
 void ADNNucleotide::SetBaseSegment(ADNPointer<ADNBaseSegment> bs) {
     bs_ = ADNWeakPointer<ADNBaseSegment>(bs);
-}
-
-std::string const& ADNNucleotide::GetName() const {
-    return getName();
-}
-
-void ADNNucleotide::SetName(const std::string& name) {
-    setName(name);
 }
 
 void ADNNucleotide::AddAtom(NucleotideGroup g, ADNPointer<ADNAtom> a) {
@@ -310,7 +302,7 @@ CollectionMap<ADNAtom> ADNNucleotide::GetAtomsByName(std::string name) {
     auto atoms = GetAtoms();
     SB_FOR(ADNPointer<ADNAtom> a, atoms) {
 
-        if (a->GetName() == name) {
+        if (a->getName() == name) {
             res.addReferenceTarget(a());
         }
 

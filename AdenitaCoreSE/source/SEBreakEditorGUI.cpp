@@ -22,9 +22,11 @@ void SEBreakEditorGUI::loadSettings( SBGSettings *settings ) {
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
-	const bool isFivePrime = settings->loadBoolValue("isFivePrime", false);
+	const bool isFivePrime = settings->loadBoolValue("isFivePrime", true);
 	if (isFivePrime) ui.radioButtonFivePrime->setChecked(true);
 	else ui.radioButtonThreePrime->setChecked(true);
+	
+	onSetMode();
 
 }
 

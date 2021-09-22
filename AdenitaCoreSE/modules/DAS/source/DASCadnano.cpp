@@ -249,7 +249,7 @@ void DASCadnano::CreateScaffold(ADNPointer<ADNPart> part)
 
     //create the scaffold strand
     ADNPointer<ADNSingleStrand> scaff = new ADNSingleStrand();
-    scaff->SetName("Scaffold");
+    scaff->setName("Scaffold");
     scaff->IsScaffold(true);
     part->RegisterSingleStrand(scaff);
     AddSingleStrandToMap(scaff);
@@ -278,7 +278,7 @@ void DASCadnano::CreateStaples(ADNPointer<ADNPart> part)
     std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> bs_positions = cellBsMap_.at(&vstrands[vStrandId]);
 
     ADNPointer<ADNSingleStrand> staple = new ADNSingleStrand();
-    staple->SetName("Staple" + std::to_string(sid));
+    staple->setName("Staple" + std::to_string(sid));
     ++sid;
     staple->IsScaffold(false);
     part->RegisterSingleStrand(staple);
@@ -400,9 +400,9 @@ void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPoi
   }
 }
 
-void DASCadnano::CreateConformations(ADNPointer<ADNPart> part)
-{
-  std::string name = part->GetName();
+void DASCadnano::CreateConformations(ADNPointer<ADNPart> part) {
+
+  std::string name = part->getName();
   SBNodeIndexer nodeIndexer;
   part->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNAtom")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 

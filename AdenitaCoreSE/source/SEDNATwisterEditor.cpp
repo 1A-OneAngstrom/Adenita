@@ -89,27 +89,10 @@ void SEDNATwisterEditor::makeInvisible() {
 
 SBPosition3 SEDNATwisterEditor::getSnappedPosition(const SBPosition3& currentPosition) {
 
-	SBPosition3 snappedPosition = currentPosition;
+	if (snappingIsActive)
+		return SEAdenitaCoreSEApp::getAdenitaApp()->getSnappedPosition(currentPosition);
 
-	if (snappingActive) {
-
-		auto highlightedBaseSegments = nanorobot->GetHighlightedBaseSegments();
-		auto highlightedBaseSegmentsFromNucleotides = nanorobot->GetHighlightedBaseSegmentsFromNucleotides();
-		auto highlightedAtoms = nanorobot->GetHighlightedAtoms();
-
-		if (highlightedAtoms.size() == 1) {
-			snappedPosition = highlightedAtoms[0]->getPosition();
-		}
-		else if (highlightedBaseSegments.size() == 1) {
-			snappedPosition = highlightedBaseSegments[0]->GetPosition();
-		}
-		else if (highlightedBaseSegmentsFromNucleotides.size() == 1) {
-			snappedPosition = highlightedBaseSegmentsFromNucleotides[0]->GetPosition();
-		}
-
-	}
-
-	return snappedPosition;
+	return currentPosition;
 
 }
 
@@ -190,8 +173,6 @@ void SEDNATwisterEditor::beginEditing() {
 
 	//const QString iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/twister.png");
 	//SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
-
-	nanorobot = SEAdenitaCoreSEApp::getAdenitaApp()->GetNanorobot();
 
 	altPressed = false;
 	forwardActionSphereActive = false;

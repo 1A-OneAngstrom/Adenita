@@ -115,17 +115,15 @@ private:
 	SBQuantity::length											sphereRadius = SBQuantity::nanometer(2.0);
 	bool														forwardActionSphereActive = false;
 	bool														reverseActionSphereActive = false;
-	bool														snappingActive = true;
-
-	ADNNanorobot*												nanorobot{ nullptr };
+	bool														snappingIsActive = true;
 
 	/// \name Display
 	//@{
 
-	float														positionData[3];
-	float														radiusData[1];
-	float														colorData[4];
-	unsigned int												flagData[1];
+	float														positionData[3] = { 0.0f, 0.0f, 0.0f };
+	float														radiusData[1] = { 0.0f };
+	float														colorData[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	unsigned int												flagData[1] = { 0 };
 
 	//@}
 

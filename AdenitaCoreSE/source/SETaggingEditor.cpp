@@ -271,8 +271,10 @@ ADNPointer<ADNNucleotide> SETaggingEditor::GetHighlightedNucleotide() {
 
 }
 
-void SETaggingEditor::setTaggingMode(int mode) {
-	taggingMode = TaggingMode(mode);
+void SETaggingEditor::setTaggingMode(TaggingMode mode) {
+	
+	this->taggingMode = mode;
+
 }
 
 DNABlocks SETaggingEditor::getNucleotideType(QPoint numSteps) {

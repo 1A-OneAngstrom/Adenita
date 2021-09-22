@@ -32,13 +32,17 @@ void SETwistHelixEditor::setTwistAngle(double angle) {
 
 void SETwistHelixEditor::updateCursor() {
 
-	QString iconPath;
-	if (this->twistAngle < 0)
-		iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/cursor_twistMinus1BP.png");
-	else
-		iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/cursor_twistPlus1BP.png");
+	if (this == SAMSON::getActiveEditor()) {
 
-	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
+		QString iconPath;
+		if (this->twistAngle < 0)
+			iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/cursor_twistMinus1BP.png");
+		else
+			iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/cursor_twistPlus1BP.png");
+
+		SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
+
+	}
 
 }
 

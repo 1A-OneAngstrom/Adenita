@@ -45,21 +45,33 @@ void ADNSidechain::unserialize(SBCSerializer* serializer, const SBNodeIndexer& n
 }
 
 bool ADNSidechain::AddAtom(ADNPointer<ADNAtom> atom) {
+
     return addChild(atom());
+
 }
 
 bool ADNSidechain::DeleteAtom(ADNPointer<ADNAtom> atom) {
+
     return removeChild(atom());
+
 }
 
 int ADNSidechain::getNumberOfAtoms() const {
+
     return static_cast<int>(GetAtoms().size());
+
 }
 
 CollectionMap<ADNAtom> ADNSidechain::GetAtoms() const {
 
     CollectionMap<ADNAtom> atomList;
 
+#if 1
+    SBNodeIndexer nodeIndexer;
+    getNodes(nodeIndexer, SBNode::IsType(SBNode::Atom) && (SBNode::GetClass() == std::string("ADNAtom")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+    SB_FOR(SBNode * n, nodeIndexer)
+        atomList.addReferenceTarget(static_cast<ADNAtom*>(n));
+#else
     auto children = *getChildren();
     SB_FOR(SBStructuralNode * n, children) {
 
@@ -71,18 +83,17 @@ CollectionMap<ADNAtom> ADNSidechain::GetAtoms() const {
         }
 
     }
+#endif
 
     return atomList;
 
 }
 
-NucleotideGroup ADNSidechain::GetGroupType() {
-    return getType();
-}
-
 ADNPointer<ADNNucleotide> ADNSidechain::GetNucleotide() const {
 
-    auto nt = static_cast<ADNNucleotide*>(getParent());
-    return ADNPointer<ADNNucleotide>(nt);
+    if (getParent()) if (getParent()->getType() == SBNode::Residue)
+        return ADNPointer<ADNNucleotide>(static_cast<ADNNucleotide*>(getParent()));
+
+    return nullptr;
 
 }

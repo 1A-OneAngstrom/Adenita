@@ -25,17 +25,24 @@ void SEDSDNACreatorEditorGUI::loadSettings( SBGSettings *settings ) {
 	const bool isDSDNA = settings->loadBoolValue("isDSDNA", true);
 	if (isDSDNA) ui.radioButtonDSDNA->setChecked(true);
 	else ui.radioButtonSSDNA->setChecked(true);
+	getEditor()->setDoubleStrandMode(isDSDNA);
 
-	ui.checkBoxSetScaffold->setChecked(settings->loadBoolValue("setScaffold", false));
+	//ui.checkBoxSetScaffold->setChecked(settings->loadBoolValue("setScaffold", false));
+	//onSetSequence(ui.checkBoxSetScaffold->isChecked());
 
 	ui.checkBoxCircular->setChecked(settings->loadBoolValue("circular", false));
+	onSetCircular(ui.checkBoxCircular->isChecked());
 	ui.checkBoxManual->setChecked(settings->loadBoolValue("manual", false));
+	onSetManual(ui.checkBoxManual->isChecked());
 	ui.spinBoxNumberNucleotides->setValue(settings->loadIntValue("numberNucleotides", 12));
+	onSetNumNucleotides(ui.spinBoxNumberNucleotides->value());
 
 	ui.groupBoxShowBox->setChecked(settings->loadBoolValue("showBox", false));
+	getEditor()->setShowBoxFlag(ui.groupBoxShowBox->isChecked());
 	ui.doubleSpinBoxHeight->setValue(settings->loadDoubleValue("boxHeight", 100.0));
 	ui.doubleSpinBoxWidth->setValue(settings->loadDoubleValue("boxWidth", 100.0));
 	ui.doubleSpinBoxDepth->setValue(settings->loadDoubleValue("boxDepth", 100.0));
+	updateBoxSize();
 
 }
 
@@ -46,7 +53,7 @@ void SEDSDNACreatorEditorGUI::saveSettings( SBGSettings *settings ) {
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
 	settings->saveValue("isDSDNA", ui.radioButtonDSDNA->isChecked());
-	settings->saveValue("setScaffold", ui.checkBoxSetScaffold->isChecked());
+	//settings->saveValue("setScaffold", ui.checkBoxSetScaffold->isChecked());
 
 	settings->saveValue("circular", ui.checkBoxCircular->isChecked());
 	settings->saveValue("manual", ui.checkBoxManual->isChecked());
@@ -97,20 +104,28 @@ void SEDSDNACreatorEditorGUI::onShowBox(bool s) {
 
 	getEditor()->setShowBoxFlag(s);
 	if (s)
-		onChangeBoxSize();
-	else
+		updateBoxSize();
+	
+	if (getEditor() == SAMSON::getActiveEditor())
 		SAMSON::requestViewportUpdate();
+
+}
+
+void SEDSDNACreatorEditorGUI::updateBoxSize() {
+
+	const SBQuantity::nanometer height = SBQuantity::nanometer(ui.doubleSpinBoxHeight->value());
+	const SBQuantity::nanometer width = SBQuantity::nanometer(ui.doubleSpinBoxWidth->value());
+	const SBQuantity::nanometer depth = SBQuantity::nanometer(ui.doubleSpinBoxDepth->value());
+	getEditor()->setBoxSize(height, width, depth);
 
 }
 
 void SEDSDNACreatorEditorGUI::onChangeBoxSize() {
 
-	const SBQuantity::nanometer height = SBQuantity::nanometer(ui.doubleSpinBoxHeight->value());
-	const SBQuantity::nanometer width  = SBQuantity::nanometer(ui.doubleSpinBoxWidth->value());
-	const SBQuantity::nanometer depth  = SBQuantity::nanometer(ui.doubleSpinBoxDepth->value());
-	getEditor()->setBoxSize(height, width, depth);
+	updateBoxSize();
 
-	SAMSON::requestViewportUpdate();
+	if (getEditor() == SAMSON::getActiveEditor())
+		SAMSON::requestViewportUpdate();
 
 }
 

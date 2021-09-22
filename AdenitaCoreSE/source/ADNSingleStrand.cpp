@@ -51,14 +51,6 @@ void ADNSingleStrand::unserialize(SBCSerializer* serializer, const SBNodeIndexer
 
 }
 
-std::string const& ADNSingleStrand::GetName() const {
-    return getName();
-}
-
-void ADNSingleStrand::SetName(const std::string& name) {
-    setName(name);
-}
-
 ADNPointer<ADNNucleotide> ADNSingleStrand::GetFivePrime() {
     return fivePrime_;
 }
@@ -332,7 +324,7 @@ void ADNSingleStrand::SetSequence(std::string seq) {
 
     if (isScaffold_ != true) {
 
-        std::string msg = "Forcing sequence on staple " + GetName();
+        std::string msg = "Forcing sequence on staple " + getName();
         ADNLogger::Log(msg);
 
     }

@@ -51,8 +51,7 @@ public:
 
 	//@}
 
-	//! Sets the mode to plus or minus, for use with Adenita App menu
-	void														checkPlusOrMinus(bool plus);
+	void														checkPlusOrMinus(bool plus);											///< Sets the mode to plus or minus
 
 public slots:
 
@@ -64,6 +63,8 @@ public slots:
 	void														onTwistTurnsChanged(int turns);
 
 private:
+
+	void														updateAngleInEditor();													///< Update the angle in the editor based on the value in GUI
 
 	Ui::SETwistHelixEditorGUIClass								ui;
 	SETwistHelixEditor*											editor{ nullptr };
