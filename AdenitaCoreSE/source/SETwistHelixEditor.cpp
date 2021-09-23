@@ -197,7 +197,7 @@ void SETwistHelixEditor::mousePressEvent(QMouseEvent* event) {
 		CollectionMap<ADNDoubleStrand> highlightedDoubleStrands;
 		SB_FOR(ADNPointer<ADNNucleotide> nt, highlightedNucleotides) {
 
-			ADNPointer<ADNDoubleStrand> ds = nanorobot->GetDoubleStrand(nt);
+			ADNPointer<ADNDoubleStrand> ds = nt->GetDoubleStrand();
 			highlightedDoubleStrands.addReferenceTarget(ds());
 
 		}

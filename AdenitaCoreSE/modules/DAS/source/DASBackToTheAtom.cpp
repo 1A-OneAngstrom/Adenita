@@ -611,7 +611,7 @@ void DASBackToTheAtom::CreateBonds(ADNPointer<ADNPart> origami)
     }
 
     // create connection with previous nucleotide
-    if (nt->GetEnd() != End::FivePrime && nt->GetEnd() != End::FiveAndThreePrime) {
+    if (nt->getEndType() != ADNNucleotide::EndType::FivePrime && nt->getEndType() != ADNNucleotide::EndType::FiveAndThreePrime) {
       auto prevNt = nt->GetPrev(true);
       ADNPointer<ADNAtom> atP = *nt->GetAtomsByName("P").begin();
       ADNPointer<ADNAtom> atO3p = *prevNt->GetAtomsByName("O3'").begin();

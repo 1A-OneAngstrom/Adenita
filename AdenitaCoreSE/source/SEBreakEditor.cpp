@@ -190,7 +190,7 @@ void SEBreakEditor::mousePressEvent(QMouseEvent* event) {
 		else if (singleStrand->getNumberOfNucleotides() == 1) {
 			SAMSON::informUser("Adenita - Break editor", "Cannot break a single strand that contains only one nucleotide. If you want to delete it use the Delete editor.");
 		}
-		else if (highlightedNucleotide->IsEnd() || nextNucleotide == nullptr || prevNucleotide == nullptr) {
+		else if (highlightedNucleotide->isEndTypeNucleotide() || nextNucleotide == nullptr || prevNucleotide == nullptr) {
 			SAMSON::informUser("Adenita - Break editor", "The nucleotide is the end nucleotide - cannot break here. If you want to delete this nucleotide use the Delete editor.");
 		}
 		else {

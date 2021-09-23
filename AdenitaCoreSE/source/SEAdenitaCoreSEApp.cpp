@@ -170,7 +170,7 @@ void SEAdenitaCoreSEApp::AddNtThreeP(int numNt) {
 
 		ADNPointer<ADNNucleotide> nt = nts[0];
 		auto ss = nt->GetStrand();
-		auto part = GetNanorobot()->GetPart(ss);
+		auto part = ss->GetPart();
 		SBVector3 dir = ADNAuxiliary::UblasVectorToSBVector(nt->GetBaseSegment()->GetE3());
 
 		auto nts = ADNBasicOperations::AddNucleotidesThreePrime(part, ss, numNt, dir);
@@ -269,12 +269,12 @@ void SEAdenitaCoreSEApp::BreakSingleStrand(bool fivePrimeMode) {
 	if (nucleotides.size() == 1) {
 
 		ADNPointer<ADNNucleotide> nucleotide = nucleotides[0];
-		if (nucleotide->GetEnd() != End::ThreePrime) {
+		if (nucleotide->getEndType() != ADNNucleotide::EndType::ThreePrime) {
 
 			ADNPointer<ADNSingleStrand> singleStrand = nucleotide->GetStrand();
 			const bool circular = singleStrand->IsCircular();
 
-			ADNPointer<ADNPart> part = GetNanorobot()->GetPart(singleStrand);
+			ADNPointer<ADNPart> part = singleStrand->GetPart();
 
 			// to break in the 5' or 3' direction
 			if (fivePrimeMode) breakNucleotide = nucleotide;
@@ -353,7 +353,7 @@ void SEAdenitaCoreSEApp::SetStart() {
 	else if (nucleotides.size() == 1) {
 
 		ADNNucleotide* nucleotide = nucleotides[0];
-		if (nucleotide->GetEnd() != End::FivePrime) {
+		if (nucleotide->getEndType() != ADNNucleotide::EndType::FivePrime) {
 
 			ADNBasicOperations::SetStart(nucleotide, true);
 
@@ -389,14 +389,14 @@ void SEAdenitaCoreSEApp::MergeComponents(ADNPointer<ADNPart> p1, ADNPointer<ADNP
 
 void SEAdenitaCoreSEApp::MoveDoubleStrand(ADNPointer<ADNDoubleStrand> ds, ADNPointer<ADNPart> p) {
 
-	ADNPointer<ADNPart> oldPart = GetNanorobot()->GetPart(ds);
+	ADNPointer<ADNPart> oldPart = ds->GetPart();
 	if (oldPart != p) ADNBasicOperations::MoveStrand(oldPart, p, ds);
 
 }
 
 void SEAdenitaCoreSEApp::MoveSingleStrand(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNPart> p) {
 
-	ADNPointer<ADNPart> oldPart = GetNanorobot()->GetPart(ss);
+	ADNPointer<ADNPart> oldPart = ss->GetPart();
 	if (oldPart != p) ADNBasicOperations::MoveStrand(oldPart, p, ss);
 
 }
@@ -456,7 +456,7 @@ void SEAdenitaCoreSEApp::TestNeighbors() {
 	if (nts.size() == 0) return;
 
 	ADNPointer<ADNNucleotide> nt = nts[0];
-	ADNPointer<ADNPart> part = GetNanorobot()->GetPart(nt->GetStrand());
+	ADNPointer<ADNPart> part = nt->GetStrand()->GetPart();
 	// create neighbor list
 	SEConfig& config = SEConfig::GetInstance();
 	auto neighbors = ADNNeighbors();
@@ -701,7 +701,7 @@ void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* documentEvent) {
 		ADNPointer<ADNNucleotide> nt = dynamic_cast<ADNNucleotide*>(node);
 		if (nt != nullptr) {
 			ADNPointer<ADNSingleStrand> ss = static_cast<ADNSingleStrand*>(documentEvent->getSender());
-			auto part = GetNanorobot()->GetPart(ss);
+			auto part = ss->GetPart();
 			part->DeregisterNucleotide(nt, false, true, true);
 			if (ss->getNumberOfNucleotides() == 0) ss->erase();
 		}
@@ -718,7 +718,7 @@ void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* documentEvent) {
 				nt->erase();
 			}
 			ADNPointer<ADNDoubleStrand> ds = static_cast<ADNDoubleStrand*>(documentEvent->getSender());
-			auto part = GetNanorobot()->GetPart(ds);
+			auto part = ds->GetPart();
 			part->DeregisterBaseSegment(bs, false, true);
 
 		}

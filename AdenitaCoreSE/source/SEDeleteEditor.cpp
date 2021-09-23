@@ -180,7 +180,7 @@ void SEDeleteEditor::mousePressEvent(QMouseEvent* event) {
 			ADNPointer<ADNNucleotide> nt = highlightedNucleotides[0];
 			ADNPointer<ADNBaseSegment> bs = nt->GetBaseSegment();
 			ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
-			ADNPointer<ADNPart> part = nanorobot->GetPart(ss);
+			ADNPointer<ADNPart> part = ss->GetPart();
 			auto newStrands = ADNBasicOperations::DeleteNucleotide(part, nt);
 			if (ss->getNumberOfNucleotides() == 0) {
 

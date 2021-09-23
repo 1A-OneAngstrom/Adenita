@@ -72,8 +72,8 @@ CollectionMap<ADNAtom> ADNSidechain::GetAtoms() const {
     SB_FOR(SBNode * n, nodeIndexer)
         atomList.addReferenceTarget(static_cast<ADNAtom*>(n));
 #else
-    auto children = *getChildren();
-    SB_FOR(SBStructuralNode * n, children) {
+    const SBPointerList<SBStructuralNode>* children = getChildren();
+    SB_FOR(SBStructuralNode * n, *children) {
 
         if (n->getType() == SBNode::Atom /*&& n->getProxy()->getElementUUID() == SBUUID(SB_ELEMENT_UUID)*/) {
 
@@ -91,7 +91,8 @@ CollectionMap<ADNAtom> ADNSidechain::GetAtoms() const {
 
 ADNPointer<ADNNucleotide> ADNSidechain::GetNucleotide() const {
 
-    if (getParent()) if (getParent()->getType() == SBNode::Residue)
+    SBNode* parent = getParent();
+    if (parent) if (parent->getType() == SBNode::Residue) //if (parent->getProxy()->getName() == "ADNNucleotide")
         return ADNPointer<ADNNucleotide>(static_cast<ADNNucleotide*>(getParent()));
 
     return nullptr;

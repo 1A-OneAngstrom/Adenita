@@ -62,7 +62,7 @@ namespace ADNBasicOperations {
 
   // Ordering and helpers
   std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>> OrderNucleotides(ADNPointer<ADNNucleotide> nt1, ADNPointer<ADNNucleotide> nt2);
-  std::pair<End, ADNPointer<ADNBaseSegment>> GetNextBaseSegment(ADNPointer<ADNNucleotide> nt);
+  std::pair<ADNNucleotide::EndType, ADNPointer<ADNBaseSegment>> GetNextBaseSegment(ADNPointer<ADNNucleotide> nt);
   std::tuple<ADNPointer<ADNBaseSegment>, bool, bool, bool> GetBaseSegmentInfo(ADNPointer<ADNNucleotide> nt);
   void SetBackNucleotideIntoBaseSegment(ADNPointer<ADNNucleotide> nt, std::tuple<ADNPointer<ADNBaseSegment>, bool, bool, bool> info);
 }

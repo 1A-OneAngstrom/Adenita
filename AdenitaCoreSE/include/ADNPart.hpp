@@ -27,9 +27,9 @@ public:
     void                                                        serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const;														///< Serializes the node
     void                                                        unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0));											///< Unserializes the node
 
-    void                                                        RegisterDoubleStrand(ADNPointer<ADNDoubleStrand> ds);
+    void                                                        RegisterDoubleStrand(ADNPointer<ADNDoubleStrand> ds);   ///< Adds a double strand to the part
     void                                                        RegisterBaseSegmentEnd(ADNPointer<ADNDoubleStrand> ds, ADNPointer<ADNBaseSegment> bs, bool addToDs = true);
-    void                                                        RegisterSingleStrand(ADNPointer<ADNSingleStrand> ss);
+    void                                                        RegisterSingleStrand(ADNPointer<ADNSingleStrand> ss);   ///< Adds a single strand to the part
     void                                                        RegisterNucleotideThreePrime(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nt, bool addToSs = true);
     void                                                        RegisterNucleotideFivePrime(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nt, bool addToSs = true);
     void                                                        RegisterNucleotide(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nt, ADNPointer<ADNNucleotide> ntNext, bool addToSs = true);
@@ -38,10 +38,10 @@ public:
 
     unsigned int                                                GetBaseSegmentIndex(ADNPointer<ADNBaseSegment> bs);
 
-    CollectionMap<ADNSingleStrand>                              GetSingleStrands() const;
-    CollectionMap<ADNDoubleStrand>                              GetDoubleStrands() const;
+    CollectionMap<ADNSingleStrand>                              GetSingleStrands() const;                                               ///< Return a pointer indexer of single strands of the ADNPart part
+    CollectionMap<ADNDoubleStrand>                              GetDoubleStrands() const;                                               ///< Return a pointer indexer of double strands of the ADNPart part
     CollectionMap<ADNBaseSegment>                               GetBaseSegments(CellType celltype = CellType::ALL) const;
-    CollectionMap<ADNSingleStrand>                              GetScaffolds() const;
+    CollectionMap<ADNSingleStrand>                              GetScaffolds() const;                                                   ///< Return the scaffolds of the ADNPart part
     CollectionMap<ADNNucleotide>                                GetNucleotides(CellType celltype = CellType::ALL) const;
     CollectionMap<ADNAtom>                                      GetAtoms() const;
 

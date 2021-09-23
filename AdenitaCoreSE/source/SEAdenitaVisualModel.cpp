@@ -202,10 +202,10 @@ void			SEAdenitaVisualModel::setVisibility(double layer) {
 
 	SB_FOR(auto part, parts) {
 
-		auto singleStrands = nanorobot_->GetSingleStrands(part);
+		auto singleStrands = part->GetSingleStrands();
 		SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
-			auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+			auto nucleotides = ss->GetNucleotides();
 			auto ssDist = sortedSingleStrandsByDist_[ss()];
 
 			SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
@@ -300,10 +300,10 @@ void SEAdenitaVisualModel::initAtoms(bool createIndex /*= true*/) {
 
 	SB_FOR(auto part, parts) {
 
-		auto singleStrands = nanorobot_->GetSingleStrands(part);
+		auto singleStrands = part->GetSingleStrands();
 		SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
-			auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+			auto nucleotides = ss->GetNucleotides();
 			SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
 				auto atoms = nt->GetAtoms();
@@ -435,7 +435,7 @@ void SEAdenitaVisualModel::initDisplayIndices() {
 
 	SB_FOR(auto part, parts) {
 
-		auto doubleStrands = nanorobot_->GetDoubleStrands(part);
+		auto doubleStrands = part->GetDoubleStrands();
 		SB_FOR(ADNPointer<ADNDoubleStrand> ds, doubleStrands) {
 
 			auto baseSegments = ds->GetBaseSegments();
@@ -459,10 +459,10 @@ void SEAdenitaVisualModel::initDisplayIndices() {
 	atomNtIndexMap_.clear();
 	SB_FOR(auto part, parts) {
 
-		auto singleStrands = nanorobot_->GetSingleStrands(part);
+		auto singleStrands = part->GetSingleStrands();
 		SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
-			auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+			auto nucleotides = ss->GetNucleotides();
 			SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
 				ntMap_.insert(std::make_pair(nt(), indexNt));
@@ -525,7 +525,7 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 
 	const int numberOfSingleStrandsUsingSAMSON = SAMSON::getActiveDocument()->countNodes((SBNode::GetClass() == std::string("ADNSingleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 	int numberOfSingleStrandsInAllParts = 0;
-	SB_FOR(auto part, parts) numberOfSingleStrandsInAllParts += nanorobot_->GetSingleStrands(part).size();
+	SB_FOR(auto part, parts) numberOfSingleStrandsInAllParts += part->GetSingleStrands().size();
 	if (singleStrands.size() != numberOfSingleStrandsInAllParts || numberOfSingleStrandsUsingSAMSON != numberOfSingleStrandsInAllParts) {
 
 		std::cerr << "ERROR: The number of single strands in nanorobot does not correspond to their number in the data graph. " << 
@@ -557,22 +557,22 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 
 	SB_FOR(auto part, parts) {
 
-		auto singleStrands = nanorobot_->GetSingleStrands(part);
+		auto singleStrands = part->GetSingleStrands();
 
 		SB_FOR(ADNPointer<ADNSingleStrand> singleStrand, singleStrands) {
 
-			auto nucleotides = nanorobot_->GetSingleStrandNucleotides(singleStrand);
-			ADNPointer<ADNNucleotide> currentNucleotide = nanorobot_->GetSingleStrandFivePrime(singleStrand);
+			auto nucleotides = singleStrand->GetNucleotides();
+			ADNPointer<ADNNucleotide> currentNucleotide = singleStrand->GetFivePrime();
 			const size_t curNCylinders = nucleotides.size() - 1; //todo fix this
 			ADNArray<unsigned int> curIndices = ADNArray<unsigned int>(2 * curNCylinders);
 
 			//looping using the next_ member variable of nucleotides
 			unsigned int j = 0;
-			while (nanorobot_->GetNucleotideNext(currentNucleotide) != nullptr) {
+			while (currentNucleotide->GetNext() != nullptr) {
 
 				unsigned int currentIndex = ntMap_[currentNucleotide()];
 				//nucleotides.getIndex(currentNucleotide(), currentIndex);
-				ADNNucleotide* nextNucleotide = nanorobot_->GetNucleotideNext(currentNucleotide)();
+				ADNNucleotide* nextNucleotide = currentNucleotide->GetNext()();
 				unsigned int nextIndex = ntMap_[nextNucleotide];
 				//nucleotides.getIndex(nextNucleotide, nextIndex);
 
@@ -580,7 +580,7 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 				curIndices(2 * j + 1) = nextIndex;
 				j++;
 
-				currentNucleotide = nanorobot_->GetNucleotideNext(currentNucleotide);
+				currentNucleotide = currentNucleotide->GetNext();
 
 			}
 
@@ -995,16 +995,16 @@ void SEAdenitaVisualModel::orderVisibility() {
 
 		SB_FOR(auto part, parts) {
 
-			auto scaffolds = nanorobot_->GetScaffolds(part);
+			auto scaffolds = part->GetScaffolds();
 
-			if (scaffolds.size() == 0) return;
+			if (scaffolds.empty()) return;
         
 			SB_FOR(ADNPointer<ADNSingleStrand> ss, scaffolds) {
 
-				auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+				auto nucleotides = ss->GetNucleotides();
 				SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
-					auto pair = nanorobot_->GetNucleotidePair(nt);
+					auto pair = nt->GetPair();
 					nucleotidesSorted.push_back(std::make_pair(nt(), float(nt->getNodeIndex())));
 					if (pair != nullptr)
 					nucleotidesSorted.push_back(std::make_pair(pair(), float(nt->getNodeIndex()))); //the staple nucleotide should get the same order as the scaffold nucleotide
@@ -1013,19 +1013,19 @@ void SEAdenitaVisualModel::orderVisibility() {
 
 			}
 
-			auto singleStrands = nanorobot_->GetSingleStrands(part);
+			auto singleStrands = part->GetSingleStrands();
 			SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
-				auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+				auto nucleotides = ss->GetNucleotides();
 				unsigned int minIdx = UINT_MAX;
-				if (nanorobot_->IsScaffold(ss)) {
+				if (ss->IsScaffold()) {
 					minIdx = 0;
 				}
 				else {
 
 					SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
-						auto pair = nanorobot_->GetNucleotidePair(nt);
+						auto pair = nt->GetPair();
 						if (pair != nullptr) {
 
 							unsigned int idx = pair->getNodeIndex();
@@ -1049,11 +1049,11 @@ void SEAdenitaVisualModel::orderVisibility() {
 		SBPosition3 center;
 		SB_FOR(auto part, parts) {
 
-			auto singleStrands = nanorobot_->GetSingleStrands(part);
+			auto singleStrands = part->GetSingleStrands();
 			SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
-				auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
-				SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) center += nanorobot_->GetNucleotidePosition(nt);
+				auto nucleotides = ss->GetNucleotides();
+				SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) center += nt->GetPosition();
 
 			}
 
@@ -1062,14 +1062,14 @@ void SEAdenitaVisualModel::orderVisibility() {
 		center /= nanorobot_->GetNumberOfNucleotides();
 
 		SB_FOR(auto part, parts) {
-			auto singleStrands = nanorobot_->GetSingleStrands(part);
+			auto singleStrands = part->GetSingleStrands();
 			SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
-				auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+				auto nucleotides = ss->GetNucleotides();
 				SBPosition3 strandPosition;
 				float minDist = FLT_MAX;
 				SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
-					SBPosition3 diff = nanorobot_->GetNucleotidePosition(nt) - center;
+					SBPosition3 diff = nt->GetPosition() - center;
 					float dist = diff.norm().getValue();
 					nucleotidesSorted.push_back(std::make_pair(nt(), dist));
 
@@ -1807,15 +1807,15 @@ void SEAdenitaVisualModel::prepareNucleotides() {
 
 	SB_FOR(auto part, parts) {
 
-		auto singleStrands = nanorobot_->GetSingleStrands(part);
+		auto singleStrands = part->GetSingleStrands();
 		SB_FOR(ADNPointer<ADNSingleStrand> singleStrand, singleStrands) {
 
-			auto nucleotides = nanorobot_->GetSingleStrandNucleotides(singleStrand);
+			auto nucleotides = singleStrand->GetNucleotides();
 			SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
 				unsigned int index = ntMap_[nt()];
 
-				const Position3D nucleotideBackbonePosition = nanorobot_->GetNucleotideBackbonePosition(nt);
+				const Position3D nucleotideBackbonePosition = nt->GetBackbonePosition();
 				positionsNt_(index, 0) = nucleotideBackbonePosition[0].getValue();
 				positionsNt_(index, 1) = nucleotideBackbonePosition[1].getValue();
 				positionsNt_(index, 2) = nucleotideBackbonePosition[2].getValue();
@@ -1835,7 +1835,7 @@ void SEAdenitaVisualModel::prepareNucleotides() {
 				}
         
 				//strand direction
-				if (nanorobot_->GetNucleotideEnd(nt) == End::ThreePrime) {
+				if (nt->getEndType() == ADNNucleotide::EndType::ThreePrime) {
 					radiiENt_(index) = config.nucleotide_E_radius;
 				}
 
@@ -1873,10 +1873,10 @@ void SEAdenitaVisualModel::prepareSingleStrands() {
 
 	SB_FOR(auto part, parts) {
 
-		auto singleStrands = nanorobot_->GetSingleStrands(part);
+		auto singleStrands = part->GetSingleStrands();
 		SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
-			auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+			auto nucleotides = ss->GetNucleotides();
 			SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
 				unsigned int index = ntMap_[nt()];
@@ -1904,7 +1904,7 @@ void SEAdenitaVisualModel::prepareSingleStrands() {
 				radiiESS_(index) = config.nucleotide_V_radius;
 
 				//strand direction
-				if (nanorobot_->GetNucleotideEnd(nt) == End::ThreePrime) {
+				if (nt->getEndType() == ADNNucleotide::EndType::ThreePrime) {
 					radiiESS_(index) = config.nucleotide_E_radius;
 				}
 
@@ -2143,10 +2143,10 @@ void SEAdenitaVisualModel::displayBasePairConnections(bool onlySelected) {
 
 	SB_FOR(auto part, parts) {
 
-		auto singleStrands = nanorobot_->GetSingleStrands(part);
+		auto singleStrands = part->GetSingleStrands();
 		SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
-			auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+			auto nucleotides = ss->GetNucleotides();
 			SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
 				if (nt->GetPair() != nullptr) {
@@ -2248,7 +2248,7 @@ void SEAdenitaVisualModel::displayCircularDNAConnection() {
 
 	SB_FOR(auto part, parts) {
 
-		auto singleStrands = nanorobot_->GetSingleStrands(part);
+		auto singleStrands = part->GetSingleStrands();
 
 		SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
@@ -2299,9 +2299,9 @@ void SEAdenitaVisualModel::displayTags()
   auto parts = nanorobot_->GetParts();
 
   SB_FOR(auto part, parts) {
-    auto singleStrands = nanorobot_->GetSingleStrands(part);
+    auto singleStrands = part->GetSingleStrands();
     SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
-      auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+      auto nucleotides = ss->GetNucleotides();
       SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
         ADNDisplayHelper::displayText(nt->GetBackbonePosition(), nt->getTag());
       }
@@ -2317,9 +2317,9 @@ void SEAdenitaVisualModel::prepareAtoms()
   auto parts = nanorobot_->GetParts();
 
   SB_FOR(auto part, parts) {
-    auto singleStrands = nanorobot_->GetSingleStrands(part);
+    auto singleStrands = part->GetSingleStrands();
     SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
-      auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+      auto nucleotides = ss->GetNucleotides();
       SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
         auto atoms = nt->GetAtoms();
         SB_FOR(ADNPointer<ADNAtom> a, atoms) {
@@ -2427,10 +2427,10 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 
 		SB_FOR(auto part, parts) {
 
-			auto singleStrands = nanorobot_->GetSingleStrands(part);
+			auto singleStrands = part->GetSingleStrands();
 			SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
-				auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+				auto nucleotides = ss->GetNucleotides();
 				SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
 					auto indexNt = ntMap_[nt()];
@@ -2464,10 +2464,10 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 
 		SB_FOR(auto part, parts) {
 
-			auto singleStrands = nanorobot_->GetSingleStrands(part);
+			auto singleStrands = part->GetSingleStrands();
 			SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
-				auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+				auto nucleotides = ss->GetNucleotides();
 				SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
 					auto indexNt = ntMap_[nt()];
@@ -2501,7 +2501,7 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 
 		SB_FOR(auto part, parts) {
 
-			auto singleStrands = nanorobot_->GetSingleStrands(part);
+			auto singleStrands = part->GetSingleStrands();
 			SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
 				bool inRange = ss->getNumberOfNucleotides() > highlightMinLen_ && ss->getNumberOfNucleotides() < highlightMaxLen_;
@@ -2509,7 +2509,7 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 				if (notScaffold_) inRange = ss->IsScaffold() ? false : inRange;
 				if (inRange) {
 
-					auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+					auto nucleotides = ss->GetNucleotides();
 					SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
 						auto indexNt = ntMap_[nt()];
@@ -2541,10 +2541,10 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 
 		SB_FOR(auto part, parts) {
 
-			auto singleStrands = nanorobot_->GetSingleStrands(part);
+			auto singleStrands = part->GetSingleStrands();
 			SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
-				auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+				auto nucleotides = ss->GetNucleotides();
 				SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
 					auto indexNt = ntMap_[nt()];
@@ -2577,10 +2577,10 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 
 		SB_FOR(auto part, parts) {
 
-			auto singleStrands = nanorobot_->GetSingleStrands(part);
+			auto singleStrands = part->GetSingleStrands();
 			SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
-				auto nucleotides = nanorobot_->GetSingleStrandNucleotides(ss);
+				auto nucleotides = ss->GetNucleotides();
 				SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
 					auto indexNt = ntMap_[nt()];

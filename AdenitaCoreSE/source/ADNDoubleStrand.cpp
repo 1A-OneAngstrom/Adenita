@@ -1,6 +1,7 @@
 //#include "ADNDoubleStrand.hpp"
 //#include "ADNBaseSegment.hpp"
 #include "ADNModel.hpp"
+#include "ADNPart.hpp"
 
 
 ADNDoubleStrand::ADNDoubleStrand(const ADNDoubleStrand& other) : SBStructuralGroup(other) {
@@ -15,8 +16,8 @@ ADNDoubleStrand& ADNDoubleStrand::operator=(const ADNDoubleStrand& other) {
 
     if (this != &other) {
 
-        start_ = other.start_;
-        end_ = other.end_;
+        startBaseSegment = other.startBaseSegment;
+        endBaseSegment = other.endBaseSegment;
 
     }
 
@@ -30,8 +31,9 @@ void ADNDoubleStrand::serialize(SBCSerializer* serializer, const SBNodeIndexer& 
 
     serializer->writeBoolElement("isCircular", IsCircular());
     serializer->writeDoubleElement("twistAngle", GetInitialTwistAngle());
-    serializer->writeUnsignedIntElement("start", nodeIndexer.getIndex(start_()));
-    serializer->writeUnsignedIntElement("end", nodeIndexer.getIndex(end_()));
+
+    serializer->writeUnsignedIntElement("start", nodeIndexer.getIndex(startBaseSegment()));
+    serializer->writeUnsignedIntElement("end", nodeIndexer.getIndex(endBaseSegment()));
 
 }
 
@@ -41,21 +43,32 @@ void ADNDoubleStrand::unserialize(SBCSerializer* serializer, const SBNodeIndexer
 
     IsCircular(serializer->readBoolElement());
     SetInitialTwistAngle(serializer->readDoubleElement());
+
     unsigned int sIdx = serializer->readUnsignedIntElement();
     unsigned int eIdx = serializer->readUnsignedIntElement();
     SBNode* sNode = nodeIndexer.getNode(sIdx);
     SBNode* eNode = nodeIndexer.getNode(eIdx);
-    start_ = static_cast<ADNBaseSegment*>(sNode);
-    end_ = static_cast<ADNBaseSegment*>(eNode);
+    if (sNode) startBaseSegment = static_cast<ADNBaseSegment*>(sNode);
+    if (eNode) endBaseSegment = static_cast<ADNBaseSegment*>(eNode);
+
+}
+
+ADNPointer<ADNPart> ADNDoubleStrand::GetPart() {
+
+    // the ADNPart is a structural model
+    SBNode* model = getModel();
+    if (!model) return nullptr;
+    ADNPointer<ADNPart> part = static_cast<ADNPart*>(model);
+    return part;
 
 }
 
 void ADNDoubleStrand::SetInitialTwistAngle(double angle) {
-    initialTwistAngle_ = angle;
+    this->initialTwistAngle = angle;
 }
 
 double ADNDoubleStrand::GetInitialTwistAngle() const {
-    return initialTwistAngle_;
+    return initialTwistAngle;
 }
 
 double ADNDoubleStrand::getInitialTwistAngle() const {
@@ -71,11 +84,11 @@ int ADNDoubleStrand::getLength() const {
 }
 
 void ADNDoubleStrand::IsCircular(bool c) {
-    isCircular_ = c;
+    this->circularFlag = c;
 }
 
 bool ADNDoubleStrand::IsCircular() const {
-    return isCircular_;
+    return circularFlag;
 }
 
 bool ADNDoubleStrand::getIsCircular() const {
@@ -88,23 +101,34 @@ void ADNDoubleStrand::setIsCircular(bool b) {
 
 CollectionMap<ADNBaseSegment> ADNDoubleStrand::GetBaseSegments() const {
 
-    CollectionMap<ADNBaseSegment> bsList;
+    CollectionMap<ADNBaseSegment> baseSegmentList;
 
-    auto children = *getChildren();
-    SB_FOR(SBStructuralNode * n, children) {
+#if 0
+    SBNodeIndexer nodeIndexer;
+    getNodes(nodeIndexer, SBNode::IsType(SBNode::StructuralGroup) && (SBNode::GetClass() == std::string("ADNBaseSegment")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+    SB_FOR(SBNode * n, nodeIndexer)
+        baseSegmentList.addReferenceTarget(static_cast<ADNBaseSegment*>(n));
+#else
+    const SBPointerList<SBStructuralNode>* children = getChildren();
+    SB_FOR(SBStructuralNode * n, *children) {
 
-        ADNBaseSegment* a = static_cast<ADNBaseSegment*>(n);
-        bsList.addReferenceTarget(a);
+        if (n->getProxy()->getName() == "ADNBaseSegment" && n->getProxy()->getElementUUID() == SBUUID(SB_ELEMENT_UUID)) {
+
+            ADNBaseSegment* a = static_cast<ADNBaseSegment*>(n);
+            baseSegmentList.addReferenceTarget(a);
+
+        }
 
     }
+#endif
 
-    return bsList;
+    return baseSegmentList;
 
 }
 
 ADNPointer<ADNBaseSegment> ADNDoubleStrand::GetNthBaseSegment(int n) {
 
-    ADNPointer<ADNBaseSegment> bs = start_;
+    ADNPointer<ADNBaseSegment> bs = startBaseSegment;
 
     for (int i = 0; i < n; ++i)
         bs = bs->GetNext();
@@ -114,70 +138,75 @@ ADNPointer<ADNBaseSegment> ADNDoubleStrand::GetNthBaseSegment(int n) {
 }
 
 ADNPointer<ADNBaseSegment> ADNDoubleStrand::GetFirstBaseSegment() const {
-    return start_;
+    return startBaseSegment;
 }
 
 SBNode* ADNDoubleStrand::getFirstBaseSegment() const {
     return GetFirstBaseSegment()();
 }
 
-void ADNDoubleStrand::SetStart(ADNPointer<ADNBaseSegment> bs) {
-    start_ = bs;
+void ADNDoubleStrand::SetStart(ADNPointer<ADNBaseSegment> baseSegment) {
+    this->startBaseSegment = baseSegment;
 }
 
 ADNPointer<ADNBaseSegment> ADNDoubleStrand::GetLastBaseSegment() const {
-    return end_;
+    return endBaseSegment;
 }
 
 SBNode* ADNDoubleStrand::getLastBaseSegment() const {
     return GetLastBaseSegment()();
 }
 
-void ADNDoubleStrand::SetEnd(ADNPointer<ADNBaseSegment> bs) {
-    end_ = bs;
+void ADNDoubleStrand::SetEnd(ADNPointer<ADNBaseSegment> baseSegment) {
+    this->endBaseSegment = baseSegment;
 }
 
-void ADNDoubleStrand::AddBaseSegmentBeginning(ADNPointer<ADNBaseSegment> bs) {
+void ADNDoubleStrand::AddBaseSegmentBeginning(ADNPointer<ADNBaseSegment> baseSegment) {
 
-    bs->setName("Base Segment " + std::to_string(bs->getNodeIndex()));
-    int number = bs->GetNumber();
+    if (baseSegment == nullptr) return;
+
+    baseSegment->setName("Base segment " + std::to_string(baseSegment->getNodeIndex()));
+    int number = baseSegment->GetNumber();
     if (number == -1) {
         // number not defined
         number = 0;
     }
 
-    if (start_ != nullptr) {
-        number = start_->GetNumber() - 1;
+    if (startBaseSegment != nullptr) {
+        number = startBaseSegment->GetNumber() - 1;
     }
     else {
         // nt is also fivePrime_
-        end_ = bs;
+        endBaseSegment = baseSegment;
     }
-    bs->SetNumber(number);
-    addChild(bs(), start_());
-    start_ = bs;
+
+    baseSegment->SetNumber(number);
+    addChild(baseSegment(), startBaseSegment());
+    startBaseSegment = baseSegment;
 
 }
 
-void ADNDoubleStrand::AddBaseSegmentEnd(ADNPointer<ADNBaseSegment> bs) {
+void ADNDoubleStrand::AddBaseSegmentEnd(ADNPointer<ADNBaseSegment> baseSegment) {
 
-    bs->setName("Base Segment " + std::to_string(bs->getNodeIndex()));
-    int number = bs->GetNumber();
+    if (baseSegment == nullptr) return;
+
+    baseSegment->setName("Base segment " + std::to_string(baseSegment->getNodeIndex()));
+    int number = baseSegment->GetNumber();
     if (number == -1) {
         // number not defined
         number = 0;
     }
 
-    if (end_ == nullptr) {
+    if (endBaseSegment == nullptr) {
         // bs is also first
-        start_ = bs;
+        startBaseSegment = baseSegment;
     }
     else {
-        number = end_->GetNumber() + 1;
+        number = endBaseSegment->GetNumber() + 1;
     }
 
-    addChild(bs());
-    end_ = bs;
-    bs->SetNumber(number);
+    addChild(baseSegment());
+    endBaseSegment = baseSegment;
+    baseSegment->SetNumber(number);
 
 }

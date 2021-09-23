@@ -8,8 +8,8 @@ void ADNLoop::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeInde
 
     SBStructuralGroup::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
-    serializer->writeUnsignedIntElement("startNt", nodeIndexer.getIndex(startNt_()));
-    serializer->writeUnsignedIntElement("endNt", nodeIndexer.getIndex(endNt_()));
+    serializer->writeUnsignedIntElement("startNt", nodeIndexer.getIndex(startNucleotide()));
+    serializer->writeUnsignedIntElement("endNt", nodeIndexer.getIndex(endNucleotide()));
     serializer->writeUnsignedIntElement("numNt", getNumberOfNucleotides());
     serializer->writeStartElement("nucleotides");
 
@@ -49,38 +49,34 @@ void ADNLoop::unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIn
 }
 
 void ADNLoop::SetStart(ADNPointer<ADNNucleotide> nt) {
-    startNt_ = nt;
+    this->startNucleotide = nt;
 }
 
 ADNPointer<ADNNucleotide> ADNLoop::GetStart() {
-    return startNt_;
+    return startNucleotide;
 }
 
 SBNode* ADNLoop::getStartNucleotide() const {
-    return startNt_();
+    return startNucleotide();
 }
 
 void ADNLoop::SetEnd(ADNPointer<ADNNucleotide> nt) {
-    endNt_ = nt;
+    this->endNucleotide = nt;
 }
 
 ADNPointer<ADNNucleotide> ADNLoop::GetEnd() {
-    return endNt_;
+    return endNucleotide;
 }
 
 SBNode* ADNLoop::getEndNucleotide() const {
-    return endNt_();
-}
-
-int ADNLoop::getNumberOfNucleotides() const {
-    return static_cast<int>(GetNucleotides().size());
+    return endNucleotide();
 }
 
 std::string ADNLoop::getLoopSequence() const {
 
     std::string seq = "";
-    ADNPointer<ADNNucleotide> nt = startNt_;
-    while (nt != endNt_->GetNext()) {
+    ADNPointer<ADNNucleotide> nt = startNucleotide;
+    while (nt != nullptr && nt != endNucleotide->GetNext()) {
 
         DNABlocks t = nt->GetType();
         seq += ADNModel::GetResidueName(t);
@@ -108,6 +104,10 @@ void ADNLoop::SetBaseSegment(ADNPointer<ADNBaseSegment> bs, bool setPositions) {
 
     }
 
+}
+
+int ADNLoop::getNumberOfNucleotides() const {
+    return static_cast<int>(GetNucleotides().size());
 }
 
 CollectionMap<ADNNucleotide> ADNLoop::GetNucleotides() const {

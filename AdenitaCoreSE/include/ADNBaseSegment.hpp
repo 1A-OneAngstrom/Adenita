@@ -6,7 +6,7 @@
 
 class ADNDoubleStrand;
 
-class ADNBaseSegment : public PositionableSB, public SBStructuralGroup, public Orientable {
+class ADNBaseSegment : public SBStructuralGroup, public PositionableSB, public Orientable {
 
 	SB_CLASS
 

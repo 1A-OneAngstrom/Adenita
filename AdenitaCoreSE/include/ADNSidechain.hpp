@@ -6,7 +6,7 @@
 
 class ADNNucleotide;
 
-class ADNSidechain : public PositionableSB, public SBSideChain {
+class ADNSidechain : public SBSideChain, public PositionableSB {
 
 	SB_CLASS
 

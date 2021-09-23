@@ -50,9 +50,9 @@ std::map<int, SEMergePartsEditor::Element> SEMergePartsEditor::getElementsList()
 
 	auto nr = SEAdenitaCoreSEApp::getAdenitaApp()->GetNanorobot();
 	auto parts = nr->GetParts();
-	SB_FOR(ADNPointer<ADNPart> p, parts) {
+	SB_FOR(ADNPointer<ADNPart> part, parts) {
 
-		auto dss = p->GetDoubleStrands();
+		auto dss = part->GetDoubleStrands();
 		SB_FOR(ADNPointer<ADNDoubleStrand> ds, dss) {
 
 			++lastId; // the 0-th element in the comboBox is None
@@ -62,7 +62,7 @@ std::map<int, SEMergePartsEditor::Element> SEMergePartsEditor::getElementsList()
 			mapOfElements.insert(std::make_pair(lastId, el));
 
 		}
-		auto sss = p->GetSingleStrands();
+		auto sss = part->GetSingleStrands();
 		SB_FOR(ADNPointer<ADNSingleStrand> ss, sss) {
 
 			++lastId; // the 0-th element in the comboBox is None

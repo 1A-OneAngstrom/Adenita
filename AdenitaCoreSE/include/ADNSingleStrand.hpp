@@ -5,6 +5,7 @@
 #include "ADNMixins.hpp"
 
 class ADNNucleotide;
+class ADNPart;
 
 class ADNSingleStrand : public SBChain {
 
@@ -18,66 +19,59 @@ public:
     ADNSingleStrand(const ADNSingleStrand& other);
     ~ADNSingleStrand() = default;
 
-    ADNSingleStrand& operator=(const ADNSingleStrand& other);
+    ADNSingleStrand&                                            operator=(const ADNSingleStrand& other);
 
-    void serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const;														///< Serializes the node
-    void unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0));											///< Unserializes the node
+    void                                                        serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const;														///< Serializes the node
+    void                                                        unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0));											///< Unserializes the node
 
-    ADNPointer<ADNNucleotide> GetFivePrime();
-    SBNode* getFivePrime() const;
-    ADNPointer<ADNNucleotide> GetThreePrime();
-    SBNode* getThreePrime() const;
+    ADNPointer<ADNPart>                                         GetPart();                                                              ///< Returns a pointer to the part to which this single strand belongs
 
-    ADNPointer<ADNNucleotide> GetNthNucleotide(int n);
+    ADNPointer<ADNNucleotide>                                   GetFivePrime();                                                         ///< Returns the five prime nucleotide of the single strand
+    SBNode*                                                     getFivePrime() const;                                                   ///< Returns the five prime nucleotide of the single strand
+    ADNPointer<ADNNucleotide>                                   GetThreePrime();                                                        ///< Returns the three prime nucleotide of the single strand
+    SBNode*                                                     getThreePrime() const;                                                  ///< Returns the three prime nucleotide of the single strand
 
     // if using these functions, make sure nucleotides are properly added
-    void SetFivePrime(ADNPointer<ADNNucleotide> nt);
-    void SetThreePrime(ADNPointer<ADNNucleotide> nt);
+    void                                                        SetFivePrime(ADNPointer<ADNNucleotide> nucleotide);
+    void                                                        SetThreePrime(ADNPointer<ADNNucleotide> nucleotide);
 
-    void IsScaffold(bool b);
-    bool IsScaffold() const;
-    bool getIsScaffold() const;
-    void setIsScaffold(bool b);
-    void IsCircular(bool c);
-    bool IsCircular() const;
-    bool getIsCircular() const;
-    void setIsCircular(bool b);
-    int getNumberOfNucleotides() const;
-    CollectionMap<ADNNucleotide> GetNucleotides() const;
-    //ADNPointer<ADNNucleotide> GetNucleotide(unsigned int id) const;
-    void AddNucleotideThreePrime(ADNPointer<ADNNucleotide> nt);  // add nucleotide to the three prime end
-    void AddNucleotideFivePrime(ADNPointer<ADNNucleotide> nt);  // add nucleotide to the five prime end
-    void AddNucleotide(ADNPointer<ADNNucleotide> nt, ADNPointer<ADNNucleotide> nextNt);  // add nucleotide at any position
+    void                                                        IsScaffold(bool b);
+    bool                                                        IsScaffold() const;                                                     ///< Returns whether a single strand is a scaffold
+    bool                                                        getIsScaffold() const;
+    void                                                        setIsScaffold(bool b);
 
-    //! Shift start of the strand to the selected nucleotide and sequence.
-    /*!
-      \param a ADNPointer to the ADNNucleotide which should be the new 5' of its strand
-      \param whether to keep the sequence as it was (reset it from new 5' on)
-    */
-    void ShiftStart(ADNPointer<ADNNucleotide> nucleotide, bool shiftSeq = false);
-    /**
-    * Returns the sequence of the strand
-    * \param sequence from 5' to 3'
-    */
-    std::string GetSequence() const;
-    std::string getSequence() const;
-    std::string GetSequenceWithTags() const;
-    /**
-    * Returns GC content as a % in this strand
-    */
-    double GetGCContent() const;
-    double getGCContent() const;
+    void                                                        IsCircular(bool c);
+    bool                                                        IsCircular() const;
+    bool                                                        getIsCircular() const;
+    void                                                        setIsCircular(bool b);
 
-    void SetSequence(std::string seq);
-    void setSequence(std::string seq);
-    void SetDefaultName();
+    CollectionMap<ADNNucleotide>                                GetNucleotides() const;                                                 ///< Returns the nucleotides of the single strand
+    int                                                         getNumberOfNucleotides() const;
+
+    void                                                        AddNucleotideThreePrime(ADNPointer<ADNNucleotide> nucleotide);          ///< Adds the nucleotide to the three prime end
+    void                                                        AddNucleotideFivePrime(ADNPointer<ADNNucleotide> nucleotide);           ///< Adds the nucleotide to the five prime end
+    void                                                        AddNucleotide(ADNPointer<ADNNucleotide> nucleotide, ADNPointer<ADNNucleotide> nextNucleotide);  ///< add nucleotide at any position
+
+    void                                                        ShiftStart(ADNPointer<ADNNucleotide> nucleotide, bool shiftSeq = false);///< Shift start of the strand to the selected nucleotide and sequence.
+
+    std::string                                                 GetSequence() const;
+    std::string                                                 getSequence() const;
+    std::string                                                 GetSequenceWithTags() const;
+
+    double                                                      GetGCContent() const;                                                   ///< Returns GC content as a % in this strand
+    double                                                      getGCContent() const;                                                   ///< Returns GC content as a % in this strand
+
+    void                                                        SetSequence(std::string seq);
+    void                                                        setSequence(std::string seq);
+    void                                                        SetDefaultName();
 
 private:
 
-    bool isScaffold_ = false;
-    bool isCircular_ = false;
-    ADNPointer<ADNNucleotide> fivePrime_;
-    ADNPointer<ADNNucleotide> threePrime_;
+    bool                                                        scaffoldFlag = false;
+    bool                                                        circularFlag = false;
+
+    ADNPointer<ADNNucleotide>                                   fivePrimeNucleotide = nullptr;
+    ADNPointer<ADNNucleotide>                                   threePrimeNucleotide = nullptr;
 
 };
 

@@ -177,8 +177,8 @@ SB_CLASS_BEGIN(ADNNucleotide);
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, Next, "Next nucleotide", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, Prev, "Previous nucleotide", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, Pair, "Pair nucleotide", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(std::string, ADNNucleotide, BaseSegmentType, "Base segment type", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(std::string, ADNNucleotide, EndType, "End type", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(std::string, ADNNucleotide, BaseSegmentTypeString, "Base segment type", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(std::string, ADNNucleotide, EndTypeString, "End type", "Adenita");
     SB_ATTRIBUTE_READ_WRITE(std::string, ADNNucleotide, Tag, "Tag", "Adenita");
 
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, ThisNode, "Itself", "Node");

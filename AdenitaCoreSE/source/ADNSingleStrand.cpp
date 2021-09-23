@@ -1,6 +1,7 @@
 //#include "ADNSingleStrand.hpp"
 //#include "ADNNucleotide.hpp"
 #include "ADNModel.hpp"
+#include "ADNPart.hpp"
 
 
 ADNSingleStrand::ADNSingleStrand(const ADNSingleStrand& other) {
@@ -13,9 +14,9 @@ ADNSingleStrand& ADNSingleStrand::operator=(const ADNSingleStrand& other) {
 
     SBChain::operator =(other);
 
-    isScaffold_ = other.isScaffold_;
-    fivePrime_ = other.fivePrime_;
-    threePrime_ = other.threePrime_;
+    this->scaffoldFlag = other.scaffoldFlag;
+    this->fivePrimeNucleotide = other.fivePrimeNucleotide;
+    this->threePrimeNucleotide = other.threePrimeNucleotide;
 
     return *this;
 
@@ -27,8 +28,8 @@ void ADNSingleStrand::serialize(SBCSerializer* serializer, const SBNodeIndexer& 
 
     serializer->writeBoolElement("isScaffold", IsScaffold());
     serializer->writeBoolElement("isCircular", IsCircular());
-    serializer->writeUnsignedIntElement("fivePrime", nodeIndexer.getIndex(fivePrime_()));
-    serializer->writeUnsignedIntElement("threePrime", nodeIndexer.getIndex(threePrime_()));
+    serializer->writeUnsignedIntElement("fivePrime", nodeIndexer.getIndex(fivePrimeNucleotide()));
+    serializer->writeUnsignedIntElement("threePrime", nodeIndexer.getIndex(threePrimeNucleotide()));
 
 }
 
@@ -46,57 +47,51 @@ void ADNSingleStrand::unserialize(SBCSerializer* serializer, const SBNodeIndexer
     ADNPointer<ADNNucleotide> fp = static_cast<ADNNucleotide*>(fPrime);
     SBNode* tPrime = nodeIndexer.getNode(tPrimeIdx);
     ADNPointer<ADNNucleotide> tp = static_cast<ADNNucleotide*>(tPrime);
-    fivePrime_ = fp;
-    threePrime_ = tp;
+    fivePrimeNucleotide = fp;
+    threePrimeNucleotide = tp;
+
+}
+
+ADNPointer<ADNPart> ADNSingleStrand::GetPart() {
+
+    // the ADNPart is a structural model
+    SBNode* model = getModel();
+    if (!model) return nullptr;
+    ADNPointer<ADNPart> part = static_cast<ADNPart*>(model);
+    return part;
 
 }
 
 ADNPointer<ADNNucleotide> ADNSingleStrand::GetFivePrime() {
-    return fivePrime_;
+    return fivePrimeNucleotide;
 }
 
 SBNode* ADNSingleStrand::getFivePrime() const {
-    return fivePrime_();
+    return fivePrimeNucleotide();
 }
 
 ADNPointer<ADNNucleotide> ADNSingleStrand::GetThreePrime() {
-    return threePrime_;
+    return threePrimeNucleotide;
 }
 
 SBNode* ADNSingleStrand::getThreePrime() const {
-    return threePrime_();
+    return threePrimeNucleotide();
 }
 
-ADNPointer<ADNNucleotide> ADNSingleStrand::GetNthNucleotide(int n) {
-
-    ADNPointer<ADNNucleotide> nt = nullptr;
-    if (n <= getNumberOfNucleotides()) {
-
-        nt = fivePrime_;
-        for (int i = 0; i < n; ++i) {
-            nt = nt->GetNext();
-        }
-
-    }
-
-    return nt;
-
+void ADNSingleStrand::SetFivePrime(ADNPointer<ADNNucleotide> nucleotide) {
+    this->fivePrimeNucleotide = nucleotide;
 }
 
-void ADNSingleStrand::SetFivePrime(ADNPointer<ADNNucleotide> nt) {
-    fivePrime_ = nt;
-}
-
-void ADNSingleStrand::SetThreePrime(ADNPointer<ADNNucleotide> nt) {
-    threePrime_ = nt;
+void ADNSingleStrand::SetThreePrime(ADNPointer<ADNNucleotide> nucleotide) {
+    this->threePrimeNucleotide = nucleotide;
 }
 
 void ADNSingleStrand::IsScaffold(bool b) {
-    isScaffold_ = b;
+    this->scaffoldFlag = b;
 }
 
 bool ADNSingleStrand::IsScaffold() const {
-    return isScaffold_;
+    return scaffoldFlag;
 }
 
 bool ADNSingleStrand::getIsScaffold() const {
@@ -108,11 +103,11 @@ void ADNSingleStrand::setIsScaffold(bool b) {
 }
 
 void ADNSingleStrand::IsCircular(bool c) {
-    isCircular_ = c;
+    this->circularFlag = c;
 }
 
 bool ADNSingleStrand::IsCircular() const {
-    return isCircular_;
+    return circularFlag;
 }
 
 bool ADNSingleStrand::getIsCircular() const {
@@ -129,83 +124,93 @@ int ADNSingleStrand::getNumberOfNucleotides() const {
 
 CollectionMap<ADNNucleotide> ADNSingleStrand::GetNucleotides() const {
 
-    CollectionMap<ADNNucleotide> ntList;
+    CollectionMap<ADNNucleotide> nucleotideList;
 
-    SBPointerList<SBStructuralNode> children = *getChildren();
-    SB_FOR(SBStructuralNode * n, children) {
+#if 0
+    SBNodeIndexer nodeIndexer;
+    getNodes(nodeIndexer, SBNode::IsType(SBNode::Residue) && (SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+    SB_FOR(SBNode * n, nodeIndexer)
+        nucleotideList.addReferenceTarget(static_cast<ADNBaseSegment*>(n));
+#else
+    const SBPointerList<SBStructuralNode>* children = getChildren();
+    SB_FOR(SBStructuralNode * n, *children) {
 
-        ADNPointer<ADNNucleotide> a = static_cast<ADNNucleotide*>(n);
-        ntList.addReferenceTarget(a());
+        if (n->getProxy()->getName() == "ADNNucleotide" && n->getProxy()->getElementUUID() == SBUUID(SB_ELEMENT_UUID)) {
+
+            ADNPointer<ADNNucleotide> a = static_cast<ADNNucleotide*>(n);
+            nucleotideList.addReferenceTarget(a());
+
+        }
 
     }
+#endif
 
-    return ntList;
+    return nucleotideList;
 
 }
 
-//ADNPointer<ADNNucleotide> ADNSingleStrand::GetNucleotide(unsigned int id) const {
-//  auto ntList = GetNucleotides();
-//  return ntList[id];
-//}
+void ADNSingleStrand::AddNucleotideThreePrime(ADNPointer<ADNNucleotide> nucleotide) {
 
-void ADNSingleStrand::AddNucleotideThreePrime(ADNPointer<ADNNucleotide> nt) {
+    addChild(nucleotide());
 
-    addChild(nt());
+    if (threePrimeNucleotide != nullptr) {
 
-    if (threePrime_ != nullptr) {
-
-        if (threePrime_->GetEnd() == End::FiveAndThreePrime) threePrime_->SetEnd(End::FivePrime);
-        else threePrime_->SetEnd(End::NotEnd);
-        nt->SetEnd(End::ThreePrime);
+        if (threePrimeNucleotide->getEndType() == ADNNucleotide::EndType::FiveAndThreePrime) threePrimeNucleotide->setEndType(ADNNucleotide::EndType::FivePrime);
+        else threePrimeNucleotide->setEndType(ADNNucleotide::EndType::NotEnd);
+        nucleotide->setEndType(ADNNucleotide::EndType::ThreePrime);
 
     }
     else {
 
-        // nt is also fivePrime_
-        fivePrime_ = nt;
-        nt->SetEnd(End::FiveAndThreePrime);
+        // nt is also fivePrimeNucleotide
+        this->fivePrimeNucleotide = nucleotide;
+        nucleotide->setEndType(ADNNucleotide::EndType::FiveAndThreePrime);
 
     }
 
-    threePrime_ = nt;
+    threePrimeNucleotide = nucleotide;
 
 }
 
-void ADNSingleStrand::AddNucleotideFivePrime(ADNPointer<ADNNucleotide> nt) {
+void ADNSingleStrand::AddNucleotideFivePrime(ADNPointer<ADNNucleotide> nucleotide) {
 
-    if (fivePrime_ != nullptr) {
+    if (fivePrimeNucleotide != nullptr) {
 
-        if (fivePrime_->GetEnd() == End::FiveAndThreePrime) fivePrime_->SetEnd(End::ThreePrime);
-        else fivePrime_->SetEnd(End::NotEnd);
-        nt->SetEnd(End::FivePrime);
+        if (fivePrimeNucleotide->getEndType() == ADNNucleotide::EndType::FiveAndThreePrime) fivePrimeNucleotide->setEndType(ADNNucleotide::EndType::ThreePrime);
+        else fivePrimeNucleotide->setEndType(ADNNucleotide::EndType::NotEnd);
+        nucleotide->setEndType(ADNNucleotide::EndType::FivePrime);
 
     }
     else {
 
-        // nt is also fivePrime_
-        threePrime_ = nt;
-        nt->SetEnd(End::FiveAndThreePrime);
+        // nt is also fivePrimeNucleotide
+        this->threePrimeNucleotide = nucleotide;
+        nucleotide->setEndType(ADNNucleotide::EndType::FiveAndThreePrime);
 
     }
 
-    addChild(nt(), fivePrime_());
-    fivePrime_ = nt;
+    addChild(nucleotide(), fivePrimeNucleotide());
+    fivePrimeNucleotide = nucleotide;
 
 }
 
-void ADNSingleStrand::AddNucleotide(ADNPointer<ADNNucleotide> nt, ADNPointer<ADNNucleotide> nextNt) {
+void ADNSingleStrand::AddNucleotide(ADNPointer<ADNNucleotide> nucleotide, ADNPointer<ADNNucleotide> nextNucleotide) {
 
-    if (nextNt == nullptr) return AddNucleotideThreePrime(nt);
-    if (nextNt == GetFivePrime()) return AddNucleotideFivePrime(nt);
+    if (nextNucleotide == nullptr) return AddNucleotideThreePrime(nucleotide);
+    if (nextNucleotide == GetFivePrime()) return AddNucleotideFivePrime(nucleotide);
 
-    addChild(nt(), nextNt());
+    addChild(nucleotide(), nextNucleotide());
 
 }
 
+/*!
+  \param a ADNPointer to the ADNNucleotide which should be the new 5' of its strand
+  \param whether to keep the sequence as it was (reset it from new 5' on)
+*/
 void ADNSingleStrand::ShiftStart(ADNPointer<ADNNucleotide> nucleotide, bool shiftSeq) {
 
     // skip if the nucleotide is already the 5'
-    if (nucleotide == fivePrime_) return;
+    if (nucleotide == fivePrimeNucleotide) return;
 
     // perform some checks
 
@@ -217,7 +222,7 @@ void ADNSingleStrand::ShiftStart(ADNPointer<ADNNucleotide> nucleotide, bool shif
         "The total number in nanorobot is " << numberOfNucleotidesBefore << " and using SAMSON it is " << numberOfNucleotidesUsingSAMSONBefore << std::endl;
 
     std::string seq = GetSequence();
-    auto origThreePrime = threePrime_;
+    auto origThreePrime = threePrimeNucleotide;
     auto loopNt = origThreePrime;
     auto stopNt = nucleotide->GetPrev();
 
@@ -230,8 +235,8 @@ void ADNSingleStrand::ShiftStart(ADNPointer<ADNNucleotide> nucleotide, bool shif
 
     }
 
-    stopNt->SetEnd(End::ThreePrime);
-    threePrime_ = stopNt;
+    stopNt->setEndType(ADNNucleotide::EndType::ThreePrime);
+    threePrimeNucleotide = stopNt;
 
     if (shiftSeq) {
         SetSequence(seq);
@@ -256,10 +261,14 @@ void ADNSingleStrand::ShiftStart(ADNPointer<ADNNucleotide> nucleotide, bool shif
 
 }
 
+/**
+* Returns the sequence of the strand
+* \param sequence from 5' to 3'
+*/
 std::string ADNSingleStrand::GetSequence() const {
 
     std::string seq = "";
-    ADNPointer<ADNNucleotide> nt = fivePrime_;
+    ADNPointer<ADNNucleotide> nt = fivePrimeNucleotide;
     while (nt != nullptr) {
 
         seq += ADNModel::GetResidueName(nt->GetType());
@@ -277,7 +286,7 @@ std::string ADNSingleStrand::getSequence() const {
 std::string ADNSingleStrand::GetSequenceWithTags() const {
 
     std::string seq = "";
-    ADNPointer<ADNNucleotide> nt = fivePrime_;
+    ADNPointer<ADNNucleotide> nt = fivePrimeNucleotide;
     while (nt != nullptr) {
 
         std::string totalBase(1, ADNModel::GetResidueName(nt->GetType()));
@@ -322,13 +331,13 @@ void ADNSingleStrand::SetSequence(std::string seq) {
 
     if (seq.empty()) return;
 
-    if (isScaffold_ != true) {
+    if (scaffoldFlag != true) {
 
         std::string msg = "Forcing sequence on staple " + getName();
         ADNLogger::Log(msg);
 
     }
-    ADNPointer<ADNNucleotide> nt = fivePrime_;
+    ADNPointer<ADNNucleotide> nt = fivePrimeNucleotide;
     int count = 0;
     while (nt != nullptr) {
 
@@ -355,7 +364,7 @@ void ADNSingleStrand::setSequence(std::string seq) {
 void ADNSingleStrand::SetDefaultName() {
 
     std::string name = "Strand";
-    if (isScaffold_) name = "Scaffold";
+    if (scaffoldFlag) name = "Scaffold";
     setName(name);
 
 }

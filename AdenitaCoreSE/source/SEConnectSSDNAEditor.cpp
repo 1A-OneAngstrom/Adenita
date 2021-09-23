@@ -277,10 +277,10 @@ void SEConnectSSDNAEditor::mouseReleaseEvent(QMouseEvent* event) {
 
 			auto startNuclecotide = selectedStartNucleotide;
 			ADNPointer<ADNNucleotide> endNuclecotide = highlightedNucleotides[0];
-			ADNPointer<ADNPart> part1 = nanorobot->GetPart(startNuclecotide->GetStrand());
-			ADNPointer<ADNPart> part2 = nanorobot->GetPart(endNuclecotide->GetStrand());
+			ADNPointer<ADNPart> part1 = startNuclecotide->GetStrand()->GetPart();
+			ADNPointer<ADNPart> part2 = endNuclecotide->GetStrand()->GetPart();
 
-			if (startNuclecotide->GetStrand() == endNuclecotide->GetStrand() && !startNuclecotide->IsEnd() && !endNuclecotide->IsEnd()) {
+			if (startNuclecotide->GetStrand() == endNuclecotide->GetStrand() && !startNuclecotide->isEndTypeNucleotide() && !endNuclecotide->isEndTypeNucleotide()) {
 
 				SAMSON::informUser("Adenita - Connect editor", "Cannot connect these two nucleotides.\nOne of the nucleotides should be the end nucleotide or both nucleotides should be from different strands.");
 

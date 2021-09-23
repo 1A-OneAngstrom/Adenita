@@ -6,11 +6,11 @@ DASOperations::Connections DASOperations::PrepareStrandsForConnection(ADNPointer
 {
   Connections conn;
 
-  if (nt1->GetEnd() == End::ThreePrime && nt2->GetEnd() == End::ThreePrime) return conn;
+  if (nt1->getEndType() == ADNNucleotide::EndType::ThreePrime && nt2->getEndType() == ADNNucleotide::EndType::ThreePrime) return conn;
 
   // nt1 will be left as 3' while nt2 will be left as 5'
-  if (nt1->GetEnd() == End::FivePrime) {
-    if (nt2->GetEnd() == End::FivePrime) return conn;
+  if (nt1->getEndType() == ADNNucleotide::EndType::FivePrime) {
+    if (nt2->getEndType() == ADNNucleotide::EndType::FivePrime) return conn;
     ADNPointer<ADNNucleotide> tmp = nt1;
     nt1 = nt2;
     nt2 = tmp;
@@ -19,7 +19,7 @@ DASOperations::Connections DASOperations::PrepareStrandsForConnection(ADNPointer
     part2 = tmpPart;
   }
 
-  if (nt1->IsEnd() && nt2->IsEnd()) {
+  if (nt1->isEndTypeNucleotide() && nt2->isEndTypeNucleotide()) {
     // we merge in the order they are now
     MergePair pair;
     pair.first = nt1->GetStrand();
@@ -36,13 +36,13 @@ DASOperations::Connections DASOperations::PrepareStrandsForConnection(ADNPointer
     ADNPointer<ADNNucleotide> secondPrev = nullptr;
 
     // break first nucleotide in 3'
-    if (nt1->GetEnd() != End::ThreePrime) {
+    if (nt1->getEndType() != ADNNucleotide::EndType::ThreePrime) {
       firstNext = nt1->GetNext(true);
       auto p = ADNBasicOperations::BreakSingleStrand(part1, firstNext);
     }
 
     // break second nucleotide in 5'
-    if (nt2->GetEnd() != End::FivePrime) {
+    if (nt2->getEndType() != ADNNucleotide::EndType::FivePrime) {
       secondPrev = nt2->GetPrev();
       auto p = ADNBasicOperations::BreakSingleStrand(part2, nt2);
     }
@@ -181,7 +181,7 @@ void DASOperations::AddComplementaryStrands(ADNNanorobot* nanorobot, CollectionM
 
   SB_FOR(ADNPointer<ADNNucleotide> nt, selectedNucleotides) {
     auto bs = nt->GetBaseSegment();
-    ADNPointer<ADNPart> part = nanorobot->GetPart(bs->GetDoubleStrand());
+    ADNPointer<ADNPart> part = bs->GetDoubleStrand()->GetPart();
     auto next = nt->GetNext(true);
 
     if (nt->GetPair() == nullptr) {

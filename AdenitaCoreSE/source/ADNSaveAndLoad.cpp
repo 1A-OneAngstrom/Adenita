@@ -317,11 +317,11 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(std::string filename) {
       int nucleotideId = itr2->value["id"].GetInt();
 
       if (nucleotideId == fivePrimeId) {
-        nt->SetEnd(End::FivePrime);
+        nt->setEndType(ADNNucleotide::EndType::FivePrime);
         ss->SetFivePrime(nt);
       }
       if (nucleotideId == threePrimeId) {
-        nt->SetEnd(End::ThreePrime);
+        nt->setEndType(ADNNucleotide::EndType::ThreePrime);
         ss->SetThreePrime(nt);
       }
 
@@ -1149,13 +1149,13 @@ void ADNLoader::SingleStrandsToOxDNA(CollectionMap<ADNSingleStrand> singleStrand
       std::string threePrime = "-1";
       auto ntPrev = nt->GetPrev(true);
       if (ntPrev != nullptr) {
-        if (ntPrev->GetEnd() == End::ThreePrime) threePrime = std::to_string(threePrimeId);
+        if (ntPrev->getEndType() == ADNNucleotide::EndType::ThreePrime) threePrime = std::to_string(threePrimeId);
         else threePrime = std::to_string(ntId - 1);
       }
       std::string fivePrime = "-1";
       auto ntNext = nt->GetNext(true);
       if (ntNext != nullptr) {
-        if (ntNext->GetEnd() == End::FivePrime) fivePrime = std::to_string(fivePrimeId);
+        if (ntNext->getEndType() == ADNNucleotide::EndType::FivePrime) fivePrime = std::to_string(fivePrimeId);
         else fivePrime = std::to_string(ntId + 1);
       }
 
@@ -1575,7 +1575,7 @@ void ADNLoader::BuildTopScalesParemetrized(ADNPointer<ADNPart> part, SBQuantity:
       double turningThreshold = 0.0;
       //if (pair == nullptr && nt->GetEnd() != NotEnd) breakDs = true;
       //else if (pair != nullptr && nt->GetEnd() == ThreePrime && pair->GetEnd() == FivePrime) breakDs = true;
-      if (nt->GetEnd() != End::ThreePrime) {
+      if (nt->getEndType() != ADNNucleotide::EndType::ThreePrime) {
         // if huge change in directionality, make new strand
         ADNPointer<ADNNucleotide> ntNext = nt->GetNext();
         ublas::vector<double> e3Next = ntNext->GetE3();
@@ -1585,7 +1585,7 @@ void ADNLoader::BuildTopScalesParemetrized(ADNPointer<ADNPart> part, SBQuantity:
         }
         if (theta < turningThreshold) breakDs = true;
       }
-      if (pair != nullptr && pair->GetEnd() != End::FivePrime) {
+      if (pair != nullptr && pair->getEndType() != ADNNucleotide::EndType::FivePrime) {
         // if huge change in directionality, make new strand
         ADNPointer<ADNNucleotide> pairPrev = pair->GetPrev();
         ublas::vector<double> e3Prev = pairPrev->GetE3();
@@ -1688,7 +1688,7 @@ void ADNLoader::BuildTopScales(ADNPointer<ADNPart> part)
       double turningThreshold = 0.0;
       //if (pair == nullptr && nt->GetEnd() != NotEnd) breakDs = true;
       //else if (pair != nullptr && nt->GetEnd() == ThreePrime && pair->GetEnd() == FivePrime) breakDs = true;
-      if (nt->GetEnd() != End::ThreePrime) {
+      if (nt->getEndType() != ADNNucleotide::EndType::ThreePrime) {
         // if huge change in directionality, make new strand
         ADNPointer<ADNNucleotide> ntNext = nt->GetNext();
         ublas::vector<double> e3Next = ntNext->GetE3();
@@ -1698,7 +1698,7 @@ void ADNLoader::BuildTopScales(ADNPointer<ADNPart> part)
         }
         if (theta < turningThreshold) breakDs = true;
       }
-      if (pair != nullptr && pair->GetEnd() != End::FivePrime) {
+      if (pair != nullptr && pair->getEndType() != ADNNucleotide::EndType::FivePrime) {
         // if huge change in directionality, make new strand
         ADNPointer<ADNNucleotide> pairPrev = pair->GetPrev();
         ublas::vector<double> e3Prev = pairPrev->GetE3();

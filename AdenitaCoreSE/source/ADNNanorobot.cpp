@@ -137,35 +137,20 @@ CollectionMap<ADNPart> ADNNanorobot::GetParts() const {
 
 }
 
-/*!
-\param a pointer to a ADNSingleStrand
-\return the ADNPart to which the ADNSingleStrand belongs to
-*/
-ADNPointer<ADNPart> ADNNanorobot::GetPart(ADNPointer<ADNSingleStrand> singleStrand) {
+int ADNNanorobot::GetNumberOfParts() {
 
-    if (singleStrand == nullptr) return nullptr;
-    if (!singleStrand->getParent()) return nullptr;
-    if (!singleStrand->getParent()->getParent()) return nullptr;
+#if ADENITA_NANOROBOT_REGISTER_PARTS
+    return partsIndex_.size();
+#else
+    SBNodeIndexer structuralModelIndexer;
+    SAMSON::getActiveDocument()->getNodes(structuralModelIndexer, SBNode::StructuralModel);
 
-    SBNode* parent = singleStrand->getParent()->getParent();  // first parent is the structural model root
-    ADNPointer<ADNPart> part = static_cast<ADNPart*>(parent);
-    return part;
+    SBNodeIndexer nodeIndexer;
+    SB_FOR(SBNode * node, structuralModelIndexer)
+        node->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNPart")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
-}
-
-/*!
-\param a pointer to a ADNDoubleStrand
-\return the ADNPart to which the ADNDoubleStrand belongs to
-*/
-ADNPointer<ADNPart> ADNNanorobot::GetPart(ADNPointer<ADNDoubleStrand> doubleStrand) {
-
-    if (doubleStrand == nullptr) return nullptr;
-    if (!doubleStrand->getParent()) return nullptr;
-    if (!doubleStrand->getParent()->getParent()) return nullptr;
-
-    SBNode* parent = doubleStrand->getParent()->getParent();  // first parent is the structural model root
-    ADNPointer<ADNPart> part = static_cast<ADNPart*>(parent);
-    return part;
+    return nodeIndexer.size();
+#endif
 
 }
 
@@ -350,151 +335,6 @@ CollectionMap<ADNDoubleStrand> ADNNanorobot::GetHighlightedDoubleStrands() {
 
     return doubleStrands;
 
-}
-
-/*!
-\param a ADNPointer to a ADNPart
-\return a CollectionMap of ADNSingleStrand
-*/
-CollectionMap<ADNSingleStrand> ADNNanorobot::GetSingleStrands(ADNPointer<ADNPart> part) {
-    return part->GetSingleStrands();
-}
-
-/*!
-\param a ADNPointer to a ADNSingleStrand. ADNSingleStrand is deleted
-*/
-void ADNNanorobot::RemoveSingleStrand(ADNPointer<ADNSingleStrand> singleStrand) {
-
-    auto part = GetPart(singleStrand);
-    part->DeregisterSingleStrand(singleStrand);
-
-}
-
-/*!
-\param a ADNPointer to a ADNDoubleStrand. ADNDoubleStrand is deleted
-*/
-void ADNNanorobot::RemoveDoubleStrand(ADNPointer<ADNDoubleStrand> doubleStrand) {
-
-    auto part = GetPart(doubleStrand);
-    part->DeregisterDoubleStrand(doubleStrand);
-
-}
-
-/*!
-\param a ADNPointer to a ADNSingleStrand
-\param a ADNPointer to a ADNPart
-*/
-void ADNNanorobot::AddSingleStrand(ADNPointer<ADNSingleStrand> singleStrand, ADNPointer<ADNPart> part) {
-    part->RegisterSingleStrand(singleStrand);
-}
-
-/*!
-\param a ADNPointer to a ADNPart
-\return a CollectionMap of ADNSingleStrand
-*/
-CollectionMap<ADNSingleStrand> ADNNanorobot::GetScaffolds(ADNPointer<ADNPart> part) {
-    return part->GetScaffolds();
-}
-
-/*!
-\param a ADNPointer to a ADNPart
-\return a CollectionMap of ADNSingleStrand
-*/
-CollectionMap<ADNDoubleStrand> ADNNanorobot::GetDoubleStrands(ADNPointer<ADNPart> part) {
-    return part->GetDoubleStrands();
-}
-
-/*!
-\param a ADNPointer to a ADNNucleotide
-\return the ADNDoubleStrand to which it belongs
-*/
-ADNPointer<ADNDoubleStrand> ADNNanorobot::GetDoubleStrand(ADNPointer<ADNNucleotide> nucleotide) {
-
-    auto baseSegment = nucleotide->GetBaseSegment();
-    if (baseSegment != nullptr) 
-        return baseSegment->GetDoubleStrand();
-    else
-        return nullptr;
-
-}
-
-/*!
-\param a ADNPointer to a ADNSingleStrand
-\return a CollectionMap of ADNNucleotides
-*/
-CollectionMap<ADNNucleotide> ADNNanorobot::GetSingleStrandNucleotides(ADNPointer<ADNSingleStrand> singleStrand) {
-    return singleStrand->GetNucleotides();
-}
-
-/*!
-\param a ADNPointer to a ADNSingleStrand
-\return a ADNPointer to the five prime ADNNucleotide
-*/
-ADNPointer<ADNNucleotide> ADNNanorobot::GetSingleStrandFivePrime(ADNPointer<ADNSingleStrand> singleStrand) {
-    return singleStrand->GetFivePrime();
-}
-
-/*!
-\param a ADNPointer to a ADNSingleStrand
-\return a bool value true if it is a scaffold
-*/
-bool ADNNanorobot::IsScaffold(ADNPointer<ADNSingleStrand> singleStrand) {
-    return singleStrand->IsScaffold();
-}
-
-/*!
-\param a ADNPointer to a ADNNucleotide
-\return the End position on the strand
-*/
-End ADNNanorobot::GetNucleotideEnd(ADNPointer<ADNNucleotide> nucleotide) {
-    return nucleotide->GetEnd();
-}
-
-/*!
-\param a ADNPointer to a ADNNucleotide
-\return a ADNPointer to the ADNNucleotide next on the single strand
-*/
-ADNPointer<ADNNucleotide> ADNNanorobot::GetNucleotideNext(ADNPointer<ADNNucleotide> nucleotide, bool circular) {
-    return nucleotide->GetNext(circular);
-}
-
-/*!
-\param a ADNPointer to a ADNNucleotide
-\return a ADNPointer to the ADNNucleotide pair
-*/
-ADNPointer<ADNNucleotide> ADNNanorobot::GetNucleotidePair(ADNPointer<ADNNucleotide> nucleotide) {
-    return nucleotide->GetPair();
-}
-
-/*!
-\param a ADNPointer to a ADNNucleotide
-\return the positon of the nucleotide as SBPosition3
-*/
-SBPosition3 ADNNanorobot::GetNucleotidePosition(ADNPointer<ADNNucleotide> nucleotide) {
-    return nucleotide->GetPosition();
-}
-
-/*!
-\param a ADNPointer to a ADNNucleotide
-\return the positon of the backbone of the nucleotide as SBPosition3
-*/
-SBPosition3 ADNNanorobot::GetNucleotideBackbonePosition(ADNPointer<ADNNucleotide> nucleotide) {
-    return nucleotide->GetBackbonePosition();
-}
-
-/*!
-\param a ADNPointer to a ADNNucleotide
-\return the positon of the sidechain of the nucleotide as SBPosition3
-*/
-SBPosition3 ADNNanorobot::GetNucleotideSidechainPosition(ADNPointer<ADNNucleotide> nucleotide) {
-    return nucleotide->GetSidechainPosition();
-}
-
-/*!
-\param a ADNPointer to a ADNNucleotide
-*/
-void ADNNanorobot::HideCenterAtoms(ADNPointer<ADNNucleotide> nucleotide) {
-    nucleotide->HideCenterAtoms();
 }
 
 /*!

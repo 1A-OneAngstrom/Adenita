@@ -21,7 +21,7 @@ void ADNNucleotide::serialize(SBCSerializer* serializer, const SBNodeIndexer& no
 
     SBResidue::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
-    serializer->writeIntElement("end", static_cast<int>(end_));
+    serializer->writeIntElement("end", static_cast<int>(endType));
 
     //ADNPointer<ADNAtom> at = GetCenterAtom();
     SBPosition3 pos = GetPosition();
@@ -71,7 +71,7 @@ void ADNNucleotide::unserialize(SBCSerializer* serializer, const SBNodeIndexer& 
 
     SBResidue::unserialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
-    SetEnd(static_cast<End>(serializer->readIntElement()));
+    setEndType(static_cast<ADNNucleotide::EndType>(serializer->readIntElement()));
 
     //unsigned int idx = serializer->readUnsignedIntElement();
     //ADNPointer<ADNAtom> at = (ADNAtom*)nodeIndexer.getNode(idx);
@@ -163,7 +163,7 @@ ADNPointer<ADNNucleotide> ADNNucleotide::GetPrev(bool checkCircular) const {
     if (checkCircular) {
 
         auto strand = GetStrand();
-        if (strand->IsCircular() && end_ == End::FivePrime) {
+        if (strand->IsCircular() && endType == EndType::FivePrime) {
             p = strand->GetThreePrime();
         }
 
@@ -184,7 +184,7 @@ ADNPointer<ADNNucleotide> ADNNucleotide::GetNext(bool checkCircular) const {
     if (checkCircular) {
 
         auto strand = GetStrand();
-        if (strand->IsCircular() && end_ == End::ThreePrime) {
+        if (strand->IsCircular() && endType == EndType::ThreePrime) {
             p = strand->GetFivePrime();
         }
 
@@ -330,42 +330,46 @@ SBNode* ADNNucleotide::getBaseSegment() const {
     return bs_();
 }
 
-std::string ADNNucleotide::getBaseSegmentType() const {
+std::string ADNNucleotide::getBaseSegmentTypeString() const {
 
     CellType t = bs_->GetCellType();
     return ADNModel::CellTypeToString(t);
 
 }
 
-std::string ADNNucleotide::getEndType() const {
+ADNPointer<ADNDoubleStrand> ADNNucleotide::GetDoubleStrand() {
 
-    std::string s = std::string();
-    if (end_ == End::FivePrime) {
-        s = "5'";
-    }
-    else if (end_ == End::ThreePrime) {
-        s = "3'";
-    }
-    else if (end_ == End::FiveAndThreePrime) {
-        s = "5' and 3'";
-    }
-    else if (end_ == End::NotEnd) {
-        s = "Not end";
-    }
+    auto baseSegment = GetBaseSegment();
+    if (baseSegment != nullptr)
+        return baseSegment->GetDoubleStrand();
+    else
+        return nullptr;
+
+}
+
+std::string ADNNucleotide::getEndTypeString() const {
+
+    std::string s = "Not end";
+
+    if (endType == EndType::FivePrime) s = "5'";
+    else if (endType == EndType::ThreePrime) s = "3'";
+    else if (endType == EndType::FiveAndThreePrime) s = "5' and 3'";
+    else if (endType == EndType::NotEnd) s = "Not end";
+
     return s;
 
 }
 
-End ADNNucleotide::GetEnd() {
-    return end_;
+ADNNucleotide::EndType ADNNucleotide::getEndType() {
+    return endType;
 }
 
-void ADNNucleotide::SetEnd(End e) {
-    end_ = e;
+void ADNNucleotide::setEndType(ADNNucleotide::EndType type) {
+    this->endType = type;
 }
 
-bool ADNNucleotide::IsEnd() {
-    return (end_ != End::NotEnd);
+bool ADNNucleotide::isEndTypeNucleotide() {
+    return (endType != EndType::NotEnd);
 }
 
 void ADNNucleotide::Init() {
@@ -483,7 +487,7 @@ std::string ADNNucleotide::getTag() const {
 }
 
 void ADNNucleotide::setTag(std::string t) {
-    tag_ = t;
+    this->tag_ = t;
 }
 
 bool ADNNucleotide::hasTag() {

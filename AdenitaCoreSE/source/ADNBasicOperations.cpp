@@ -108,14 +108,14 @@ CollectionMap<ADNNucleotide> ADNBasicOperations::AddNucleotidesThreePrime(ADNPoi
     auto ds = bs->GetDoubleStrand();
     bool isLeft = bs->IsLeft(nt);
     auto n = GetNextBaseSegment(nt);
-    End e = n.first;
+    ADNNucleotide::EndType e = n.first;
     ADNPointer<ADNBaseSegment> nextBs = n.second;
     SBPosition3 pos = nt->GetPosition() + SBQuantity::nanometer(ADNConstants::BP_RISE) * dir;
 
     if (nextBs == nullptr) {
       nextBs = new ADNBaseSegment(CellType::BasePair);
       nextBs->create();
-      if (e == End::ThreePrime) {
+      if (e == ADNNucleotide::EndType::ThreePrime) {
         ds->AddBaseSegmentEnd(nextBs);
       }
       else {
@@ -325,19 +325,19 @@ std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOper
   auto numSS = part->GetNumberOfSingleStrands();
   
   auto ss = nt->GetStrand();
-  End e = nt->GetEnd();
+  ADNNucleotide::EndType e = nt->getEndType();
 
   std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> res = std::make_pair(nullptr, nullptr);
 
-  if (e == End::FiveAndThreePrime || e == End::FivePrime) {
+  if (e == ADNNucleotide::EndType::FiveAndThreePrime || e == ADNNucleotide::EndType::FivePrime) {
     // we don't need to break, just delete
     ADNPointer<ADNNucleotide> ntNext = nt->GetNext();
     if (ntNext != nullptr) {
-      if (ntNext->GetEnd() == End::ThreePrime) {
-        ntNext->SetEnd(End::FiveAndThreePrime);
+      if (ntNext->getEndType() == ADNNucleotide::EndType::ThreePrime) {
+        ntNext->setEndType(ADNNucleotide::EndType::FiveAndThreePrime);
       }
       else {
-        ntNext->SetEnd(e);
+        ntNext->setEndType(e);
       }
       ss->SetFivePrime(ntNext);
       res.first = ss;
@@ -355,7 +355,7 @@ std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOper
     res.first = ssPair.first;
     part->RegisterSingleStrand(res.first);  // register new strand
 
-    if (e == End::ThreePrime) {
+    if (e == ADNNucleotide::EndType::ThreePrime) {
       part->DeregisterSingleStrand(ssPair.second);
     }
     else {
@@ -394,14 +394,14 @@ std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOper
 
 void ADNBasicOperations::DeleteNucleotideWithoutBreak(ADNPointer<ADNPart> part, ADNPointer<ADNNucleotide> nt)
 {
-  if (nt->GetEnd() != End::FiveAndThreePrime) {
+  if (nt->getEndType() != ADNNucleotide::EndType::FiveAndThreePrime) {
     ADNPointer<ADNNucleotide> next = nt->GetNext();
     ADNPointer<ADNNucleotide> prev = nt->GetPrev();
-    if (nt->GetEnd() == End::FivePrime) {
-      next->SetEnd(End::FivePrime);
+    if (nt->getEndType() == ADNNucleotide::EndType::FivePrime) {
+      next->setEndType(ADNNucleotide::EndType::FivePrime);
     }
-    if (nt->GetEnd() == End::ThreePrime) {
-      prev->SetEnd(End::ThreePrime);
+    if (nt->getEndType() == ADNNucleotide::EndType::ThreePrime) {
+      prev->setEndType(ADNNucleotide::EndType::ThreePrime);
     }
   }
   
@@ -661,10 +661,10 @@ std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>> ADNBasicOperatio
   return res;
 }
 
-std::pair<End, ADNPointer<ADNBaseSegment>> ADNBasicOperations::GetNextBaseSegment(ADNPointer<ADNNucleotide> nt)
+std::pair<ADNNucleotide::EndType, ADNPointer<ADNBaseSegment>> ADNBasicOperations::GetNextBaseSegment(ADNPointer<ADNNucleotide> nt)
 {
   ADNPointer<ADNBaseSegment> nextBs = nullptr;
-  End end = End::NotEnd;
+  ADNNucleotide::EndType end = ADNNucleotide::EndType::NotEnd;
 
   auto bs = nt->GetBaseSegment();
   auto ds = bs->GetDoubleStrand();
@@ -673,11 +673,11 @@ std::pair<End, ADNPointer<ADNBaseSegment>> ADNBasicOperations::GetNextBaseSegmen
 
   if (ublas::inner_prod(e3, bsE3) > 0) {
     nextBs = bs->GetNext(true);
-    end = End::ThreePrime;
+    end = ADNNucleotide::EndType::ThreePrime;
   }
   else {
     nextBs = bs->GetPrev(true);
-    end = End::FivePrime;
+    end = ADNNucleotide::EndType::FivePrime;
   }
 
   return std::make_pair(end, nextBs);
