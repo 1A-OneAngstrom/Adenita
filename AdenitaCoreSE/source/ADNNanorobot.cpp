@@ -1,5 +1,7 @@
 #include "ADNNanorobot.hpp"
 
+ADNNanorobot::ADNNanorobot() {// : Nameable(), Positionable(), Orientable() {}
+}
 
 ADNNanorobot::ADNNanorobot(const ADNNanorobot & n) {//: Nameable(n), Positionable(n), Orientable(n) {
 

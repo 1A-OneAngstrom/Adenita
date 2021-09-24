@@ -38,7 +38,7 @@ bool SEAdenitaCoreSEApp::loadPart(const QString& filename, SBDDocumentFolder* pr
 
 	ADNPointer<ADNPart> part = ADNLoader::LoadPartFromJson(filename.toStdString());
 	if (part == nullptr) return false;
-	AddPartToActiveLayer(part, false, preferredFolder);
+	addPartToDocument(part, false, preferredFolder);
 
 	return true;
 
@@ -49,7 +49,7 @@ void SEAdenitaCoreSEApp::loadParts(const QString& filename, SBDDocumentFolder* p
 	SAMSON::setStatusMessage(QString("Loading components from ") + filename);
 
 	std::vector<ADNPointer<ADNPart>> parts = ADNLoader::LoadPartsFromJson(filename.toStdString());
-	for (ADNPointer<ADNPart> part : parts) if (part != nullptr) AddPartToActiveLayer(part, false, preferredFolder);
+	for (ADNPointer<ADNPart> part : parts) if (part != nullptr) addPartToDocument(part, false, preferredFolder);
 
 }
 
@@ -84,7 +84,7 @@ void SEAdenitaCoreSEApp::LoadPartWithDaedalus(QString filename, int minEdgeSize)
 	QString s = fi.baseName();
 	part->setName(s.toStdString());
 
-	AddPartToActiveLayer(part);
+	addPartToDocument(part);
 
 }
 
@@ -109,12 +109,12 @@ bool SEAdenitaCoreSEApp::importFromCadnano(const QString& filename, SBDDocumentF
 	if (preferredFolder) preferredFolder->addChild(folderWithModel);
 	else SAMSON::getActiveDocument()->addChild(folderWithModel);
 
-	AddPartToActiveLayer(part, false, folderWithModel);
+	addPartToDocument(part, false, folderWithModel);
 
 	cad.CreateConformations(part);
-	AddConformationToActiveLayer(cad.Get3DConformation(), folderWithModel);
-	AddConformationToActiveLayer(cad.Get2DConformation(), folderWithModel);
-	AddConformationToActiveLayer(cad.Get1DConformation(), folderWithModel);
+	addConformationToDocument(cad.Get3DConformation(), folderWithModel);
+	addConformationToDocument(cad.Get2DConformation(), folderWithModel);
+	addConformationToDocument(cad.Get1DConformation(), folderWithModel);
 
 	//SAMSON::endHolding();
 
@@ -207,6 +207,28 @@ void SEAdenitaCoreSEApp::GenerateSequence(double gcCont, int maxContGs, bool ove
 
 }
 
+void SEAdenitaCoreSEApp::requestVisualModelUpdate() {
+
+	SEAdenitaVisualModel* adenitaVisualModel = SEAdenitaCoreSEApp::getVisualModel();
+
+	if (adenitaVisualModel) {
+
+		adenitaVisualModel->requestUpdate();
+
+	}
+	else {
+
+		SBProxy* visualModelProxy = SAMSON::getProxy("SEAdenitaVisualModel", SBUUID(SB_ELEMENT_UUID));
+		SEAdenitaVisualModel* newVisualModel = visualModelProxy->createInstance();
+		newVisualModel->create();
+		SAMSON::getActiveDocument()->addChild(newVisualModel);
+
+		ADNLogger::LogDebug(std::string("Adding visual model"));
+
+	}
+
+}
+
 void SEAdenitaCoreSEApp::resetVisualModel() {
 
 	//create visual model per nanorobot
@@ -216,6 +238,7 @@ void SEAdenitaCoreSEApp::resetVisualModel() {
 	if (adenitaVisualModel) {
 
 		adenitaVisualModel->update();
+		SAMSON::requestViewportUpdate();
 
 	}
 	else {
@@ -325,7 +348,7 @@ void SEAdenitaCoreSEApp::TwistDoubleHelix(CollectionMap<ADNDoubleStrand> dss, do
 void SEAdenitaCoreSEApp::LinearCatenanes(SBQuantity::length radius, SBPosition3 center, SBVector3 normal, int num) {
 
 	auto part = DASCreator::CreateLinearCatenanes(radius, center, normal, num);
-	AddPartToActiveLayer(part);
+	addPartToDocument(part);
 	SEAdenitaCoreSEApp::resetVisualModel();
 
 }
@@ -333,12 +356,12 @@ void SEAdenitaCoreSEApp::LinearCatenanes(SBQuantity::length radius, SBPosition3 
 void SEAdenitaCoreSEApp::Kinetoplast(SBQuantity::length radius, SBPosition3 center, SBVector3 normal, int rows, int cols) {
 
 	auto part = DASCreator::CreateHexagonalCatenanes(radius, center, normal, rows, cols);
-	AddPartToActiveLayer(part);
+	addPartToDocument(part);
 	SEAdenitaCoreSEApp::resetVisualModel();
 
 }
 
-void SEAdenitaCoreSEApp::SetStart() {
+void SEAdenitaCoreSEApp::setStartNucleotide() {
 
 	auto nucleotides = GetNanorobot()->GetSelectedNucleotides();
 	if (nucleotides.size() > 1) {
@@ -479,7 +502,7 @@ void SEAdenitaCoreSEApp::ImportFromOxDNA(std::string topoFile, std::string confi
 	if (!res.first) {
 
 		ADNPointer<ADNPart> p = res.second;
-		AddPartToActiveLayer(p, true);
+		addPartToDocument(p, true);
 		SEAdenitaCoreSEApp::resetVisualModel();
 
 	}
@@ -496,7 +519,7 @@ void SEAdenitaCoreSEApp::FromDatagraph() {
 		if (node->isSelected()) {
 
 			ADNPointer<ADNPart> part = ADNLoader::GenerateModelFromDatagraph(node);
-			AddPartToActiveLayer(part, true);
+			addPartToDocument(part, true);
 
 		}
 
@@ -666,50 +689,119 @@ void SEAdenitaCoreSEApp::CreateBasePair() {
 
 void SEAdenitaCoreSEApp::onDocumentEvent(SBDocumentEvent* documentEvent) {
 
+	const SBDocumentEvent::Type eventType = documentEvent->getType();
+	SBNode* node = documentEvent->getAuxiliaryNode();
+	if (!node) return;
+	if (node->getProxy()->getElementUUID() != SBUUID(SB_ELEMENT_UUID)) return;
+
+#if 0
+	// is handled in the Adenita Visual Model
+	// handle addition and deletion of ADN nodes for updating the Adenita Visual Model
+
+	if (eventType == SBDocumentEvent::StructuralModelAdded || eventType == SBDocumentEvent::StructuralModelRemoved) {
+
+		if (node->getProxy()->getName() == "ADNPart")
+			requestVisualModelUpdate();
+
+	}
+#endif
+
 	if (mod_) return; // modifications handle themselves deletions
 
-	auto t = documentEvent->getType();
-	if (documentEvent->getType() == SBDocumentEvent::StructuralModelRemoved) {
+	// handle deletion of ADN nodes for bookkeeping used in ADN nodes
+
+	if (eventType == SBDocumentEvent::StructuralModelRemoved) {
 
 		// on delete a registered ADNPart
-		auto node = documentEvent->getAuxiliaryNode();
-		ADNPointer<ADNPart> part = dynamic_cast<ADNPart*>(node);
-		if (part != nullptr) {
-			GetNanorobot()->DeregisterPart(part);
+
+		if (node->getProxy()->getName() == "ADNPart") {
+
+			ADNPointer<ADNPart> part = dynamic_cast<ADNPart*>(node);
+			if (part != nullptr)
+				GetNanorobot()->DeregisterPart(part);
+
 		}
 
 	}
 
 }
 
-void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* documentEvent) {
+void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* structuralEvent) {
+
+	const SBStructuralEvent::Type eventType = structuralEvent->getType();
+	SBNode* node = structuralEvent->getAuxiliaryNode();
+	if (!node) return;
+	if (node->getProxy()->getElementUUID() != SBUUID(SB_ELEMENT_UUID)) return;
+
+	const std::string nodeClassName = node->getProxy()->getName();
+
+#if 0
+	// is handled in the Adenita Visual Model
+	// handle additiona and deletion of ADN nodes for updating the Adenita Visual Model
+
+	if (eventType == SBStructuralEvent::ChainAdded || eventType == SBStructuralEvent::ChainRemoved) {
+
+		if (nodeClassName == "ADNSingleStrand")
+			requestVisualModelUpdate();
+
+	}
+	else if (eventType == SBStructuralEvent::ResidueAdded || eventType == SBStructuralEvent::ResidueRemoved) {
+
+		if (nodeClassName == "ADNNucleotide")
+			requestVisualModelUpdate();
+
+	}
+	else if (eventType == SBStructuralEvent::BackboneAdded || eventType == SBStructuralEvent::BackboneRemoved) {
+
+		if (nodeClassName == "ADNBackbone")
+			requestVisualModelUpdate();
+
+	}
+	else if (eventType == SBStructuralEvent::SideChainAdded || eventType == SBStructuralEvent::SideChainRemoved) {
+
+		if (nodeClassName == "ADNSidechain")
+			requestVisualModelUpdate();
+
+	}
+	else if (eventType == SBStructuralEvent::StructuralGroupAdded || eventType == SBStructuralEvent::StructuralGroupRemoved) {
+
+		if (nodeClassName == "ADNBaseSegment" || nodeClassName == "ADNDoubleStrand" || nodeClassName == "ADNLoop" ||
+			nodeClassName == "ADNCell" || nodeClassName == "ADNBasePair" || nodeClassName == "ADNSkipPair" || nodeClassName == "ADNLoopPair")
+			requestVisualModelUpdate();
+
+	}
+	else if (eventType == SBStructuralEvent::ParticlePositionChanged) {
+
+		if (nodeClassName == "ADNAtom")
+			requestVisualModelUpdate();
+
+	}
+#endif
 
 	if (mod_) return; // modifications handle themselves deletions
 
-	auto t = documentEvent->getType();
-	if (t == SBStructuralEvent::ChainRemoved) {
-		auto node = documentEvent->getAuxiliaryNode();
+	// handle deletion of ADN nodes for bookkeeping used in ADN nodes
+
+	if (eventType == SBStructuralEvent::ChainRemoved) {
 		ADNPointer<ADNSingleStrand> ss = dynamic_cast<ADNSingleStrand*>(node);
 		if (ss != nullptr) {
-			auto part = static_cast<ADNPart*>(documentEvent->getSender()->getParent());
+			auto part = static_cast<ADNPart*>(structuralEvent->getSender()->getParent());
 			part->DeregisterSingleStrand(ss, false);
 		}
 	}
-
-	if (documentEvent->getType() == SBStructuralEvent::ResidueRemoved) {
-		auto node = documentEvent->getAuxiliaryNode();
+	else if (eventType == SBStructuralEvent::ResidueRemoved) {
+		auto node = structuralEvent->getAuxiliaryNode();
 		ADNPointer<ADNNucleotide> nt = dynamic_cast<ADNNucleotide*>(node);
 		if (nt != nullptr) {
-			ADNPointer<ADNSingleStrand> ss = static_cast<ADNSingleStrand*>(documentEvent->getSender());
+			ADNPointer<ADNSingleStrand> ss = static_cast<ADNSingleStrand*>(structuralEvent->getSender());
 			auto part = ss->GetPart();
 			part->DeregisterNucleotide(nt, false, true, true);
 			if (ss->getNumberOfNucleotides() == 0) ss->erase();
 		}
 	}
+	else if (eventType == SBStructuralEvent::StructuralGroupRemoved) {
 
-	if (documentEvent->getType() == SBStructuralEvent::StructuralGroupRemoved) {
-
-		auto node = documentEvent->getAuxiliaryNode();
+		auto node = structuralEvent->getAuxiliaryNode();
 		ADNPointer<ADNBaseSegment> bs = dynamic_cast<ADNBaseSegment*>(node);
 		if (bs != nullptr) {
 
@@ -717,7 +809,7 @@ void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* documentEvent) {
 			SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 				nt->erase();
 			}
-			ADNPointer<ADNDoubleStrand> ds = static_cast<ADNDoubleStrand*>(documentEvent->getSender());
+			ADNPointer<ADNDoubleStrand> ds = static_cast<ADNDoubleStrand*>(structuralEvent->getSender());
 			auto part = ds->GetPart();
 			part->DeregisterBaseSegment(bs, false, true);
 
@@ -726,7 +818,7 @@ void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* documentEvent) {
 
 			ADNPointer<ADNDoubleStrand> ds = dynamic_cast<ADNDoubleStrand*>(node);
 			if (ds != nullptr) {
-				ADNPointer<ADNPart> part = static_cast<ADNPart*>(documentEvent->getSender()->getParent());
+				ADNPointer<ADNPart> part = static_cast<ADNPart*>(structuralEvent->getSender()->getParent());
 				part->DeregisterDoubleStrand(ds, false, true);
 			}
 
@@ -738,20 +830,25 @@ void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* documentEvent) {
 
 void SEAdenitaCoreSEApp::ConnectToDocument(SBDocument* doc) {
 
-	doc->connectDocumentSignalToSlot(this, SB_SLOT(&SEAdenitaCoreSEApp::onDocumentEvent));
+	if (doc->documentSignalIsConnectedToSlot(this, SB_SLOT(&SEAdenitaCoreSEApp::onDocumentEvent)) == false)
+		doc->connectDocumentSignalToSlot(this, SB_SLOT(&SEAdenitaCoreSEApp::onDocumentEvent));
 
 }
 
 void SEAdenitaCoreSEApp::ConnectToDocument() {
 
-	if (SAMSON::getActiveDocument()->documentSignalIsConnectedToSlot(this, SB_SLOT(&SEAdenitaCoreSEApp::onDocumentEvent)) == false)
-		SAMSON::getActiveDocument()->connectDocumentSignalToSlot(this, SB_SLOT(&SEAdenitaCoreSEApp::onDocumentEvent));
+	ConnectToDocument(SAMSON::getActiveDocument());
 	
 }
 
-ADNNanorobot * SEAdenitaCoreSEApp::GetNanorobot() {
+ADNNanorobot* SEAdenitaCoreSEApp::GetNanorobot() {
 
-	SBDocument* document = SAMSON::getActiveDocument();
+	return getNanorobot(SAMSON::getActiveDocument());
+
+}
+
+ADNNanorobot* SEAdenitaCoreSEApp::getNanorobot(SBDocument * document) {
+
 	ADNNanorobot* nanorobot = nullptr;
 
 	if (nanorobotMap.find(document) == nanorobotMap.end()) {
@@ -843,7 +940,7 @@ SBPosition3 SEAdenitaCoreSEApp::getSnappedPosition(const SBPosition3& currentPos
 
 }
 
-void SEAdenitaCoreSEApp::AddPartToActiveLayer(ADNPointer<ADNPart> part, bool positionsData, SBFolder* preferredFolder) {
+void SEAdenitaCoreSEApp::addPartToDocument(ADNPointer<ADNPart> part, bool positionsData, SBFolder* preferredFolder) {
 
 	if (part == nullptr) return;
 
@@ -893,7 +990,7 @@ void SEAdenitaCoreSEApp::AddPartToActiveLayer(ADNPointer<ADNPart> part, bool pos
 
 }
 
-void SEAdenitaCoreSEApp::AddConformationToActiveLayer(ADNPointer<ADNConformation> conf, SBFolder* preferredFolder) {
+void SEAdenitaCoreSEApp::addConformationToDocument(ADNPointer<ADNConformation> conf, SBFolder* preferredFolder) {
 
 	if (conf == nullptr) return;
 

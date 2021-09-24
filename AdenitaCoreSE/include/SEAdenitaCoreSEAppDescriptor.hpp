@@ -23,7 +23,7 @@ SB_CLASS_BEGIN(SEAdenitaCoreSEApp);
 
 	SB_INTERFACE_BEGIN;
 
-		SB_FUNCTION_3(void, SEAdenitaCoreSEApp, AddPartToActiveLayer, ADNPointer<ADNPart>, bool, SBFolder*);
+		SB_FUNCTION_3(void, SEAdenitaCoreSEApp, addPartToDocument, ADNPointer<ADNPart>, bool, SBFolder*);
 
 	SB_INTERFACE_END;
 

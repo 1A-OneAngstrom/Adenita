@@ -84,7 +84,7 @@ public slots:
 	void														onSetScaffold();
 	void														onGenerateSequence();
 	void														onCalculateBindingProperties();
-	void														onSetStart();
+	void														onSetStartNucleotide();
 	void														onTaggingEditor();
 
 	// Modeling

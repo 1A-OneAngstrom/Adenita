@@ -150,6 +150,7 @@ public :
 	bool														getShowBasePairingFlag() const;
 	void														setShowBasePairingFlag(bool show);
 
+	void														requestUpdate();
 	void														update();
 
 	virtual void												display();																///< Displays the visual model
@@ -167,7 +168,7 @@ public :
 
 	virtual void												onBaseEvent(SBBaseEvent* baseEvent);									///< Handles base events
 	virtual void												onDocumentEvent(SBDocumentEvent* documentEvent);						///< Handles document events
-	virtual void												onStructuralEvent(SBStructuralEvent* documentEvent);					///< Handles structural events
+	virtual void												onStructuralEvent(SBStructuralEvent* structuralEvent);					///< Handles structural events
 
 	//@}
 
@@ -212,6 +213,7 @@ private:
 	void														replaceColors(ADNArray<float> & colors, std::vector<unsigned int> & indices, float * color);
 
 	// general display properties 
+
 	ADNArray<float>												nucleotideEColor_;
   
 	float														scale_ = 3.0f;
@@ -220,6 +222,8 @@ private:
 	double														visibility_ = 0.99;
 
 	ADNNanorobot*												nanorobot_{ nullptr };
+
+	bool														isUpdateRequested = true;
 
 	/// \name Transitional scale
 	//@{

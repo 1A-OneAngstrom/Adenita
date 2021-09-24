@@ -332,8 +332,7 @@ SBNode* ADNNucleotide::getBaseSegment() const {
 
 std::string ADNNucleotide::getBaseSegmentTypeString() const {
 
-    CellType t = bs_->GetCellType();
-    return ADNModel::CellTypeToString(t);
+    return bs_->getCellTypeString();
 
 }
 

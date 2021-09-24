@@ -912,7 +912,7 @@ void DASDaedalus::RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleSt
       nt->SetBaseSegment(bs);
 
       ADNPointer<ADNCell> cell = bs->GetCell();
-      if (cell->GetType() == CellType::BasePair) {
+      if (cell->GetCellType() == CellType::BasePair) {
         // scaffold only goes through dsDNA regions
         ADNPointer<ADNBasePair> bp_cell = static_cast<ADNBasePair*>(cell());
         if (left) {
@@ -978,7 +978,7 @@ ADNPointer<ADNSingleStrand> DASDaedalus::CreateEdgeChain(ADNPointer<ADNPart> ori
 
     ADNPointer<ADNCell> cell = bs->GetCell();
     ADNPointer<ADNNucleotide> ntOld = nullptr;
-    if (cell->GetType() == CellType::BasePair) {
+    if (cell->GetCellType() == CellType::BasePair) {
       // edge staples only goes through dsDNA regions
       ADNPointer<ADNBasePair> bp_cell = static_cast<ADNBasePair*>(cell());
       bp_cell->SetRemainingNucleotide(nt);
@@ -1004,7 +1004,7 @@ ADNPointer<ADNSingleStrand> DASDaedalus::CreateEdgeChain(ADNPointer<ADNPart> ori
 
     ADNPointer<ADNCell> cell = bs->GetCell();
     ADNPointer<ADNNucleotide> ntOld = nullptr;
-    if (cell->GetType() == CellType::BasePair) {
+    if (cell->GetCellType() == CellType::BasePair) {
       // edge staples only goes through dsDNA regions
       ADNPointer<ADNBasePair> bp_cell = static_cast<ADNBasePair*>(cell());
       bp_cell->SetRemainingNucleotide(nt);
@@ -1057,7 +1057,7 @@ ADNPointer<ADNSingleStrand> DASDaedalus::CreateVertexChain(ADNPointer<ADNPart> p
       nt->SetSidechainPosition(bs->GetPosition());
 
       ADNPointer<ADNNucleotide> ntOld = nullptr;
-      if (cell->GetType() == CellType::BasePair) {
+      if (cell->GetCellType() == CellType::BasePair) {
         // edge staples only goes through dsDNA regions
         ADNPointer<ADNBasePair> bp_cell = static_cast<ADNBasePair*>(cell());
         bp_cell->SetRemainingNucleotide(nt);
@@ -1074,7 +1074,7 @@ ADNPointer<ADNSingleStrand> DASDaedalus::CreateVertexChain(ADNPointer<ADNPart> p
     }
     if (count % 2 != 0) {
       ADNPointer<ADNCell> cell = bs->GetCell();
-      if (cell->GetType() != CellType::LoopPair) {
+      if (cell->GetCellType() != CellType::LoopPair) {
         std::string msg = "PolyT region not reached";
         ADNLogger::LogDebug(msg);
       }

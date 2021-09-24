@@ -2,101 +2,101 @@
 
 void ADNDisplayHelper::displayLine(SBPosition3 start, SBPosition3 end, std::string text) {
 
-  unsigned int nLines = 1;
-  unsigned int nPositions = 2;
-  unsigned int* indexData = new unsigned int[2 * nLines];
-  float *positionData = new float[3 * nPositions];
-  unsigned int *capData = new unsigned int[2 * nLines];
-  float *colorData = new float[4 * 2 * nLines];
-  unsigned int *flagData = new unsigned int[2 * nLines];
+    unsigned int nLines = 1;
+    unsigned int nPositions = 2;
+    unsigned int* indexData = new unsigned int[2 * nLines];
+    float* positionData = new float[3 * nPositions];
+    unsigned int* capData = new unsigned int[2 * nLines];
+    float* colorData = new float[4 * 2 * nLines];
+    unsigned int* flagData = new unsigned int[2 * nLines];
 
-  positionData[3 * 0 + 0] = start.v[0].getValue();
-  positionData[3 * 0 + 1] = start.v[1].getValue();
-  positionData[3 * 0 + 2] = start.v[2].getValue();
-  positionData[3 * 1 + 0] = end.v[0].getValue();
-  positionData[3 * 1 + 1] = end.v[1].getValue();
-  positionData[3 * 1 + 2] = end.v[2].getValue();
+    positionData[3 * 0 + 0] = start.v[0].getValue();
+    positionData[3 * 0 + 1] = start.v[1].getValue();
+    positionData[3 * 0 + 2] = start.v[2].getValue();
+    positionData[3 * 1 + 0] = end.v[0].getValue();
+    positionData[3 * 1 + 1] = end.v[1].getValue();
+    positionData[3 * 1 + 2] = end.v[2].getValue();
 
-  indexData[0] = 0;
-  indexData[1] = 1;
+    indexData[0] = 0;
+    indexData[1] = 1;
 
-  capData[0] = 1;
-  capData[1] = 1;
+    capData[0] = 1;
+    capData[1] = 1;
 
-  colorData[0] = 0;
-  colorData[1] = 0;
-  colorData[2] = 0;
-  colorData[3] = 1;
-  colorData[4] = 0;
-  colorData[5] = 0;
-  colorData[6] = 0;
-  colorData[7] = 1;
+    colorData[0] = 0;
+    colorData[1] = 0;
+    colorData[2] = 0;
+    colorData[3] = 1;
+    colorData[4] = 0;
+    colorData[5] = 0;
+    colorData[6] = 0;
+    colorData[7] = 1;
 
-  unsigned int flag = 0;
-  flagData[0] = flag;
-  flagData[1] = flag;
+    unsigned int flag = 0;
+    flagData[0] = flag;
+    flagData[1] = flag;
 
-  SAMSON::displayLines(nLines, nPositions, indexData, positionData, colorData, flagData);
-  displayLengthText(start, end, text);
+    SAMSON::displayLines(nLines, nPositions, indexData, positionData, colorData, flagData);
+    displayLengthText(start, end, text);
 
-  delete[] indexData;
-  delete[] capData;
-  delete[] colorData;
-  delete[] flagData;
-  delete[] positionData;
+    delete[] indexData;
+    delete[] capData;
+    delete[] colorData;
+    delete[] flagData;
+    delete[] positionData;
 
 }
 
-void ADNDisplayHelper::displayCylinder(SBPosition3 start, SBPosition3 end, std::string text /*= ""*/)
-{
-  SEConfig& config = SEConfig::GetInstance();
-  
-  unsigned int nCylinders = 1;
-  unsigned int nPositions = 2 * nCylinders;
-  unsigned int* indexData = new unsigned int[2 * nCylinders];
-  float *positionData = new float[3 * nPositions];
-  float *radiusData = new float[2 * nCylinders];
-  unsigned int *capData = new unsigned int[2 * nCylinders];
-  float *colorData = new float[4 * 2 * nCylinders];
-  unsigned int *flagData = new unsigned int[2 * nCylinders];
+void ADNDisplayHelper::displayCylinder(SBPosition3 start, SBPosition3 end, std::string text /*= ""*/) {
 
-  positionData[0 * 3 + 0] = start.v[0].getValue();
-  positionData[0 * 3 + 1] = start.v[1].getValue();
-  positionData[0 * 3 + 2] = start.v[2].getValue();
-  positionData[1 * 3 + 0] = end.v[0].getValue();
-  positionData[1 * 3 + 1] = end.v[1].getValue();
-  positionData[1 * 3 + 2] = end.v[2].getValue();
+    SEConfig& config = SEConfig::GetInstance();
 
-  indexData[0] = 0;
-  indexData[1] = 1;
+    unsigned int nCylinders = 1;
+    unsigned int nPositions = 2 * nCylinders;
+    unsigned int* indexData = new unsigned int[2 * nCylinders];
+    float* positionData = new float[3 * nPositions];
+    float* radiusData = new float[2 * nCylinders];
+    unsigned int* capData = new unsigned int[2 * nCylinders];
+    float* colorData = new float[4 * 2 * nCylinders];
+    unsigned int* flagData = new unsigned int[2 * nCylinders];
 
-  radiusData[0] = config.nucleotide_V_radius;
-  radiusData[1] = config.nucleotide_V_radius;
+    positionData[0 * 3 + 0] = start.v[0].getValue();
+    positionData[0 * 3 + 1] = start.v[1].getValue();
+    positionData[0 * 3 + 2] = start.v[2].getValue();
+    positionData[1 * 3 + 0] = end.v[0].getValue();
+    positionData[1 * 3 + 1] = end.v[1].getValue();
+    positionData[1 * 3 + 2] = end.v[2].getValue();
 
-  capData[0] = 1;
-  capData[1] = 1;
+    indexData[0] = 0;
+    indexData[1] = 1;
 
-  colorData[0] = config.nucleotide_E_Color[0];
-  colorData[1] = config.nucleotide_E_Color[1];
-  colorData[2] = config.nucleotide_E_Color[2];
-  colorData[3] = config.nucleotide_E_Color[3] * 0.7f;
-  colorData[4] = config.nucleotide_E_Color[0];
-  colorData[5] = config.nucleotide_E_Color[1];
-  colorData[6] = config.nucleotide_E_Color[2];
-  colorData[7] = config.nucleotide_E_Color[3] * 0.7f;
-  
-  int flag = 0;
-  flagData[0] = flag;
-  flagData[1] = flag;
+    radiusData[0] = config.nucleotide_V_radius;
+    radiusData[1] = config.nucleotide_V_radius;
 
-  SAMSON::displayCylinders(nCylinders, nPositions, indexData, positionData, radiusData, capData, colorData, flagData);
+    capData[0] = 1;
+    capData[1] = 1;
 
-  delete[] indexData;
-  delete[] radiusData;
-  delete[] capData;
-  delete[] colorData;
-  delete[] flagData;
-  delete[] positionData;
+    colorData[0] = config.nucleotide_E_Color[0];
+    colorData[1] = config.nucleotide_E_Color[1];
+    colorData[2] = config.nucleotide_E_Color[2];
+    colorData[3] = config.nucleotide_E_Color[3] * 0.7f;
+    colorData[4] = config.nucleotide_E_Color[0];
+    colorData[5] = config.nucleotide_E_Color[1];
+    colorData[6] = config.nucleotide_E_Color[2];
+    colorData[7] = config.nucleotide_E_Color[3] * 0.7f;
+
+    int flag = 0;
+    flagData[0] = flag;
+    flagData[1] = flag;
+
+    SAMSON::displayCylinders(nCylinders, nPositions, indexData, positionData, radiusData, capData, colorData, flagData);
+
+    delete[] indexData;
+    delete[] radiusData;
+    delete[] capData;
+    delete[] colorData;
+    delete[] flagData;
+    delete[] positionData;
 
 
 }
@@ -134,306 +134,309 @@ void ADNDisplayHelper::displayLengthText(SBPosition3 start, SBPosition3 end, std
 
 }
 
-void ADNDisplayHelper::displayDirectedCylinder(SBPosition3 start, SBPosition3 end)
-{
+void ADNDisplayHelper::displayDirectedCylinder(SBPosition3 start, SBPosition3 end) {
 
-  unsigned int nCylinders = 1;
-  unsigned int nPositions = 2 * nCylinders;
-  unsigned int* indexData = new unsigned int[2 * nCylinders];
-  float *positionData = new float[3 * nPositions];
-  float *radiusData = new float[2 * nCylinders];
-  unsigned int *capData = new unsigned int[2 * nCylinders];
-  float *colorData = new float[4 * 2 * nCylinders];
-  unsigned int *flagData = new unsigned int[2 * nCylinders];
+    unsigned int nCylinders = 1;
+    unsigned int nPositions = 2 * nCylinders;
+    unsigned int* indexData = new unsigned int[2 * nCylinders];
+    float* positionData = new float[3 * nPositions];
+    float* radiusData = new float[2 * nCylinders];
+    unsigned int* capData = new unsigned int[2 * nCylinders];
+    float* colorData = new float[4 * 2 * nCylinders];
+    unsigned int* flagData = new unsigned int[2 * nCylinders];
 
-  positionData[0 * 3 + 0] = start.v[0].getValue();
-  positionData[0 * 3 + 1] = start.v[1].getValue();
-  positionData[0 * 3 + 2] = start.v[2].getValue();
-  positionData[1 * 3 + 0] = end.v[0].getValue();
-  positionData[1 * 3 + 1] = end.v[1].getValue();
-  positionData[1 * 3 + 2] = end.v[2].getValue();
+    positionData[0 * 3 + 0] = start.v[0].getValue();
+    positionData[0 * 3 + 1] = start.v[1].getValue();
+    positionData[0 * 3 + 2] = start.v[2].getValue();
+    positionData[1 * 3 + 0] = end.v[0].getValue();
+    positionData[1 * 3 + 1] = end.v[1].getValue();
+    positionData[1 * 3 + 2] = end.v[2].getValue();
 
-  indexData[0] = 0;
-  indexData[1] = 1;
+    indexData[0] = 0;
+    indexData[1] = 1;
 
-  radiusData[0] = 100;
-  radiusData[1] = 100;
+    radiusData[0] = 100;
+    radiusData[1] = 100;
 
-  capData[0] = 1;
-  capData[1] = 1;
+    capData[0] = 1;
+    capData[1] = 1;
 
-  colorData[0] = 1.0f;
-  colorData[1] = 1.0f;
-  colorData[2] = 1.0f;
-  colorData[3] = 1.0f;
-  colorData[4] = 1.0f;
-  colorData[5] = 0.0f;
-  colorData[6] = 0.0f;
-  colorData[7] = 1.0f;
+    colorData[0] = 1.0f;
+    colorData[1] = 1.0f;
+    colorData[2] = 1.0f;
+    colorData[3] = 1.0f;
+    colorData[4] = 1.0f;
+    colorData[5] = 0.0f;
+    colorData[6] = 0.0f;
+    colorData[7] = 1.0f;
 
-  int flag = 0;
-  flagData[0] = flag;
-  flagData[1] = flag;
+    int flag = 0;
+    flagData[0] = flag;
+    flagData[1] = flag;
 
-  SAMSON::displayCylinders(nCylinders, nPositions, indexData, positionData, radiusData, capData, colorData, flagData);
+    SAMSON::displayCylinders(nCylinders, nPositions, indexData, positionData, radiusData, capData, colorData, flagData);
 
-  delete[] indexData;
-  delete[] radiusData;
-  delete[] capData;
-  delete[] colorData;
-  delete[] flagData;
-  delete[] positionData;
+    delete[] indexData;
+    delete[] radiusData;
+    delete[] capData;
+    delete[] colorData;
+    delete[] flagData;
+    delete[] positionData;
 
 }
 
-void ADNDisplayHelper::displayDirectedCylinder(float * start, float * end, float * color, int radius)
-{
-  unsigned int nCylinders = 1;
-  unsigned int nPositions = 2 * nCylinders;
-  unsigned int* indexData = new unsigned int[2 * nCylinders];
-  float *positionData = new float[3 * nPositions];
-  float *radiusData = new float[2 * nCylinders];
-  unsigned int *capData = new unsigned int[2 * nCylinders];
-  float *colorData = new float[4 * 2 * nCylinders];
-  unsigned int *flagData = new unsigned int[2 * nCylinders];
+void ADNDisplayHelper::displayDirectedCylinder(float* start, float* end, float* color, int radius) {
 
-  positionData[0 * 3 + 0] = start[0];
-  positionData[0 * 3 + 1] = start[1];
-  positionData[0 * 3 + 2] = start[2];
-  positionData[1 * 3 + 0] = end[0];
-  positionData[1 * 3 + 1] = end[1];
-  positionData[1 * 3 + 2] = end[2];
+    unsigned int nCylinders = 1;
+    unsigned int nPositions = 2 * nCylinders;
+    unsigned int* indexData = new unsigned int[2 * nCylinders];
+    float* positionData = new float[3 * nPositions];
+    float* radiusData = new float[2 * nCylinders];
+    unsigned int* capData = new unsigned int[2 * nCylinders];
+    float* colorData = new float[4 * 2 * nCylinders];
+    unsigned int* flagData = new unsigned int[2 * nCylinders];
 
-  indexData[0] = 0;
-  indexData[1] = 1;
+    positionData[0 * 3 + 0] = start[0];
+    positionData[0 * 3 + 1] = start[1];
+    positionData[0 * 3 + 2] = start[2];
+    positionData[1 * 3 + 0] = end[0];
+    positionData[1 * 3 + 1] = end[1];
+    positionData[1 * 3 + 2] = end[2];
 
-  radiusData[0] = radius;
-  radiusData[1] = radius;
+    indexData[0] = 0;
+    indexData[1] = 1;
 
-  capData[0] = 1;
-  capData[1] = 1;
+    radiusData[0] = radius;
+    radiusData[1] = radius;
 
-  colorData[0] = color[0];
-  colorData[1] = color[1];
-  colorData[2] = color[2];
-  colorData[3] = color[3];
-  colorData[4] = color[0];
-  colorData[5] = color[1];
-  colorData[6] = color[2];
-  colorData[7] = color[3];
+    capData[0] = 1;
+    capData[1] = 1;
 
-  int flag = 0;
-  flagData[0] = flag;
-  flagData[1] = flag;
+    colorData[0] = color[0];
+    colorData[1] = color[1];
+    colorData[2] = color[2];
+    colorData[3] = color[3];
+    colorData[4] = color[0];
+    colorData[5] = color[1];
+    colorData[6] = color[2];
+    colorData[7] = color[3];
 
-  SAMSON::displayCylinders(nCylinders, nPositions, indexData, positionData, radiusData, capData, colorData, flagData);
+    int flag = 0;
+    flagData[0] = flag;
+    flagData[1] = flag;
 
-  delete[] indexData;
-  delete[] radiusData;
-  delete[] capData;
-  delete[] colorData;
-  delete[] flagData;
+    SAMSON::displayCylinders(nCylinders, nPositions, indexData, positionData, radiusData, capData, colorData, flagData);
+
+    delete[] indexData;
+    delete[] radiusData;
+    delete[] capData;
+    delete[] colorData;
+    delete[] flagData;
+
 }
 
-void ADNDisplayHelper::displayDirectedCylinder(SBPosition3 start, SBPosition3 end, float * color, int radius) {
-  
-  float * fStart = new float[3];
-  float * fEnd = new float[3];
+void ADNDisplayHelper::displayDirectedCylinder(SBPosition3 start, SBPosition3 end, float* color, int radius) {
 
-  fStart[0] = start.v[0].getValue();
-  fStart[1] = start.v[1].getValue();
-  fStart[2] = start.v[2].getValue();
+    float* fStart = new float[3];
+    float* fEnd = new float[3];
 
-  fEnd[0] = end.v[0].getValue();
-  fEnd[1] = end.v[1].getValue();
-  fEnd[2] = end.v[2].getValue();
+    fStart[0] = start.v[0].getValue();
+    fStart[1] = start.v[1].getValue();
+    fStart[2] = start.v[2].getValue();
 
-  displayDirectedCylinder(fStart, fEnd, color, radius);
+    fEnd[0] = end.v[0].getValue();
+    fEnd[1] = end.v[1].getValue();
+    fEnd[2] = end.v[2].getValue();
 
-  delete[] fStart;
-  delete[] fEnd;
+    displayDirectedCylinder(fStart, fEnd, color, radius);
+
+    delete[] fStart;
+    delete[] fEnd;
 
 }
 
 void ADNDisplayHelper::displayPlane(SBVector3 vec, SBPosition3 shift) {
-  //unsigned int nTriangles = 2;
-  //unsigned int nVertices = 4;
 
-  //unsigned int indexData[] = {
-  //0, 1, 2,
-  //2, 3, 0
-  //};
+    //unsigned int nTriangles = 2;
+    //unsigned int nVertices = 4;
 
-  //float vertexPositions[] = {
-  //  0, 0, 0,
-  //  0, 1000, 0,
-  //  1000, 1000, 0,
-  //  1000, 0, 0};
+    //unsigned int indexData[] = {
+    //0, 1, 2,
+    //2, 3, 0
+    //};
 
-  //float * colorData = new float[4 * nVertices];
-  //unsigned int * flagData = new unsigned int[nVertices];
-  //float * normalData = new float[3 * nVertices];
+    //float vertexPositions[] = {
+    //  0, 0, 0,
+    //  0, 1000, 0,
+    //  1000, 1000, 0,
+    //  1000, 0, 0};
 
-  //colorData[4 * 0 + 0] = 1.0f;
-  //colorData[4 * 0 + 1] = 0.0f;
-  //colorData[4 * 0 + 2] = 0.0f;
-  //colorData[4 * 0 + 3] = 1.0f;
+    //float * colorData = new float[4 * nVertices];
+    //unsigned int * flagData = new unsigned int[nVertices];
+    //float * normalData = new float[3 * nVertices];
 
-  //colorData[4 * 1 + 0] = 0.0f;
-  //colorData[4 * 1 + 1] = 1.0f;
-  //colorData[4 * 1 + 2] = 0.0f;
-  //colorData[4 * 1 + 3] = 1.0f;
+    //colorData[4 * 0 + 0] = 1.0f;
+    //colorData[4 * 0 + 1] = 0.0f;
+    //colorData[4 * 0 + 2] = 0.0f;
+    //colorData[4 * 0 + 3] = 1.0f;
 
-  //colorData[4 * 2 + 0] = 0.0f;
-  //colorData[4 * 2 + 1] = 0.0f;
-  //colorData[4 * 2 + 2] = 1.0f;
-  //colorData[4 * 2 + 3] = 1.0f;
+    //colorData[4 * 1 + 0] = 0.0f;
+    //colorData[4 * 1 + 1] = 1.0f;
+    //colorData[4 * 1 + 2] = 0.0f;
+    //colorData[4 * 1 + 3] = 1.0f;
 
-  //colorData[4 * 3 + 0] = 1.0f;
-  //colorData[4 * 3 + 1] = 1.0f;
-  //colorData[4 * 3 + 2] = 1.0f;
-  //colorData[4 * 3 + 3] = 1.0f;
+    //colorData[4 * 2 + 0] = 0.0f;
+    //colorData[4 * 2 + 1] = 0.0f;
+    //colorData[4 * 2 + 2] = 1.0f;
+    //colorData[4 * 2 + 3] = 1.0f;
 
-  //flagData[0] = 0;
-  //flagData[1] = 0;
-  //flagData[2] = 0;
-  //flagData[3] = 0;
+    //colorData[4 * 3 + 0] = 1.0f;
+    //colorData[4 * 3 + 1] = 1.0f;
+    //colorData[4 * 3 + 2] = 1.0f;
+    //colorData[4 * 3 + 3] = 1.0f;
 
-  //for (int i = 0; i < nTriangles; i++) {
-  //  int idx1 = indexData[3 * i + 0];
-  //  int idx2 = indexData[3 * i + 1];
-  //  int idx3 = indexData[3 * i + 2];
-  //
-  //  ublas::vector<double> posA(3);
-  //  posA[0] = vertexPositions[3 * idx1 + 0];
-  //  posA[1] = vertexPositions[3 * idx1 + 1];
-  //  posA[2] = vertexPositions[3 * idx1 + 2];
-  //
-  //  ublas::vector<double> posB(3);
-  //  posB[0] = vertexPositions[3 * idx2 + 0];
-  //  posB[1] = vertexPositions[3 * idx2 + 1];
-  //  posB[2] = vertexPositions[3 * idx2 + 2];
-  //
-  //  ublas::vector<double> posC(3);
-  //  posC[0] = vertexPositions[3 * idx3 + 0];
-  //  posC[1] = vertexPositions[3 * idx3 + 1];
-  //  posC[2] = vertexPositions[3 * idx3 + 2];
-  //
-  //  ublas::vector<double> dir = ADNVectorMath::CrossProduct(posB - posA, posC - posA);
-  //
-  //  ublas::vector<double> n = dir / ublas::norm_2(dir);
-  //
-  //  normalData[3 * idx1 + 0] = n[0];
-  //  normalData[3 * idx1 + 1] = n[1];
-  //  normalData[3 * idx1 + 2] = n[2];
-  //
-  //  ANTAuxiliary::logVector(n);
-  //
-  //}
+    //flagData[0] = 0;
+    //flagData[1] = 0;
+    //flagData[2] = 0;
+    //flagData[3] = 0;
 
-  //SAMSON::displayTriangles(
-  //  nTriangles,
-  //  nVertices,
-  //  indexData,
-  //  vertexPositions,
-  //  normalData,
-  //  colorData,
-  //  flagData
-  //  );
+    //for (int i = 0; i < nTriangles; i++) {
+    //  int idx1 = indexData[3 * i + 0];
+    //  int idx2 = indexData[3 * i + 1];
+    //  int idx3 = indexData[3 * i + 2];
+    //
+    //  ublas::vector<double> posA(3);
+    //  posA[0] = vertexPositions[3 * idx1 + 0];
+    //  posA[1] = vertexPositions[3 * idx1 + 1];
+    //  posA[2] = vertexPositions[3 * idx1 + 2];
+    //
+    //  ublas::vector<double> posB(3);
+    //  posB[0] = vertexPositions[3 * idx2 + 0];
+    //  posB[1] = vertexPositions[3 * idx2 + 1];
+    //  posB[2] = vertexPositions[3 * idx2 + 2];
+    //
+    //  ublas::vector<double> posC(3);
+    //  posC[0] = vertexPositions[3 * idx3 + 0];
+    //  posC[1] = vertexPositions[3 * idx3 + 1];
+    //  posC[2] = vertexPositions[3 * idx3 + 2];
+    //
+    //  ublas::vector<double> dir = ADNVectorMath::CrossProduct(posB - posA, posC - posA);
+    //
+    //  ublas::vector<double> n = dir / ublas::norm_2(dir);
+    //
+    //  normalData[3 * idx1 + 0] = n[0];
+    //  normalData[3 * idx1 + 1] = n[1];
+    //  normalData[3 * idx1 + 2] = n[2];
+    //
+    //  ANTAuxiliary::logVector(n);
+    //
+    //}
 
-  unsigned int nTriangles = 20;
-  unsigned int nVertices = 12;
+    //SAMSON::displayTriangles(
+    //  nTriangles,
+    //  nVertices,
+    //  indexData,
+    //  vertexPositions,
+    //  normalData,
+    //  colorData,
+    //  flagData
+    //  );
 
-  unsigned int indexData[] = {
-    2, 1, 0,
-    3, 2, 0,
-    4, 3, 0,
-    5, 4, 0,
-    1, 5, 0,
-    11, 6, 7,
-    11, 7, 8,
-    11, 8, 9,
-    11, 9, 10,
-    11, 10, 6,
-    1, 2, 6,
-    2, 3, 7,
-    3, 4, 8,
-    4, 5, 9,
-    5, 1, 10,
-    2, 7, 6,
-    3, 8, 7,
-    4, 9, 8,
-    5, 10, 9,
-    1, 6, 10 };
+    unsigned int nTriangles = 20;
+    unsigned int nVertices = 12;
 
-  float vertexPositions[] = {
-    0.000f*1000.0f, 0.000f*1000.0f, 1.000f*1000.0f,
-    0.894f*1000.0f, 0.000f*1000.0f, 0.447f*1000.0f,
-    0.276f*1000.0f, 0.851f*1000.0f, 0.447f*1000.0f,
-    -0.724f*1000.0f, 0.526f*1000.0f, 0.447f*1000.0f,
-    -0.724f*1000.0f, -0.526f*1000.0f, 0.447f*1000.0f,
-    0.276f*1000.0f, -0.851f*1000.0f, 0.447f*1000.0f,
-    0.724f*1000.0f, 0.526f*1000.0f, -0.447f*1000.0f,
-    -0.276f*1000.0f, 0.851f*1000.0f, -0.447f*1000.0f,
-    -0.894f*1000.0f, 0.000f*1000.0f, -0.447f*1000.0f,
-    -0.276f*1000.0f, -0.851f*1000.0f, -0.447f*1000.0f,
-    0.724f*1000.0f, -0.526f*1000.0f, -0.447f*1000.0f,
-    0.000f*1000.0f, 0.000f*1000.0f, -1.000f*1000.0f };
+    unsigned int indexData[] = {
+      2, 1, 0,
+      3, 2, 0,
+      4, 3, 0,
+      5, 4, 0,
+      1, 5, 0,
+      11, 6, 7,
+      11, 7, 8,
+      11, 8, 9,
+      11, 9, 10,
+      11, 10, 6,
+      1, 2, 6,
+      2, 3, 7,
+      3, 4, 8,
+      4, 5, 9,
+      5, 1, 10,
+      2, 7, 6,
+      3, 8, 7,
+      4, 9, 8,
+      5, 10, 9,
+      1, 6, 10 };
 
-  float * colorData = new float[4 * nVertices];
-  unsigned int * flagData = new unsigned int[nVertices];
-  float * normalData = new float[3 * nVertices];
+    float vertexPositions[] = {
+      0.000f * 1000.0f, 0.000f * 1000.0f, 1.000f * 1000.0f,
+      0.894f * 1000.0f, 0.000f * 1000.0f, 0.447f * 1000.0f,
+      0.276f * 1000.0f, 0.851f * 1000.0f, 0.447f * 1000.0f,
+      -0.724f * 1000.0f, 0.526f * 1000.0f, 0.447f * 1000.0f,
+      -0.724f * 1000.0f, -0.526f * 1000.0f, 0.447f * 1000.0f,
+      0.276f * 1000.0f, -0.851f * 1000.0f, 0.447f * 1000.0f,
+      0.724f * 1000.0f, 0.526f * 1000.0f, -0.447f * 1000.0f,
+      -0.276f * 1000.0f, 0.851f * 1000.0f, -0.447f * 1000.0f,
+      -0.894f * 1000.0f, 0.000f * 1000.0f, -0.447f * 1000.0f,
+      -0.276f * 1000.0f, -0.851f * 1000.0f, -0.447f * 1000.0f,
+      0.724f * 1000.0f, -0.526f * 1000.0f, -0.447f * 1000.0f,
+      0.000f * 1000.0f, 0.000f * 1000.0f, -1.000f * 1000.0f };
 
-  for (unsigned int i = 0; i < nVertices; i++) {
-    colorData[4 * i + 0] = 1.0f;
-    colorData[4 * i + 1] = 0.0f;
-    colorData[4 * i + 2] = 0.0f;
-    colorData[4 * i + 3] = 1.0f;
+    float* colorData = new float[4 * nVertices];
+    unsigned int* flagData = new unsigned int[nVertices];
+    float* normalData = new float[3 * nVertices];
 
-    flagData[i] = 0;
+    for (unsigned int i = 0; i < nVertices; i++) {
 
-  }
+        colorData[4 * i + 0] = 1.0f;
+        colorData[4 * i + 1] = 0.0f;
+        colorData[4 * i + 2] = 0.0f;
+        colorData[4 * i + 3] = 1.0f;
 
-  for (unsigned int i = 0; i < nTriangles; i++) {
-    int idx1 = indexData[3 * i + 0];
-    int idx2 = indexData[3 * i + 1];
-    int idx3 = indexData[3 * i + 2];
+        flagData[i] = 0;
 
-    ublas::vector<double> posA(3);
-    posA[0] = vertexPositions[3 * idx1 + 0];
-    posA[1] = vertexPositions[3 * idx1 + 1];
-    posA[2] = vertexPositions[3 * idx1 + 2];
+    }
 
-    ublas::vector<double> posB(3);
-    posB[0] = vertexPositions[3 * idx2 + 0];
-    posB[1] = vertexPositions[3 * idx2 + 1];
-    posB[2] = vertexPositions[3 * idx2 + 2];
+    for (unsigned int i = 0; i < nTriangles; i++) {
 
-    ublas::vector<double> posC(3);
-    posC[0] = vertexPositions[3 * idx3 + 0];
-    posC[1] = vertexPositions[3 * idx3 + 1];
-    posC[2] = vertexPositions[3 * idx3 + 2];
+        int idx1 = indexData[3 * i + 0];
+        int idx2 = indexData[3 * i + 1];
+        int idx3 = indexData[3 * i + 2];
 
-    ublas::vector<double> dir = ADNVectorMath::CrossProduct(posB - posA, posC - posA);
+        ublas::vector<double> posA(3);
+        posA[0] = vertexPositions[3 * idx1 + 0];
+        posA[1] = vertexPositions[3 * idx1 + 1];
+        posA[2] = vertexPositions[3 * idx1 + 2];
 
-    ublas::vector<double> n = dir / ublas::norm_2(dir);
+        ublas::vector<double> posB(3);
+        posB[0] = vertexPositions[3 * idx2 + 0];
+        posB[1] = vertexPositions[3 * idx2 + 1];
+        posB[2] = vertexPositions[3 * idx2 + 2];
 
-    normalData[3 * idx1 + 0] = n[0];
-    normalData[3 * idx1 + 1] = n[1];
-    normalData[3 * idx1 + 2] = n[2];
+        ublas::vector<double> posC(3);
+        posC[0] = vertexPositions[3 * idx3 + 0];
+        posC[1] = vertexPositions[3 * idx3 + 1];
+        posC[2] = vertexPositions[3 * idx3 + 2];
 
-    //ANTAuxiliary::logVector(n);
+        ublas::vector<double> dir = ADNVectorMath::CrossProduct(posB - posA, posC - posA);
 
-  }
+        ublas::vector<double> n = dir / ublas::norm_2(dir);
 
-  SAMSON::displayTriangles(
-    nTriangles,
-    nVertices,
-    indexData,
-    vertexPositions,
-    normalData,
-    colorData,
-    flagData
+        normalData[3 * idx1 + 0] = n[0];
+        normalData[3 * idx1 + 1] = n[1];
+        normalData[3 * idx1 + 2] = n[2];
+
+        //ANTAuxiliary::logVector(n);
+
+    }
+
+    SAMSON::displayTriangles(
+        nTriangles,
+        nVertices,
+        indexData,
+        vertexPositions,
+        normalData,
+        colorData,
+        flagData
     );
 
 }
@@ -569,138 +572,142 @@ void ADNDisplayHelper::displayPlane(SBVector3 vec, SBPosition3 shift) {
 //    flagData.GetArray());
 //}
 
-void ADNDisplayHelper::displayOrthoPlane(SBVector3 vec, SBPosition3 shift)
-{
+void ADNDisplayHelper::displayOrthoPlane(SBVector3 vec, SBPosition3 shift) {
 
-  unsigned int nTriangles = 4;
-  unsigned int nVertices = 7;
+    unsigned int nTriangles = 4;
+    unsigned int nVertices = 7;
 
-  unsigned int indexData[] = {
-    0,1,2,
-    2,3,0,
-    2,4,5,
-    5,6,2
-  };
+    unsigned int indexData[] = {
+      0,1,2,
+      2,3,0,
+      2,4,5,
+      5,6,2
+    };
 
-  float vertexPositions[] = {
-    0, 0,
-    0, 200,
-    100, 200,
-    100, 0,
-    100,200,
-    200,200,
-    200,100
-  };
+    float vertexPositions[] = {
+      0, 0,
+      0, 200,
+      100, 200,
+      100, 0,
+      100,200,
+      200,200,
+      200,100
+    };
 
-  unsigned int flagData[] = { 0,0,0,0,0,0,0 };
+    unsigned int flagData[] = { 0,0,0,0,0,0,0 };
 
-  float * colorData = new float[4 * nVertices];
+    float* colorData = new float[4 * nVertices];
 
-  for (unsigned int i = 0; i < 4 * nVertices; i++) {
-    colorData[i] = 1.0f;
-    if (i % 3) colorData[i] = 0.0f;
+    for (unsigned int i = 0; i < 4 * nVertices; i++) {
+        colorData[i] = 1.0f;
+        if (i % 3) colorData[i] = 0.0f;
 
-    ++i;
-  }
+        ++i;
+    }
 
-  /*
-  colorData[0] = 1.0f;
-  colorData[1] = 0.0f;
-  colorData[2] = 0.0f;
-  colorData[3] = 1.0f;
+    /*
+    colorData[0] = 1.0f;
+    colorData[1] = 0.0f;
+    colorData[2] = 0.0f;
+    colorData[3] = 1.0f;
 
-  colorData[4] = 0.0f;
-  colorData[5] = 1.0f;
-  colorData[6] = 0.0f;
-  colorData[7] = 1.0f;
+    colorData[4] = 0.0f;
+    colorData[5] = 1.0f;
+    colorData[6] = 0.0f;
+    colorData[7] = 1.0f;
 
-  colorData[8] = 0.0f;
-  colorData[9] = 0.0f;
-  colorData[10] = 1.0f;
-  colorData[11] = 1.0f;
+    colorData[8] = 0.0f;
+    colorData[9] = 0.0f;
+    colorData[10] = 1.0f;
+    colorData[11] = 1.0f;
 
-  colorData[12] = 1.0f;
-  colorData[13] = 1.0f;
-  colorData[14] = 1.0f;
-  colorData[15] = 1.0f;
+    colorData[12] = 1.0f;
+    colorData[13] = 1.0f;
+    colorData[14] = 1.0f;
+    colorData[15] = 1.0f;
 
-  colorData[16] = 1.0f;
-  colorData[17] = 1.0f;
-  colorData[18] = 1.0f;
-  colorData[19] = 1.0f;
+    colorData[16] = 1.0f;
+    colorData[17] = 1.0f;
+    colorData[18] = 1.0f;
+    colorData[19] = 1.0f;
 
-  colorData[20] = 1.0f;
-  colorData[21] = 1.0f;
-  colorData[22] = 1.0f;
-  colorData[23] = 1.0f;
+    colorData[20] = 1.0f;
+    colorData[21] = 1.0f;
+    colorData[22] = 1.0f;
+    colorData[23] = 1.0f;
 
-  colorData[24] = 1.0f;
-  colorData[25] = 1.0f;
-  colorData[26] = 1.0f;
-  colorData[27] = 1.0f;*/
+    colorData[24] = 1.0f;
+    colorData[25] = 1.0f;
+    colorData[26] = 1.0f;
+    colorData[27] = 1.0f;*/
 
-  SAMSON::displayTrianglesOrtho(
-    nTriangles,
-    nVertices,
-    indexData,
-    vertexPositions,
-    colorData,
-	flagData
+    SAMSON::displayTrianglesOrtho(
+        nTriangles,
+        nVertices,
+        indexData,
+        vertexPositions,
+        colorData,
+        flagData
     );
 
 }
 
 
-void ADNDisplayHelper::displaySphere(SBPosition3 pos, float radius, ADNArray<float> color)
-{
-  ADNArray<float> positions = ADNArray<float>(3);
-  ADNArray<float> radiiV = ADNArray<float>(1);
-  ADNArray<float> colorsV = ADNArray<float>(4);
-  ADNArray<unsigned int> flags = ADNArray<unsigned int>(1);
+void ADNDisplayHelper::displaySphere(SBPosition3 pos, float radius, ADNArray<float> color) {
 
-  positions(0) = pos[0].getValue();
-  positions(1) = pos[1].getValue();
-  positions(2) = pos[2].getValue();
+    ADNArray<float> positions = ADNArray<float>(3);
+    ADNArray<float> radiiV = ADNArray<float>(1);
+    ADNArray<float> colorsV = ADNArray<float>(4);
+    ADNArray<unsigned int> flags = ADNArray<unsigned int>(1);
 
-  radiiV(0) = radius;
-  flags(0) = 0;
-  
-  SAMSON::displaySpheres(
-    1,
-    positions.GetArray(),
-    radiiV.GetArray(),
-    color.GetArray(),
-    flags.GetArray());
+    positions(0) = pos[0].getValue();
+    positions(1) = pos[1].getValue();
+    positions(2) = pos[2].getValue();
+
+    radiiV(0) = radius;
+    flags(0) = 0;
+
+    SAMSON::displaySpheres(
+        1,
+        positions.GetArray(),
+        radiiV.GetArray(),
+        color.GetArray(),
+        flags.GetArray());
+
 }
 
-void ADNDisplayHelper::displayBasePairConnection(ADNPointer<ADNNucleotide> nt)
-{
-  auto pair = nt->GetPair();
-  
-  if (pair != nullptr) {
-    float * color = new float[4];
-    color[0] = 0.5f;
-    color[1] = 0.5f;
-    color[2] = 0.5f;
-    color[3] = 1.0f;
+void ADNDisplayHelper::displayBasePairConnection(ADNPointer<ADNNucleotide> nt) {
 
-    displayDirectedCylinder(nt->GetBackbonePosition(), pair->GetBackbonePosition(), color, 100);
-  }
+    auto pair = nt->GetPair();
+
+    if (pair != nullptr) {
+
+        float* color = new float[4];
+        color[0] = 0.5f;
+        color[1] = 0.5f;
+        color[2] = 0.5f;
+        color[3] = 1.0f;
+
+        displayDirectedCylinder(nt->GetBackbonePosition(), pair->GetBackbonePosition(), color, 100);
+
+    }
+
 }
 
-void ADNDisplayHelper::displayBaseVectors(ADNPointer<ADNNucleotide> nt, SBPosition3 pos)
-{
-  SBVector3 e1 = SBVector3(nt->GetE1()[0], nt->GetE1()[1], nt->GetE1()[2]);
-  SBVector3 e2 = SBVector3(nt->GetE2()[0], nt->GetE2()[1], nt->GetE2()[2]);
-  SBVector3 e3 = SBVector3(nt->GetE3()[0], nt->GetE3()[1], nt->GetE3()[2]);
+void ADNDisplayHelper::displayBaseVectors(ADNPointer<ADNNucleotide> nt, SBPosition3 pos) {
 
-  float e1_c[] = { 0, 0, 1, 1 };
-  float e2_c[] = { 1, 0, 0, 1 };
-  float e3_c[] = { 0, 1, 0, 1 };
+    SBVector3 e1 = SBVector3(nt->GetE1()[0], nt->GetE1()[1], nt->GetE1()[2]);
+    SBVector3 e2 = SBVector3(nt->GetE2()[0], nt->GetE2()[1], nt->GetE2()[2]);
+    SBVector3 e3 = SBVector3(nt->GetE3()[0], nt->GetE3()[1], nt->GetE3()[2]);
 
-  displayVector(e1, pos, e1_c, 700);
-  displayVector(e2, pos, e2_c, 700);
-  displayVector(e3, pos, e3_c, 700);
+    float e1_c[] = { 0, 0, 1, 1 };
+    float e2_c[] = { 1, 0, 0, 1 };
+    float e3_c[] = { 0, 1, 0, 1 };
+
+    displayVector(e1, pos, e1_c, 700);
+    displayVector(e2, pos, e2_c, 700);
+    displayVector(e3, pos, e3_c, 700);
+
 }
 
 void ADNDisplayHelper::displayText(SBPosition3 pos, std::string text /*= ""*/) {
@@ -721,387 +728,394 @@ void ADNDisplayHelper::displayTextBottomLeft(std::string text /*= ""*/) {
 
 }
 
-void ADNDisplayHelper::displayTriangleMesh(DASPolyhedron * p)
-{
-  unsigned int nTriangles = boost::numeric_cast<unsigned int>(p->GetNumFaces());
-  unsigned int nVertices = boost::numeric_cast<unsigned int>(p->GetNumVertices());
-  float * vertexPositions = new float[3 * nVertices];
-  float * colorData = new float[4 * nVertices];
-  unsigned int * flagData = new unsigned int[nVertices];
-  float * normalData = new float[3 * nVertices];
-  unsigned int * indexData = p->GetIndices();
+void ADNDisplayHelper::displayTriangleMesh(DASPolyhedron* p) {
 
-  for (unsigned int i = 0; i < nVertices; i++) {
-    vertexPositions[3 * i + 0] = p->GetVertexById(i)->GetSBPosition()[0].getValue();
-    vertexPositions[3 * i + 1] = p->GetVertexById(i)->GetSBPosition()[1].getValue();
-    vertexPositions[3 * i + 2] = p->GetVertexById(i)->GetSBPosition()[2].getValue();
+    unsigned int nTriangles = boost::numeric_cast<unsigned int>(p->GetNumFaces());
+    unsigned int nVertices = boost::numeric_cast<unsigned int>(p->GetNumVertices());
+    float* vertexPositions = new float[3 * nVertices];
+    float* colorData = new float[4 * nVertices];
+    unsigned int* flagData = new unsigned int[nVertices];
+    float* normalData = new float[3 * nVertices];
+    unsigned int* indexData = p->GetIndices();
 
-    colorData[4 * i + 0] = 1.0f;
-    colorData[4 * i + 1] = 0.0f;
-    colorData[4 * i + 2] = 0.0f;
-    colorData[4 * i + 3] = 1.0f;
+    for (unsigned int i = 0; i < nVertices; i++) {
 
-    flagData[i] = 0;
+        vertexPositions[3 * i + 0] = p->GetVertexById(i)->GetSBPosition()[0].getValue();
+        vertexPositions[3 * i + 1] = p->GetVertexById(i)->GetSBPosition()[1].getValue();
+        vertexPositions[3 * i + 2] = p->GetVertexById(i)->GetSBPosition()[2].getValue();
 
-    //normal
-    int idx1 = indexData[3 * i + 0];
-    int idx2 = indexData[3 * i + 1];
-    int idx3 = indexData[3 * i + 2];
+        colorData[4 * i + 0] = 1.0f;
+        colorData[4 * i + 1] = 0.0f;
+        colorData[4 * i + 2] = 0.0f;
+        colorData[4 * i + 3] = 1.0f;
 
-    ublas::vector<double> posA(3);
-    posA[0] = vertexPositions[3 * idx1 + 0];
-    posA[1] = vertexPositions[3 * idx1 + 1];
-    posA[2] = vertexPositions[3 * idx1 + 2];
+        flagData[i] = 0;
 
-    ublas::vector<double> posB(3);
-    posB[0] = vertexPositions[3 * idx2 + 0];
-    posB[1] = vertexPositions[3 * idx2 + 1];
-    posB[2] = vertexPositions[3 * idx2 + 2];
+        //normal
+        int idx1 = indexData[3 * i + 0];
+        int idx2 = indexData[3 * i + 1];
+        int idx3 = indexData[3 * i + 2];
 
-    ublas::vector<double> posC(3);
-    posC[0] = vertexPositions[3 * idx3 + 0];
-    posC[1] = vertexPositions[3 * idx3 + 1];
-    posC[2] = vertexPositions[3 * idx3 + 2];
+        ublas::vector<double> posA(3);
+        posA[0] = vertexPositions[3 * idx1 + 0];
+        posA[1] = vertexPositions[3 * idx1 + 1];
+        posA[2] = vertexPositions[3 * idx1 + 2];
 
-    ublas::vector<double> dir = ADNVectorMath::CrossProduct(posB - posA, posC - posA);
+        ublas::vector<double> posB(3);
+        posB[0] = vertexPositions[3 * idx2 + 0];
+        posB[1] = vertexPositions[3 * idx2 + 1];
+        posB[2] = vertexPositions[3 * idx2 + 2];
 
-    ublas::vector<double> n = dir / ublas::norm_2(dir);
+        ublas::vector<double> posC(3);
+        posC[0] = vertexPositions[3 * idx3 + 0];
+        posC[1] = vertexPositions[3 * idx3 + 1];
+        posC[2] = vertexPositions[3 * idx3 + 2];
 
-    normalData[3 * idx1 + 0] = n[0];
-    normalData[3 * idx1 + 1] = n[1];
-    normalData[3 * idx1 + 2] = n[2];
+        ublas::vector<double> dir = ADNVectorMath::CrossProduct(posB - posA, posC - posA);
 
-  }
+        ublas::vector<double> n = dir / ublas::norm_2(dir);
 
-  SAMSON::displayTriangles(
-    nTriangles,
-    nVertices,
-    indexData,
-    vertexPositions,
-    normalData,
-    colorData,
-    flagData
-  );
-}
-
-
-void ADNDisplayHelper::displayPart(ADNPointer<ADNPart> part, float basePairRadius, float opaqueness)
-{
-  SEConfig& config = SEConfig::GetInstance();
-
-  auto doubleStrands = part->GetDoubleStrands();
-  unsigned int nPositions = part->GetNumberOfBaseSegments();
-
-  ADNArray<float> positions = ADNArray<float>(3, nPositions);
-  ADNArray<float> radiiV = ADNArray<float>(nPositions);
-  ADNArray<unsigned int> flags = ADNArray<unsigned int>(nPositions);
-  ADNArray<float> colorsV = ADNArray<float>(4, nPositions);
-  ADNArray<unsigned int> nodeIndices = ADNArray<unsigned int>(nPositions);
-
-  unsigned int index = 0;
-
-  SB_FOR(auto doubleStrand, doubleStrands) {
-    auto baseSegments = doubleStrand->GetBaseSegments();
-
-    SB_FOR(auto baseSegment, baseSegments) {
-      auto cell = baseSegment->GetCell();
-
-			radiiV(index) = basePairRadius;
-			SBPosition3 pos = baseSegment->GetPosition();
-			positions(index, 0) = (float)pos.v[0].getValue();
-			positions(index, 1) = (float)pos.v[1].getValue();
-			positions(index, 2) = (float)pos.v[2].getValue();
-
-      if (cell->GetType() == CellType::BasePair) {
-
-				colorsV(index, 0) = config.double_strand_color[0];
-				colorsV(index, 1) = config.double_strand_color[1];
-				colorsV(index, 2) = config.double_strand_color[2];
-				colorsV(index, 3) = opaqueness;
-      } else if (cell->GetType() == CellType::SkipPair) {
-				colorsV(index, 0) = 0.0f;
-				colorsV(index, 1) = 0.0f;
-				colorsV(index, 2) = 0.3f;
-				colorsV(index, 3) = opaqueness;
-			}
-			else if (cell->GetType() == CellType::LoopPair) {
-				radiiV(index) = config.base_pair_radius * 1.2f;
-				colorsV(index, 0) = 0.0f;
-				colorsV(index, 1) = config.double_strand_color[1];
-				colorsV(index, 2) = config.double_strand_color[2];
-				colorsV(index, 3) = opaqueness;
-			}
-
-
-
-      flags(index) = baseSegment->getInheritedFlags();
-
-      ++index;
+        normalData[3 * idx1 + 0] = n[0];
+        normalData[3 * idx1 + 1] = n[1];
+        normalData[3 * idx1 + 2] = n[2];
 
     }
-  }
 
-  SAMSON::displaySpheres(
-    nPositions,
-    positions.GetArray(),
-    radiiV.GetArray(),
-    colorsV.GetArray(),
-    flags.GetArray());
-}
-
-void ADNDisplayHelper::displayVector(SBVector3 vec, SBPosition3 shift)
-{
-  int length = 1000;
-  vec *= length;
-
-  SBPosition3 end = SBPosition3(
-    SBQuantity::picometer(vec[0].getValue()),
-    SBQuantity::picometer(vec[1].getValue()),
-    SBQuantity::picometer(vec[2].getValue())
+    SAMSON::displayTriangles(
+        nTriangles,
+        nVertices,
+        indexData,
+        vertexPositions,
+        normalData,
+        colorData,
+        flagData
     );
 
-  end += shift;
-
-  displayDirectedCylinder(shift, end);
 }
 
-void ADNDisplayHelper::displayVector(SBVector3 vec, SBPosition3 shift, float * color, int length) {
-  vec *= length;
 
-  SBPosition3 end = SBPosition3(
-    SBQuantity::picometer(vec[0].getValue()),
-    SBQuantity::picometer(vec[1].getValue()),
-    SBQuantity::picometer(vec[2].getValue())
-    );
+void ADNDisplayHelper::displayPart(ADNPointer<ADNPart> part, float basePairRadius, float opaqueness) {
 
-  end += shift;
+    SEConfig& config = SEConfig::GetInstance();
 
-  displayDirectedCylinder(shift, end, color, 50);
-}
+    auto doubleStrands = part->GetDoubleStrands();
+    unsigned int nPositions = part->GetNumberOfBaseSegments();
 
-void ADNDisplayHelper::displayArrow(SBVector3 vec, SBPosition3 start)
-{
-  SBVector3 shaft = vec * 0.75;
-  int length = 1000;
-  vec *= length;
+    ADNArray<float> positions = ADNArray<float>(3, nPositions);
+    ADNArray<float> radiiV = ADNArray<float>(nPositions);
+    ADNArray<unsigned int> flags = ADNArray<unsigned int>(nPositions);
+    ADNArray<float> colorsV = ADNArray<float>(4, nPositions);
+    ADNArray<unsigned int> nodeIndices = ADNArray<unsigned int>(nPositions);
 
-  //shaft[0] = shaft[0].
+    unsigned int index = 0;
 
-  SBPosition3 end = SBPosition3(
-    SBQuantity::picometer(vec[0].getValue()),
-    SBQuantity::picometer(vec[1].getValue()),
-    SBQuantity::picometer(vec[2].getValue())
-    );
-  end += start;
+    SB_FOR(auto doubleStrand, doubleStrands) {
+        auto baseSegments = doubleStrand->GetBaseSegments();
 
-  unsigned int nCylinders = 2;
-  unsigned int nPositions = 2 * nCylinders;
-  unsigned int* indexData = new unsigned int[2 * nCylinders];
-  float *positionData = new float[3 * nPositions];
-  float *radiusData = new float[2 * nCylinders];
-  unsigned int *capData = new unsigned int[2 * nCylinders];
-  float *colorData = new float[4 * 2 * nCylinders];
-  unsigned int *flagData = new unsigned int[2 * nCylinders];
+        SB_FOR(auto baseSegment, baseSegments) {
+            auto cell = baseSegment->GetCell();
 
-  positionData[0 * 3 + 0] = start.v[0].getValue();
-  positionData[0 * 3 + 1] = start.v[1].getValue();
-  positionData[0 * 3 + 2] = start.v[2].getValue();
-  positionData[1 * 3 + 0] = shaft.v[0].getValue();
-  positionData[1 * 3 + 1] = shaft.v[1].getValue();
-  positionData[1 * 3 + 2] = shaft.v[2].getValue();
-  positionData[2 * 3 + 0] = shaft.v[0].getValue();
-  positionData[2 * 3 + 1] = shaft.v[1].getValue();
-  positionData[2 * 3 + 2] = shaft.v[2].getValue();
-  positionData[3 * 3 + 0] = end.v[0].getValue();
-  positionData[3 * 3 + 1] = end.v[1].getValue();
-  positionData[3 * 3 + 2] = end.v[2].getValue();
+            radiiV(index) = basePairRadius;
+            SBPosition3 pos = baseSegment->GetPosition();
+            positions(index, 0) = (float)pos.v[0].getValue();
+            positions(index, 1) = (float)pos.v[1].getValue();
+            positions(index, 2) = (float)pos.v[2].getValue();
 
-  indexData[0] = 0;
-  indexData[1] = 1;
-  indexData[2] = 2;
-  indexData[3] = 3;
+            if (cell->GetCellType() == CellType::BasePair) {
 
-  radiusData[0] = 100;
-  radiusData[1] = 100;
-  radiusData[2] = 200;
-  radiusData[3] = 000;
+                colorsV(index, 0) = config.double_strand_color[0];
+                colorsV(index, 1) = config.double_strand_color[1];
+                colorsV(index, 2) = config.double_strand_color[2];
+                colorsV(index, 3) = opaqueness;
+            }
+            else if (cell->GetCellType() == CellType::SkipPair) {
+                colorsV(index, 0) = 0.0f;
+                colorsV(index, 1) = 0.0f;
+                colorsV(index, 2) = 0.3f;
+                colorsV(index, 3) = opaqueness;
+            }
+            else if (cell->GetCellType() == CellType::LoopPair) {
+                radiiV(index) = config.base_pair_radius * 1.2f;
+                colorsV(index, 0) = 0.0f;
+                colorsV(index, 1) = config.double_strand_color[1];
+                colorsV(index, 2) = config.double_strand_color[2];
+                colorsV(index, 3) = opaqueness;
+            }
 
-  capData[0] = 1;
-  capData[1] = 1;
-  capData[2] = 1;
-  capData[3] = 1;
+            flags(index) = baseSegment->getInheritedFlags();
 
-  colorData[0] = 1.0f;
-  colorData[1] = 1.0f;
-  colorData[2] = 1.0f;
-  colorData[3] = 1.0f;
-  colorData[4] = 1.0f;
-  colorData[5] = 1.0f;
-  colorData[6] = 1.0f;
-  colorData[7] = 1.0f;
-  colorData[8] = 1.0f;
-  colorData[9] = 0.0f;
-  colorData[10] = 0.0f;
-  colorData[11] = 1.0f;
-  colorData[12] = 1.0f;
-  colorData[13] = 0.0f;
-  colorData[14] = 0.0f;
-  colorData[15] = 1.0f;
+            ++index;
 
-  int flag = 0;
-  flagData[0] = flag;
-  flagData[1] = flag;
-  flagData[2] = flag;
-  flagData[3] = flag;
+        }
 
-  SAMSON::displayCylinders(nCylinders, nPositions, indexData, positionData, radiusData, capData, colorData, flagData);
-
-  delete[] indexData;
-  delete[] radiusData;
-  delete[] capData;
-  delete[] colorData;
-  delete[] flagData;
-}
-
-void ADNDisplayHelper::displayArrow(SBPosition3 start, SBPosition3 end, unsigned int nodeIndex, float * color, bool selectable)
-{
-  SBPosition3 shaft = end - start;
-  shaft *= 0.55f;
-  shaft += start;
-
-  unsigned int nCylinders = 2;
-  unsigned int nPositions = 2 * nCylinders;
-  unsigned int* indexData = new unsigned int[nPositions];
-  float *positionData = new float[3 * nPositions];
-  float *radiusData = new float[nPositions];
-  unsigned int *capData = new unsigned int[nPositions];
-  float *colorData = new float[4 * nPositions];
-  unsigned int *flagData = new unsigned int[nPositions];
-  unsigned int *nodeIndexData = new unsigned int[nCylinders];
-
-  positionData[0 * 3 + 0] = start.v[0].getValue();
-  positionData[0 * 3 + 1] = start.v[1].getValue();
-  positionData[0 * 3 + 2] = start.v[2].getValue();
-  positionData[1 * 3 + 0] = shaft.v[0].getValue();
-  positionData[1 * 3 + 1] = shaft.v[1].getValue();
-  positionData[1 * 3 + 2] = shaft.v[2].getValue();
-  positionData[2 * 3 + 0] = shaft.v[0].getValue();
-  positionData[2 * 3 + 1] = shaft.v[1].getValue();
-  positionData[2 * 3 + 2] = shaft.v[2].getValue();
-  positionData[3 * 3 + 0] = end.v[0].getValue();
-  positionData[3 * 3 + 1] = end.v[1].getValue();
-  positionData[3 * 3 + 2] = end.v[2].getValue();
-
-  indexData[0] = 0;
-  indexData[1] = 1;
-  indexData[2] = 2;
-  indexData[3] = 3;
-
-  radiusData[0] = 60;
-  radiusData[1] = 60;
-  radiusData[2] = 100;
-  radiusData[3] = 0;
-
-  capData[0] = 1;
-  capData[1] = 1;
-  capData[2] = 1;
-  capData[3] = 1;
-
-  nodeIndexData[0] = nodeIndex;
-  nodeIndexData[1] = nodeIndex;
-  /*nodeIndexData[2] = nodeIndex;
-  nodeIndexData[3] = nodeIndex;*/
-
-
-  colorData[0] = color[0];
-  colorData[1] = color[1];
-  colorData[2] = color[2];
-  colorData[3] = color[3];
-  colorData[4] = color[0];
-  colorData[5] = color[1];
-  colorData[6] = color[2];
-  colorData[7] = color[3];
-  colorData[8] = color[0];
-  colorData[9] = color[1];
-  colorData[10] = color[2];
-  colorData[11] = color[3];
-  colorData[12] = color[0];
-  colorData[13] = color[1];
-  colorData[14] = color[2];
-  colorData[15] = color[3];
-
-  int flag = 0;
-  flagData[0] = flag;
-  flagData[1] = flag;
-  flagData[2] = flag;
-  flagData[3] = flag;
-
-  SAMSON::displayCylinders(nCylinders, nPositions, indexData, positionData, radiusData, capData, colorData, flagData);
-
-  if (selectable)
-  {
-    SAMSON::displayCylindersSelection(nCylinders, nPositions, indexData, positionData, radiusData, capData, nodeIndexData);
-  }
-
-  delete[] indexData;
-  delete[] radiusData;
-  delete[] capData;
-  delete[] colorData;
-  delete[] flagData;
-
-}
-
-void ADNDisplayHelper::displayGoldSphere(SBNodeIndexer goldAtoms)
-{
-  unsigned int nPositions = goldAtoms.size();
-
-  float* positionData = new float[3 * nPositions];
-  float* radiusData = new float[nPositions];
-  float* colorData = new float[4 * nPositions];
-  unsigned int* flagData = new unsigned int[nPositions];
-
-
-  for (unsigned int i = 0; i < nPositions; i++) {
-
-    SBAtom* currentAtom = static_cast<SBAtom*>(goldAtoms.getNode(i));
-    SBNodeMaterial* material = currentAtom->getMaterial();
-
-    SBPosition3 position = currentAtom->getPosition();
-
-    positionData[3 * i + 0] = (float)position.v[0].getValue();
-    positionData[3 * i + 1] = (float)position.v[1].getValue();
-    positionData[3 * i + 2] = (float)position.v[2].getValue();
-
-    radiusData[i] = 100.0f;
-
-    if (material) {
-      material->getColorScheme()->getColor(colorData + 4 * i, currentAtom);
-    }
-    else {
-      colorData[4 * i + 0] = 1.0f;
-      colorData[4 * i + 1] = 1.0f;
-      colorData[4 * i + 2] = 1.0f;
-      colorData[4 * i + 3] = 1.0f;
     }
 
-    colorData[4 * i + 0] = 0.0f;
-    colorData[4 * i + 1] = 0.4f;
-    colorData[4 * i + 2] = 0.6f;
-    colorData[4 * i + 3] = 1.0f;
+    SAMSON::displaySpheres(
+        nPositions,
+        positions.GetArray(),
+        radiiV.GetArray(),
+        colorsV.GetArray(),
+        flags.GetArray());
 
-    flagData[i] = currentAtom->getInheritedFlags();
+}
 
-  }
+void ADNDisplayHelper::displayVector(SBVector3 vec, SBPosition3 shift) {
 
-  SAMSON::displaySpheres(
-    nPositions,
-    positionData,
-    radiusData,
-    colorData,
-    flagData);
+    int length = 1000;
+    vec *= length;
 
-  delete[] positionData;
-  delete[] radiusData;
-  delete[] colorData;
-  delete[] flagData;
+    SBPosition3 end = SBPosition3(
+        SBQuantity::picometer(vec[0].getValue()),
+        SBQuantity::picometer(vec[1].getValue()),
+        SBQuantity::picometer(vec[2].getValue())
+    );
+
+    end += shift;
+
+    displayDirectedCylinder(shift, end);
+
+}
+
+void ADNDisplayHelper::displayVector(SBVector3 vec, SBPosition3 shift, float* color, int length) {
+
+    vec *= length;
+
+    SBPosition3 end = SBPosition3(
+        SBQuantity::picometer(vec[0].getValue()),
+        SBQuantity::picometer(vec[1].getValue()),
+        SBQuantity::picometer(vec[2].getValue())
+    );
+
+    end += shift;
+
+    displayDirectedCylinder(shift, end, color, 50);
+
+}
+
+void ADNDisplayHelper::displayArrow(SBVector3 vec, SBPosition3 start) {
+
+    SBVector3 shaft = vec * 0.75;
+    int length = 1000;
+    vec *= length;
+
+    //shaft[0] = shaft[0].
+
+    SBPosition3 end = SBPosition3(
+        SBQuantity::picometer(vec[0].getValue()),
+        SBQuantity::picometer(vec[1].getValue()),
+        SBQuantity::picometer(vec[2].getValue())
+    );
+    end += start;
+
+    unsigned int nCylinders = 2;
+    unsigned int nPositions = 2 * nCylinders;
+    unsigned int* indexData = new unsigned int[2 * nCylinders];
+    float* positionData = new float[3 * nPositions];
+    float* radiusData = new float[2 * nCylinders];
+    unsigned int* capData = new unsigned int[2 * nCylinders];
+    float* colorData = new float[4 * 2 * nCylinders];
+    unsigned int* flagData = new unsigned int[2 * nCylinders];
+
+    positionData[0 * 3 + 0] = start.v[0].getValue();
+    positionData[0 * 3 + 1] = start.v[1].getValue();
+    positionData[0 * 3 + 2] = start.v[2].getValue();
+    positionData[1 * 3 + 0] = shaft.v[0].getValue();
+    positionData[1 * 3 + 1] = shaft.v[1].getValue();
+    positionData[1 * 3 + 2] = shaft.v[2].getValue();
+    positionData[2 * 3 + 0] = shaft.v[0].getValue();
+    positionData[2 * 3 + 1] = shaft.v[1].getValue();
+    positionData[2 * 3 + 2] = shaft.v[2].getValue();
+    positionData[3 * 3 + 0] = end.v[0].getValue();
+    positionData[3 * 3 + 1] = end.v[1].getValue();
+    positionData[3 * 3 + 2] = end.v[2].getValue();
+
+    indexData[0] = 0;
+    indexData[1] = 1;
+    indexData[2] = 2;
+    indexData[3] = 3;
+
+    radiusData[0] = 100;
+    radiusData[1] = 100;
+    radiusData[2] = 200;
+    radiusData[3] = 000;
+
+    capData[0] = 1;
+    capData[1] = 1;
+    capData[2] = 1;
+    capData[3] = 1;
+
+    colorData[0] = 1.0f;
+    colorData[1] = 1.0f;
+    colorData[2] = 1.0f;
+    colorData[3] = 1.0f;
+    colorData[4] = 1.0f;
+    colorData[5] = 1.0f;
+    colorData[6] = 1.0f;
+    colorData[7] = 1.0f;
+    colorData[8] = 1.0f;
+    colorData[9] = 0.0f;
+    colorData[10] = 0.0f;
+    colorData[11] = 1.0f;
+    colorData[12] = 1.0f;
+    colorData[13] = 0.0f;
+    colorData[14] = 0.0f;
+    colorData[15] = 1.0f;
+
+    int flag = 0;
+    flagData[0] = flag;
+    flagData[1] = flag;
+    flagData[2] = flag;
+    flagData[3] = flag;
+
+    SAMSON::displayCylinders(nCylinders, nPositions, indexData, positionData, radiusData, capData, colorData, flagData);
+
+    delete[] indexData;
+    delete[] radiusData;
+    delete[] capData;
+    delete[] colorData;
+    delete[] flagData;
+
+}
+
+void ADNDisplayHelper::displayArrow(SBPosition3 start, SBPosition3 end, unsigned int nodeIndex, float* color, bool selectable) {
+
+    SBPosition3 shaft = end - start;
+    shaft *= 0.55f;
+    shaft += start;
+
+    unsigned int nCylinders = 2;
+    unsigned int nPositions = 2 * nCylinders;
+    unsigned int* indexData = new unsigned int[nPositions];
+    float* positionData = new float[3 * nPositions];
+    float* radiusData = new float[nPositions];
+    unsigned int* capData = new unsigned int[nPositions];
+    float* colorData = new float[4 * nPositions];
+    unsigned int* flagData = new unsigned int[nPositions];
+    unsigned int* nodeIndexData = new unsigned int[nCylinders];
+
+    positionData[0 * 3 + 0] = start.v[0].getValue();
+    positionData[0 * 3 + 1] = start.v[1].getValue();
+    positionData[0 * 3 + 2] = start.v[2].getValue();
+    positionData[1 * 3 + 0] = shaft.v[0].getValue();
+    positionData[1 * 3 + 1] = shaft.v[1].getValue();
+    positionData[1 * 3 + 2] = shaft.v[2].getValue();
+    positionData[2 * 3 + 0] = shaft.v[0].getValue();
+    positionData[2 * 3 + 1] = shaft.v[1].getValue();
+    positionData[2 * 3 + 2] = shaft.v[2].getValue();
+    positionData[3 * 3 + 0] = end.v[0].getValue();
+    positionData[3 * 3 + 1] = end.v[1].getValue();
+    positionData[3 * 3 + 2] = end.v[2].getValue();
+
+    indexData[0] = 0;
+    indexData[1] = 1;
+    indexData[2] = 2;
+    indexData[3] = 3;
+
+    radiusData[0] = 60;
+    radiusData[1] = 60;
+    radiusData[2] = 100;
+    radiusData[3] = 0;
+
+    capData[0] = 1;
+    capData[1] = 1;
+    capData[2] = 1;
+    capData[3] = 1;
+
+    nodeIndexData[0] = nodeIndex;
+    nodeIndexData[1] = nodeIndex;
+    /*nodeIndexData[2] = nodeIndex;
+    nodeIndexData[3] = nodeIndex;*/
+
+
+    colorData[0] = color[0];
+    colorData[1] = color[1];
+    colorData[2] = color[2];
+    colorData[3] = color[3];
+    colorData[4] = color[0];
+    colorData[5] = color[1];
+    colorData[6] = color[2];
+    colorData[7] = color[3];
+    colorData[8] = color[0];
+    colorData[9] = color[1];
+    colorData[10] = color[2];
+    colorData[11] = color[3];
+    colorData[12] = color[0];
+    colorData[13] = color[1];
+    colorData[14] = color[2];
+    colorData[15] = color[3];
+
+    int flag = 0;
+    flagData[0] = flag;
+    flagData[1] = flag;
+    flagData[2] = flag;
+    flagData[3] = flag;
+
+    SAMSON::displayCylinders(nCylinders, nPositions, indexData, positionData, radiusData, capData, colorData, flagData);
+
+    if (selectable) {
+        SAMSON::displayCylindersSelection(nCylinders, nPositions, indexData, positionData, radiusData, capData, nodeIndexData);
+    }
+
+    delete[] indexData;
+    delete[] radiusData;
+    delete[] capData;
+    delete[] colorData;
+    delete[] flagData;
+
+}
+
+void ADNDisplayHelper::displayGoldSphere(SBNodeIndexer goldAtoms) {
+
+    unsigned int nPositions = goldAtoms.size();
+
+    float* positionData = new float[3 * nPositions];
+    float* radiusData = new float[nPositions];
+    float* colorData = new float[4 * nPositions];
+    unsigned int* flagData = new unsigned int[nPositions];
+
+
+    for (unsigned int i = 0; i < nPositions; i++) {
+
+        SBAtom* currentAtom = static_cast<SBAtom*>(goldAtoms.getNode(i));
+        SBNodeMaterial* material = currentAtom->getMaterial();
+
+        SBPosition3 position = currentAtom->getPosition();
+
+        positionData[3 * i + 0] = (float)position.v[0].getValue();
+        positionData[3 * i + 1] = (float)position.v[1].getValue();
+        positionData[3 * i + 2] = (float)position.v[2].getValue();
+
+        radiusData[i] = 100.0f;
+
+        if (material) {
+            material->getColorScheme()->getColor(colorData + 4 * i, currentAtom);
+        }
+        else {
+            colorData[4 * i + 0] = 1.0f;
+            colorData[4 * i + 1] = 1.0f;
+            colorData[4 * i + 2] = 1.0f;
+            colorData[4 * i + 3] = 1.0f;
+        }
+
+        colorData[4 * i + 0] = 0.0f;
+        colorData[4 * i + 1] = 0.4f;
+        colorData[4 * i + 2] = 0.6f;
+        colorData[4 * i + 3] = 1.0f;
+
+        flagData[i] = currentAtom->getInheritedFlags();
+
+    }
+
+    SAMSON::displaySpheres(
+        nPositions,
+        positionData,
+        radiusData,
+        colorData,
+        flagData);
+
+    delete[] positionData;
+    delete[] radiusData;
+    delete[] colorData;
+    delete[] flagData;
+
 }

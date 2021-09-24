@@ -34,14 +34,14 @@ void DASBackToTheAtom::SetDoubleStrandPositions(ADNPointer<ADNDoubleStrand> ds) 
     }
     int num = bs->GetNumber();
     ADNPointer<ADNCell> cell = bs->GetCell();
-    if (cell->GetType() == CellType::BasePair) {
+    if (cell->GetCellType() == CellType::BasePair) {
       ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(cell());
       ADNPointer<ADNNucleotide> left = bp->GetLeftNucleotide();
       ADNPointer<ADNNucleotide> right = bp->GetRightNucleotide();
       bool paired = (left != nullptr && right != nullptr);
       SetNucleotidePosition(bs, paired);
     }
-    else if (cell->GetType() == CellType::LoopPair) {
+    else if (cell->GetCellType() == CellType::LoopPair) {
       loops.push_back(bs);
     }
     bs = bs->GetNext();
@@ -61,7 +61,7 @@ void DASBackToTheAtom::SetNucleotidePosition(ADNPointer<ADNBaseSegment> bs, bool
   ADNPointer<ADNNucleotide> nt_left = nullptr;
   ADNPointer<ADNNucleotide> nt_right = nullptr;
   ADNPointer<ADNCell> cell = bs->GetCell();
-  if (cell->GetType() != CellType::BasePair) return;
+  if (cell->GetCellType() != CellType::BasePair) return;
 
   auto ds = bs->GetDoubleStrand();
   double initialAngleDegrees = ds->GetInitialTwistAngle();
@@ -232,7 +232,7 @@ ublas::matrix<double> DASBackToTheAtom::CreatePositionsMatrix(NtPair pair)
 
 void DASBackToTheAtom::SetPositionLoopNucleotides(ADNPointer<ADNBaseSegment> bs) {
 
-  if (bs->GetCell()->GetType() == CellType::LoopPair) {
+  if (bs->GetCell()->GetCellType() == CellType::LoopPair) {
     ADNPointer<ADNLoopPair> pair = static_cast<ADNLoopPair*>(bs->GetCell()());
     ADNPointer<ADNLoop> left = pair->GetLeftLoop();
     ADNPointer<ADNLoop> right = pair->GetRightLoop();
@@ -385,7 +385,7 @@ void DASBackToTheAtom::UntwistNucleotidePosition(ADNPointer<ADNNucleotide> nt)
   ADNPointer<ADNBaseSegment> bs = nt->GetBaseSegment();
 
   ADNPointer<ADNCell> cell = bs->GetCell();
-  if (cell->GetType() != CellType::BasePair) return;
+  if (cell->GetCellType() != CellType::BasePair) return;
 
   ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(cell());
   ADNPointer<ADNNucleotide> nt_l = bp->GetLeftNucleotide();

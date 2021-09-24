@@ -40,7 +40,15 @@ public :
 
 	//@}
 
+	/// \name App
+	//@{
+
 	static SEAdenitaCoreSEApp*									getAdenitaApp();														///< Returns a pointer to the app's instance
+
+	//@}
+
+	/// \name Import/export
+	//@{
 
 	bool														loadPart(const QString& filename, SBDDocumentFolder* preferredFolder = nullptr);
 	void														loadParts(const QString& filename, SBDDocumentFolder* preferredFolder = nullptr);
@@ -50,13 +58,22 @@ public :
 	bool														importFromCadnano(const QString& filename, SBDDocumentFolder* preferredFolder = nullptr);
 	void														ExportToOxDNA(QString folder, ADNAuxiliary::OxDNAOptions options, CollectionMap<ADNPart> parts);
 	void														ExportToSequenceList(QString filename, CollectionMap<ADNPart> parts);
+
+	//@}
+
 	void														SetScaffoldSequence(std::string seq);
 	void														GenerateSequence(double gcCont, int maxContGs, bool overwrite = true);
 
-	static void													resetVisualModel();														///< Resets the Adenita visual model in the active document if any, else creates one
-	static SEAdenitaVisualModel*								getVisualModel();														///< Returns an Adenita visual model from the active document if any, else return nullptr
+	/// \name Visual model
+	//@{
 
-	void														SetStart();
+	static void													requestVisualModelUpdate();												///< Requests an update of the Adenita visual model in the active document on the next display call
+	static void													resetVisualModel();														///< Resets the Adenita visual model in the active document if any, else creates one
+	static SEAdenitaVisualModel*								getVisualModel();														///< Returns an Adenita visual model from the active document if any, else returns nullptr
+
+	//@}
+
+	void														setStartNucleotide();
 
 	// Modifications
 
@@ -84,12 +101,13 @@ public :
 	void														FixDesigns();
 
 	virtual void												onDocumentEvent(SBDocumentEvent* documentEvent);						///< Handles document events
-	virtual void												onStructuralEvent(SBStructuralEvent* documentEvent);					///< Handles structural events
+	virtual void												onStructuralEvent(SBStructuralEvent* structuralEvent);					///< Handles structural events
 	void														ConnectToDocument();
 	void														ConnectToDocument(SBDocument* doc);
 
 	// Helper functions
 
+	ADNNanorobot*												getNanorobot(SBDocument* document);
 	ADNNanorobot*												GetNanorobot();
 	static std::string											readScaffoldFilename(std::string filename);
 
@@ -100,8 +118,8 @@ public :
 
 	// Adding things to data graph
 
-	void														AddPartToActiveLayer(ADNPointer<ADNPart> part, bool positionsData = false, SBFolder* preferredFolder = nullptr);
-	void														AddConformationToActiveLayer(ADNPointer<ADNConformation> conf, SBFolder* preferredFolder = nullptr);
+	void														addPartToDocument(ADNPointer<ADNPart> part, bool positionsData = false, SBFolder* preferredFolder = nullptr);
+	void														addConformationToDocument(ADNPointer<ADNConformation> conf, SBFolder* preferredFolder = nullptr);
 	void														AddLoadedPartToNanorobot(ADNPointer<ADNPart> part);
 
 	virtual void												keyPressEvent(QKeyEvent* event);

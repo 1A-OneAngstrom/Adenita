@@ -229,7 +229,7 @@ CollectionMap<ADNNucleotide> ADNBaseSegment::GetNucleotides() const {
 void ADNBaseSegment::SetCell(ADNCell* c) {
 
     cell_ = ADNPointer<ADNCell>(c);
-    std::string type = ADNModel::CellTypeToString(cell_->GetType());
+    std::string type = cell_->getCellTypeString();
     cell_->setName(type + " " + std::to_string(cell_->getNodeIndex()));
     addChild(cell_());
 
@@ -242,14 +242,13 @@ ADNPointer<ADNCell> ADNBaseSegment::GetCell() const {
 CellType ADNBaseSegment::GetCellType() const {
 
     ADNPointer<ADNCell> cell = GetCell();
-    return cell->GetType();
+    return cell->GetCellType();
 
 }
 
-std::string ADNBaseSegment::getCellType() const {
+std::string ADNBaseSegment::getCellTypeString() const {
 
-    auto t = GetCellType();
-    return ADNModel::CellTypeToString(t);
+    return ADNCell::getCellTypeString(GetCellType());
 
 }
 

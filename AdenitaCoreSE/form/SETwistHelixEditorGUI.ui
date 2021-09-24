@@ -185,7 +185,7 @@
    <sender>radioButtonTwistTurns</sender>
    <signal>toggled(bool)</signal>
    <receiver>SETwistHelixEditorGUIClass</receiver>
-   <slot>onTwistTurn(bool)</slot>
+   <slot>onTwistTurns(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>220</x>
@@ -202,7 +202,7 @@
   <slot>onMinus(bool)</slot>
   <slot>onPlus(bool)</slot>
   <slot>onTwistAngle(bool)</slot>
-  <slot>onTwistTurn(bool)</slot>
+  <slot>onTwistTurns(bool)</slot>
   <slot>onTwistAngleChanged(double)</slot>
   <slot>onTwistTurnsChanged(int)</slot>
  </slots>

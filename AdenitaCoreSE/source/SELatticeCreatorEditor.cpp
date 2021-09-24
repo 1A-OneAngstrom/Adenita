@@ -143,13 +143,13 @@ void SELatticeCreatorEditor::sendPartToAdenita(ADNPointer<ADNPart> lattice) {
 	if (lattice != nullptr) {
 
 		SEAdenitaCoreSEApp* adenita = SEAdenitaCoreSEApp::getAdenitaApp();
-		adenita->AddPartToActiveLayer(lattice);
+		adenita->addPartToDocument(lattice);
 
 		//DASCadnano cad = DASCadnano();
 		//cad.CreateConformations(lattice);
-		//adenita->AddConformationToActiveLayer(cad.Get3DConformation());
-		//adenita->AddConformationToActiveLayer(cad.Get2DConformation());
-		//adenita->AddConformationToActiveLayer(cad.Get1DConformation());
+		//adenita->addConformationToDocument(cad.Get3DConformation());
+		//adenita->addConformationToDocument(cad.Get2DConformation());
+		//adenita->addConformationToDocument(cad.Get1DConformation());
 
 		SEAdenitaCoreSEApp::resetVisualModel();
 

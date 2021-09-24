@@ -197,7 +197,7 @@ void SEDSDNACreatorEditor::sendPartToAdenita(ADNPointer<ADNPart> nanotube) {
 
         setSequence(nanotube);
 
-        SEAdenitaCoreSEApp::getAdenitaApp()->AddPartToActiveLayer(nanotube);
+        SEAdenitaCoreSEApp::getAdenitaApp()->addPartToDocument(nanotube);
         SEAdenitaCoreSEApp::resetVisualModel();
 
     }

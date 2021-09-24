@@ -40,8 +40,6 @@ namespace ADNModel {
 	char GetResidueName(DNABlocks t);
 	DNABlocks ResidueNameToType(char n);
 
-	std::string CellTypeToString(CellType t);
-
 	bool IsAtomInBackboneByName(std::string name);
 
 	SBElement::Type GetElementType(std::string atomName);

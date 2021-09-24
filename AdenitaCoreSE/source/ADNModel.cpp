@@ -53,23 +53,6 @@ DNABlocks ADNModel::ResidueNameToType(char n) {
 
 }
 
-std::string ADNModel::CellTypeToString(CellType t) {
-
-    std::string typeStr = "Unknown";
-    if (t == CellType::BasePair) {
-        typeStr = "Base Pair";
-    }
-    else if (t == CellType::LoopPair) {
-        typeStr = "Loop Pair";
-    }
-    else if (t == CellType::SkipPair) {
-        typeStr = "Skip Pair";
-    }
-
-    return typeStr;
-
-}
-
 bool ADNModel::IsAtomInBackboneByName(std::string name) {
 
     bool res = false;

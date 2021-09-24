@@ -24,15 +24,19 @@ public:
 	ADNCell() : SBStructuralGroup() {}
 	virtual ~ADNCell() {}
 
-	virtual void serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const;														///< Serializes the node
-	virtual void unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0));											///< Unserializes the node
+	virtual void												serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const;														///< Serializes the node
+	virtual void												unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0));											///< Unserializes the node
 	
-	virtual CellType GetType() const { return CellType::Undefined; }
-	virtual void RemoveNucleotide(ADNPointer<ADNNucleotide> nt) {}
-	virtual CollectionMap<ADNNucleotide> GetNucleotides() const { return CollectionMap<ADNNucleotide>(); }
-	virtual unsigned int getNumberOfNucleotides() const { return GetNucleotides().size(); }
-	virtual bool IsLeft(ADNPointer<ADNNucleotide> nt) const { return false; }  // samson doesn't like abstract classes
-	virtual bool IsRight(ADNPointer<ADNNucleotide> nt) const { return false; }
+	static std::string											getCellTypeString(CellType type);
+	std::string													getCellTypeString() const;
+
+	virtual CellType											GetCellType() const { return CellType::Undefined; }						///< Returns the cell type
+
+	virtual void												RemoveNucleotide(ADNPointer<ADNNucleotide> nt) {}
+	virtual CollectionMap<ADNNucleotide>						GetNucleotides() const { return CollectionMap<ADNNucleotide>(); }
+	virtual unsigned int										getNumberOfNucleotides() const { return GetNucleotides().size(); }
+	virtual bool												IsLeft(ADNPointer<ADNNucleotide> nt) const { return false; }  // samson doesn't like abstract classes
+	virtual bool												IsRight(ADNPointer<ADNNucleotide> nt) const { return false; }
 	
 };
 
@@ -48,29 +52,29 @@ public:
 	ADNBasePair() = default;
 	~ADNBasePair() = default;
 
-	void serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const;														///< Serializes the node
-	void unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0));											///< Unserializes the node
+	void														serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const;														///< Serializes the node
+	void														unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0));											///< Unserializes the node
 
-	CellType GetType() const override { return CellType::BasePair; }
+	CellType													GetCellType() const override { return CellType::BasePair; }
 
-	ADNPointer<ADNNucleotide> GetLeftNucleotide();
-	SBNode* getLeft() const;
-	void SetLeftNucleotide(ADNPointer<ADNNucleotide> nt);
-	ADNPointer<ADNNucleotide> GetRightNucleotide();
-	SBNode* getRight() const;
-	void SetRightNucleotide(ADNPointer<ADNNucleotide> nt);
-	void SetRemainingNucleotide(ADNPointer<ADNNucleotide> nt);
-	void AddPair(ADNPointer<ADNNucleotide> left, ADNPointer<ADNNucleotide> right);
-	void PairNucleotides();
-	void RemoveNucleotide(ADNPointer<ADNNucleotide> nt) override;
-	CollectionMap<ADNNucleotide> GetNucleotides() const override;
-	bool IsLeft(ADNPointer<ADNNucleotide> nt) const override;
-	bool IsRight(ADNPointer<ADNNucleotide> nt) const override;
+	ADNPointer<ADNNucleotide>									GetLeftNucleotide();
+	SBNode*														getLeft() const;
+	void														SetLeftNucleotide(ADNPointer<ADNNucleotide> nt);
+	ADNPointer<ADNNucleotide>									GetRightNucleotide();
+	SBNode*														getRight() const;
+	void														SetRightNucleotide(ADNPointer<ADNNucleotide> nt);
+	void														SetRemainingNucleotide(ADNPointer<ADNNucleotide> nt);
+	void														AddPair(ADNPointer<ADNNucleotide> left, ADNPointer<ADNNucleotide> right);
+	void														PairNucleotides();
+	void														RemoveNucleotide(ADNPointer<ADNNucleotide> nt) override;
+	CollectionMap<ADNNucleotide>								GetNucleotides() const override;
+	bool														IsLeft(ADNPointer<ADNNucleotide> nt) const override;
+	bool														IsRight(ADNPointer<ADNNucleotide> nt) const override;
 
 private:
 
-	ADNPointer<ADNNucleotide> left_ = nullptr;
-	ADNPointer<ADNNucleotide> right_ = nullptr;
+	ADNPointer<ADNNucleotide>									leftNucleotide = nullptr;
+	ADNPointer<ADNNucleotide>									rightNucleotide = nullptr;
 
 };
 
@@ -86,15 +90,12 @@ public:
 	ADNSkipPair() = default;
 	~ADNSkipPair() = default;
 
-	void serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const;														///< Serializes the node
-	void unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0));											///< Unserializes the node
+	void														serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const;														///< Serializes the node
+	void														unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0));											///< Unserializes the node
 
-	CellType GetType() const override { return CellType::SkipPair; }
+	CellType													GetCellType() const override { return CellType::SkipPair; }
 
-	void RemoveNucleotide(ADNPointer<ADNNucleotide> nt) override;
-
-	bool IsLeft(ADNPointer<ADNNucleotide> nt) const override { return false; }
-	bool IsRight(ADNPointer<ADNNucleotide> nt) const override { return false; }
+	void														RemoveNucleotide(ADNPointer<ADNNucleotide> nt) override;
 
 };
 
@@ -111,28 +112,28 @@ public:
 	ADNLoopPair() = default;
 	~ADNLoopPair() = default;
 
-	void serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const;														///< Serializes the node
-	void unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0));											///< Unserializes the node
+	void														serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const;														///< Serializes the node
+	void														unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0));											///< Unserializes the node
 
-	CellType GetType() const override { return CellType::LoopPair; }
+	CellType													GetCellType() const override { return CellType::LoopPair; }
 
-	ADNPointer<ADNLoop> GetLeftLoop();
-	SBNode* getLeft() const;
-	void SetLeftLoop(ADNPointer<ADNLoop> lp);
-	ADNPointer<ADNLoop> GetRightLoop();
-	SBNode* getRight() const;
-	void SetRightLoop(ADNPointer<ADNLoop> lp);
+	ADNPointer<ADNLoop>											GetLeftLoop();
+	SBNode*														getLeft() const;
+	void														SetLeftLoop(ADNPointer<ADNLoop> lp);
+	ADNPointer<ADNLoop>											GetRightLoop();
+	SBNode*														getRight() const;
+	void														SetRightLoop(ADNPointer<ADNLoop> lp);
 
-	void RemoveNucleotide(ADNPointer<ADNNucleotide> nt) override;
-	CollectionMap<ADNNucleotide> GetNucleotides() const override;
+	void														RemoveNucleotide(ADNPointer<ADNNucleotide> nt) override;
+	CollectionMap<ADNNucleotide>								GetNucleotides() const override;
 
-	bool IsLeft(ADNPointer<ADNNucleotide> nt) const override;
-	bool IsRight(ADNPointer<ADNNucleotide> nt) const override;
+	bool														IsLeft(ADNPointer<ADNNucleotide> nt) const override;
+	bool														IsRight(ADNPointer<ADNNucleotide> nt) const override;
 
 private:
 
-	ADNPointer<ADNLoop> left_ = nullptr;
-	ADNPointer<ADNLoop> right_ = nullptr;
+	ADNPointer<ADNLoop>											leftLoop = nullptr;
+	ADNPointer<ADNLoop>											rightLoop = nullptr;
 
 };
 

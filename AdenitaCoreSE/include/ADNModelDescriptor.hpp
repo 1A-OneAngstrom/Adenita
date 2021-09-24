@@ -368,7 +368,7 @@ SB_CLASS_BEGIN(ADNBaseSegment);
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBaseSegment, DoubleStrand, "Double Strand", "Adenita");
     SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNBaseSegment, Name, "Name", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(int, ADNBaseSegment, Number, "Number", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(std::string, ADNBaseSegment, CellType, "Contains", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(std::string, ADNBaseSegment, CellTypeString, "Contains", "Adenita");
 
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBaseSegment, ThisNode, "Itself", "Node");
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBaseSegment, Parent, "Parent", "Node");

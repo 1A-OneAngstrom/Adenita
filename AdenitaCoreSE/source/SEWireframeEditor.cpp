@@ -319,7 +319,7 @@ void SEWireframeEditor::sendPartToAdenita(ADNPointer<ADNPart> part) {
 
     if (part != nullptr) {
 
-        SEAdenitaCoreSEApp::getAdenitaApp()->AddPartToActiveLayer(part);
+        SEAdenitaCoreSEApp::getAdenitaApp()->addPartToDocument(part);
         SEAdenitaCoreSEApp::resetVisualModel();
 
     }

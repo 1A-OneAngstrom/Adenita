@@ -1,7 +1,6 @@
 //#include "ADNCell.hpp"
 #include "ADNModel.hpp"
 
-
 void ADNCell::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber, const SBVersionNumber& classVersionNumber) const {
 
     SBStructuralGroup::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
@@ -14,12 +13,39 @@ void ADNCell::unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIn
 
 }
 
+std::string ADNCell::getCellTypeString(CellType type) {
+
+    std::string typeStr = "Unknown";
+    if (type == CellType::BasePair) {
+        typeStr = "Base Pair";
+    }
+    else if (type == CellType::LoopPair) {
+        typeStr = "Loop Pair";
+    }
+    else if (type == CellType::SkipPair) {
+        typeStr = "Skip Pair";
+    }
+    else if (type == CellType::ALL) {
+        typeStr = "All";
+    }
+
+    return typeStr;
+
+}
+
+std::string ADNCell::getCellTypeString() const {
+
+    return ADNCell::getCellTypeString(GetCellType());
+
+}
+
+
 void ADNBasePair::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber, const SBVersionNumber& classVersionNumber) const {
 
     ADNCell::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
-    serializer->writeUnsignedIntElement("left", nodeIndexer.getIndex(left_()));
-    serializer->writeUnsignedIntElement("right", nodeIndexer.getIndex(right_()));
+    serializer->writeUnsignedIntElement("left", nodeIndexer.getIndex(leftNucleotide()));
+    serializer->writeUnsignedIntElement("right", nodeIndexer.getIndex(rightNucleotide()));
 
 }
 
@@ -39,35 +65,35 @@ void ADNBasePair::unserialize(SBCSerializer* serializer, const SBNodeIndexer& no
 }
 
 ADNPointer<ADNNucleotide> ADNBasePair::GetLeftNucleotide() {
-    return left_;
+    return leftNucleotide;
 }
 
 SBNode* ADNBasePair::getLeft() const {
-    return left_();
+    return leftNucleotide();
 }
 
 void ADNBasePair::SetLeftNucleotide(ADNPointer<ADNNucleotide> nt) {
-    left_ = nt;
+    this->leftNucleotide = nt;
 }
 
 ADNPointer<ADNNucleotide> ADNBasePair::GetRightNucleotide() {
-    return right_;
+    return rightNucleotide;
 }
 
 SBNode* ADNBasePair::getRight() const {
-    return right_();
+    return rightNucleotide();
 }
 
 void ADNBasePair::SetRightNucleotide(ADNPointer<ADNNucleotide> nt) {
-    right_ = nt;
+    this->rightNucleotide = nt;
 }
 
 void ADNBasePair::SetRemainingNucleotide(ADNPointer<ADNNucleotide> nt) {
 
-    if (left_ != nullptr && right_ == nullptr) {
+    if (leftNucleotide != nullptr && rightNucleotide == nullptr) {
         SetRightNucleotide(nt);
     }
-    else if (left_ == nullptr && right_ != nullptr) {
+    else if (leftNucleotide == nullptr && rightNucleotide != nullptr) {
         SetLeftNucleotide(nt);
     }
     PairNucleotides();
@@ -79,16 +105,16 @@ void ADNBasePair::AddPair(ADNPointer<ADNNucleotide> left, ADNPointer<ADNNucleoti
     SetLeftNucleotide(left);
     SetRightNucleotide(right);
     if (left != nullptr) left->SetPair(right);
-    if (right_ != nullptr) right->SetPair(left);
+    if (rightNucleotide != nullptr) right->SetPair(left);
 
 }
 
 void ADNBasePair::PairNucleotides() {
 
-    if (left_ != nullptr && right_ != nullptr) {
+    if (leftNucleotide != nullptr && rightNucleotide != nullptr) {
 
-        left_->SetPair(right_);
-        right_->SetPair(left_);
+        leftNucleotide->SetPair(rightNucleotide);
+        rightNucleotide->SetPair(leftNucleotide);
 
     }
 
@@ -96,11 +122,11 @@ void ADNBasePair::PairNucleotides() {
 
 void ADNBasePair::RemoveNucleotide(ADNPointer<ADNNucleotide> nt) {
 
-    if (left_ == nt) {
-        left_ = nullptr;
+    if (leftNucleotide == nt) {
+        leftNucleotide = nullptr;
     }
-    else if (right_ == nt) {
-        right_ = nullptr;
+    else if (rightNucleotide == nt) {
+        rightNucleotide = nullptr;
     }
 
 }
@@ -108,21 +134,21 @@ void ADNBasePair::RemoveNucleotide(ADNPointer<ADNNucleotide> nt) {
 CollectionMap<ADNNucleotide> ADNBasePair::GetNucleotides() const {
 
     CollectionMap<ADNNucleotide> nts;
-    if (left_ != nullptr) nts.addReferenceTarget(left_());
-    if (right_ != nullptr) nts.addReferenceTarget(right_());
+    if (leftNucleotide != nullptr) nts.addReferenceTarget(leftNucleotide());
+    if (rightNucleotide != nullptr) nts.addReferenceTarget(rightNucleotide());
     return nts;
 
 }
 
 bool ADNBasePair::IsLeft(ADNPointer<ADNNucleotide> nt) const {
 
-    return bool(left_ == nt);
+    return bool(leftNucleotide == nt);
 
 }
 
 bool ADNBasePair::IsRight(ADNPointer<ADNNucleotide> nt) const {
 
-    return bool(right_ == nt);
+    return bool(rightNucleotide == nt);
 
 }
 
@@ -143,8 +169,8 @@ void ADNLoopPair::serialize(SBCSerializer* serializer, const SBNodeIndexer& node
 
     ADNCell::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
-    serializer->writeUnsignedIntElement("left", nodeIndexer.getIndex(left_()));
-    serializer->writeUnsignedIntElement("right", nodeIndexer.getIndex(right_()));
+    serializer->writeUnsignedIntElement("left", nodeIndexer.getIndex(leftLoop()));
+    serializer->writeUnsignedIntElement("right", nodeIndexer.getIndex(rightLoop()));
 
 }
 
@@ -162,91 +188,81 @@ void ADNLoopPair::unserialize(SBCSerializer* serializer, const SBNodeIndexer& no
 }
 
 ADNPointer<ADNLoop> ADNLoopPair::GetLeftLoop() {
-    return left_;
+    return leftLoop;
 }
 
 SBNode* ADNLoopPair::getLeft() const {
-    return left_();
+    return leftLoop();
 }
 
 void ADNLoopPair::SetLeftLoop(ADNPointer<ADNLoop> lp) {
 
-    left_ = lp;
+    this->leftLoop = lp;
     addChild(lp());
-    lp->setName("Left Loop " + std::to_string(lp->getNodeIndex()));
+    lp->setName("Left loop " + std::to_string(lp->getNodeIndex()));
 
 }
 
 ADNPointer<ADNLoop> ADNLoopPair::GetRightLoop() {
-    return right_;
+    return rightLoop;
 }
 
 SBNode* ADNLoopPair::getRight() const {
-    return right_();
+    return rightLoop();
 }
 
 void ADNLoopPair::SetRightLoop(ADNPointer<ADNLoop> lp) {
 
-    right_ = lp;
+    this->rightLoop = lp;
     addChild(lp());
-    lp->setName("Right Loop " + std::to_string(lp->getNodeIndex()));
+    lp->setName("Right loop " + std::to_string(lp->getNodeIndex()));
 
 }
 
 void ADNLoopPair::RemoveNucleotide(ADNPointer<ADNNucleotide> nt) {
 
-    if (left_ != nullptr) {
-        left_->RemoveNucleotide(nt);
+    if (leftLoop != nullptr) {
+        leftLoop->RemoveNucleotide(nt);
     }
-    if (right_ != nullptr) {
-        right_->RemoveNucleotide(nt);
+    if (rightLoop != nullptr) {
+        rightLoop->RemoveNucleotide(nt);
     }
 
 }
 
 bool ADNLoopPair::IsRight(ADNPointer<ADNNucleotide> nt) const {
 
-    bool s = false;
-    if (right_ != nullptr) {
+    if (rightLoop != nullptr) {
 
-        auto nts = right_->GetNucleotides();
+        auto nts = rightLoop->GetNucleotides();
         SB_FOR(ADNPointer<ADNNucleotide> c, nts) {
 
-            if (c == nt) {
-
-                s = true;
-                break;
-
-            }
+            if (c == nt)
+                return true;
 
         }
 
     }
 
-    return s;
+    return false;
 
 }
 
 bool ADNLoopPair::IsLeft(ADNPointer<ADNNucleotide> nt) const {
 
-    bool s = false;
-    if (left_ != nullptr) {
+    if (leftLoop != nullptr) {
 
-        auto nts = left_->GetNucleotides();
+        auto nts = leftLoop->GetNucleotides();
         SB_FOR(ADNPointer<ADNNucleotide> c, nts) {
 
-            if (c == nt) {
-
-                s = true;
-                break;
-
-            }
+            if (c == nt)
+                return true;
 
         }
 
     }
 
-    return s;
+    return false;
 
 }
 
@@ -254,18 +270,18 @@ CollectionMap<ADNNucleotide> ADNLoopPair::GetNucleotides() const {
 
     CollectionMap<ADNNucleotide> nts;
 
-    if (left_ != nullptr) {
+    if (leftLoop != nullptr) {
 
-        auto leftNts = left_->GetNucleotides();
+        auto leftNts = leftLoop->GetNucleotides();
         SB_FOR(ADNPointer<ADNNucleotide> n, leftNts) {
             nts.addReferenceTarget(n());
         }
 
     }
 
-    if (right_ != nullptr) {
+    if (rightLoop != nullptr) {
 
-        auto rightNts = right_->GetNucleotides();
+        auto rightNts = rightLoop->GetNucleotides();
         SB_FOR(ADNPointer<ADNNucleotide> n, rightNts) {
             nts.addReferenceTarget(n());
         }

@@ -113,7 +113,7 @@ void SENanotubeCreatorEditor::sendPartToAdenita(ADNPointer<ADNPart> nanotube) {
 
 	if (nanotube != nullptr) {
 
-		SEAdenitaCoreSEApp::getAdenitaApp()->AddPartToActiveLayer(nanotube);
+		SEAdenitaCoreSEApp::getAdenitaApp()->addPartToDocument(nanotube);
 		SEAdenitaCoreSEApp::resetVisualModel();
 
 	}

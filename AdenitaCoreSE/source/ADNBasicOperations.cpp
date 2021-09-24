@@ -515,7 +515,7 @@ void ADNBasicOperations::SetSingleStrandSequence(ADNPointer<ADNSingleStrand> ss,
 void ADNBasicOperations::MutateBasePairIntoLoopPair(ADNPointer<ADNBaseSegment> bs)
 {
   auto cell = bs->GetCell();
-  if (cell->GetType() != CellType::BasePair) return;
+  if (cell->GetCellType() != CellType::BasePair) return;
 
   ADNPointer<ADNBasePair> bp(static_cast<ADNBasePair*>(cell()));
   ADNPointer<ADNNucleotide> leftNt = bp->GetLeftNucleotide();

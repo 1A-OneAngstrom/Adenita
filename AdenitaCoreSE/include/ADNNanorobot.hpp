@@ -14,7 +14,7 @@ class ADNNanorobot {//: public Nameable, public Positionable, public Orientable 
 
 public:
   
-    ADNNanorobot() {};// : Nameable(), Positionable(), Orientable() {};                                                                       ///< Default constructor
+    ADNNanorobot();                                                                                                                     ///< Default constructor
 	ADNNanorobot(const ADNNanorobot &n);                                                                                                ///< Copy constructor
 	~ADNNanorobot() = default;                                                                                                          ///< Default destructor
 

@@ -673,9 +673,9 @@ void SEAdenitaCoreSEAppGUI::onCalculateBindingProperties() {
 
 }
 
-void SEAdenitaCoreSEAppGUI::onSetStart() {
+void SEAdenitaCoreSEAppGUI::onSetStartNucleotide() {
 
-	getApp()->SetStart();
+	getApp()->setStartNucleotide();
 
 }
 
@@ -1313,7 +1313,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getEditSequencesButtons() {
 		QObject::connect(btnSetScaff, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSetScaffold, Qt::ConnectionType::UniqueConnection);
 		QObject::connect(btnGenerateSequence, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onGenerateSequence, Qt::ConnectionType::UniqueConnection);
 		QObject::connect(btnCalculateBindingProperties, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCalculateBindingProperties, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnSetStart, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSetStart, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnSetStart, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSetStartNucleotide, Qt::ConnectionType::UniqueConnection);
 		QObject::connect(btnTaggingEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onTaggingEditor, Qt::ConnectionType::UniqueConnection);
 
 		//change icons
