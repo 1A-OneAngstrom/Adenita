@@ -23,22 +23,22 @@ public:
 	void														serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const;														///< Serializes the node
 	void														unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0));											///< Unserializes the node
 
-	void														SetStart(ADNPointer<ADNNucleotide> nt);									///< Set start nucleotide
-	ADNPointer<ADNNucleotide>									GetStart();
+	void														SetStart(ADNPointer<ADNNucleotide> nucleotide);							///< Set the start nucleotide
+	ADNPointer<ADNNucleotide>									GetStart() const;
 	SBNode*														getStartNucleotide() const;
-	void														SetEnd(ADNPointer<ADNNucleotide> nt);
-	ADNPointer<ADNNucleotide>									GetEnd();
+	void														SetEnd(ADNPointer<ADNNucleotide> nucleotide);							///< Set the end nucleotide
+	ADNPointer<ADNNucleotide>									GetEnd() const;
 	SBNode*														getEndNucleotide() const;
 
-	void														SetBaseSegment(ADNPointer<ADNBaseSegment> bs, bool setPositions = false);
+	void														SetBaseSegment(ADNPointer<ADNBaseSegment> baseSegment, bool setPositions = false);
 
 	std::string													getLoopSequence() const;
 
 	int															getNumberOfNucleotides() const;
 	CollectionMap<ADNNucleotide>								GetNucleotides() const;
 
-	void														AddNucleotide(ADNPointer<ADNNucleotide> nt);
-	void														RemoveNucleotide(ADNPointer<ADNNucleotide> nt);
+	void														AddNucleotide(ADNPointer<ADNNucleotide> nucleotide);
+	void														RemoveNucleotide(ADNPointer<ADNNucleotide> nucleotide);
 
 	bool														IsEmpty() const;
 

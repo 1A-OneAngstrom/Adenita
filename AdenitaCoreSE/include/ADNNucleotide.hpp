@@ -33,13 +33,15 @@ public:
 	void														serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const;														///< Serializes the node
 	void														unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0));											///< Unserializes the node
 
-	void														SetType(DNABlocks t);
-	DNABlocks													GetType();
+	void														setNucleotideType(DNABlocks t);
 	DNABlocks													getNucleotideType() const;
 
-	void														SetPair(ADNPointer<ADNNucleotide> nt);
+	std::string													getNucleotideTypeString() const;
+
+	void														SetPair(ADNPointer<ADNNucleotide> nucleotide);
 	ADNPointer<ADNNucleotide>									GetPair() const;														///< Return a nucleotide's pair
 	SBNode*														getPair() const;
+	void														disconnectPair(ADNPointer<ADNNucleotide> nucleotide);					///< Disconnects a pairing to the nucleotide \p nucleotide
 
 	ADNPointer<ADNNucleotide>									GetPrev(bool checkCircular = false) const;								///< Return the nucleotide previous on the single strand
 	SBNode*														getPrev() const;
@@ -62,9 +64,7 @@ public:
 
 	void														Init();
 	ADNPointer<ADNBackbone>										GetBackbone() const;
-	void														SetBackbone(ADNPointer<ADNBackbone> bb);
 	ADNPointer<ADNSidechain>									GetSidechain() const;
-	void														SetSidechain(ADNPointer<ADNSidechain> sc);
 
 	void														SetSidechainPosition(Position3D pos);
 	Position3D													GetSidechainPosition() const;											///< Return the position of the sidechain of a nucleotide
@@ -77,6 +77,7 @@ public:
 	void														AddAtom(NucleotideGroup g, ADNPointer<ADNAtom> a);
 	void														DeleteAtom(NucleotideGroup g, ADNPointer<ADNAtom> a);
 	CollectionMap<ADNAtom>										GetAtoms();
+	int															getNumberOfAtoms() const;
 	CollectionMap<ADNAtom>										GetAtomsByName(std::string name);
 	void														HideCenterAtoms();														///< Hides center "mock" atom
 	ADNPointer<ADNAtom>											GetBackboneCenterAtom();
@@ -97,12 +98,12 @@ public:
 
 private:
 
-	ADNWeakPointer<ADNNucleotide>								pair_;
-	ADNWeakPointer<ADNBaseSegment>								bs_;  // base segment to which the nucleotide belongs to
+	ADNWeakPointer<ADNNucleotide>								pairNucleotide;
+	ADNWeakPointer<ADNBaseSegment>								baseSegment;  // base segment to which the nucleotide belongs to
 
 	ADNNucleotide::EndType										endType = ADNNucleotide::EndType::NotEnd;
 
-	std::string													tag_;
+	std::string													tag;
 
 };
 

@@ -38,12 +38,12 @@ public:
 	SBNode*														getDoubleStrand() const;
 	unsigned int												getNumberOfNucleotides() const;
 	CollectionMap<ADNNucleotide>								GetNucleotides() const;
+	void														RemoveNucleotide(ADNPointer<ADNNucleotide> nt);
 
 	void														SetCell(ADNCell* c);  // we use raw pointers so subclassing will work
 	ADNPointer<ADNCell>											GetCell() const;
 	CellType													GetCellType() const;
 	std::string													getCellTypeString() const;
-	void														RemoveNucleotide(ADNPointer<ADNNucleotide> nt);
 
 	//! check if left or right in the base segment
 	bool														IsLeft(ADNPointer<ADNNucleotide> nt);

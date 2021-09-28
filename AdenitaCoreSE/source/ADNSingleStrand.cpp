@@ -271,7 +271,7 @@ std::string ADNSingleStrand::GetSequence() const {
     ADNPointer<ADNNucleotide> nt = fivePrimeNucleotide;
     while (nt != nullptr) {
 
-        seq += ADNModel::GetResidueName(nt->GetType());
+        seq += nt->getNucleotideTypeString();
         nt = nt->GetNext();
 
     }
@@ -289,10 +289,10 @@ std::string ADNSingleStrand::GetSequenceWithTags() const {
     ADNPointer<ADNNucleotide> nt = fivePrimeNucleotide;
     while (nt != nullptr) {
 
-        std::string totalBase(1, ADNModel::GetResidueName(nt->GetType()));
+        std::string totalBase = nt->getNucleotideTypeString();
         if (nt->hasTag()) {
 
-            std::string base(1, ADNModel::GetResidueName(nt->GetType()));
+            std::string base = nt->getNucleotideTypeString();
             totalBase = "[" + nt->getTag() + base + "]";
 
         }
@@ -312,7 +312,7 @@ double ADNSingleStrand::GetGCContent() const {
 
     SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
-        if (nt->GetType() == DNABlocks::DC || nt->GetType() == DNABlocks::DG) {
+        if (nt->getNucleotideType() == DNABlocks::DC || nt->getNucleotideType() == DNABlocks::DG) {
             gcCont += 1.0;
         }
 
@@ -343,11 +343,11 @@ void ADNSingleStrand::SetSequence(std::string seq) {
 
         DNABlocks type = DNABlocks::DI;
         if (seq.size() > count) type = ADNModel::ResidueNameToType(seq[count]);
-        nt->SetType(type);
+        nt->setNucleotideType(type);
         if (nt->GetPair() != nullptr) {
 
             DNABlocks compType = ADNModel::GetComplementaryBase(type);
-            nt->GetPair()->SetType(compType);
+            nt->GetPair()->setNucleotideType(compType);
 
         }
         nt = nt->GetNext();

@@ -96,13 +96,16 @@ void DASOperations::CreateCrossover(ADNPointer<ADNPart> part1, ADNPointer<ADNPar
 
         // since we are modifying created parts, we need to call samson creator
         // after generating atoms
+        if (SAMSON::isHolding()) SAMSON::hold(res.ds());
         res.ds->create();
         pair.firstPart->DeregisterDoubleStrand(res.ds);
         pair.firstPart->RegisterDoubleStrand(res.ds);
 
+        if (SAMSON::isHolding()) SAMSON::hold(joinStrand1());
         joinStrand1->create();
         pair.firstPart->DeregisterSingleStrand(joinStrand1);
         pair.firstPart->RegisterSingleStrand(joinStrand1);
+        if (SAMSON::isHolding()) SAMSON::hold(joinStrand2());
         joinStrand2->create();
         pair.firstPart->DeregisterSingleStrand(joinStrand2);
         pair.firstPart->RegisterSingleStrand(joinStrand2);
@@ -115,9 +118,11 @@ void DASOperations::CreateCrossover(ADNPointer<ADNPart> part1, ADNPointer<ADNPar
         DASBackToTheAtom* btta = new DASBackToTheAtom();
         btta->SetPositionsForNewNucleotides(pair.firstPart, joinStrand1->GetNucleotides());
 
+        if (SAMSON::isHolding()) SAMSON::hold(res.ds());
         res.ds->create();
         pair.firstPart->DeregisterDoubleStrand(res.ds);  // we need to register after creation
         pair.firstPart->RegisterDoubleStrand(res.ds);
+        if (SAMSON::isHolding()) SAMSON::hold(joinStrand1());
         joinStrand1->create();
         pair.firstPart->DeregisterSingleStrand(joinStrand1);
         pair.firstPart->RegisterSingleStrand(joinStrand1);
@@ -188,6 +193,7 @@ void DASOperations::AddComplementaryStrands(ADNNanorobot* nanorobot, CollectionM
       if (prevPart != part) {
         if (ss != nullptr) {
           btta.SetPositionsForNewNucleotides(prevPart, nucleotides);
+          if (SAMSON::isHolding()) SAMSON::hold(ss());
           ss->create();
           prevPart->DeregisterSingleStrand(ss);
           prevPart->RegisterSingleStrand(ss);
@@ -207,7 +213,7 @@ void DASOperations::AddComplementaryStrands(ADNNanorobot* nanorobot, CollectionM
 
       ADNPointer<ADNNucleotide> pair = new ADNNucleotide();
       pair->Init();
-      pair->SetType(ADNModel::GetComplementaryBase(nt->GetType()));
+      pair->setNucleotideType(ADNModel::GetComplementaryBase(nt->getNucleotideType()));
       nucleotides.addReferenceTarget(pair());
 
       auto cellType = bs->GetCellType();
@@ -228,6 +234,7 @@ void DASOperations::AddComplementaryStrands(ADNNanorobot* nanorobot, CollectionM
       if (!selectedNucleotides.hasIndex(next())) {
         if (ss != nullptr) {
           btta.SetPositionsForNewNucleotides(part, nucleotides);
+          if (SAMSON::isHolding()) SAMSON::hold(ss());
           ss->create();
           part->DeregisterSingleStrand(ss);
           part->RegisterSingleStrand(ss);
@@ -240,6 +247,7 @@ void DASOperations::AddComplementaryStrands(ADNNanorobot* nanorobot, CollectionM
       // if ss has nucleotides create and start a new one
       if (ss != nullptr) {
         btta.SetPositionsForNewNucleotides(part, nucleotides);
+        if (SAMSON::isHolding()) SAMSON::hold(ss());
         ss->create();
         part->DeregisterSingleStrand(ss);
         part->RegisterSingleStrand(ss);

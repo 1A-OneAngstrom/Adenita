@@ -447,35 +447,51 @@ void DASCadnano::CreateConformations(ADNPointer<ADNPart> part) {
 
   // set positions
   for (auto it = cellBsMap_.begin(); it != cellBsMap_.end(); ++it) {
+
     Vstrand* vs = it->first;
     int vStrandId = vs->num_;
     std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> values = it->second;
 
     for (auto jt = values.begin(); jt != values.end(); ++jt) {
+
       std::pair<int, int> bsNumAndLoop = jt->first;
       ADNPointer<ADNBaseSegment> bs = jt->second;
       int z = bsNumAndLoop.first;
       auto nts = bs->GetNucleotides();
       SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
+
         ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
         SBPosition3 pos2D = vGrid_.GetGridCellPos2D(vStrandId, z, ss->IsScaffold());
         SBPosition3 pos1D = vGrid_.GetGridCellPos1D(ssId_[ss()], ntPositions_[nt()]);
         pos2D = pos2D - center2D + center3D;
         pos1D = pos1D - center1D + center3D;
 
-        auto ats = nt->GetBackbone()->GetAtoms();
-        SB_FOR(ADNPointer<ADNAtom> at, ats) {
-          conformation2D_->setPosition(at(), pos2D);
-          conformation1D_->setPosition(at(), pos1D);
+        if (nt->GetBackbone() != nullptr) {
+
+            auto ats = nt->GetBackbone()->GetAtoms();
+            SB_FOR(ADNPointer<ADNAtom> at, ats) {
+                conformation2D_->setPosition(at(), pos2D);
+                conformation1D_->setPosition(at(), pos1D);
+            }
+
         }
-        ats = nt->GetSidechain()->GetAtoms();
-        SB_FOR(ADNPointer<ADNAtom> at, ats) {
-          conformation2D_->setPosition(at(), pos2D);
-          conformation1D_->setPosition(at(), pos1D);
+
+        if (nt->GetSidechain() != nullptr) {
+
+            auto ats = nt->GetSidechain()->GetAtoms();
+            SB_FOR(ADNPointer<ADNAtom> at, ats) {
+                conformation2D_->setPosition(at(), pos2D);
+                conformation1D_->setPosition(at(), pos1D);
+            }
+
         }
+
       }
+
     }
+
   }
+
 }
 
 SBPointer<SBMStructuralModelConformation> DASCadnano::Get3DConformation()

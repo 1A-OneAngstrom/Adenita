@@ -586,7 +586,7 @@ void DASBackToTheAtom::CreateBonds(ADNPointer<ADNPart> origami)
     auto atoms = nt->GetAtoms();
     auto bb = nt->GetBackbone();
     auto sc = nt->GetSidechain();
-    auto connections = ADNModel::GetNucleotideBonds(nt->GetType());
+    auto connections = ADNModel::GetNucleotideBonds(nt->getNucleotideType());
 
     SB_FOR(ADNPointer<ADNAtom> at, atoms) {
       ADNPointer<ADNAtom> atC = nullptr;
@@ -639,7 +639,7 @@ void DASBackToTheAtom::FindAtomsPositions(ADNPointer<ADNNucleotide> nt)
 
   // to calculate the translation we need to take into account the base pair
   // even if pair is not defined, thus we use the ideal base pairs
-  NtPair pair = GetIdealBasePairNucleotides(nt->GetType(), ADNModel::GetComplementaryBase(nt->GetType()));
+  NtPair pair = GetIdealBasePairNucleotides(nt->getNucleotideType(), ADNModel::GetComplementaryBase(nt->getNucleotideType()));
   ublas::matrix<double> bpPositions = CreatePositionsMatrix(pair);
 
   // Calculate translation vector
@@ -697,7 +697,7 @@ void DASBackToTheAtom::PopulateNucleotideWithAllAtoms(ADNPointer<ADNPart> origam
 {
   ADNPointer<ADNNucleotide> nt_left;
   ADNPointer<ADNNucleotide> nt_right;
-  DNABlocks nt_type = nt->GetType();
+  DNABlocks nt_type = nt->getNucleotideType();
 
   // for DN_ we use DA_
   nt_left = da_dt_.first;
@@ -1049,7 +1049,7 @@ void DASBackToTheAtom::LoadNucleotides() {
     std::string name(1, it->second);
     std::string nt_source = SB_ELEMENT_PATH + "/Data/" + name + ".pdb";
     ADNPointer<ADNNucleotide> nt = ParsePDB(nt_source);
-    nt->SetType(it->first);
+    nt->setNucleotideType(it->first);
     auto atoms = nt->GetAtoms();
     std::vector<std::vector<double>> positions;
     std::vector<std::vector<double>> base_plane;
@@ -1090,8 +1090,8 @@ void DASBackToTheAtom::LoadNtPairs() {
     NtPair nt_pair = ParseBasePairPDB(nt_source);
     ADNPointer<ADNNucleotide> nt_left = nt_pair.first;
     ADNPointer<ADNNucleotide> nt_right = nt_pair.second;
-    nt_left->SetType(it->left.first);
-    nt_right->SetType(it->left.second);
+    nt_left->setNucleotideType(it->left.first);
+    nt_right->setNucleotideType(it->left.second);
 
     SetReferenceFrame(nt_pair);
 
@@ -1232,13 +1232,13 @@ NtPair DASBackToTheAtom::GetIdealBasePairNucleotides(ADNPointer<ADNNucleotide> n
   // scaffold nucleotide is always on the left
   std::pair<DNABlocks, DNABlocks> pair_type;
   if (nt_l == nullptr) {
-    pair_type = std::make_pair(ADNModel::GetComplementaryBase(nt_r->GetType()), nt_r->GetType());
+    pair_type = std::make_pair(ADNModel::GetComplementaryBase(nt_r->getNucleotideType()), nt_r->getNucleotideType());
   }
   else if (nt_r == nullptr) {
-    pair_type = std::make_pair(nt_l->GetType(), ADNModel::GetComplementaryBase(nt_l->GetType()));
+    pair_type = std::make_pair(nt_l->getNucleotideType(), ADNModel::GetComplementaryBase(nt_l->getNucleotideType()));
   }
   else {
-    pair_type = std::make_pair(nt_l->GetType(), nt_r->GetType());
+    pair_type = std::make_pair(nt_l->getNucleotideType(), nt_r->getNucleotideType());
   }
 
   return GetIdealBasePairNucleotides(pair_type.first, pair_type.second);

@@ -25,62 +25,77 @@ void ADNLoop::unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIn
 
     SBStructuralGroup::unserialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
-    unsigned int sIdx = serializer->readUnsignedIntElement();
-    unsigned int eIdx = serializer->readUnsignedIntElement();
-    unsigned int numNt = serializer->readUnsignedIntElement();
+    const unsigned int sIdx = serializer->readUnsignedIntElement();
+    const unsigned int eIdx = serializer->readUnsignedIntElement();
+    const unsigned int numNt = serializer->readUnsignedIntElement();
     serializer->readStartElement();
 
     for (unsigned int i = 0; i < numNt; ++i) {
 
-        unsigned int idx = serializer->readUnsignedIntElement();
+        const unsigned int idx = serializer->readUnsignedIntElement();
         SBNode* node = nodeIndexer.getNode(idx);
-        ADNPointer<ADNNucleotide> nt = static_cast<ADNNucleotide*>(node);
-        AddNucleotide(nt);
+        if (node) {
+            
+            ADNPointer<ADNNucleotide> nt = static_cast<ADNNucleotide*>(node);
+            AddNucleotide(nt);
+
+        }
 
     }
 
     serializer->readEndElement();
 
     SBNode* sNode = nodeIndexer.getNode(sIdx);
-    SetStart(static_cast<ADNNucleotide*>(sNode));
+    if (sNode) SetStart(static_cast<ADNNucleotide*>(sNode));
     SBNode* eNode = nodeIndexer.getNode(eIdx);
-    SetEnd(static_cast<ADNNucleotide*>(eNode));
+    if (eNode) SetEnd(static_cast<ADNNucleotide*>(eNode));
 
 }
 
-void ADNLoop::SetStart(ADNPointer<ADNNucleotide> nt) {
-    this->startNucleotide = nt;
+void ADNLoop::SetStart(ADNPointer<ADNNucleotide> nucleotide) {
+
+    this->startNucleotide = nucleotide;
+
 }
 
-ADNPointer<ADNNucleotide> ADNLoop::GetStart() {
+ADNPointer<ADNNucleotide> ADNLoop::GetStart() const {
+
     return startNucleotide;
+
 }
 
 SBNode* ADNLoop::getStartNucleotide() const {
+
     return startNucleotide();
+
 }
 
-void ADNLoop::SetEnd(ADNPointer<ADNNucleotide> nt) {
-    this->endNucleotide = nt;
+void ADNLoop::SetEnd(ADNPointer<ADNNucleotide> nucleotide) {
+
+    this->endNucleotide = nucleotide;
+
 }
 
-ADNPointer<ADNNucleotide> ADNLoop::GetEnd() {
+ADNPointer<ADNNucleotide> ADNLoop::GetEnd() const {
+
     return endNucleotide;
+
 }
 
 SBNode* ADNLoop::getEndNucleotide() const {
+
     return endNucleotide();
+
 }
 
 std::string ADNLoop::getLoopSequence() const {
 
     std::string seq = "";
-    ADNPointer<ADNNucleotide> nt = startNucleotide;
-    while (nt != nullptr && nt != endNucleotide->GetNext()) {
+    ADNPointer<ADNNucleotide> currentNucleotide = startNucleotide;
+    while (currentNucleotide != nullptr && currentNucleotide != endNucleotide->GetNext()) {
 
-        DNABlocks t = nt->GetType();
-        seq += ADNModel::GetResidueName(t);
-        nt = nt->GetNext();
+        seq += currentNucleotide->getNucleotideTypeString();
+        currentNucleotide = currentNucleotide->GetNext();
 
     }
 
@@ -88,17 +103,20 @@ std::string ADNLoop::getLoopSequence() const {
 
 }
 
-void ADNLoop::SetBaseSegment(ADNPointer<ADNBaseSegment> bs, bool setPositions) {
+void ADNLoop::SetBaseSegment(ADNPointer<ADNBaseSegment> baseSegment, bool setPositions) {
 
-    auto nts = GetNucleotides();
-    SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
+    SB_FOR(ADNPointer<ADNNucleotide> nucleotide, nucleotides_) {
 
-        nt->SetBaseSegment(bs);
+        if (nucleotide == nullptr) continue;
+
+        nucleotide->SetBaseSegment(baseSegment);
         if (setPositions) {
 
-            nt->SetPosition(bs->GetPosition());
-            nt->SetBackbonePosition(bs->GetPosition());
-            nt->SetSidechainPosition(bs->GetPosition());
+            const Position3D baseSegmentPosition = baseSegment->GetPosition();
+
+            nucleotide->SetPosition(baseSegmentPosition);
+            nucleotide->SetBackbonePosition(baseSegmentPosition);
+            nucleotide->SetSidechainPosition(baseSegmentPosition);
 
         }
 
@@ -107,21 +125,34 @@ void ADNLoop::SetBaseSegment(ADNPointer<ADNBaseSegment> bs, bool setPositions) {
 }
 
 int ADNLoop::getNumberOfNucleotides() const {
+
     return static_cast<int>(GetNucleotides().size());
+
 }
 
 CollectionMap<ADNNucleotide> ADNLoop::GetNucleotides() const {
+
     return nucleotides_;
+
 }
 
-void ADNLoop::AddNucleotide(ADNPointer<ADNNucleotide> nt) {
-    nucleotides_.addReferenceTarget(nt());
+void ADNLoop::AddNucleotide(ADNPointer<ADNNucleotide> nucleotide) {
+
+    nucleotides_.addReferenceTarget(nucleotide());
+
 }
 
-void ADNLoop::RemoveNucleotide(ADNPointer<ADNNucleotide> nt) {
-    nucleotides_.removeReferenceTarget(nt());
+void ADNLoop::RemoveNucleotide(ADNPointer<ADNNucleotide> nucleotide) {
+
+    if (startNucleotide == nucleotide) startNucleotide = nullptr;
+    if (endNucleotide == nucleotide) endNucleotide = nullptr;
+
+    nucleotides_.removeReferenceTarget(nucleotide());
+
 }
 
 bool ADNLoop::IsEmpty() const {
+
     return bool(getNumberOfNucleotides() == 0);
+
 }

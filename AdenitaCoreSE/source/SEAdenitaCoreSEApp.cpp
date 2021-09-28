@@ -104,7 +104,7 @@ bool SEAdenitaCoreSEApp::importFromCadnano(const QString& filename, SBDDocumentF
 	SBFolder* folderWithModel = new SBFolder(s.toStdString());
 
 	//SAMSON::beginHolding("Add cadnano model");
-	//SAMSON::hold(folderWithModel);
+	if (SAMSON::isHolding()) SAMSON::hold(folderWithModel);
 	folderWithModel->create();
 	if (preferredFolder) preferredFolder->addChild(folderWithModel);
 	else SAMSON::getActiveDocument()->addChild(folderWithModel);
@@ -220,6 +220,7 @@ void SEAdenitaCoreSEApp::requestVisualModelUpdate() {
 
 		SBProxy* visualModelProxy = SAMSON::getProxy("SEAdenitaVisualModel", SBUUID(SB_ELEMENT_UUID));
 		SEAdenitaVisualModel* newVisualModel = visualModelProxy->createInstance();
+		if (SAMSON::isHolding()) SAMSON::hold(newVisualModel);
 		newVisualModel->create();
 		SAMSON::getActiveDocument()->addChild(newVisualModel);
 
@@ -245,6 +246,7 @@ void SEAdenitaCoreSEApp::resetVisualModel() {
 
 		SBProxy* visualModelProxy = SAMSON::getProxy("SEAdenitaVisualModel", SBUUID(SB_ELEMENT_UUID));
 		SEAdenitaVisualModel* newVisualModel = visualModelProxy->createInstance();
+		if (SAMSON::isHolding()) SAMSON::hold(newVisualModel);
 		newVisualModel->create();
 		SAMSON::getActiveDocument()->addChild(newVisualModel);
 
@@ -647,6 +649,7 @@ void SEAdenitaCoreSEApp::FixDesigns() {
 			ADNPointer<ADNSingleStrand> newSs = new ADNSingleStrand();
 			newSs->setName(ss->getName());
 			newSs->IsScaffold(ss->IsScaffold());
+			if (SAMSON::isHolding()) SAMSON::hold(newSs());
 			newSs->create();
 			part->RegisterSingleStrand(newSs);
 			// reverse 5'->3' direction
@@ -980,7 +983,7 @@ void SEAdenitaCoreSEApp::addPartToDocument(ADNPointer<ADNPart> part, bool positi
 
 	//bool holding = SAMSON::isHolding();
 	//if (!holding) SAMSON::beginHolding("Add model");
-	//if (SAMSON::isHolding()) SAMSON::hold(part());
+	if (SAMSON::isHolding()) SAMSON::hold(part());
 	part->create();
 	
 	if (preferredFolder) preferredFolder->addChild(part());
@@ -998,7 +1001,7 @@ void SEAdenitaCoreSEApp::addConformationToDocument(ADNPointer<ADNConformation> c
 
 	//bool holding = SAMSON::isHolding();
 	//if (!holding) SAMSON::beginHolding("Add conformation");
-	//if (SAMSON::isHolding()) SAMSON::hold(conf());
+	if (SAMSON::isHolding()) SAMSON::hold(conf());
 	conf->create();
 
 	if (preferredFolder) preferredFolder->addChild(conf());

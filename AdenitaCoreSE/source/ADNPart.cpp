@@ -514,7 +514,7 @@ void ADNPart::RegisterNucleotideThreePrime(ADNPointer<ADNSingleStrand> ss, ADNPo
 
     if (nt->getName().empty()) {
 
-        nt->setName(ADNModel::GetResidueName(nt->GetType()) + " " + std::to_string(nucleotideId_));
+        nt->setName(nt->getNucleotideTypeString() + " " + std::to_string(nucleotideId_));
         ++nucleotideId_;
 
     }
@@ -531,7 +531,7 @@ void ADNPart::RegisterNucleotideFivePrime(ADNPointer<ADNSingleStrand> ss, ADNPoi
 
     if (nt->getName().empty()) {
 
-        nt->setName(ADNModel::GetResidueName(nt->GetType()) + " " + std::to_string(nucleotideId_));
+        nt->setName(nt->getNucleotideTypeString() + " " + std::to_string(nucleotideId_));
         ++nucleotideId_;
 
     }
@@ -549,7 +549,7 @@ void ADNPart::RegisterNucleotide(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNN
 
     if (nt->getName().empty()) {
 
-        nt->setName(ADNModel::GetResidueName(nt->GetType()) + " " + std::to_string(nucleotideId_));
+        nt->setName(nt->getNucleotideTypeString() + " " + std::to_string(nucleotideId_));
         ++nucleotideId_;
 
     }
@@ -565,8 +565,12 @@ void ADNPart::RegisterNucleotide(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNN
 
 void ADNPart::RegisterAtom(ADNPointer<ADNNucleotide> nt, NucleotideGroup g, ADNPointer<ADNAtom> at, bool create) {
 
-    if (create)
+    if (create) {
+        
+        if (SAMSON::isHolding()) SAMSON::hold(at());
         at->create();
+
+    }
 
     nt->AddAtom(g, at);
 
@@ -578,8 +582,12 @@ void ADNPart::RegisterAtom(ADNPointer<ADNNucleotide> nt, NucleotideGroup g, ADNP
 
 void ADNPart::RegisterAtom(ADNPointer<ADNBaseSegment> bs, ADNPointer<ADNAtom> at, bool create) {
 
-    if (create)
+    if (create) {
+
+        if (SAMSON::isHolding()) SAMSON::hold(at());
         at->create();
+
+    }
 
     bs->addChild(at());
 

@@ -60,10 +60,10 @@ void ADNNucleotide::serialize(SBCSerializer* serializer, const SBNodeIndexer& no
     serializer->writeDoubleElement("z", e1z);
     serializer->writeEndElement();
 
-    serializer->writeUnsignedIntElement("pair", nodeIndexer.getIndex(pair_()));
-    serializer->writeUnsignedIntElement("base_segment", nodeIndexer.getIndex(bs_()));
+    serializer->writeUnsignedIntElement("pair", nodeIndexer.getIndex(pairNucleotide()));
+    serializer->writeUnsignedIntElement("base_segment", nodeIndexer.getIndex(baseSegment()));
 
-    serializer->writeStringElement("tag", tag_);
+    serializer->writeStringElement("tag", tag);
 
 }
 
@@ -129,27 +129,43 @@ void ADNNucleotide::unserialize(SBCSerializer* serializer, const SBNodeIndexer& 
 
 }
 
-void ADNNucleotide::SetType(DNABlocks t) {
+void ADNNucleotide::setNucleotideType(DNABlocks t) {
 
     setResidueType(t);
-    setName(ADNModel::GetResidueName(t) + std::to_string(getNodeIndex()));
+    setName(std::string(1, ADNModel::GetResidueName(t)) + " " + std::to_string(getNodeIndex()));
 
-}
-
-DNABlocks ADNNucleotide::GetType() {
-    return getResidueType();
 }
 
 DNABlocks ADNNucleotide::getNucleotideType() const {
+
     return getResidueType();
+
 }
 
-void ADNNucleotide::SetPair(ADNPointer<ADNNucleotide> nt) {
-    pair_ = ADNWeakPointer<ADNNucleotide>(nt);
+std::string ADNNucleotide::getNucleotideTypeString() const {
+
+    return std::string(1, ADNModel::GetResidueName(getNucleotideType()));
+
+}
+
+void ADNNucleotide::SetPair(ADNPointer<ADNNucleotide> nucleotide) {
+    
+    ADNNucleotide* oldNucleotide = this->pairNucleotide();
+
+    this->pairNucleotide = ADNWeakPointer<ADNNucleotide>(nucleotide);
+
+    if (oldNucleotide) oldNucleotide->disconnectPair(this);
+
+}
+
+void ADNNucleotide::disconnectPair(ADNPointer<ADNNucleotide> nucleotide) {
+
+    if (this->pairNucleotide == nucleotide) this->pairNucleotide = nullptr;
+
 }
 
 ADNPointer<ADNNucleotide> ADNNucleotide::GetPair() const {
-    return pair_;
+    return pairNucleotide;
 }
 
 SBNode* ADNNucleotide::getPair() const {
@@ -212,7 +228,11 @@ SBNode* ADNNucleotide::getSingleStrand() const {
 }
 
 void ADNNucleotide::SetBaseSegment(ADNPointer<ADNBaseSegment> bs) {
-    bs_ = ADNWeakPointer<ADNBaseSegment>(bs);
+
+    if (this->baseSegment.isValid()) this->baseSegment->RemoveNucleotide(this);
+
+    this->baseSegment = ADNWeakPointer<ADNBaseSegment>(bs);
+
 }
 
 void ADNNucleotide::AddAtom(NucleotideGroup g, ADNPointer<ADNAtom> a) {
@@ -260,6 +280,16 @@ CollectionMap<ADNAtom> ADNNucleotide::GetAtoms() {
     SB_FOR(ADNPointer<ADNAtom> a, scAtoms) atoms.addReferenceTarget(a());
 
     return atoms;
+
+}
+
+int ADNNucleotide::getNumberOfAtoms() const {
+
+#if 1
+    return countNodes(SBNode::IsType(SBNode::Atom) && (SBNode::GetClass() == std::string("ADNAtom")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+#else
+    return static_cast<int>(GetAtoms().size());
+#endif
 
 }
 
@@ -323,16 +353,16 @@ ublas::matrix<double> ADNNucleotide::GetGlobalBasisTransformation() {
 }
 
 ADNPointer<ADNBaseSegment> ADNNucleotide::GetBaseSegment() {
-    return bs_;
+    return baseSegment;
 }
 
 SBNode* ADNNucleotide::getBaseSegment() const {
-    return bs_();
+    return baseSegment();
 }
 
 std::string ADNNucleotide::getBaseSegmentTypeString() const {
 
-    return bs_->getCellTypeString();
+    return baseSegment->getCellTypeString();
 
 }
 
@@ -359,12 +389,36 @@ std::string ADNNucleotide::getEndTypeString() const {
 
 }
 
+class setNucleotideEndTypeCommand : public SBCUndoCommand {
+
+public:
+
+    setNucleotideEndTypeCommand(ADNNucleotide::EndType type, ADNNucleotide* propertyOwner) { this->owner = propertyOwner; this->oldValue = propertyOwner->getEndType(); this->newValue = type; }
+    virtual ~setNucleotideEndTypeCommand() {}
+
+    virtual std::string getName() const { return "Set nucleotide end type"; }
+
+    void redo() { if (owner.isValid()) owner->setEndType(newValue); }
+    void undo() { if (owner.isValid()) owner->setEndType(oldValue); }
+
+private:
+
+    ADNNucleotide::EndType                                      oldValue;
+    ADNNucleotide::EndType                                      newValue;
+    SBPointer<ADNNucleotide>								    owner;
+
+};
+
 ADNNucleotide::EndType ADNNucleotide::getEndType() {
     return endType;
 }
 
 void ADNNucleotide::setEndType(ADNNucleotide::EndType type) {
+
+    //if (SAMSON::isHolding()) SAMSON::hold(new setNucleotideEndTypeCommand(type, this));
+
     this->endType = type;
+
 }
 
 bool ADNNucleotide::isEndTypeNucleotide() {
@@ -373,7 +427,7 @@ bool ADNNucleotide::isEndTypeNucleotide() {
 
 void ADNNucleotide::Init() {
 
-    SetType(DNABlocks::DI);
+    setNucleotideType(DNABlocks::DI);
     ADNPointer<ADNBackbone> bb = new ADNBackbone();
     bb->setName(getName() + " Backbone");
     ADNPointer<ADNSidechain> sc = new ADNSidechain();
@@ -402,13 +456,6 @@ ADNPointer<ADNBackbone> ADNNucleotide::GetBackbone() const {
 
 }
 
-void ADNNucleotide::SetBackbone(ADNPointer<ADNBackbone> bb) {
-
-    auto bbOld = GetBackbone();
-    bbOld = bb;
-
-}
-
 ADNPointer<ADNSidechain> ADNNucleotide::GetSidechain() const {
 
     auto sc = static_cast<ADNSidechain*>(getSideChain());
@@ -416,13 +463,6 @@ ADNPointer<ADNSidechain> ADNNucleotide::GetSidechain() const {
         return ADNPointer<ADNSidechain>(sc);
     else
         return nullptr;
-
-}
-
-void ADNNucleotide::SetSidechain(ADNPointer<ADNSidechain> sc) {
-
-    auto scOld = GetSidechain();
-    scOld = sc;
 
 }
 
@@ -474,21 +514,51 @@ bool ADNNucleotide::GlobalBaseIsSet() {
 }
 
 bool ADNNucleotide::IsLeft() {
-    return bs_->IsLeft(this);
+    return baseSegment->IsLeft(this);
 }
 
 bool ADNNucleotide::IsRight() {
-    return bs_->IsRight(this);
+    return baseSegment->IsRight(this);
 }
 
+class setNucleotideTagCommand : public SBCUndoCommand {
+
+public:
+
+    setNucleotideTagCommand(const std::string& tag, ADNNucleotide* propertyOwner) { this->owner = propertyOwner; this->oldValue = propertyOwner->getTag(); this->newValue = tag; }
+    virtual ~setNucleotideTagCommand() {}
+
+    virtual std::string getName() const { return "Set nucleotide tag"; }
+
+    void redo() { if (owner.isValid()) owner->setTag(newValue); }
+    void undo() { if (owner.isValid()) owner->setTag(oldValue); }
+
+private:
+
+    std::string                                                 oldValue;
+    std::string                                                 newValue;
+    SBPointer<ADNNucleotide>									owner;
+
+};
+
 std::string ADNNucleotide::getTag() const {
-    return tag_;
+
+    return tag;
+
 }
 
 void ADNNucleotide::setTag(std::string t) {
-    this->tag_ = t;
+
+    if (isLocked()) return;
+
+    if (SAMSON::isHolding()) SAMSON::hold(new setNucleotideTagCommand(t, this));
+
+    this->tag = t;
+
 }
 
 bool ADNNucleotide::hasTag() {
-    return !tag_.empty();
+
+    return !tag.empty();
+
 }

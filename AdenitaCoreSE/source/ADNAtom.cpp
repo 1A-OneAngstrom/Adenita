@@ -30,10 +30,14 @@ void ADNAtom::unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIn
 
 SBNode* ADNAtom::getNucleotide() const {
 
+#if 1
+	return getResidue();
+#else
 	if (getParent()) if (getParent()->getParent()) if (getParent()->getParent()->getType() == SBNode::Residue)
 		return getParent()->getParent();
 
 	return nullptr;
+#endif
 
 }
 

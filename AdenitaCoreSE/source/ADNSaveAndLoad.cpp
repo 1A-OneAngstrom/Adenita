@@ -59,7 +59,7 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value & val, double v
 
       ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
       nt->Init();
-      nt->SetType(ADNModel::ResidueNameToType(itr2->value["type"].GetString()[0]));
+      nt->setNucleotideType(ADNModel::ResidueNameToType(itr2->value["type"].GetString()[0]));
       nt->SetPosition(ADNAuxiliary::StringToSBPosition(itr2->value["position"].GetString()));
       nt->SetBackbonePosition(ADNAuxiliary::StringToSBPosition(itr2->value["backboneCenter"].GetString()));
       nt->SetSidechainPosition(ADNAuxiliary::StringToSBPosition(itr2->value["sidechainCenter"].GetString()));
@@ -303,7 +303,7 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(std::string filename) {
       part->RegisterNucleotideThreePrime(ss, nt);
       std::string test = itr2->value["type"].GetString();
       auto test2 = test.c_str();
-      nt->SetType(ADNModel::ResidueNameToType(test2[0]));
+      nt->setNucleotideType(ADNModel::ResidueNameToType(test2[0]));
       nt->SetE1(ADNAuxiliary::StringToUblasVector(itr2->value["e1"].GetString()));
       nt->SetE2(ADNAuxiliary::StringToUblasVector(itr2->value["e2"].GetString()));
       nt->SetE3(ADNAuxiliary::StringToUblasVector(itr2->value["e3"].GetString()));
@@ -755,7 +755,7 @@ void ADNLoader::SavePartToJson(ADNPointer<ADNPart> p, rapidjson::Writer<rapidjso
       writer.StartObject();
 
       writer.Key("type");
-      char t = ADNModel::ResidueNameToType(nt->GetType());
+      char t = ADNModel::ResidueNameToType(nt->getNucleotideType());
       std::string typ = std::string(&t, 0, 1);
       writer.String(typ.c_str());
 
@@ -922,7 +922,7 @@ ADNPointer<ADNPart> ADNLoader::GenerateModelFromDatagraph(SBNode* n)
       nt->SetE3(e3);
       //nt->SetE2(e2);
       //nt->SetE1(e1);
-      nt->SetType(res->getResidueType());
+      nt->setNucleotideType(res->getResidueType());
 
       part->RegisterNucleotideThreePrime(ss, nt);
       prevPos = pos;
@@ -1018,7 +1018,7 @@ ADNPointer<ADNPart> ADNLoader::GenerateModelFromDatagraphParametrized(SBNode * s
       //nt->SetE3(e3);
       nt->SetE2(e2);
       //nt->SetE1(e1);
-      nt->SetType(res->getResidueType());
+      nt->setNucleotideType(res->getResidueType());
 
       part->RegisterNucleotideThreePrime(ss, nt);
       prevPos = pos;
@@ -1143,7 +1143,7 @@ void ADNLoader::SingleStrandsToOxDNA(CollectionMap<ADNSingleStrand> singleStrand
       outConf << positionVector + " " + backboneBaseVector + " " + normalVector + " " + v + " " + L << std::endl;
 
       // topology file info
-      std::string base(1, ADNModel::GetResidueName(nt->GetType()));
+      std::string base = nt->getNucleotideTypeString();
       if (base == "N") base = "R";  // oxDNA uses R for random
 
       std::string threePrime = "-1";
@@ -1228,7 +1228,7 @@ std::pair<bool, ADNPointer<ADNPart>> ADNLoader::InputFromOxDNA(std::string topoF
 
       ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
       nt->Init();
-      nt->SetType(ADNModel::ResidueNameToType(base));
+      nt->setNucleotideType(ADNModel::ResidueNameToType(base));
       part->RegisterNucleotideThreePrime(ss, nt);
 
       // if last nucleotide next is same as first close
@@ -1347,7 +1347,7 @@ void ADNLoader::OutputToCanDo(ADNNanorobot * nanorobot, std::string filename)
     int pairIdx = -1;
     if (pairNt != nullptr) prevIdx = nucleotidesId[pairNt];
 
-    std::string line = std::to_string(idx) + "," + std::to_string(prevIdx) + "," + std::to_string(nextIdx) + "," + std::to_string(pairIdx) + ADNModel::GetResidueName(nt->GetType());
+    std::string line = std::to_string(idx) + "," + std::to_string(prevIdx) + "," + std::to_string(nextIdx) + "," + std::to_string(pairIdx) + nt->getNucleotideTypeString();
     file << line << std::endl;
   }
   file << line << std::endl;
@@ -1436,7 +1436,7 @@ void ADNLoader::OutputToCanDo(ADNPointer<ADNPart> part, std::string filename)
     int pairIdx = -1;
     if (pairNt != nullptr) pairIdx = nucleotidesId[pairNt];
 
-    std::string line = std::to_string(idx) + "," + std::to_string(prevIdx) + "," + std::to_string(nextIdx) + "," + std::to_string(pairIdx) + ADNModel::GetResidueName(nt->GetType());
+    std::string line = std::to_string(idx) + "," + std::to_string(prevIdx) + "," + std::to_string(nextIdx) + "," + std::to_string(pairIdx) + nt->getNucleotideTypeString();
     file << line << std::endl;
   }
   file << line << std::endl;
@@ -1531,7 +1531,7 @@ void ADNLoader::BuildTopScalesParemetrized(ADNPointer<ADNPart> part, SBQuantity:
         double n = ublas::inner_prod(-e2Nt, df);
         double angle_threshold = maxAngle;
         // check they are complementary
-        bool comp = ADNModel::GetComplementaryBase(nt->GetType()) == bor->GetType();
+        bool comp = ADNModel::GetComplementaryBase(nt->getNucleotideType()) == bor->getNucleotideType();
         if (n > 0 && t < 0.0 && abs(t) > cos(ADNVectorMath::DegToRad(angle_threshold)) && comp) {
           // possible paired, take closest
           if (dif.norm() < minDist) {
@@ -1645,7 +1645,7 @@ void ADNLoader::BuildTopScales(ADNPointer<ADNPart> part)
         double n = ublas::inner_prod(e2Nt, df);
         double angle_threshold = 49.0;
         // check they are complementary
-        bool comp = ADNModel::GetComplementaryBase(nt->GetType()) == bor->GetType();
+        bool comp = ADNModel::GetComplementaryBase(nt->getNucleotideType()) == bor->getNucleotideType();
         if (n > 0 && t < 0.0 && abs(t) > cos(ADNVectorMath::DegToRad(angle_threshold)) && comp) {
           // possible paired, take closest
           if (dif.norm() < minDist) {

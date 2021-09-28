@@ -305,8 +305,7 @@ void SEAdenitaVisualModel::initAtoms(bool createIndex /*= true*/) {
 			auto nucleotides = ss->GetNucleotides();
 			SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
-				auto atoms = nt->GetAtoms();
-				nPositions += atoms.size();
+				nPositions += nt->getNumberOfAtoms();
 
 			}
 
@@ -2816,9 +2815,16 @@ void SEAdenitaVisualModel::onDocumentEvent(SBDocumentEvent* documentEvent) {
 
 void SEAdenitaVisualModel::onStructuralEvent(SBStructuralEvent* structuralEvent) {
 	
-	//// SAMSON Element generator pro tip: implement this function if you need to handle structural events (e.g. when a structural node for which you provide a visual representation is updated)
+	// SAMSON Element generator pro tip: implement this function if you need to handle structural events (e.g. when a structural node for which you provide a visual representation is updated)
 	
 	const SBStructuralEvent::Type eventType = structuralEvent->getType();
+	if (eventType == SBStructuralEvent::ParticlePositionChanged) {
+
+		requestUpdate();
+		return;
+
+	}
+
 	SBNode* node = structuralEvent->getAuxiliaryNode();
 	if (!node) return;
 	if (node->getProxy()->getElementUUID() != SBUUID(SB_ELEMENT_UUID)) return;
@@ -2855,12 +2861,6 @@ void SEAdenitaVisualModel::onStructuralEvent(SBStructuralEvent* structuralEvent)
 
 		if (nodeClassName == "ADNBaseSegment" || nodeClassName == "ADNDoubleStrand" || nodeClassName == "ADNLoop" ||
 			nodeClassName == "ADNCell" || nodeClassName == "ADNBasePair" || nodeClassName == "ADNSkipPair" || nodeClassName == "ADNLoopPair")
-			requestUpdate();
-
-	}
-	else if (eventType == SBStructuralEvent::ParticlePositionChanged) {
-
-		if (nodeClassName == "ADNAtom")
 			requestUpdate();
 
 	}

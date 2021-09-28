@@ -102,7 +102,7 @@ ADNPointer<ADNLoop> DASCreator::CreateLoop(ADNPointer<ADNSingleStrand> ss, ADNPo
     }else {
       ss->AddNucleotide(nt, nextNt);
     }
-    nt->SetType(ADNModel::ResidueNameToType(seq[k]));
+    nt->setNucleotideType(ADNModel::ResidueNameToType(seq[k]));
     loop->AddNucleotide(nt);
     if (k == 0) loop->SetStart(nt);
     if (k == seq.size() - 1) loop->SetEnd(nt);
@@ -329,7 +329,7 @@ ADNPointer<ADNDoubleStrand> DASCreator::AddRingToADNPart(ADNPointer<ADNPart> par
       ntLeft->SetBackbonePosition(bs->GetPosition());
       ntLeft->SetSidechainPosition(bs->GetPosition());
       ntLeft->SetBaseSegment(bs);
-      ntLeft->SetType(DNABlocks::DI);
+      ntLeft->setNucleotideType(DNABlocks::DI);
 
       if (!ssDNA) {
         ADNPointer<ADNNucleotide> ntRight = new ADNNucleotide();
@@ -340,7 +340,7 @@ ADNPointer<ADNDoubleStrand> DASCreator::AddRingToADNPart(ADNPointer<ADNPart> par
         ntRight->SetBackbonePosition(bs->GetPosition());
         ntRight->SetSidechainPosition(bs->GetPosition());
         ntRight->SetBaseSegment(bs);
-        ntRight->SetType(DNABlocks::DI);
+        ntRight->setNucleotideType(DNABlocks::DI);
 
         ntLeft->SetPair(ntRight);
         ntRight->SetPair(ntLeft);
@@ -398,7 +398,7 @@ RTDoubleStrand DASCreator::AddDoubleStrandToADNPart(ADNPointer<ADNPart> part, si
       ntLeft->SetBackbonePosition(bs->GetPosition());
       ntLeft->SetSidechainPosition(bs->GetPosition());
       ntLeft->SetBaseSegment(bs);
-      ntLeft->SetType(DNABlocks::DI);
+      ntLeft->setNucleotideType(DNABlocks::DI);
 
       ADNPointer<ADNNucleotide> ntRight = new ADNNucleotide();
       ntRight->Init();
@@ -408,7 +408,7 @@ RTDoubleStrand DASCreator::AddDoubleStrandToADNPart(ADNPointer<ADNPart> part, si
       ntRight->SetBackbonePosition(bs->GetPosition());
       ntRight->SetSidechainPosition(bs->GetPosition());
       ntRight->SetBaseSegment(bs);
-      ntRight->SetType(DNABlocks::DI);
+      ntRight->setNucleotideType(DNABlocks::DI);
 
       ntLeft->SetPair(ntRight);
       ntRight->SetPair(ntLeft);
@@ -452,7 +452,7 @@ RTDoubleStrand DASCreator::AddSingleStrandToADNPart(ADNPointer<ADNPart> part, si
     ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
     nt->Init();
     part->RegisterNucleotideThreePrime(ss, nt);
-    nt->SetType(DNABlocks::DI);
+    nt->setNucleotideType(DNABlocks::DI);
     nt->SetPosition(bs->GetPosition());
     nt->SetBackbonePosition(bs->GetPosition());
     nt->SetSidechainPosition(bs->GetPosition());

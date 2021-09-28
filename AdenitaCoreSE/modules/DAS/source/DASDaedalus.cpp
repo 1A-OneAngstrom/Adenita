@@ -905,7 +905,7 @@ void DASDaedalus::RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleSt
       ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
       nt->Init();
       part->RegisterNucleotideThreePrime(scaff, nt);
-      nt->SetType(ADNModel::ResidueNameToType(used_seq[nt_id]));
+      nt->setNucleotideType(ADNModel::ResidueNameToType(used_seq[nt_id]));
       nt->SetPosition(bs->GetPosition());
       nt->SetBackbonePosition(bs->GetPosition());
       nt->SetSidechainPosition(bs->GetPosition());
@@ -986,7 +986,7 @@ ADNPointer<ADNSingleStrand> DASDaedalus::CreateEdgeChain(ADNPointer<ADNPart> ori
     }
 
     if (ntOld != nullptr) {
-      nt->SetType(ADNModel::GetComplementaryBase(ntOld->GetType()));
+      nt->setNucleotideType(ADNModel::GetComplementaryBase(ntOld->getNucleotideType()));
     }
     nt->SetPosition(bs->GetPosition());
     nt->SetBackbonePosition(bs->GetPosition());
@@ -1011,7 +1011,7 @@ ADNPointer<ADNSingleStrand> DASDaedalus::CreateEdgeChain(ADNPointer<ADNPart> ori
       ntOld = nt->GetPair();
     }
     if (ntOld != nullptr) {
-      nt->SetType(ADNModel::GetComplementaryBase(ntOld->GetType()));
+      nt->setNucleotideType(ADNModel::GetComplementaryBase(ntOld->getNucleotideType()));
     }
     nt->SetPosition(bs->GetPosition());
     nt->SetBackbonePosition(bs->GetPosition());
@@ -1064,7 +1064,7 @@ ADNPointer<ADNSingleStrand> DASDaedalus::CreateVertexChain(ADNPointer<ADNPart> p
         ntOld = nt->GetPair();
       }
       if (ntOld != nullptr) {
-        nt->SetType(ADNModel::GetComplementaryBase(ntOld->GetType()));
+        nt->setNucleotideType(ADNModel::GetComplementaryBase(ntOld->getNucleotideType()));
       }
       
       prev_nt = nt;

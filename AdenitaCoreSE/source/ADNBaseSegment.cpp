@@ -4,20 +4,19 @@
 
 ADNBaseSegment::ADNBaseSegment(CellType cellType) : PositionableSB(), Orientable(), SBStructuralGroup() {
 
-    if (cellType == CellType::BasePair) {
+    if (cellType == CellType::BasePair)
         SetCell(new ADNBasePair());
-    }
-    else if (cellType == CellType::LoopPair) {
+    else if (cellType == CellType::LoopPair)
         SetCell(new ADNLoopPair());
-    }
-    else if (cellType == CellType::SkipPair) {
+    else if (cellType == CellType::SkipPair)
         SetCell(new ADNSkipPair());
-    }
 
 }
 
 ADNBaseSegment::ADNBaseSegment(const ADNBaseSegment& other) : PositionableSB(other), Orientable(other), SBStructuralGroup(other) {
+
     *this = other;
+
 }
 
 ADNBaseSegment& ADNBaseSegment::operator=(const ADNBaseSegment& other) {
@@ -38,12 +37,12 @@ void ADNBaseSegment::serialize(SBCSerializer* serializer, const SBNodeIndexer& n
 
     SBStructuralGroup::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
-    ADNPointer<ADNAtom> at = GetCenterAtom();
+    ADNPointer<ADNAtom> atom = GetCenterAtom();
     /*SBPosition3 pos = GetPosition();
     serializer->writeDoubleElement("x", pos[0].getValue());
     serializer->writeDoubleElement("y", pos[1].getValue());
     serializer->writeDoubleElement("z", pos[2].getValue());*/
-    serializer->writeUnsignedIntElement("centerAtom", nodeIndexer.getIndex(at()));
+    serializer->writeUnsignedIntElement("centerAtom", nodeIndexer.getIndex(atom()));
 
     serializer->writeStartElement("e3");
     auto e3 = GetE3();
@@ -85,8 +84,8 @@ void ADNBaseSegment::unserialize(SBCSerializer* serializer, const SBNodeIndexer&
     SBStructuralGroup::unserialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
     unsigned int idx = serializer->readUnsignedIntElement();
-    ADNPointer<ADNAtom> at = (ADNAtom*)nodeIndexer.getNode(idx);
-    SetCenterAtom(at);
+    ADNPointer<ADNAtom> atom = (ADNAtom*)nodeIndexer.getNode(idx);
+    SetCenterAtom(atom);
     //double x = serializer->readDoubleElement();
     //double y = serializer->readDoubleElement();
     //double z = serializer->readDoubleElement();
@@ -228,10 +227,9 @@ CollectionMap<ADNNucleotide> ADNBaseSegment::GetNucleotides() const {
 
 void ADNBaseSegment::SetCell(ADNCell* c) {
 
-    cell_ = ADNPointer<ADNCell>(c);
-    std::string type = cell_->getCellTypeString();
-    cell_->setName(type + " " + std::to_string(cell_->getNodeIndex()));
-    addChild(cell_());
+    this->cell_ = ADNPointer<ADNCell>(c);
+    this->cell_->setName(cell_->getCellTypeString() + " " + std::to_string(this->cell_->getNodeIndex()));
+    addChild(this->cell_());
 
 }
 
@@ -255,7 +253,7 @@ std::string ADNBaseSegment::getCellTypeString() const {
 void ADNBaseSegment::RemoveNucleotide(ADNPointer<ADNNucleotide> nt) {
 
     ADNPointer<ADNCell> cell = GetCell();
-    cell->RemoveNucleotide(nt);
+    if (cell.isValid()) cell->RemoveNucleotide(nt);
 
 }
 

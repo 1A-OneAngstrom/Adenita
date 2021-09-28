@@ -56,7 +56,11 @@ bool ADNBackbone::DeleteAtom(ADNPointer<ADNAtom> atom) {
 
 int ADNBackbone::getNumberOfAtoms() const {
 
+#if 1
+    return countNodes(SBNode::IsType(SBNode::Atom) && (SBNode::GetClass() == std::string("ADNAtom")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+#else
     return static_cast<int>(GetAtoms().size());
+#endif
 
 }
 
