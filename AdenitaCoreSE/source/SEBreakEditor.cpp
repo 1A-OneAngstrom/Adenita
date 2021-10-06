@@ -1,4 +1,6 @@
 #include "SEBreakEditor.hpp"
+#include "SEAdenitaCoreSEApp.hpp"
+
 #include "SAMSON.hpp"
 
 
@@ -22,14 +24,10 @@ SEBreakEditor::~SEBreakEditor() {
 
 SEBreakEditorGUI* SEBreakEditor::getPropertyWidget() const { return static_cast<SEBreakEditorGUI*>(propertyWidget); }
 
-void SEBreakEditor::SetMode(bool five)
-{
-  fivePrimeMode_ = five;
-}
+void SEBreakEditor::setFivePrimeModeFlag(bool fivePrimeModeFlag) {
 
-SEAdenitaCoreSEApp* SEBreakEditor::getAdenitaApp() const
-{
-  return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+	this->fivePrimeModeFlag = fivePrimeModeFlag;
+
 }
 
 SBCContainerUUID SEBreakEditor::getUUID() const { return SBCContainerUUID("2FACBF90-F7E2-AFCB-5E37-AA86763DDBC2"); }
@@ -51,17 +49,16 @@ QPixmap SEBreakEditor::getLogo() const {
 
 }
 
-int SEBreakEditor::getFormat() const
-{
+int SEBreakEditor::getFormat() const {
   
-  // SAMSON Element generator pro tip: modify these default settings to configure the window
-  //
-  // SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
-  // SBGWindow::Lockable : let users lock the window on top
-  // SBGWindow::Resizable : let users resize the window
-  // SBGWindow::Citable : let users obtain citation information (implement getCitation)
+	// SAMSON Element generator pro tip: modify these default settings to configure the window
+	//
+	// SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
+	// SBGWindow::Lockable : let users lock the window on top
+	// SBGWindow::Resizable : let users resize the window
+	// SBGWindow::Citable : let users obtain citation information (implement getCitation)
 
-  return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
+	return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
 
 }
 
@@ -77,37 +74,38 @@ QString SEBreakEditor::getToolTip() const {
 	
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Break ssDNA"); 
+	return QObject::tr("Break Single Strand DNA"); 
 
 }
 
-void SEBreakEditor::loadSettings(SBGSettings * settings)
-{
-  if (settings == NULL) return;
+void SEBreakEditor::loadSettings(SBGSettings * settings) {
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
-}
+	if (settings == nullptr) return;
 
-void SEBreakEditor::saveSettings(SBGSettings * settings)
-{
-  if (settings == NULL) return;
-
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
-QString SEBreakEditor::getDescription() const
-{
-  return QObject::tr("Adenita | Break ssDNA");
+void SEBreakEditor::saveSettings(SBGSettings * settings) {
+
+	if (settings == nullptr) return;
+
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+
 }
+
+QString SEBreakEditor::getDescription() const { return QObject::tr("Adenita | Break Single Strand DNA"); }
 
 void SEBreakEditor::beginEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
 
-  string iconPath = SB_ELEMENT_PATH + "/Resource/icons/break.png";
-  SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
+	const QString iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/break.png");
+	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
+
+	previousSelectionFilter = SAMSON::getCurrentSelectionFilter();
+	SAMSON::setCurrentSelectionFilter("Any node");
 
 }
 
@@ -116,7 +114,13 @@ void SEBreakEditor::endEditing() {
 	// SAMSON Element generator pro tip: SAMSON calls this function immediately before your editor becomes inactive (for example when another editor becomes active). 
 	// Implement this function if you need to clean some data structures.
 
-  SAMSON::unsetViewportCursor();
+	SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
+
+	if (SAMSON::getCurrentSelectionFilter() == "Any node")
+		SAMSON::setCurrentSelectionFilter(previousSelectionFilter);
+
+	SAMSON::unsetViewportCursor();
+
 }
 
 void SEBreakEditor::getActions(SBVector<SBAction*>& actionVector) {
@@ -157,10 +161,48 @@ void SEBreakEditor::mousePressEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-  auto app = getAdenitaApp();
-  auto nanorobot = app->GetNanorobot();
+	auto app = SEAdenitaCoreSEApp::getAdenitaApp();
+	auto highlightedNucleotides = app->GetNanorobot()->GetHighlightedNucleotides();
+	auto numberOfHighlightedNucleotides = highlightedNucleotides.size();
 
-  app->BreakSingleStrand();
+	if (numberOfHighlightedNucleotides == 1) {
+
+		// Skip the following cases:
+		// 1. the nucleotide is not in a single strand
+		// 2. the nucleotide is the only nucleotide in the single strand
+		// 3. the cnuleotide is the end nucleotide, or there is no next or previous nucleotide 
+
+		auto highlightedNucleotide = highlightedNucleotides[0];
+		auto singleStrand = highlightedNucleotide->GetStrand();
+		auto nextNucleotide = highlightedNucleotide->GetNext();
+		auto prevNucleotide = highlightedNucleotide->GetPrev();
+
+		// clear the current selection
+
+		SAMSON::getActiveDocument()->clearSelection();
+
+		// select the nucleotide
+		//highlightedNucleotide->setSelectionFlag(true);
+
+		if (singleStrand == nullptr) {
+			SAMSON::informUser("Adenita - Break editor", "The nucleotide is not in any single strand - cannot break it.");
+		}
+		else if (singleStrand->getNumberOfNucleotides() == 1) {
+			SAMSON::informUser("Adenita - Break editor", "Cannot break a single strand that contains only one nucleotide. If you want to delete it use the Delete editor.");
+		}
+		else if (highlightedNucleotide->isEndTypeNucleotide() || nextNucleotide == nullptr || prevNucleotide == nullptr) {
+			SAMSON::informUser("Adenita - Break editor", "The nucleotide is the end nucleotide - cannot break here. If you want to delete this nucleotide use the Delete editor.");
+		}
+		else {
+
+			app->BreakSingleStrand(fivePrimeModeFlag);
+
+		}
+
+		event->accept();
+
+	}
+
 }
 
 void SEBreakEditor::mouseReleaseEvent(QMouseEvent* event) {
@@ -202,29 +244,5 @@ void SEBreakEditor::keyReleaseEvent(QKeyEvent* event) {
 
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
-
-}
-
-void SEBreakEditor::onBaseEvent(SBBaseEvent* baseEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle base events
-
-}
-
-void SEBreakEditor::onDocumentEvent(SBDocumentEvent* documentEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle document events 
-
-}
-
-void SEBreakEditor::onDynamicalEvent(SBDynamicalEvent* dynamicalEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle dynamical events 
-
-}
-
-void SEBreakEditor::onStructuralEvent(SBStructuralEvent* documentEvent) {
-	
-	// SAMSON Element generator pro tip: implement this function if you need to handle structural events
 
 }

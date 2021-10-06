@@ -3,17 +3,11 @@
 #include "SBGEditor.hpp"
 #include "SEBreakEditorGUI.hpp"
 
-#include "SBGApp.hpp" 
-#include "SBBaseEvent.hpp"
-#include "SBDocumentEvent.hpp"
-#include "SBDynamicalEvent.hpp"
-#include "SBStructuralEvent.hpp"
 #include "SBAction.hpp"
-#include "SEAdenitaCoreSEApp.hpp"
 
 /// This class implements an editor
 
-class SEBreakEditor : public SBGEditor {
+class SB_EXPORT SEBreakEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT
@@ -33,21 +27,21 @@ public :
 
 	virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
 	virtual QString												getName() const;														///< Returns the class name
-  virtual QString	                      getDescription() const;	                    ///< Returns the menu item text
+	virtual QString												getDescription() const;													///< Returns the menu item text
 	virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
-  virtual int													getFormat() const;														///< Returns the format
+	virtual int													getFormat() const;														///< Returns the format
 	virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
 	virtual QString												getToolTip() const;														///< Returns the tool tip
   
 	//@}
 
-  ///\name Settings
-  //@{
+	///\name Settings
+	//@{
 
-  virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
-  virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
+	virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
+	virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
 
-  //@}
+	//@}
 
 	/// \name Editing
 	//@{
@@ -88,16 +82,6 @@ public :
 
 	//@}
 
-	/// \name SAMSON Events
-	//@{
-
-	virtual void												onBaseEvent(SBBaseEvent* baseEvent);									///< Handles base events
-	virtual void												onDynamicalEvent(SBDynamicalEvent* dynamicalEvent);						///< Handles dynamical events
-	virtual void												onDocumentEvent(SBDocumentEvent* documentEvent);						///< Handles document events
-	virtual void												onStructuralEvent(SBStructuralEvent* documentEvent);					///< Handles structural events
-
-	//@}
-
 	/// \name GUI
 	//@{
 
@@ -105,12 +89,14 @@ public :
 
 	//@}
 
-  void SetMode(bool five);
+	void														setFivePrimeModeFlag(bool fivePrimeModeFlag);
 
 private:
-  SEAdenitaCoreSEApp*					          getAdenitaApp() const;															///< Returns a pointer to the app
 
-  bool fivePrimeMode_ = true;
+	bool														fivePrimeModeFlag = true;
+
+	std::string													previousSelectionFilter;
+
 };
 
 

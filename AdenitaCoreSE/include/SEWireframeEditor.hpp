@@ -3,20 +3,15 @@
 #include "SBGEditor.hpp"
 #include "SEWireframeEditorGUI.hpp"
 
-#include "SBBaseEvent.hpp"
-#include "SBDocumentEvent.hpp"
-#include "SBDynamicalEvent.hpp"
-#include "SBStructuralEvent.hpp"
 #include "SBAction.hpp"
-#include <QOpenGLFunctions_4_3_Core>
 
-#include "SEAdenitaCoreSEApp.hpp"
 #include "ADNPart.hpp"
-#include "MSVDisplayHelper.hpp"
 #include "DASCreator.hpp"
+#include "DASPolyhedron.hpp"
+
 /// This class implements an editor
 
-class SEWireframeEditor : public SBGEditor {
+class SB_EXPORT SEWireframeEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT
@@ -26,31 +21,31 @@ public :
 	/// \name Constructors and destructors
 	//@{
 
-	SEWireframeEditor();																													///< Builds an editor					
-	virtual ~SEWireframeEditor();																											///< Destructs the editor
+	SEWireframeEditor();																												///< Builds an editor					
+	virtual ~SEWireframeEditor();																										///< Destructs the editor
 
 	//@}
 
 	/// \name Identity
 	//@{
 
-  virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
-  virtual QString												getName() const;														///< Returns the class name
-  virtual QString	                      getDescription() const;	                      ///< Returns the menu item text
-  virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
-  virtual int													getFormat() const;														///< Returns the format
-  virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
-  virtual QString												getToolTip() const;														///< Returns the tool tip
+	virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
+	virtual QString												getName() const;														///< Returns the class name
+	virtual QString												getDescription() const;													///< Returns the menu item text
+	virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
+	virtual int													getFormat() const;														///< Returns the format
+	virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
+	virtual QString												getToolTip() const;														///< Returns the tool tip
 
-  //@}
+	//@}
 
-  ///\name Settings
-  //@{
+	///\name Settings
+	//@{
 
-  virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
-  virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
+	virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
+	virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
 
-  //@}
+	//@}
 
 	/// \name Editing
 	//@{
@@ -91,42 +86,37 @@ public :
 
 	//@}
 
-	/// \name SAMSON Events
-	//@{
-
-	virtual void												onBaseEvent(SBBaseEvent* baseEvent);									///< Handles base events
-	virtual void												onDynamicalEvent(SBDynamicalEvent* dynamicalEvent);						///< Handles dynamical events
-	virtual void												onDocumentEvent(SBDocumentEvent* documentEvent);						///< Handles document events
-	virtual void												onStructuralEvent(SBStructuralEvent* documentEvent);					///< Handles structural events
-
-	//@}
-
 	/// \name GUI
 	//@{
 
-	SEWireframeEditorGUI*								getPropertyWidget() const;												///< Returns the property widget of the editor
+	SEWireframeEditorGUI*										getPropertyWidget() const;												///< Returns the property widget of the editor
 
 	//@}
 
-  void                                setWireframeType(DASCreator::EditorType type);
+	void														setWireframeType(DASCreator::EditorType type);
+
+	void														resetData();
 
 private:
-  ADNPointer<ADNPart> generateCuboid(bool mock = false);
-  ADNPointer<ADNPart> generateWireframe(bool mock = false);
-  void sendPartToAdenita(ADNPointer<ADNPart> part);
 
-  //! Creates a ADNPart containing only the high-level model (double strands) of a daedalus wireframe design
-  /*!
-    \param the polyhedron containing the PLY information
-    \param position of the center of the model
-    \param minimum edge length
-  */
-  ADNPointer<ADNPart> CreateMockDaedalusWireframe(DASPolyhedron& polyhedron, int min_edge_length);
+	ADNPointer<ADNPart>											generateCuboid(const SBPosition3& currentPosition, bool mock = false);
+	ADNPointer<ADNPart>											generateWireframe(bool mock = false);
+	void														sendPartToAdenita(ADNPointer<ADNPart> part);
 
-  DASCreatorEditors::UIData positions_;
-  bool display_ = false;
-  ADNPointer<ADNPart> tempPart_ = nullptr;
-  DASCreator::EditorType wireframeType_ = DASCreator::Tetrahedron;
+	//! Creates a ADNPart containing only the high-level model (double strands) of a daedalus wireframe design
+	/*!
+	\param the polyhedron containing the PLY information
+	\param position of the center of the model
+	\param minimum edge length
+	*/
+	ADNPointer<ADNPart>											createMockDaedalusWireframe(DASPolyhedron& polyhedron, int min_edge_length);
+
+	bool														isPressing = false;
+
+	DASCreatorEditors::UIData									positionData;
+	bool														displayFlag = false;
+	ADNPointer<ADNPart>											tempPart = nullptr;
+	DASCreator::EditorType										wireframeType = DASCreator::EditorType::Tetrahedron;
 
 };
 

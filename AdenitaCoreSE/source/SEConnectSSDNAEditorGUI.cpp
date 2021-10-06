@@ -1,7 +1,5 @@
-#include "SEConnectSSDNAEditorGUI.hpp"
 #include "SEConnectSSDNAEditor.hpp"
-#include "SAMSON.hpp"
-#include "SBGWindow.hpp"
+
 
 SEConnectSSDNAEditorGUI::SEConnectSSDNAEditorGUI(SEConnectSSDNAEditor* editor) {
 
@@ -18,7 +16,7 @@ SEConnectSSDNAEditor* SEConnectSSDNAEditorGUI::getEditor() const { return editor
 
 void SEConnectSSDNAEditorGUI::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -26,29 +24,29 @@ void SEConnectSSDNAEditorGUI::loadSettings( SBGSettings *settings ) {
 
 void SEConnectSSDNAEditorGUI::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
 }
 
-void SEConnectSSDNAEditorGUI::onSetSequence(QString seq)
-{
-  SEConnectSSDNAEditor* t = getEditor();
-  t->SetSequence(seq.toStdString());
+void SEConnectSSDNAEditorGUI::onSetSequence(QString seq) {
+
+	getEditor()->setSequence(seq.toStdString());
+
 }
 
-void SEConnectSSDNAEditorGUI::onInsert(bool e)
-{
-  SEConnectSSDNAEditor* editor = getEditor();
-  editor->SetConcat(e);
+void SEConnectSSDNAEditorGUI::onInsert(bool e) {
+
+	getEditor()->setConcatFlag(e);
+
 }
 
-void SEConnectSSDNAEditorGUI::onAuto(bool e)
-{
-  ui.lineSequence->setDisabled(e);
-  SEConnectSSDNAEditor* editor = getEditor();
-  editor->SetAutoSequence(e);
+void SEConnectSSDNAEditorGUI::onAuto(bool e) {
+
+	ui.lineSequence->setDisabled(e);
+	getEditor()->setAutoSequenceFlag(e);
+
 }
 
 SBCContainerUUID SEConnectSSDNAEditorGUI::getUUID() const { return SBCContainerUUID( "CDC75BAA-A7AD-F837-49F4-E0F14DF87181" );}
@@ -93,7 +91,8 @@ QString SEConnectSSDNAEditorGUI::getCitation() const {
 }
 
 void SEConnectSSDNAEditorGUI::onSelectMode() {
-  bool xo = ui.rdnSS->isChecked();
-  SEConnectSSDNAEditor* t = getEditor();
-  t->SetMode(xo);
+
+	const bool xo = ui.radioButtonSingleStrand->isChecked();
+	getEditor()->setConnectionMode(xo);
+
 }

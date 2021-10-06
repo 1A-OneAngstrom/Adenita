@@ -12,6 +12,7 @@
 SB_CLASS_BEGIN(SEAdenitaCoreSEApp);
 
 	SB_CLASS_TYPE(SBCClass::App);
+
         SB_CLASS_DESCRIPTION("Adenita: DNA Nanostructures Modeling and Visualization Toolkit");
 
 	SB_FACTORY_BEGIN;
@@ -22,7 +23,7 @@ SB_CLASS_BEGIN(SEAdenitaCoreSEApp);
 
 	SB_INTERFACE_BEGIN;
 
-    SB_FUNCTION_2(void, SEAdenitaCoreSEApp, AddPartToActiveLayer, ADNPointer<ADNPart>, bool);
+		SB_FUNCTION_3(void, SEAdenitaCoreSEApp, addPartToDocument, ADNPointer<ADNPart>, bool, SBFolder*);
 
 	SB_INTERFACE_END;
 

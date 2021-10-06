@@ -1,8 +1,8 @@
-#include <QInputDialog>
 #include "SEDSDNACreatorEditorGUI.hpp"
 #include "SEDSDNACreatorEditor.hpp"
-#include "SAMSON.hpp"
-#include "SBGWindow.hpp"
+
+#include <QInputDialog>
+
 
 SEDSDNACreatorEditorGUI::SEDSDNACreatorEditorGUI(SEDSDNACreatorEditor* editor) {
 
@@ -19,85 +19,119 @@ SEDSDNACreatorEditor* SEDSDNACreatorEditorGUI::getEditor() const { return editor
 
 void SEDSDNACreatorEditorGUI::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
+
+	const bool isDSDNA = settings->loadBoolValue("isDSDNA", true);
+	if (isDSDNA) ui.radioButtonDSDNA->setChecked(true);
+	else ui.radioButtonSSDNA->setChecked(true);
+	getEditor()->setDoubleStrandMode(isDSDNA);
+
+	//ui.checkBoxSetScaffold->setChecked(settings->loadBoolValue("setScaffold", false));
+	//onSetSequence(ui.checkBoxSetScaffold->isChecked());
+
+	ui.checkBoxCircular->setChecked(settings->loadBoolValue("circular", false));
+	onSetCircular(ui.checkBoxCircular->isChecked());
+	ui.checkBoxManual->setChecked(settings->loadBoolValue("manual", false));
+	onSetManual(ui.checkBoxManual->isChecked());
+	ui.spinBoxNumberNucleotides->setValue(settings->loadIntValue("numberNucleotides", 12));
+	onSetNumNucleotides(ui.spinBoxNumberNucleotides->value());
+
+	ui.groupBoxShowBox->setChecked(settings->loadBoolValue("showBox", false));
+	getEditor()->setShowBoxFlag(ui.groupBoxShowBox->isChecked());
+	ui.doubleSpinBoxHeight->setValue(settings->loadDoubleValue("boxHeight", 100.0));
+	ui.doubleSpinBoxWidth->setValue(settings->loadDoubleValue("boxWidth", 100.0));
+	ui.doubleSpinBoxDepth->setValue(settings->loadDoubleValue("boxDepth", 100.0));
+	updateBoxSize();
 
 }
 
 void SEDSDNACreatorEditorGUI::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
+	settings->saveValue("isDSDNA", ui.radioButtonDSDNA->isChecked());
+	//settings->saveValue("setScaffold", ui.checkBoxSetScaffold->isChecked());
+
+	settings->saveValue("circular", ui.checkBoxCircular->isChecked());
+	settings->saveValue("manual", ui.checkBoxManual->isChecked());
+	settings->saveValue("numberNucleotides", ui.spinBoxNumberNucleotides->value());
+
+	settings->saveValue("showBox", ui.groupBoxShowBox->isChecked());
+	settings->saveValue("boxHeight", ui.doubleSpinBoxHeight->value());
+	settings->saveValue("boxWidth", ui.doubleSpinBoxWidth->value());
+	settings->saveValue("boxDepth", ui.doubleSpinBoxDepth->value());
+
 }
 
-std::string SEDSDNACreatorEditorGUI::AskUserForSequence(int l)
-{
-  bool ok;
-  QString def = QString(l, 'N');
-  std::string title = "Base pairs: " + std::to_string(l);
-  QString seq = QInputDialog::getText(this, tr("Set sequence"), tr(title.c_str()), QLineEdit::Normal, def, &ok);
-  std::string res = "";
-  if (ok) {
-    res = seq.toStdString();
-  }
-  return res;
+std::string SEDSDNACreatorEditorGUI::AskUserForSequence(int l) {
+
+	bool ok;
+	QString def = QString(l, 'N');
+	const std::string title = "Base pairs: " + std::to_string(l);
+	const QString seq = QInputDialog::getText(this, tr("Set sequence"), tr(title.c_str()), QLineEdit::Normal, def, &ok);
+	std::string res = "";
+	if (ok)
+		res = seq.toStdString();
+
+	return res;
+
 }
 
-void SEDSDNACreatorEditorGUI::onSetDSDNA(bool b)
-{
-  SEDSDNACreatorEditor* t = getEditor();
-  t->SetMode(b);
+void SEDSDNACreatorEditorGUI::onSetDSDNA(bool b) {
+	getEditor()->setDoubleStrandMode(b);
 }
 
-void SEDSDNACreatorEditorGUI::onSetSSDNA(bool b)
-{
-  SEDSDNACreatorEditor* t = getEditor();
-  t->SetMode(!b);
+void SEDSDNACreatorEditorGUI::onSetSSDNA(bool b) {
+	getEditor()->setDoubleStrandMode(!b);
 }
 
-void SEDSDNACreatorEditorGUI::onSetCircular(bool c)
-{
-  SEDSDNACreatorEditor* t = getEditor();
-  t->SetCircular(c);
+void SEDSDNACreatorEditorGUI::onSetCircular(bool c) {
+	getEditor()->setCircularStrandsMode(c);
 }
 
-void SEDSDNACreatorEditorGUI::onSetManual(bool b)
-{
-  SEDSDNACreatorEditor* t = getEditor();
-  t->SetManual(b);
+void SEDSDNACreatorEditorGUI::onSetManual(bool b) {
+	getEditor()->setManualFlag(b);
 }
 
-void SEDSDNACreatorEditorGUI::onSetNumNucleotides(int n)
-{
-  SEDSDNACreatorEditor* t = getEditor();
-  t->SetNumberNucleotides(n);
+void SEDSDNACreatorEditorGUI::onSetNumNucleotides(int n) {
+	getEditor()->setNumberOfNucleotides(n);
 }
 
-void SEDSDNACreatorEditorGUI::onShowBox(bool s)
-{
-  SEDSDNACreatorEditor* t = getEditor();
-  t->SetShowBox(s);
-  if (s) {
-    onChangeBoxSize();
-  }
+void SEDSDNACreatorEditorGUI::onShowBox(bool s) {
+
+	getEditor()->setShowBoxFlag(s);
+	if (s)
+		updateBoxSize();
+	
+	if (getEditor() == SAMSON::getActiveEditor())
+		SAMSON::requestViewportUpdate();
+
 }
 
-void SEDSDNACreatorEditorGUI::onChangeBoxSize()
-{
-  double height = ui.spnBoxHeight->value();
-  double width = ui.spnBoxWidth->value();
-  double depth = ui.spnBoxDepth->value();
-  SEDSDNACreatorEditor* t = getEditor();
-  t->SetBoxSize(height, width, depth);
+void SEDSDNACreatorEditorGUI::updateBoxSize() {
+
+	const SBQuantity::nanometer height = SBQuantity::nanometer(ui.doubleSpinBoxHeight->value());
+	const SBQuantity::nanometer width = SBQuantity::nanometer(ui.doubleSpinBoxWidth->value());
+	const SBQuantity::nanometer depth = SBQuantity::nanometer(ui.doubleSpinBoxDepth->value());
+	getEditor()->setBoxSize(height, width, depth);
+
 }
 
-void SEDSDNACreatorEditorGUI::onSetSequence(bool s)
-{
-  SEDSDNACreatorEditor* t = getEditor();
-  t->SetSequence(s);
+void SEDSDNACreatorEditorGUI::onChangeBoxSize() {
+
+	updateBoxSize();
+
+	if (getEditor() == SAMSON::getActiveEditor())
+		SAMSON::requestViewportUpdate();
+
+}
+
+void SEDSDNACreatorEditorGUI::onSetSequence(bool s) {
+	getEditor()->setSequenceFlag(s);
 }
 
 SBCContainerUUID SEDSDNACreatorEditorGUI::getUUID() const { return SBCContainerUUID( "751903AE-14BC-F0B9-01D9-D2CF8412AEF9" );}
@@ -137,5 +171,6 @@ QString SEDSDNACreatorEditorGUI::getCitation() const {
 
 	// SAMSON Element generator pro tip: modify this function to add citation information
 
-  return ADNAuxiliary::AdenitaCitation();
+	return ADNAuxiliary::AdenitaCitation();
+
 }

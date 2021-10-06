@@ -11,7 +11,7 @@ class SEDNATwisterEditor;
 // SAMSON Element generator pro tip: add GUI functionality in this class. 
 // The non-GUI functionality (and the mouse and keyboard event handling methods that are specific to the editor) should go in the SEDNATwisterEditor class
 
-class SEDNATwisterEditorGUI : public SBGWindowWidget {
+class SB_EXPORT SEDNATwisterEditorGUI : public SBGWindowWidget {
 
 	Q_OBJECT
 
@@ -20,15 +20,15 @@ public:
 	/// \name Constructors and destructors
 	//@{
 
-	SEDNATwisterEditorGUI(SEDNATwisterEditor* editor);																		///< Constructs a GUI for the editor
-	virtual ~SEDNATwisterEditorGUI();																										///< Destructs the GUI of the editor
+	SEDNATwisterEditorGUI(SEDNATwisterEditor* editor);																					///< Constructs a GUI for the editor
+	virtual ~SEDNATwisterEditorGUI();																									///< Destructs the GUI of the editor
 
 	//@}
 
 	/// \name Editor
 	//@{
 
-	SEDNATwisterEditor*												getEditor() const;														///< Returns a pointer to the editor
+	SEDNATwisterEditor*											getEditor() const;														///< Returns a pointer to the editor
 
 	//@}
 
@@ -46,22 +46,21 @@ public:
 	///\name Settings
 	//@{
 
-	void														loadSettings(SBGSettings* settings);										///< Load GUI settings
-	void														saveSettings(SBGSettings* settings);										///< Save GUI settings
+	void														loadSettings(SBGSettings* settings);									///< Load GUI settings
+	void														saveSettings(SBGSettings* settings);									///< Save GUI settings
 
 	//@}
   public slots:
 
-  void                            setUntwistTwist();
-  void                            setInvisibleVisible();
-  void                            resetUntwist();
-  void                            resetInvisible();
-
+	void														setUntwistTwist();
+	void														setInvisibleVisible();
+	void														resetUntwist();
+	void														resetInvisible();
 
 private:
 
-	Ui::SEDNATwisterEditorGUIClass									ui;
-	SEDNATwisterEditor*												editor;
+	Ui::SEDNATwisterEditorGUIClass								ui;
+	SEDNATwisterEditor*											editor{ nullptr };
 
 };
 

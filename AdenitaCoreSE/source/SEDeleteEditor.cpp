@@ -1,4 +1,6 @@
 #include "SEDeleteEditor.hpp"
+#include "SEAdenitaCoreSEApp.hpp"
+
 #include "SAMSON.hpp"
 
 
@@ -6,8 +8,8 @@ SEDeleteEditor::SEDeleteEditor() {
 
 	// SAMSON Element generator pro tip: this default constructor is called when unserializing the node, so it should perform all default initializations.
 
-	propertyWidget = new SEDeleteEditorGUI(this);
-	propertyWidget->loadDefaultSettings();
+	//propertyWidget = new SEDeleteEditorGUI(this);
+	//propertyWidget->loadDefaultSettings();
 
 }
 
@@ -15,16 +17,15 @@ SEDeleteEditor::~SEDeleteEditor() {
 
 	// SAMSON Element generator pro tip: disconnect from signals you might have connected to.
 
-	propertyWidget->saveDefaultSettings();
-	delete propertyWidget;
+	//propertyWidget->saveDefaultSettings();
+	//delete propertyWidget;
 
 }
 
-SEDeleteEditorGUI* SEDeleteEditor::getPropertyWidget() const { return static_cast<SEDeleteEditorGUI*>(propertyWidget); }
+SEDeleteEditorGUI* SEDeleteEditor::getPropertyWidget() const {
+	
+	return nullptr; //static_cast<SEDeleteEditorGUI*>(propertyWidget);
 
-SEAdenitaCoreSEApp* SEDeleteEditor::getAdenitaApp() const
-{
-  return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
 }
 
 SBCContainerUUID SEDeleteEditor::getUUID() const { return SBCContainerUUID("BA1E9F38-0280-6871-D979-D314FBC98758"); }
@@ -46,16 +47,17 @@ QPixmap SEDeleteEditor::getLogo() const {
 
 }
 
-int SEDeleteEditor::getFormat() const
-{
-  // SAMSON Element generator pro tip: modify these default settings to configure the window
-  //
-  // SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
-  // SBGWindow::Lockable : let users lock the window on top
-  // SBGWindow::Resizable : let users resize the window
-  // SBGWindow::Citable : let users obtain citation information (implement getCitation)
+int SEDeleteEditor::getFormat() const {
 
-  return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
+	// SAMSON Element generator pro tip: modify these default settings to configure the window
+	//
+	// SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
+	// SBGWindow::Lockable : let users lock the window on top
+	// SBGWindow::Resizable : let users resize the window
+	// SBGWindow::Citable : let users obtain citation information (implement getCitation)
+
+	return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
+
 }
 
 QKeySequence SEDeleteEditor::getShortcut() const { 
@@ -74,33 +76,38 @@ QString SEDeleteEditor::getToolTip() const {
 
 }
 
-void SEDeleteEditor::loadSettings(SBGSettings * settings)
-{
-  if (settings == NULL) return;
+void SEDeleteEditor::loadSettings(SBGSettings * settings) {
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	if (settings == nullptr) return;
+
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
 void SEDeleteEditor::saveSettings(SBGSettings* settings) {
 
-  if (settings == NULL) return;
+	if (settings == nullptr) return;
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
-QString SEDeleteEditor::getDescription() const
-{
-  return QObject::tr("Adenita | Delete Nucleotides");
+QString SEDeleteEditor::getDescription() const {
+
+	return QObject::tr("Adenita | Delete Nucleotides");
+
 }
 
 void SEDeleteEditor::beginEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
-  string iconPath = SB_ELEMENT_PATH + "/Resource/icons/delete.png";
-  SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
+
+	const QString iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/delete.png");
+	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
+
+	previousSelectionFilter = SAMSON::getCurrentSelectionFilter();
+	SAMSON::setCurrentSelectionFilter("Any node");
 
 }
 
@@ -108,7 +115,14 @@ void SEDeleteEditor::endEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function immediately before your editor becomes inactive (for example when another editor becomes active). 
 	// Implement this function if you need to clean some data structures.
-  SAMSON::unsetViewportCursor();
+
+	SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
+
+	if (SAMSON::getCurrentSelectionFilter() == "Any node")
+		SAMSON::setCurrentSelectionFilter(previousSelectionFilter);
+
+	SAMSON::unsetViewportCursor();
+
 }
 
 void SEDeleteEditor::getActions(SBVector<SBAction*>& actionVector) {
@@ -148,37 +162,49 @@ void SEDeleteEditor::mousePressEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
+	const bool isLeftButton = event->button() & Qt::LeftButton;
 
-  auto app = getAdenitaApp();
-  auto nanorobot = app->GetNanorobot();
-  app->SetMod(true);
+	if (isLeftButton) {
 
-  auto selectedNucleotides = nanorobot->GetSelectedNucleotides();
-  auto highlightedNucleotides = nanorobot->GetHighlightedNucleotides();
+		auto app = SEAdenitaCoreSEApp::getAdenitaApp();
+		auto nanorobot = app->GetNanorobot();
+		app->SetMod(true);
 
-  SB_FOR(auto node, selectedNucleotides) {
-    node->setSelectionFlag(false);
-  }
+		auto selectedNucleotides = nanorobot->GetSelectedNucleotides();
+		auto highlightedNucleotides = nanorobot->GetHighlightedNucleotides();
 
-  if (highlightedNucleotides.size() == 1) {
-    ADNPointer<ADNNucleotide> nt = highlightedNucleotides[0];
-    ADNPointer<ADNBaseSegment> bs = nt->GetBaseSegment();
-    ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
-    ADNPointer<ADNPart> part = nanorobot->GetPart(ss);
-    auto newStrands = ADNBasicOperations::DeleteNucleotide(part, nt);
-    if (ss->getNumberOfNucleotides() == 0) {
-      // delete single strand if was left empty
-      part->DeregisterSingleStrand(ss);
-    }
-    auto numBsNts = bs->GetNucleotides().size();
-    if (numBsNts == 0) {
-      // if base segment is empty, delete
-      ADNBasicOperations::DeleteBaseSegment(part, bs);
-    }
-  }
+		SB_FOR(auto node, selectedNucleotides) node->setSelectionFlag(false);
 
-  app->ResetVisualModel();
-  app->SetMod(false);
+		if (highlightedNucleotides.size() == 1) {
+
+			ADNPointer<ADNNucleotide> nt = highlightedNucleotides[0];
+			ADNPointer<ADNBaseSegment> bs = nt->GetBaseSegment();
+			ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
+			ADNPointer<ADNPart> part = ss->GetPart();
+			auto newStrands = ADNBasicOperations::DeleteNucleotide(part, nt);
+			if (ss->getNumberOfNucleotides() == 0) {
+
+				// delete single strand if was left empty
+				part->DeregisterSingleStrand(ss);
+
+			}
+
+			if (bs->getNumberOfNucleotides() == 0) {
+
+				// if base segment is empty, delete
+				ADNBasicOperations::DeleteBaseSegment(part, bs);
+
+			}
+
+		}
+
+		SEAdenitaCoreSEApp::resetVisualModel();
+		app->SetMod(false);
+
+		event->accept();
+
+	}
+
 }
 
 void SEDeleteEditor::mouseReleaseEvent(QMouseEvent* event) {
@@ -220,29 +246,5 @@ void SEDeleteEditor::keyReleaseEvent(QKeyEvent* event) {
 
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
-
-}
-
-void SEDeleteEditor::onBaseEvent(SBBaseEvent* baseEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle base events
-
-}
-
-void SEDeleteEditor::onDocumentEvent(SBDocumentEvent* documentEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle document events 
-
-}
-
-void SEDeleteEditor::onDynamicalEvent(SBDynamicalEvent* dynamicalEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle dynamical events 
-
-}
-
-void SEDeleteEditor::onStructuralEvent(SBStructuralEvent* documentEvent) {
-	
-	// SAMSON Element generator pro tip: implement this function if you need to handle structural events
 
 }

@@ -11,7 +11,7 @@ class SEDSDNACreatorEditor;
 // SAMSON Element generator pro tip: add GUI functionality in this class. 
 // The non-GUI functionality (and the mouse and keyboard event handling methods that are specific to the editor) should go in the SEDSDNACreatorEditor class
 
-class SEDSDNACreatorEditorGUI : public SBGWindowWidget {
+class SB_EXPORT SEDSDNACreatorEditorGUI : public SBGWindowWidget {
 
 	Q_OBJECT
 
@@ -20,15 +20,15 @@ public:
 	/// \name Constructors and destructors
 	//@{
 
-	SEDSDNACreatorEditorGUI(SEDSDNACreatorEditor* editor);																		///< Constructs a GUI for the editor
-	virtual ~SEDSDNACreatorEditorGUI();																										///< Destructs the GUI of the editor
+	SEDSDNACreatorEditorGUI(SEDSDNACreatorEditor* editor);																				///< Constructs a GUI for the editor
+	virtual ~SEDSDNACreatorEditorGUI();																									///< Destructs the GUI of the editor
 
 	//@}
 
 	/// \name Editor
 	//@{
 
-	SEDSDNACreatorEditor*												getEditor() const;														///< Returns a pointer to the editor
+	SEDSDNACreatorEditor*										getEditor() const;														///< Returns a pointer to the editor
 
 	//@}
 
@@ -46,28 +46,30 @@ public:
 	///\name Settings
 	//@{
 
-	void														loadSettings(SBGSettings* settings);										///< Load GUI settings
-	void														saveSettings(SBGSettings* settings);										///< Save GUI settings
+	void														loadSettings(SBGSettings* settings);									///< Load GUI settings
+	void														saveSettings(SBGSettings* settings);									///< Save GUI settings
 
 	//@}
 
-  std::string AskUserForSequence(int l);
+	std::string													AskUserForSequence(int l);
+
+	void														updateBoxSize();
 
 public slots:
 
-  void onSetDSDNA(bool b);
-  void onSetSSDNA(bool b);
-  void onSetCircular(bool c);
-  void onSetManual(bool b);
-  void onSetNumNucleotides(int n);
-  void onShowBox(bool s);
-  void onChangeBoxSize();
-  void onSetSequence(bool s);
+	void														onSetDSDNA(bool b);
+	void														onSetSSDNA(bool b);
+	void														onSetCircular(bool c);
+	void														onSetManual(bool b);
+	void														onSetNumNucleotides(int n);
+	void														onShowBox(bool s);
+	void														onChangeBoxSize();
+	void														onSetSequence(bool s);
 
 private:
 
-	Ui::SEDSDNACreatorEditorGUIClass									ui;
-	SEDSDNACreatorEditor*												editor;
+	Ui::SEDSDNACreatorEditorGUIClass							ui;
+	SEDSDNACreatorEditor*										editor{ nullptr };
 
 };
 

@@ -1,4 +1,5 @@
 #include "SETwistHelixEditor.hpp"
+#include "SEAdenitaCoreSEApp.hpp"
 #include "SAMSON.hpp"
 
 
@@ -22,29 +23,33 @@ SETwistHelixEditor::~SETwistHelixEditor() {
 
 SETwistHelixEditorGUI* SETwistHelixEditor::getPropertyWidget() const { return static_cast<SETwistHelixEditorGUI*>(propertyWidget); }
 
-void SETwistHelixEditor::SetTwistAngle(double angle)
-{
-  twistAngle_ = angle;
+void SETwistHelixEditor::setTwistAngle(double angle) {
 
-	if (twistAngle_ < 0) {
-		string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_twistMinus1BP.png";
-		SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
-	}
-	else {
-		string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_twistPlus1BP.png";
-		SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
-	}
+	this->twistAngle = angle;
+	updateCursor();
+
 }
 
-void SETwistHelixEditor::SetMode(bool t)
-{
-  SETwistHelixEditorGUI* gui = getPropertyWidget();
-  gui->CheckPlusOrMinus(t);
+void SETwistHelixEditor::updateCursor() {
+
+	if (this == SAMSON::getActiveEditor()) {
+
+		QString iconPath;
+		if (this->twistAngle < 0)
+			iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/cursor_twistMinus1BP.png");
+		else
+			iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/cursor_twistPlus1BP.png");
+
+		SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
+
+	}
+
 }
 
-SEAdenitaCoreSEApp* SETwistHelixEditor::getAdenitaApp() const
-{
-  return static_cast<SEAdenitaCoreSEApp*>(SAMSON::getApp(SBCContainerUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID("7AADFD4D-0B88-896A-B164-04E25C5A7582")));
+void SETwistHelixEditor::setMode(bool t) {
+
+	getPropertyWidget()->checkPlusOrMinus(t);
+
 }
 
 SBCContainerUUID SETwistHelixEditor::getUUID() const { return SBCContainerUUID("4B60FECA-2A79-680F-F289-B4908A924409"); }
@@ -66,17 +71,16 @@ QPixmap SETwistHelixEditor::getLogo() const {
 
 }
 
-int SETwistHelixEditor::getFormat() const
-{
+int SETwistHelixEditor::getFormat() const {
 
-  // SAMSON Element generator pro tip: modify these default settings to configure the window
-  //
-  // SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
-  // SBGWindow::Lockable : let users lock the window on top
-  // SBGWindow::Resizable : let users resize the window
-  // SBGWindow::Citable : let users obtain citation information (implement getCitation)
+	// SAMSON Element generator pro tip: modify these default settings to configure the window
+	//
+	// SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
+	// SBGWindow::Lockable : let users lock the window on top
+	// SBGWindow::Resizable : let users resize the window
+	// SBGWindow::Citable : let users obtain citation information (implement getCitation)
 
-  return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
+	return (SBGWindow::Savable | SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
 
 }
 
@@ -92,43 +96,41 @@ QString SETwistHelixEditor::getToolTip() const {
 	
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Twist dsDNA along helical axis"); 
+	return QObject::tr("Rotate double strand DNA along helical axis"); 
 
 }
 
-void SETwistHelixEditor::loadSettings(SBGSettings * settings)
-{
-  if (settings == NULL) return;
+void SETwistHelixEditor::loadSettings(SBGSettings * settings) {
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	if (settings == nullptr) return;
+
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
 void SETwistHelixEditor::saveSettings(SBGSettings* settings) {
 
-  if (settings == NULL) return;
+	if (settings == nullptr) return;
 
-  // SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
+	// SAMSON Element generator pro tip: complete this function so your importer can save its GUI state from one session to the next
 
 }
 
-QString SETwistHelixEditor::getDescription() const
-{
-  return QObject::tr("Adenita | dsDNA Helical Twist");
+QString SETwistHelixEditor::getDescription() const {
+
+	return QObject::tr("Adenita | Rotate Double Strand DNA");
+
 }
 
 void SETwistHelixEditor::beginEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
-	if (twistAngle_ < 0) {
-		string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_twistMinus1BP.png";
-		SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
-	}
-	else {
-		string iconPath = SB_ELEMENT_PATH + "/Resource/icons/cursor_twistPlus1BP.png";
-		SAMSON::setViewportCursor(QCursor(QPixmap(iconPath.c_str())));
-	}
+
+	updateCursor();
+
+	previousSelectionFilter = SAMSON::getCurrentSelectionFilter();
+	SAMSON::setCurrentSelectionFilter("Any node");
 
 }
 
@@ -136,7 +138,14 @@ void SETwistHelixEditor::endEditing() {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function immediately before your editor becomes inactive (for example when another editor becomes active). 
 	// Implement this function if you need to clean some data structures.
-  SAMSON::unsetViewportCursor();
+
+	SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
+
+	if (SAMSON::getCurrentSelectionFilter() == "Any node")
+		SAMSON::setCurrentSelectionFilter(previousSelectionFilter);
+
+	SAMSON::unsetViewportCursor();
+
 }
 
 void SETwistHelixEditor::getActions(SBVector<SBAction*>& actionVector) {
@@ -151,7 +160,6 @@ void SETwistHelixEditor::display() {
 
 	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop. 
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
-
 
 }
 
@@ -176,20 +184,30 @@ void SETwistHelixEditor::mousePressEvent(QMouseEvent* event) {
 
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
-  if (event->buttons() == Qt::LeftButton) {
-    auto app = getAdenitaApp();
-    auto nanorobot = app->GetNanorobot();
 
-    auto highlightedNucleotides = nanorobot->GetHighlightedNucleotides();
+	if (event->buttons() == Qt::LeftButton) {
 
-    CollectionMap<ADNDoubleStrand> highlightedDoubleStrands;
-    SB_FOR(ADNPointer<ADNNucleotide> nt, highlightedNucleotides) {
-      ADNPointer<ADNDoubleStrand> ds = nanorobot->GetDoubleStrand(nt);
-      highlightedDoubleStrands.addReferenceTarget(ds());
-    }
+		event->accept();
 
-    app->TwistDoubleHelix(highlightedDoubleStrands, twistAngle_);
-  }
+		auto app = SEAdenitaCoreSEApp::getAdenitaApp();
+		auto nanorobot = app->GetNanorobot();
+
+		auto highlightedNucleotides = nanorobot->GetHighlightedNucleotides();
+
+		CollectionMap<ADNDoubleStrand> highlightedDoubleStrands;
+		SB_FOR(ADNPointer<ADNNucleotide> nt, highlightedNucleotides) {
+
+			ADNPointer<ADNDoubleStrand> ds = nt->GetDoubleStrand();
+			highlightedDoubleStrands.addReferenceTarget(ds());
+
+		}
+
+		app->TwistDoubleHelix(highlightedDoubleStrands, twistAngle);
+
+		SAMSON::requestViewportUpdate();
+
+	}
+
 }
 
 void SETwistHelixEditor::mouseReleaseEvent(QMouseEvent* event) {
@@ -231,29 +249,5 @@ void SETwistHelixEditor::keyReleaseEvent(QKeyEvent* event) {
 
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
-
-}
-
-void SETwistHelixEditor::onBaseEvent(SBBaseEvent* baseEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle base events
-
-}
-
-void SETwistHelixEditor::onDocumentEvent(SBDocumentEvent* documentEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle document events 
-
-}
-
-void SETwistHelixEditor::onDynamicalEvent(SBDynamicalEvent* dynamicalEvent) {
-
-	// SAMSON Element generator pro tip: implement this function if you need to handle dynamical events 
-
-}
-
-void SETwistHelixEditor::onStructuralEvent(SBStructuralEvent* documentEvent) {
-	
-	// SAMSON Element generator pro tip: implement this function if you need to handle structural events
 
 }

@@ -11,7 +11,7 @@ class SEConnectSSDNAEditor;
 // SAMSON Element generator pro tip: add GUI functionality in this class. 
 // The non-GUI functionality (and the mouse and keyboard event handling methods that are specific to the editor) should go in the SEConnectSSDNAEditor class
 
-class SEConnectSSDNAEditorGUI : public SBGWindowWidget {
+class SB_EXPORT SEConnectSSDNAEditorGUI : public SBGWindowWidget {
 
 	Q_OBJECT
 
@@ -20,15 +20,15 @@ public:
 	/// \name Constructors and destructors
 	//@{
 
-	SEConnectSSDNAEditorGUI(SEConnectSSDNAEditor* editor);																		///< Constructs a GUI for the editor
-	virtual ~SEConnectSSDNAEditorGUI();																										///< Destructs the GUI of the editor
+	SEConnectSSDNAEditorGUI(SEConnectSSDNAEditor* editor);																				///< Constructs a GUI for the editor
+	virtual ~SEConnectSSDNAEditorGUI();																									///< Destructs the GUI of the editor
 
 	//@}
 
 	/// \name Editor
 	//@{
 
-	SEConnectSSDNAEditor*												getEditor() const;														///< Returns a pointer to the editor
+	SEConnectSSDNAEditor*										getEditor() const;														///< Returns a pointer to the editor
 
 	//@}
 
@@ -46,21 +46,22 @@ public:
 	///\name Settings
 	//@{
 
-	void														loadSettings(SBGSettings* settings);										///< Load GUI settings
-	void														saveSettings(SBGSettings* settings);										///< Save GUI settings
+	void														loadSettings(SBGSettings* settings);									///< Load GUI settings
+	void														saveSettings(SBGSettings* settings);									///< Save GUI settings
 
 	//@}
 
 public slots:
-  void onSelectMode();
-  void onSetSequence(QString seq);
-  void onInsert(bool e);
-  void onAuto(bool e);
+
+	void														onSelectMode();
+	void														onSetSequence(QString seq);
+	void														onInsert(bool e);
+	void														onAuto(bool e);
 
 private:
 
-	Ui::SEConnectSSDNAEditorGUIClass									ui;
-	SEConnectSSDNAEditor*												editor;
+	Ui::SEConnectSSDNAEditorGUIClass							ui;
+	SEConnectSSDNAEditor*										editor{ nullptr };
 
 };
 

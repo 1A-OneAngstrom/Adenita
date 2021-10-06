@@ -1,7 +1,8 @@
 #include "SETwistHelixEditorGUI.hpp"
 #include "SETwistHelixEditor.hpp"
-#include "SAMSON.hpp"
-#include "SBGWindow.hpp"
+#include "ADNConstants.hpp"
+#include "ADNAuxiliary.hpp"
+
 
 SETwistHelixEditorGUI::SETwistHelixEditorGUI(SETwistHelixEditor* editor) {
 
@@ -18,85 +19,111 @@ SETwistHelixEditor* SETwistHelixEditorGUI::getEditor() const { return editor; }
 
 void SETwistHelixEditorGUI::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if (settings == nullptr) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
+
+	const int currentMode = settings->loadIntValue("currentMode", 1);
+	if (currentMode == 0) ui.radioButtonMinusBP->setChecked(true);
+	else if (currentMode == 1) ui.radioButtonPlusBP->setChecked(true);
+	else if (currentMode == 2) ui.radioButtonTwistAngle->setChecked(true);
+	else if (currentMode == 3) ui.radioButtonTwistTurns->setChecked(true);
+
+	ui.doubleSpinBoxAngle->setValue(settings->loadDoubleValue("angle", 0.0));
+	ui.spinBoxTurns->setValue(settings->loadIntValue("nTurns", 0));
+
+	updateAngleInEditor();
 
 }
 
 void SETwistHelixEditorGUI::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
+	int currentMode = 0;
+	if (ui.radioButtonMinusBP->isChecked()) currentMode = 0;
+	else if (ui.radioButtonPlusBP->isChecked()) currentMode = 1;
+	else if (ui.radioButtonTwistAngle->isChecked()) currentMode = 2;
+	else if (ui.radioButtonTwistTurns->isChecked()) currentMode = 3;
+	settings->saveValue("currentMode", currentMode);
+
+	settings->saveValue("angle", ui.doubleSpinBoxAngle->value());
+	settings->saveValue("nTurns", ui.spinBoxTurns->value());
+
 }
 
-void SETwistHelixEditorGUI::onMinus(bool checked)
-{
-  if (checked) {
-    SETwistHelixEditor* editor = getEditor();
-    double angle = -ADNConstants::BP_ROT;
-    editor->SetTwistAngle(angle);
+void SETwistHelixEditorGUI::updateAngleInEditor() {
 
-  }
+	double angle = 0.0;
+
+	if (ui.radioButtonPlusBP->isChecked())
+		angle = ADNConstants::BP_ROT;
+	else if (ui.radioButtonMinusBP->isChecked())
+		angle = - ADNConstants::BP_ROT;
+	else if (ui.radioButtonTwistAngle->isChecked())
+		angle = ui.doubleSpinBoxAngle->value();
+	else if (ui.radioButtonTwistTurns->isChecked())
+		angle = ui.spinBoxTurns->value() * ADNConstants::BP_ROT;
+
+	getEditor()->setTwistAngle(angle);
+
 }
 
-void SETwistHelixEditorGUI::CheckPlusOrMinus(bool plus)
-{
-  if (plus) {
-    ui.rdoPlus->setChecked(true);
-    //onPlus(true);
-  }
-  else {
-    ui.rdoMinus->setChecked(true);
-    //onMinus(true);
-  }
+void SETwistHelixEditorGUI::checkPlusOrMinus(bool plus) {
+
+	if (plus) {
+		ui.radioButtonPlusBP->setChecked(true);
+		//onPlus(true);
+	}
+	else {
+		ui.radioButtonMinusBP->setChecked(true);
+		//onMinus(true);
+	}
+
 }
 
-void SETwistHelixEditorGUI::onPlus(bool checked)
-{
-  if (checked) {
-    SETwistHelixEditor* editor = getEditor();
-    double angle = ADNConstants::BP_ROT;
-    editor->SetTwistAngle(angle);
-  }
+void SETwistHelixEditorGUI::onPlus(bool checked) {
+
+	if (checked)
+		updateAngleInEditor();
+
 }
 
-void SETwistHelixEditorGUI::onTwistAngle(bool checked)
-{
-  if (checked) {
-    SETwistHelixEditor* editor = getEditor();
-    double angle = ui.spnAngle->value();
-    editor->SetTwistAngle(angle);
-  }
+void SETwistHelixEditorGUI::onMinus(bool checked) {
+
+	if (checked)
+		updateAngleInEditor();
+
 }
 
-void SETwistHelixEditorGUI::onTwistTurns(bool checked)
-{
-  if (checked) {
-    SETwistHelixEditor* editor = getEditor();
-    double angle = ui.spnTurns->value() * ADNConstants::BP_ROT;
-    editor->SetTwistAngle(angle);
-  }
+void SETwistHelixEditorGUI::onTwistAngle(bool checked) {
+
+	if (checked)
+		updateAngleInEditor();
+
 }
 
-void SETwistHelixEditorGUI::onTwistAngleChanged(double angle)
-{
-  if (ui.rdoTwistAngle->isChecked()) {
-    SETwistHelixEditor* editor = getEditor();
-    double angle = ui.spnAngle->value();
-    editor->SetTwistAngle(angle);
-  }
+void SETwistHelixEditorGUI::onTwistTurns(bool checked) {
+
+	if (checked)
+		updateAngleInEditor();
+
 }
 
-void SETwistHelixEditorGUI::onTwistTurnsChanged(int turns)
-{
-  if (ui.rdoTwistTurns->isChecked()) {
-    SETwistHelixEditor* editor = getEditor();
-    double angle = ui.spnTurns->value() * ADNConstants::BP_ROT;
-    editor->SetTwistAngle(angle);
-  }
+void SETwistHelixEditorGUI::onTwistAngleChanged(double angle) {
+
+	if (ui.radioButtonTwistAngle->isChecked())
+		updateAngleInEditor();
+
+}
+
+void SETwistHelixEditorGUI::onTwistTurnsChanged(int turns) {
+
+	if (ui.radioButtonTwistTurns->isChecked())
+		updateAngleInEditor();
+
 }
 
 SBCContainerUUID SETwistHelixEditorGUI::getUUID() const { return SBCContainerUUID( "8D1CB60B-F52C-14C2-F72C-DB72B6361777" );}
@@ -115,7 +142,7 @@ QString SETwistHelixEditorGUI::getName() const {
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your editor inside SAMSON
 
-	return "SETwistHelixEditor"; 
+	return "Rotate DNA Editor"; 
 
 }
 
@@ -136,5 +163,6 @@ QString SETwistHelixEditorGUI::getCitation() const {
 
 	// SAMSON Element generator pro tip: modify this function to add citation information
 
-  return ADNAuxiliary::AdenitaCitation();
+	return ADNAuxiliary::AdenitaCitation();
+
 }

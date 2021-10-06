@@ -4,57 +4,53 @@
 #include "SEDNATwisterEditorGUI.hpp"
 #include "SEAdenitaCoreSEApp.hpp"
 
-#include "SBBaseEvent.hpp"
-#include "SBDocumentEvent.hpp"
-#include "SBDynamicalEvent.hpp"
-#include "SBStructuralEvent.hpp"
 #include "SBAction.hpp"
+
 #include "ADNNanorobot.hpp"
 #include "DASBackToTheAtom.hpp"
-#include "MSVDisplayHelper.hpp"
 
 /// This class implements an editor
 
-enum BendingType {
-  UNTWIST,
-  SPHEREVISIBILITY
-};
-
-class SEDNATwisterEditor : public SBGEditor {
+class SB_EXPORT SEDNATwisterEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT
 
 public :
 
+	enum class BendingType {
+		UNTWIST,
+		SPHEREVISIBILITY
+	};
+
 	/// \name Constructors and destructors
 	//@{
 
-	SEDNATwisterEditor();																													///< Builds an editor					
-	virtual ~SEDNATwisterEditor();																											///< Destructs the editor
+	SEDNATwisterEditor();																												///< Builds an editor					
+	virtual ~SEDNATwisterEditor();																										///< Destructs the editor
 
 	//@}
 
 	/// \name Identity
 	//@{
 
-  virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
-  virtual QString												getName() const;														///< Returns the class name
-  virtual QString	                      getDescription() const;	                      ///< Returns the menu item text
-  virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
-  virtual int													getFormat() const;														///< Returns the format
-  virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
-  virtual QString												getToolTip() const;														///< Returns the tool tip
+	virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
+	virtual QString												getName() const;														///< Returns the class name
+	virtual QString												getDescription() const;													///< Returns the menu item text
+	virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
+	virtual int													getFormat() const;														///< Returns the format
+	virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
+	virtual QString												getToolTip() const;														///< Returns the tool tip
 
-  //@}
+	//@}
 
-  ///\name Settings
-  //@{
+	///\name Settings
+	//@{
 
-  virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
-  virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
+	virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
+	virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
 
-  //@}
+	//@}
 
 	/// \name Editing
 	//@{
@@ -95,40 +91,41 @@ public :
 
 	//@}
 
-	/// \name SAMSON Events
-	//@{
-
-	virtual void												onBaseEvent(SBBaseEvent* baseEvent);									///< Handles base events
-	virtual void												onDynamicalEvent(SBDynamicalEvent* dynamicalEvent);						///< Handles dynamical events
-	virtual void												onDocumentEvent(SBDocumentEvent* documentEvent);						///< Handles document events
-	virtual void												onStructuralEvent(SBStructuralEvent* documentEvent);					///< Handles structural events
-
-	//@}
-
 	/// \name GUI
 	//@{
 
-	SEDNATwisterEditorGUI*											getPropertyWidget() const;												///< Returns the property widget of the editor
-  void                                setBendingType(BendingType type);
-
-private:
-  SEAdenitaCoreSEApp*					        getAdenitaApp() const;															///< Returns a pointer to the app
-  void                                untwisting();
-  void                                makeInvisible();
-  SBPosition3                         GetSnappedPosition();
+	SEDNATwisterEditorGUI*										getPropertyWidget() const;												///< Returns the property widget of the editor
+	void														setBendingType(BendingType type);
 
 	//@}
-  bool                                  altPressed_;
-  SBPosition3														spherePosition_;
-  SBPosition3														textPosition_;
-  string                                text_;
-  SBQuantity::length										sphereRadius_;
-  bool															    forwardActionSphereActive_;
-  bool															    reverseActionSphereActive_;
-  bool snappingActive_ = true;
 
-  BendingType                           bendingType_ = BendingType::UNTWIST;
-  ADNNanorobot * nanorobot_;
+private:
+
+	void														untwisting();
+	void														makeInvisible();
+	SBPosition3													getSnappedPosition(const SBPosition3& currentPosition);
+
+	void														updateEditorText();
+	void														updateForwardReverseState();
+
+	bool														altPressed = false;
+	SBPosition3													spherePosition;
+	std::string													editorText = "Untwisting";
+	BendingType													bendingType = BendingType::UNTWIST;
+	SBQuantity::length											sphereRadius = SBQuantity::nanometer(2.0);
+	bool														forwardActionSphereActive = false;
+	bool														reverseActionSphereActive = false;
+	bool														snappingIsActive = true;
+
+	/// \name Display
+	//@{
+
+	float														positionData[3] = { 0.0f, 0.0f, 0.0f };
+	float														radiusData[1] = { 0.0f };
+	float														colorData[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	unsigned int												flagData[1] = { 0 };
+
+	//@}
 
 };
 

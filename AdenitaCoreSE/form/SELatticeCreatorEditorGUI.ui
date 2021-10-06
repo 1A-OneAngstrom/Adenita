@@ -6,175 +6,176 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>338</width>
-    <height>257</height>
+    <width>254</width>
+    <height>253</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>300</width>
-    <height>100</height>
+    <width>250</width>
+    <height>170</height>
    </size>
   </property>
   <property name="windowTitle">
    <string/>
   </property>
-  <widget class="QWidget" name="formLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>9</x>
-     <y>9</y>
-     <width>281</width>
-     <height>273</height>
-    </rect>
-   </property>
-   <layout class="QFormLayout" name="formLayout">
-    <item row="0" column="0" colspan="2">
-     <widget class="QRadioButton" name="rdbSquare">
-      <property name="text">
-       <string>Square Lattice</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0" colspan="2">
-     <widget class="QRadioButton" name="rdbHoneycomb">
-      <property name="text">
-       <string>Honeycomb Lattice</string>
-      </property>
-      <property name="checked">
-       <bool>true</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="0">
-     <widget class="QLabel" name="label">
-      <property name="text">
-       <string>Patterns</string>
-      </property>
-     </widget>
-    </item>
-    <item row="7" column="0">
-     <widget class="QLabel" name="label_2">
-      <property name="text">
-       <string>  x (Strands)</string>
-      </property>
-     </widget>
-    </item>
-    <item row="7" column="1">
-     <widget class="QComboBox" name="comboBox">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="8" column="0">
-     <widget class="QLabel" name="label_3">
-      <property name="text">
-       <string>  y (Strands)</string>
-      </property>
-     </widget>
-    </item>
-    <item row="8" column="1">
-     <widget class="QComboBox" name="comboBox_2">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="9" column="0">
-     <widget class="QLabel" name="label_4">
-      <property name="text">
-       <string>  z (Nucleotides)</string>
-      </property>
-     </widget>
-    </item>
-    <item row="9" column="1">
-     <widget class="QComboBox" name="cbbZPattern">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <item>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="9" column="0">
+      <widget class="QLabel" name="labelPatternsY">
        <property name="text">
-        <string>ALL</string>
+        <string>  y (Strands)</string>
        </property>
-      </item>
-      <item>
+      </widget>
+     </item>
+     <item row="7" column="0">
+      <widget class="QLabel" name="labelPatterns">
        <property name="text">
-        <string>Triangle</string>
+        <string>Patterns</string>
        </property>
-      </item>
-      <item>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_5">
        <property name="text">
-        <string>Circle</string>
+        <string>x (no. of dsDNA)</string>
        </property>
-      </item>
-     </widget>
-    </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="label_5">
-      <property name="text">
-       <string>x (no. of dsDNA)</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="0">
-     <widget class="QLabel" name="label_6">
-      <property name="text">
-       <string>y (no. of dsDNA)</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="0">
-     <widget class="QLabel" name="label_7">
-      <property name="text">
-       <string>z (no. of BPS)</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1">
-     <widget class="QSpinBox" name="spbMaxXds">
-      <property name="maximum">
-       <number>32</number>
-      </property>
-      <property name="value">
-       <number>32</number>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="1">
-     <widget class="QSpinBox" name="spbMaxYds">
-      <property name="maximum">
-       <number>30</number>
-      </property>
-      <property name="value">
-       <number>30</number>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="1">
-     <widget class="QSpinBox" name="spbMaxZBps">
-      <property name="maximum">
-       <number>400</number>
-      </property>
-      <property name="value">
-       <number>400</number>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="1">
-     <widget class="QLabel" name="label_8">
-      <property name="text">
-       <string>Maximum</string>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
+      </widget>
+     </item>
+     <item row="8" column="0">
+      <widget class="QLabel" name="labelPatternsX">
+       <property name="text">
+        <string>  x (Strands)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="0">
+      <widget class="QLabel" name="labelPatternsZ">
+       <property name="text">
+        <string>  z (Nucleotides)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="label_7">
+       <property name="text">
+        <string>z (no. of BP)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>y (no. of dsDNA)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0" rowspan="2">
+      <widget class="QLabel" name="label_9">
+       <property name="text">
+        <string>Lattice:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1" rowspan="2">
+      <widget class="QRadioButton" name="radioButtonSquareLattice">
+       <property name="text">
+        <string>Square</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2" rowspan="2">
+      <widget class="QRadioButton" name="radioButtonHoneycombLattice">
+       <property name="text">
+        <string>Honeycomb</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1" colspan="2">
+      <widget class="QLabel" name="label_8">
+       <property name="text">
+        <string>Maximum</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1" colspan="2">
+      <widget class="QSpinBox" name="spinBoxMaxYds">
+       <property name="maximum">
+        <number>30</number>
+       </property>
+       <property name="value">
+        <number>30</number>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1" colspan="2">
+      <widget class="QSpinBox" name="spinBoxMaxXds">
+       <property name="maximum">
+        <number>32</number>
+       </property>
+       <property name="value">
+        <number>32</number>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="1" colspan="2">
+      <widget class="QSpinBox" name="spinBoxMaxZbp">
+       <property name="maximum">
+        <number>400</number>
+       </property>
+       <property name="value">
+        <number>400</number>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="1" colspan="2">
+      <widget class="QComboBox" name="comboBoxXPattern">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="1" colspan="2">
+      <widget class="QComboBox" name="comboBoxYPattern">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="1" colspan="2">
+      <widget class="QComboBox" name="comboBoxZPattern">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <item>
+        <property name="text">
+         <string>ALL</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Triangle</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Circle</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections>
   <connection>
-   <sender>rdbHoneycomb</sender>
+   <sender>radioButtonHoneycombLattice</sender>
    <signal>clicked()</signal>
    <receiver>SELatticeCreatorEditorGUIClass</receiver>
    <slot>setHoneycomb()</slot>
@@ -190,7 +191,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>rdbSquare</sender>
+   <sender>radioButtonSquareLattice</sender>
    <signal>clicked()</signal>
    <receiver>SELatticeCreatorEditorGUIClass</receiver>
    <slot>setSquare()</slot>
@@ -206,7 +207,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>cbbZPattern</sender>
+   <sender>comboBoxZPattern</sender>
    <signal>currentIndexChanged(int)</signal>
    <receiver>SELatticeCreatorEditorGUIClass</receiver>
    <slot>onZPatternChanged(int)</slot>
@@ -222,7 +223,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>spbMaxXds</sender>
+   <sender>spinBoxMaxXds</sender>
    <signal>valueChanged(int)</signal>
    <receiver>SELatticeCreatorEditorGUIClass</receiver>
    <slot>onMaxXdsChanged(int)</slot>
@@ -238,7 +239,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>spbMaxYds</sender>
+   <sender>spinBoxMaxYds</sender>
    <signal>valueChanged(int)</signal>
    <receiver>SELatticeCreatorEditorGUIClass</receiver>
    <slot>onMaxYdsChanged(int)</slot>
@@ -254,7 +255,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>spbMaxZBps</sender>
+   <sender>spinBoxMaxZbp</sender>
    <signal>valueChanged(int)</signal>
    <receiver>SELatticeCreatorEditorGUIClass</receiver>
    <slot>onMaxZBpsChanged(int)</slot>

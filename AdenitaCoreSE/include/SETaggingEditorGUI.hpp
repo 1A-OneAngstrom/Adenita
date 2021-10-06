@@ -11,7 +11,7 @@ class SETaggingEditor;
 // SAMSON Element generator pro tip: add GUI functionality in this class. 
 // The non-GUI functionality (and the mouse and keyboard event handling methods that are specific to the editor) should go in the SETaggingEditor class
 
-class SETaggingEditorGUI : public SBGWindowWidget {
+class SB_EXPORT SETaggingEditorGUI : public SBGWindowWidget {
 
 	Q_OBJECT
 
@@ -20,7 +20,7 @@ public:
 	/// \name Constructors and destructors
 	//@{
 
-	SETaggingEditorGUI(SETaggingEditor* editor);																		///< Constructs a GUI for the editor
+	SETaggingEditorGUI(SETaggingEditor* editor);																						///< Constructs a GUI for the editor
 	virtual ~SETaggingEditorGUI();																										///< Destructs the GUI of the editor
 
 	//@}
@@ -28,7 +28,7 @@ public:
 	/// \name Editor
 	//@{
 
-	SETaggingEditor*												getEditor() const;														///< Returns a pointer to the editor
+	SETaggingEditor*											getEditor() const;														///< Returns a pointer to the editor
 
 	//@}
 
@@ -46,19 +46,19 @@ public:
 	///\name Settings
 	//@{
 
-	void														loadSettings(SBGSettings* settings);										///< Load GUI settings
-	void														saveSettings(SBGSettings* settings);										///< Save GUI settings
+	void														loadSettings(SBGSettings* settings);									///< Load GUI settings
+	void														saveSettings(SBGSettings* settings);									///< Save GUI settings
 
 	//@}
 
 public slots:
 
-  void onModeChanged(bool tags);
+	void														onModeChanged();
 
 private:
 
 	Ui::SETaggingEditorGUIClass									ui;
-	SETaggingEditor*												editor;
+	SETaggingEditor*											editor{ nullptr };
 
 };
 

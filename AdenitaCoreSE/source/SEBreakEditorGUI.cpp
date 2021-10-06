@@ -1,7 +1,7 @@
 #include "SEBreakEditorGUI.hpp"
 #include "SEBreakEditor.hpp"
-#include "SAMSON.hpp"
-#include "SBGWindow.hpp"
+#include "ADNAuxiliary.hpp"
+
 
 SEBreakEditorGUI::SEBreakEditorGUI(SEBreakEditor* editor) {
 
@@ -18,17 +18,25 @@ SEBreakEditor* SEBreakEditorGUI::getEditor() const { return editor; }
 
 void SEBreakEditorGUI::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
+
+	const bool isFivePrime = settings->loadBoolValue("isFivePrime", true);
+	if (isFivePrime) ui.radioButtonFivePrime->setChecked(true);
+	else ui.radioButtonThreePrime->setChecked(true);
+	
+	onSetMode();
 
 }
 
 void SEBreakEditorGUI::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
+
+	settings->saveValue("isFivePrime", ui.radioButtonFivePrime->isChecked());
 
 }
 
@@ -48,7 +56,7 @@ QString SEBreakEditorGUI::getName() const {
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your editor inside SAMSON
 
-	return "Break strands"; 
+	return "Break DNA Strands";
 
 }
 
@@ -69,11 +77,12 @@ QString SEBreakEditorGUI::getCitation() const {
 
 	// SAMSON Element generator pro tip: modify this function to add citation information
 
-  return ADNAuxiliary::AdenitaCitation();
+	return ADNAuxiliary::AdenitaCitation();
+
 }
 
 void SEBreakEditorGUI::onSetMode() {
-  bool m = ui.rdnFive->isChecked();
-  SEBreakEditor* editor = getEditor();
-  editor->SetMode(m);
+
+	getEditor()->setFivePrimeModeFlag(ui.radioButtonFivePrime->isChecked());
+
 }

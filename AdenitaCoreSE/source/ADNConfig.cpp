@@ -138,7 +138,7 @@ void SEConfig::updateDebugConfig()
   FILE* fp = fopen(DEBUG_CONFIGPATH.c_str(), "rb");
   if (fp != NULL) {
     char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+	rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
     debugSetting_.ParseStream(is);
 
     if (debugSetting_.FindMember("min_cutoff") != debugSetting_.MemberEnd()) {
@@ -172,118 +172,122 @@ void SEConfig::updateDebugConfig()
 }
 
 SEConfig::SEConfig() {
-  loadConfig();
-  loadDebugConfig();
+
+	loadConfig();
+	loadDebugConfig();
+
 }
 
 void SEConfig::loadConfig() {
-  QFileInfo check_file(DEFAULT_CONFIGPATH.c_str());
 
-  if (!(check_file.exists() && check_file.isFile())) {
-    StringBuffer s;
-    Writer<StringBuffer> writer(s);
+	QFileInfo check_file(DEFAULT_CONFIGPATH.c_str());
 
-    writer.StartObject();
+	if (!(check_file.exists() && check_file.isFile())) {
 
-    writer.Key("min_melting_temp");
-    writer.Double(min_melting_temp);
+		rapidjson::StringBuffer s;
+		rapidjson::Writer<rapidjson::StringBuffer> writer(s);
 
-    writer.Key("max_melting_temp");
-    writer.Double(max_melting_temp);
+		writer.StartObject();
 
-    writer.Key("min_gibbs_free_energy");
-    writer.Double(min_gibbs_free_energy);
+		writer.Key("min_melting_temp");
+		writer.Double(min_melting_temp);
 
-    writer.Key("max_gibbs_free_energy");
-    writer.Double(max_gibbs_free_energy);
+		writer.Key("max_melting_temp");
+		writer.Double(max_melting_temp);
 
-    writer.Key("interpolate_dimensions");
-    writer.Bool(interpolate_dimensions);
+		writer.Key("min_gibbs_free_energy");
+		writer.Double(min_gibbs_free_energy);
 
-    writer.Key("animation_step_size");
-    writer.Double(animation_step_size);
+		writer.Key("max_gibbs_free_energy");
+		writer.Double(max_gibbs_free_energy);
 
-    writeDoubleArray(writer, "double_helix_V_color", double_helix_V_color, 4);
-    writeDoubleArray(writer, "nucleotide_E_Color", nucleotide_E_Color, 4);
-    writeDoubleArray(writer, "double_strand_color", double_strand_color, 4);
-    writeDoubleArray(writer, "adenine_color", adenine_color, 4);
-    writeDoubleArray(writer, "thymine_color", thymine_color, 4);
-    writeDoubleArray(writer, "guanine_color", guanine_color, 4);
-    writeDoubleArray(writer, "cytosine_color", cytosine_color, 4);
-    writeDoubleArray(writer, "staple_colors", staple_colors, 48);
+		writer.Key("interpolate_dimensions");
+		writer.Bool(interpolate_dimensions);
+
+		writer.Key("animation_step_size");
+		writer.Double(animation_step_size);
+
+		writeDoubleArray(writer, "double_helix_V_color", double_helix_V_color, 4);
+		writeDoubleArray(writer, "nucleotide_E_Color", nucleotide_E_Color, 4);
+		writeDoubleArray(writer, "double_strand_color", double_strand_color, 4);
+		writeDoubleArray(writer, "adenine_color", adenine_color, 4);
+		writeDoubleArray(writer, "thymine_color", thymine_color, 4);
+		writeDoubleArray(writer, "guanine_color", guanine_color, 4);
+		writeDoubleArray(writer, "cytosine_color", cytosine_color, 4);
+		writeDoubleArray(writer, "staple_colors", staple_colors, 48);
     
-    writer.Key("nucleotide_V_radius");
-    writer.Double(nucleotide_V_radius);
+		writer.Key("nucleotide_V_radius");
+		writer.Double(nucleotide_V_radius);
 
-    writer.Key("nucleotide_E_radius");
-    writer.Double(nucleotide_E_radius);
+		writer.Key("nucleotide_E_radius");
+		writer.Double(nucleotide_E_radius);
 
-    writer.Key("base_pair_radius");
-    writer.Double(base_pair_radius);
+		writer.Key("base_pair_radius");
+		writer.Double(base_pair_radius);
 
-    writer.Key("num_staple_colors");
-    writer.Double(num_staple_colors);
+		writer.Key("num_staple_colors");
+		writer.Double(num_staple_colors);
 
-    writer.Key("automatic_camera");
-    writer.Bool(automatic_camera);
+		writer.Key("automatic_camera");
+		writer.Bool(automatic_camera);
 
-    writer.Key("preview_editor");
-    writer.Bool(preview_editor);
+		writer.Key("preview_editor");
+		writer.Bool(preview_editor);
 
-    writer.Key("use_atomic_details");
-    writer.Bool(use_atomic_details);
+		writer.Key("use_atomic_details");
+		writer.Bool(use_atomic_details);
 
-    writer.Key("crossover_distance_threshold");
-    writer.Double(crossover_distance_threshold);
+		writer.Key("crossover_distance_threshold");
+		writer.Double(crossover_distance_threshold);
 
-    writer.Key("crossover_angle_threshold");
-    writer.Double(crossover_angle_threshold);
+		writer.Key("crossover_angle_threshold");
+		writer.Double(crossover_angle_threshold);
 
-    writer.Key("detect_possible_crossovers");
-    writer.Bool(detect_possible_crossovers);
+		writer.Key("detect_possible_crossovers");
+		writer.Bool(detect_possible_crossovers);
 
-    writer.Key("dh_dist");
-    writer.Double(dh_dist);
+		writer.Key("dh_dist");
+		writer.Double(dh_dist);
 
-    writer.Key("clear_log_file");
-    writer.Bool(clear_log_file);
+		writer.Key("clear_log_file");
+		writer.Bool(clear_log_file);
 
-    writer.Key("display_possible_crossovers");
-    writer.Bool(display_possible_crossovers);
+		writer.Key("display_possible_crossovers");
+		writer.Bool(display_possible_crossovers);
 
-    writer.Key("show_overlay");
-    writer.Bool(show_overlay);
+		writer.Key("show_overlay");
+		writer.Bool(show_overlay);
 
-    writer.Key("mode");
-    writer.Int(mode);
+		writer.Key("mode");
+		writer.Int(static_cast<int>(mode));
 
-    writer.Key("auto_set_scaffold_sequence");
-    writer.Bool(auto_set_scaffold_sequence);
+		writer.Key("auto_set_scaffold_sequence");
+		writer.Bool(auto_set_scaffold_sequence);
 
-    writer.Key("scaffCustomFilename");
-    writer.String(scaffCustomFilename.c_str(), scaffCustomFilename.size());
+		writer.Key("scaffCustomFilename");
+		writer.String(scaffCustomFilename.c_str(), scaffCustomFilename.size());
 
-    writer.Key("scaffType");
-    writer.Int(scaffType);
+		writer.Key("scaffType");
+		writer.Int(scaffType);
 
-    writer.Key("ntthal");
-    writer.String(ntthal.c_str(), ntthal.size());
+		writer.Key("ntthal");
+		writer.String(ntthal.c_str(), ntthal.size());
 
-    writer.Key("custom_mesh_model");
-    writer.Bool(custom_mesh_model);
+		writer.Key("custom_mesh_model");
+		writer.Bool(custom_mesh_model);
 
-    writer.EndObject();
+		writer.EndObject();
 
-    std::ofstream out(DEFAULT_CONFIGPATH);
-    out << s.GetString();
-    out.close();
-  }
+		std::ofstream out(DEFAULT_CONFIGPATH);
+		out << s.GetString();
+		out.close();
+	}
 
-  updateConfig();
+	updateConfig();
 
-  configFileWatcher_.addPath(DEFAULT_CONFIGPATH.c_str());
+	configFileWatcher_.addPath(DEFAULT_CONFIGPATH.c_str());
 
-  QObject::connect(&configFileWatcher_, SIGNAL(fileChanged(const QString &)), this, SLOT(updateConfig()));
+	QObject::connect(&configFileWatcher_, SIGNAL(fileChanged(const QString &)), this, SLOT(updateConfig()));
 }
 
 void SEConfig::loadDebugConfig()
@@ -291,8 +295,8 @@ void SEConfig::loadDebugConfig()
   QFileInfo check_file(DEBUG_CONFIGPATH.c_str());
 
   if (!(check_file.exists() && check_file.isFile())) {
-    StringBuffer s;
-    Writer<StringBuffer> writer(s);
+	  rapidjson::StringBuffer s;
+	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
 
     writer.StartObject();
 
@@ -335,7 +339,7 @@ void SEConfig::updateConfig() {
   FILE* fp = fopen(DEFAULT_CONFIGPATH.c_str(), "rb");
   if (fp != NULL) {
     char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+	rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
     setting_.ParseStream(is);
 
     if (setting_.FindMember("show_overlay") != setting_.MemberEnd()) {
@@ -491,7 +495,7 @@ void SEConfig::updateConfig() {
   }
 }
 
-void SEConfig::writeDoubleArray(Writer<StringBuffer> & writer, std::string key, double * arr, int length) {
+void SEConfig::writeDoubleArray(rapidjson::Writer<rapidjson::StringBuffer> & writer, std::string key, double * arr, int length) {
   writer.Key(key.c_str());
 
   writer.StartArray();
@@ -512,8 +516,8 @@ void SEConfig::writeDocumentToJson()
 {
   FILE* fp = fopen(DEFAULT_CONFIGPATH.c_str(), "wb"); // non-Windows use "w"
   char writeBuffer[65536];
-  FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
-  Writer<FileWriteStream> writer(os);
+  rapidjson::FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
+  rapidjson::Writer<rapidjson::FileWriteStream> writer(os);
   setting_.Accept(writer);
   fclose(fp);
 }

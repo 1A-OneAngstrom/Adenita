@@ -1,7 +1,7 @@
 #include "SEDeleteEditorGUI.hpp"
 #include "SEDeleteEditor.hpp"
-#include "SAMSON.hpp"
-#include "SBGWindow.hpp"
+#include "ADNAuxiliary.hpp"
+
 
 SEDeleteEditorGUI::SEDeleteEditorGUI(SEDeleteEditor* editor) {
 
@@ -18,7 +18,7 @@ SEDeleteEditor* SEDeleteEditorGUI::getEditor() const { return editor; }
 
 void SEDeleteEditorGUI::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -26,7 +26,7 @@ void SEDeleteEditorGUI::loadSettings( SBGSettings *settings ) {
 
 void SEDeleteEditorGUI::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -69,5 +69,6 @@ QString SEDeleteEditorGUI::getCitation() const {
 
 	// SAMSON Element generator pro tip: modify this function to add citation information
 
-  return ADNAuxiliary::AdenitaCitation();
+	return ADNAuxiliary::AdenitaCitation();
+
 }

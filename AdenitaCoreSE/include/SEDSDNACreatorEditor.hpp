@@ -5,20 +5,14 @@
 #include "SBGEditor.hpp"
 #include "SEDSDNACreatorEditorGUI.hpp"
 
-#include "SBBaseEvent.hpp"
-#include "SBDocumentEvent.hpp"
-#include "SBDynamicalEvent.hpp"
-#include "SBStructuralEvent.hpp"
 #include "SBAction.hpp"
 
-#include "SEAdenitaCoreSEApp.hpp"
 #include "ADNPart.hpp"
-#include "MSVDisplayHelper.hpp"
 #include "DASCreator.hpp"
 
 /// This class implements an editor
 
-class SEDSDNACreatorEditor : public SBGEditor {
+class SB_EXPORT SEDSDNACreatorEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT
@@ -28,8 +22,8 @@ public :
 	/// \name Constructors and destructors
 	//@{
 
-	SEDSDNACreatorEditor();																													///< Builds an editor					
-	virtual ~SEDSDNACreatorEditor();																											///< Destructs the editor
+	SEDSDNACreatorEditor();																												///< Builds an editor					
+	virtual ~SEDSDNACreatorEditor();																									///< Destructs the editor
 
 	//@}
 
@@ -38,21 +32,21 @@ public :
 
 	virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
 	virtual QString												getName() const;														///< Returns the class name
-  virtual QString	                      getDescription() const;	                      ///< Returns the menu item text
+	virtual QString												getDescription() const;													///< Returns the menu item text
 	virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
-  virtual int													getFormat() const;														///< Returns the format
+	virtual int													getFormat() const;														///< Returns the format
 	virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
 	virtual QString												getToolTip() const;														///< Returns the tool tip
 
 	//@}
 
-  ///\name Settings
-  //@{
+	///\name Settings
+	//@{
 
-  virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
-  virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
+	virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
+	virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
 
-  //@}
+	//@}
 
 	/// \name Editing
 	//@{
@@ -93,61 +87,52 @@ public :
 
 	//@}
 
-	/// \name SAMSON Events
-	//@{
-
-	virtual void												onBaseEvent(SBBaseEvent* baseEvent);									///< Handles base events
-	virtual void												onDynamicalEvent(SBDynamicalEvent* dynamicalEvent);						///< Handles dynamical events
-	virtual void												onDocumentEvent(SBDocumentEvent* documentEvent);						///< Handles document events
-	virtual void												onStructuralEvent(SBStructuralEvent* documentEvent);					///< Handles structural events
-
-	//@}
-
 	/// \name GUI
 	//@{
 
-	SEDSDNACreatorEditorGUI*											getPropertyWidget() const;												///< Returns the property widget of the editor
+	SEDSDNACreatorEditorGUI*									getPropertyWidget() const;												///< Returns the property widget of the editor
 
 	//@}
 
-  void SetMode(bool m);
-  void SetShowBox(bool s);
-  void SetBoxSize(double height, double width, double depth);
-  void SetCircular(bool c);
-  void SetManual(bool m);
-  void SetNumberNucleotides(int n);
-  void SetSequence(bool s);
+	void														setDoubleStrandMode(bool m);
+	void														setShowBoxFlag(bool s);
+	void														setBoxSize(SBQuantity::nanometer height, SBQuantity::nanometer width, SBQuantity::nanometer depth);
+	void														setCircularStrandsMode(bool c);
+	void														setManualFlag(bool m);
+	void														setNumberOfNucleotides(int n);
+	void														setSequenceFlag(bool s);
 
 private:
-  ADNPointer<ADNPart> generateStrand(bool mock = false);
-  ADNPointer<ADNPart> generateCircularStrand(bool mock = false);
-  void displayStrand();
-  void displayBox();
-  void sendPartToAdenita(ADNPointer<ADNPart> nanotube);
-  void ShowBox();
-  void SetSequence(ADNPointer<ADNPart> nanotube);
-  SBPosition3 GetSnappedPosition();
-  SEAdenitaCoreSEApp* getAdenitaApp();
 
-  bool dsMode_ = true;  // true for dsDNA, false for ssDNA
-  bool circular_ = false;  // if we are creating circular strands
-  bool manual_ = false;
-  int numNts_ = 12;
+	ADNPointer<ADNPart>											generateStrand(bool mock = false);
+	ADNPointer<ADNPart>											generateCircularStrand(bool mock = false);
+	void														displayStrand();
+	void														displayBox();
+	void														sendPartToAdenita(ADNPointer<ADNPart> nanotube);
+	void														setSequence(ADNPointer<ADNPart> nanotube);
+	SBPosition3													getSnappedPosition(const SBPosition3& currentPosition);
 
-  DASCreatorEditors::UIData positions_;
-  bool display_ = false;
-  ADNPointer<ADNPart> tempPart_ = nullptr;
-  bool showBox_ = false;
-  SBQuantity::length boxHeight_;
-  SBQuantity::length boxWidth_;
-  SBQuantity::length boxDepth_;
-  bool setSequence_ = false;
-  bool snappingActive_ = true;
+	void														resetData();
 
-  float opaqueness_ = 0.5f;
-  float basePairRadius_ = 1000.0f;
+	bool														doubleStrandMode = true;  // true for dsDNA, false for ssDNA
+	bool														circularStrandsMode = false;  // if we are creating circular strands
+	bool														manualFlag = false;
+	int															numberOfNucleotides = 12;
 
-  ADNNanorobot * nanorobot_;
+	bool														isPressing = false;
+	DASCreatorEditors::UIData									positionData;
+	bool														displayFlag = false;
+	ADNPointer<ADNPart>											tempPart = nullptr;
+	bool														showBoxFlag = false;
+	SBQuantity::length											boxHeight = SBQuantity::length(0.0);
+	SBQuantity::length											boxWidth = SBQuantity::length(0.0);
+	SBQuantity::length											boxDepth = SBQuantity::length(0.0);
+	bool														sequenceFlag = false;
+	bool														snappingIsActive = true;
+
+	float														opaqueness = 0.5f;
+	float														basePairRadius = 1000.0f;
+
 };
 
 

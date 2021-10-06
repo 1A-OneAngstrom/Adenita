@@ -1,60 +1,72 @@
 #include "SEWireframeEditorGUI.hpp"
 #include "SEWireframeEditor.hpp"
-#include "SAMSON.hpp"
-#include "SBGWindow.hpp"
+#include "SEAdenitaCoreSEAppGUI.hpp"
+
 
 SEWireframeEditorGUI::SEWireframeEditorGUI(SEWireframeEditor* editor) {
 
 	ui.setupUi( this );
 	this->editor = editor;
 
-  string iconPath = SB_ELEMENT_PATH + "/Resource/icons/";
+}
 
-  QIcon tetrahedronIcon;
-  tetrahedronIcon.addFile(QString(string(iconPath + "tetrahedron.png").c_str()), QSize(), QIcon::Normal, QIcon::Off);
-  ui.rdbTetrahedron->setIcon(tetrahedronIcon);
+void SEWireframeEditorGUI::initializeUI() {
 
-  QIcon cubeIcon;
-  cubeIcon.addFile(QString(string(iconPath + "cube.png").c_str()), QSize(), QIcon::Normal, QIcon::Off);
-  ui.rdbCube->setIcon(cubeIcon);
-  
-  QIcon cuboctahedronIcon;
-  cuboctahedronIcon.addFile(QString(string(iconPath + "cuboctahedron.png").c_str()), QSize(), QIcon::Normal, QIcon::Off);
-  ui.rdbCuboctahedron->setIcon(cuboctahedronIcon);
+	if (uiInitializedFlag) return;
 
-  QIcon dodecahedronIcon;
-  dodecahedronIcon.addFile(QString(string(iconPath + "dodecahedron.png").c_str()), QSize(), QIcon::Normal, QIcon::Off);
-  ui.rdbDodecahedron->setIcon(dodecahedronIcon);
+	uiInitializedFlag = true;
 
-  QIcon icosahedronIcon;
-  icosahedronIcon.addFile(QString(string(iconPath + "icosahedron.png").c_str()), QSize(), QIcon::Normal, QIcon::Off);
-  ui.rdbIcosahedron->setIcon(icosahedronIcon);
+	const QString iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/");
 
-  QIcon icosidodecahedronIcon;
-  icosidodecahedronIcon.addFile(QString(string(iconPath + "icosidodecahedron.png").c_str()), QSize(), QIcon::Normal, QIcon::Off);
-  ui.rdbIcosidodecahedron->setIcon(icosidodecahedronIcon);
+	QIcon tetrahedronIcon(QPixmap(iconPath + "tetrahedron.png"));
+	ui.radioButtonTetrahedron->setIcon(tetrahedronIcon);
 
-  QIcon octahedronIcon;
-  octahedronIcon.addFile(QString(string(iconPath + "octahedron.png").c_str()), QSize(), QIcon::Normal, QIcon::Off);
-  ui.rdbOctahedron->setIcon(octahedronIcon);
+	QIcon cubeIcon(QPixmap(iconPath + "cube.png"));
+	ui.radioButtonCube->setIcon(cubeIcon);
 
-  QIcon rhombicuboctahedronIcon;
-  rhombicuboctahedronIcon.addFile(QString(string(iconPath + "rhombicuboctahedron.png").c_str()), QSize(), QIcon::Normal, QIcon::Off);
-  ui.rdbRhombicuboctahedron->setIcon(rhombicuboctahedronIcon);
+	QIcon cuboctahedronIcon(QPixmap(iconPath + "cuboctahedron.png"));
+	ui.radioButtonCuboctahedron->setIcon(cuboctahedronIcon);
 
-  QIcon snubCubeIcon;
-  snubCubeIcon.addFile(QString(string(iconPath + "snub_Cube.png").c_str()), QSize(), QIcon::Normal, QIcon::Off);
-  ui.rdbSnub_cube->setIcon(snubCubeIcon);
+	QIcon dodecahedronIcon(QPixmap(iconPath + "dodecahedron.png"));
+	ui.radioButtonDodecahedron->setIcon(dodecahedronIcon);
 
-  QIcon truncated_cubeIcon;
-  truncated_cubeIcon.addFile(QString(string(iconPath + "truncated_cube.png").c_str()), QSize(), QIcon::Normal, QIcon::Off);
-  ui.rdbTruncated_cube->setIcon(truncated_cubeIcon);
+	QIcon icosahedronIcon(QPixmap(iconPath + "icosahedron.png"));
+	ui.radioButtonIcosahedron->setIcon(icosahedronIcon);
 
-  QIcon truncated_cuboctahedronIcon;
-  truncated_cuboctahedronIcon.addFile(QString(string(iconPath + "Truncated_cuboctahedron.png").c_str()), QSize(), QIcon::Normal, QIcon::Off);
-  ui.rdbTruncated_cuboctahedron->setIcon(truncated_cuboctahedronIcon);
+	QIcon icosidodecahedronIcon(QPixmap(iconPath + "icosidodecahedron.png"));
+	ui.radioButtonIcosidodecahedron->setIcon(icosidodecahedronIcon);
 
-  ui.rdbCuboid->setIcon(cubeIcon);
+	QIcon octahedronIcon(QPixmap(iconPath + "octahedron.png"));
+	ui.radioButtonOctahedron->setIcon(octahedronIcon);
+
+	QIcon rhombicuboctahedronIcon(QPixmap(iconPath + "rhombicuboctahedron.png"));
+	ui.radioButtonRhombicuboctahedron->setIcon(rhombicuboctahedronIcon);
+
+	QIcon snubCubeIcon(QPixmap(iconPath + "snub_Cube.png"));
+	ui.radioButtonSnub_cube->setIcon(snubCubeIcon);
+
+	QIcon truncated_cubeIcon(QPixmap(iconPath + "truncated_cube.png"));
+	ui.radioButtonTruncated_cube->setIcon(truncated_cubeIcon);
+
+	QIcon truncated_cuboctahedronIcon(QPixmap(iconPath + "Truncated_cuboctahedron.png"));
+	ui.radioButtonTruncated_cuboctahedron->setIcon(truncated_cuboctahedronIcon);
+
+	ui.radioButtonCuboid->setIcon(cubeIcon);
+
+#ifndef ADENITA_DEBUG
+	ui.radioButtonHelix->setVisible(false);
+	ui.radioButtonStickman->setVisible(false);
+	ui.radioButtonBunny->setVisible(false);
+#endif
+
+	// connect signals
+
+	for (QRadioButton* radioButton : findChildren<QRadioButton*>()) {
+
+		radioButton->setMinimumHeight(50);
+		connect(radioButton, &QRadioButton::clicked, this, &SEWireframeEditorGUI::onCurrentWireframeTemplateChanged);
+
+	}
 
 }
 
@@ -66,7 +78,7 @@ SEWireframeEditor* SEWireframeEditorGUI::getEditor() const { return editor; }
 
 void SEWireframeEditorGUI::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -74,85 +86,38 @@ void SEWireframeEditorGUI::loadSettings( SBGSettings *settings ) {
 
 void SEWireframeEditorGUI::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
 }
 
-void SEWireframeEditorGUI::onTetrahedronClicked()
-{
-  editor->setWireframeType(DASCreator::Tetrahedron);
+void SEWireframeEditorGUI::showEvent(QShowEvent* event) {
+
+	initializeUI();
+
+	SBGWindowWidget::showEvent(event);
+
 }
 
-void SEWireframeEditorGUI::onCubeClicked()
-{
-  editor->setWireframeType(DASCreator::Cube);
-}
+void SEWireframeEditorGUI::onCurrentWireframeTemplateChanged() {
 
-void SEWireframeEditorGUI::onCuboidClicked()
-{
-  editor->setWireframeType(DASCreator::Cuboid);
-}
+	if (ui.radioButtonTetrahedron->isChecked()) editor->setWireframeType(DASCreator::EditorType::Tetrahedron);
+	else if (ui.radioButtonCube->isChecked()) editor->setWireframeType(DASCreator::EditorType::Cube);
+	else if (ui.radioButtonCuboid->isChecked()) editor->setWireframeType(DASCreator::EditorType::Cuboid);
+	else if (ui.radioButtonOctahedron->isChecked()) editor->setWireframeType(DASCreator::EditorType::Octahedron);
+	else if (ui.radioButtonDodecahedron->isChecked()) editor->setWireframeType(DASCreator::EditorType::Dodecahedron);
+	else if (ui.radioButtonCuboctahedron->isChecked()) editor->setWireframeType(DASCreator::EditorType::Cuboctahedron);
+	else if (ui.radioButtonIcosahedron->isChecked()) editor->setWireframeType(DASCreator::EditorType::Icosahedron);
+	else if (ui.radioButtonIcosidodecahedron->isChecked()) editor->setWireframeType(DASCreator::EditorType::Icosidodecahedron);
+	else if (ui.radioButtonRhombicuboctahedron->isChecked()) editor->setWireframeType(DASCreator::EditorType::Rhombicuboctahedron);
+	else if (ui.radioButtonSnub_cube->isChecked()) editor->setWireframeType(DASCreator::EditorType::Snub_cube);
+	else if (ui.radioButtonTruncated_cube->isChecked()) editor->setWireframeType(DASCreator::EditorType::Truncated_cube);
+	else if (ui.radioButtonTruncated_cuboctahedron->isChecked()) editor->setWireframeType(DASCreator::EditorType::Truncated_cuboctahedron);
+	else if (ui.radioButtonHelix->isChecked()) editor->setWireframeType(DASCreator::EditorType::Helix);
+	else if (ui.radioButtonStickman->isChecked()) editor->setWireframeType(DASCreator::EditorType::Stickman);
+	else if (ui.radioButtonBunny->isChecked()) editor->setWireframeType(DASCreator::EditorType::Bunny);
 
-void SEWireframeEditorGUI::onOctahedronClicked()
-{
-  editor->setWireframeType(DASCreator::Octahedron);
-}
-
-void SEWireframeEditorGUI::onDodecahedronClicked()
-{
-  editor->setWireframeType(DASCreator::Dodecahedron);
-}
-
-void SEWireframeEditorGUI::onCubocahedronClicked()
-{
-  editor->setWireframeType(DASCreator::Cubocahedron);
-}
-
-void SEWireframeEditorGUI::onIcosahedronClicked()
-{
-  editor->setWireframeType(DASCreator::Icosahedron);
-}
-
-void SEWireframeEditorGUI::onIcosidodecahedronClicked()
-{
-  editor->setWireframeType(DASCreator::Icosidodecahedron);
-}
-
-void SEWireframeEditorGUI::onRhombicuboctahedronClicked()
-{
-  editor->setWireframeType(DASCreator::Rhombicuboctahedron);
-}
-
-void SEWireframeEditorGUI::onSnubCubeClicked()
-{
-  editor->setWireframeType(DASCreator::Snub_cube);
-}
-
-void SEWireframeEditorGUI::onTruncatedCubeClicked()
-{
-  editor->setWireframeType(DASCreator::Truncated_cube);
-}
-
-void SEWireframeEditorGUI::onTruncatedCuboctahedronClicked()
-{
-  editor->setWireframeType(DASCreator::Truncated_cuboctahedron);
-}
-
-void SEWireframeEditorGUI::onHelixClicked()
-{
-  editor->setWireframeType(DASCreator::Helix);
-}
-
-void SEWireframeEditorGUI::onStickmanClicked()
-{
-  editor->setWireframeType(DASCreator::Stickman);
-}
-
-void SEWireframeEditorGUI::onBunnyClicked()
-{
-  editor->setWireframeType(DASCreator::Bunny);
 }
 
 SBCContainerUUID SEWireframeEditorGUI::getUUID() const { return SBCContainerUUID( "3A914FAF-691B-B3A1-3B91-58E77E7CCC6D" );}
@@ -171,7 +136,7 @@ QString SEWireframeEditorGUI::getName() const {
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your editor inside SAMSON
 
-	return "SEWireframeEditor"; 
+	return "Wireframe Creator"; 
 
 }
 
@@ -192,5 +157,6 @@ QString SEWireframeEditorGUI::getCitation() const {
 
 	// SAMSON Element generator pro tip: modify this function to add citation information
 
-  return ADNAuxiliary::AdenitaCitation();
+	return ADNAuxiliary::AdenitaCitation();
+
 }

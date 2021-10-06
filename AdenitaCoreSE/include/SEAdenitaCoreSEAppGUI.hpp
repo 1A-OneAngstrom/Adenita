@@ -3,11 +3,16 @@
 
 #include "SBGApp.hpp"
 #include "ui_SEAdenitaCoreSEAppGUI.h"
-#include <QMessageBox>
-#include <QComboBox>
-#include <QSpinBox>
-#include <QToolButton>
 
+#include <QToolButton>
+#include <QPushButton>
+
+#ifdef NDEBUG
+//#define ADENITA_DEBUG
+#endif
+#ifdef _DEBUG
+//#define ADENITA_DEBUG
+#endif
 
 class SEAdenitaCoreSEApp;
 
@@ -15,7 +20,7 @@ class SEAdenitaCoreSEApp;
 
 // SAMSON Element generator pro tip: add GUI functionality in this class. The non-GUI functionality should go in the SEAdenitaCoreSEApp class
 
-class SEAdenitaCoreSEAppGUI : public SBGApp {
+class SB_EXPORT SEAdenitaCoreSEAppGUI : public SBGApp {
 
 	Q_OBJECT
 
@@ -24,15 +29,15 @@ public:
 	/// \name Constructors and destructors
 	//@{
 
-	SEAdenitaCoreSEAppGUI(SEAdenitaCoreSEApp* t);																									///< Constructs a GUI for the app
-	virtual ~SEAdenitaCoreSEAppGUI();																										///< Destructs the GUI of the app
+	SEAdenitaCoreSEAppGUI(SEAdenitaCoreSEApp* t);																						///< Constructs a GUI for the app
+	virtual ~SEAdenitaCoreSEAppGUI();																									///< Destructs the GUI of the app
 
 	//@}
 
 	/// \name App
 	//@{
 
-	SEAdenitaCoreSEApp*												getApp() const;															///< Returns a pointer to the app
+	SEAdenitaCoreSEApp*											getApp() const;															///< Returns a pointer to the app
 
 	//@}
 
@@ -47,82 +52,100 @@ public:
 
 	//@}
 
-  virtual void keyPressEvent(QKeyEvent *event);
+	virtual void												keyPressEvent(QKeyEvent *event);
 
 	///\name Settings
 	//@{
 
-	void														loadSettings(SBGSettings* settings);										///< Load GUI settings
-	void														saveSettings(SBGSettings* settings);										///< Save GUI settings
+	void														loadSettings(SBGSettings* settings);									///< Load GUI settings
+	void														saveSettings(SBGSettings* settings);									///< Save GUI settings
 
 	//@}
 
+	static std::string											getScaffoldFilename();													///< Returns the selected scaffold
 
+	static std::string											isCadnanoJsonFormat(QString filename);
 
-  // get selected scaffold
-  std::string GetScaffoldFilename();
+	void														clearHighlightEditor();
 
 public slots:
 
-  void onChangeSelector(int idx);
-  // Main
-  void onLoadFile();
-  void onSaveAll();
-  void onSaveSelection();
-  void onExport();
-  void onSetScaffold();
-  void onCreateBasePair();
-  void onGenerateSequence();
-  void onSettings();
-  void onSetStart();
-  void onCalculateBindingProperties();
-  // Editors
-  void onBreakEditor();
-  void onConnectEditor();
-  void onDeleteEditor();
-  void onDNATwistEditor();
-  void onMergePartsEditor();
-  void onCreateStrandEditor();
-  void onNanotubeCreatorEditor();
-  void onLatticeCreatorEditor();
-  void onWireframeEditor();
-  void onTaggingEditor();
-  void onTwisterEditor();
-  // Debug
-  void onAddNtThreeP();
-  void onCenterPart();
-  void onCatenanes();
-  void onKinetoplast();
-  void onTestNeighbors();
-  void onOxDNAImport();
-  void onFromDatagraph();
-  void onHighlightXOs();
-  void onHighlightPosXOs();
-  void onExportToCanDo();
-  void onFixDesigns();
+	// Main
+
+	void														onLoadFile();
+	void														onSaveAll();
+	void														onSaveSelection();
+	void														onExport();
+	void														onResetVisualModel();
+	void														onSettings();
+
+	// Edit sequences
+
+	void														onSetScaffold();
+	void														onGenerateSequence();
+	void														onCalculateBindingProperties();
+	void														onSetStartNucleotide();
+	void														onTaggingEditor();
+
+	// Modeling
+
+	void														onBreakEditor();
+	void														onConnectEditor();
+	void														onDeleteEditor();
+	void														onTwisterEditor();
+	void														onDNATwistEditor();
+	void														onMergePartsEditor();
+
+	// Creators
+
+	void														onCreateBasePair();
+	void														onCreateStrandEditor();
+	void														onNanotubeCreatorEditor();
+	void														onLatticeCreatorEditor();
+	void														onWireframeEditor();
+
+	// Debug
+
+	void														onAddNtThreeP();
+	void														onCenterPart();
+	void														onCatenanes();
+	void														onKinetoplast();
+	void														onTestNeighbors();
+	void														onOxDNAImport();
+	void														onFromDatagraph();
+	void														onHighlightXOs();
+	void														onHighlightPosXOs();
+	void														onExportToCanDo();
+	void														onFixDesigns();
 
 private slots:
-  void CheckForLoadedParts();
+
+	void														checkForLoadedParts();
 
 private:
-  void SetupUI();
-  std::string IsJsonCadnano(QString filename);
-  void HighlightEditor(QToolButton* b);
 
-  std::vector<QToolButton*> menuButtons_;
-  std::vector<QToolButton*> editSequencesButtons_;
-  std::vector<QToolButton*> modelingButtons_;
-  std::vector<QToolButton*> creatorsButtons_;
-  std::vector<QPushButton*> debugButtons_;
+	void														setupUI();
 
-  std::vector<QToolButton*> GetMenuButtons();
-  std::vector<QToolButton*> GetEditSequencesButtons();
-  std::vector<QToolButton*> GetModelingButtons();
-  std::vector<QToolButton*> GetCreatorsButtons();
-  std::vector<QPushButton*> GetDebugButtons();
+	void														setHighlightEditor(QToolButton* button = nullptr);
 
-	Ui::SEAdenitaCoreSEAppGUIClass									ui;
+	std::vector<QToolButton*>									menuButtons_;
+	std::vector<QToolButton*>									editSequencesButtons_;
+	std::vector<QToolButton*>									modelingButtons_;
+	std::vector<QToolButton*>									creatorsButtons_;
+	std::vector<QPushButton*>									debugButtons_;
 
-  QToolButton* highlightedEditor_ = nullptr;
+	std::vector<QToolButton*>									getMenuButtons();
+	std::vector<QToolButton*>									getEditSequencesButtons();
+	std::vector<QToolButton*>									getModelingButtons();
+	std::vector<QToolButton*>									getCreatorsButtons();
+	std::vector<QPushButton*>									getDebugButtons();
+
+	static void													setToolButtonStyleSheet(QToolButton* button);
+
+	Ui::SEAdenitaCoreSEAppGUIClass								ui;
+
+	QToolButton*												highlightedEditorButton_ = nullptr;
+
+	QString														workingDirectory = QString();
+
 };
-

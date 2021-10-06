@@ -8,51 +8,52 @@
 #include "SBDynamicalEvent.hpp"
 #include "SBStructuralEvent.hpp"
 #include "SBAction.hpp"
-#include "MSVDisplayHelper.hpp"
-#include "SEAdenitaCoreSEApp.hpp"
+
+#include "ADNModel.hpp"
+#include "ADNMixins.hpp"
 
 /// This class implements an editor
 
-enum ConnectionMode {
-  Single,
-  Double
-};
-
-class SEConnectSSDNAEditor : public SBGEditor {
+class SB_EXPORT SEConnectSSDNAEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT
 
 public :
 
+	enum class ConnectionMode {
+		Single,
+		Double
+	};
+
 	/// \name Constructors and destructors
 	//@{
 
-	SEConnectSSDNAEditor();																													///< Builds an editor					
-	virtual ~SEConnectSSDNAEditor();																											///< Destructs the editor
+	SEConnectSSDNAEditor();																												///< Builds an editor					
+	virtual ~SEConnectSSDNAEditor();																									///< Destructs the editor
 
 	//@}
 
 	/// \name Identity
 	//@{
 
-  virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
-  virtual QString												getName() const;														///< Returns the class name
-  virtual QString	                      getDescription() const;	                      ///< Returns the menu item text
-  virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
-  virtual int													getFormat() const;														///< Returns the format
-  virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
-  virtual QString												getToolTip() const;														///< Returns the tool tip
+	virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
+	virtual QString												getName() const;														///< Returns the class name
+	virtual QString												getDescription() const;													///< Returns the menu item text
+	virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
+	virtual int													getFormat() const;														///< Returns the format
+	virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
+	virtual QString												getToolTip() const;														///< Returns the tool tip
 
-  //@}
+	//@}
 
-  ///\name Settings
-  //@{
+	///\name Settings
+	//@{
 
-  virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
-  virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
+	virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
+	virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
 
-  //@}
+	//@}
 
 	/// \name Editing
 	//@{
@@ -93,38 +94,54 @@ public :
 
 	//@}
 
-	/// \name SAMSON Events
-	//@{
-
-	virtual void												onBaseEvent(SBBaseEvent* baseEvent);									///< Handles base events
-	virtual void												onDynamicalEvent(SBDynamicalEvent* dynamicalEvent);						///< Handles dynamical events
-	virtual void												onDocumentEvent(SBDocumentEvent* documentEvent);						///< Handles document events
-	virtual void												onStructuralEvent(SBStructuralEvent* documentEvent);					///< Handles structural events
-
-	//@}
-
 	/// \name GUI
 	//@{
 
-	SEConnectSSDNAEditorGUI*											getPropertyWidget() const;												///< Returns the property widget of the editor
+	SEConnectSSDNAEditorGUI*									getPropertyWidget() const;												///< Returns the property widget of the editor
 
 	//@}
 
-  void SetMode(bool xo);
-  void SetSequence(std::string seq);
-  void SetAutoSequence(bool s);
-  void SetConcat(bool c);
+	void														setConnectionMode(bool xo);
+	void														setSequence(std::string seq);
+	void														setAutoSequenceFlag(bool s);
+	void														setConcatFlag(bool c);
+
+	void														resetData();
+
+protected:
+
+	/// \name SAMSON Events
+	//@{
+
+	class Observer : public SBCReferenceTarget {
+
+		Observer(SEConnectSSDNAEditor* editor) { this->editor = editor; }
+		virtual ~Observer() {}
+
+		friend class SEConnectSSDNAEditor;
+
+		void														onBaseEvent(SBBaseEvent* event);
+
+		SEConnectSSDNAEditor*										editor{ nullptr };
+
+	};
+
+	SBPointer<Observer>											observer;
+
+	//@}
 
 private:
-  SEAdenitaCoreSEApp*					          getAdenitaApp() const;															///< Returns a pointer to the app
 
-  bool display_ = false;
-  ADNPointer<ADNNucleotide> start_;
+	bool														displayFlag = false;
+	ADNPointer<ADNNucleotide>									selectedStartNucleotide = nullptr;
 
-  ConnectionMode mode_ = Single;
-  std::string sequence_ = "";
-  bool concat_ = false;
-  bool autoSequence_ = false;
+	ConnectionMode												connectionMode = ConnectionMode::Single;
+	std::string													sequence = "";
+	bool														concatFlag = false;
+	bool														autoSequenceFlag = false;
+
+	std::string													previousSelectionFilter;
+
 };
 
 

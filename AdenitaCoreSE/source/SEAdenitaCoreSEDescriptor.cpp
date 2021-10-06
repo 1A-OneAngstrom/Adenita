@@ -1,4 +1,5 @@
 /// \headerfile SEAdenitaCoreSEAppDescriptor.hpp "SEAdenitaCoreSEAppDescriptor.hpp"
+
 #include "SEAdenitaCoreSEAppDescriptor.hpp"
 #include "SEAdenitaVisualModelDescriptor.hpp"
 #include "SEAdenitaVisualModelPropertiesDescriptor.hpp"
@@ -19,6 +20,11 @@
 #include "SETaggingVisualModelPropertiesDescriptor.hpp"
 #include "SETaggingVisualModelDescriptor.hpp"
 #include "SELatticeCreatorEditorDescriptor.hpp"
+#include "SEAdenitaImporterAdnDescriptor.hpp"
+#include "SEAdenitaImporterAdnpartDescriptor.hpp"
+#include "SEAdenitaImporterPlyDescriptor.hpp"
+#include "SEAdenitaImporterJsonDescriptor.hpp"
+
 
 // Describe the SAMSON Element
 
@@ -61,11 +67,16 @@ SB_ELEMENT_CLASSES_BEGIN;
 	SB_ELEMENT_CLASS(SETaggingVisualModel);
 	SB_ELEMENT_CLASS(SETaggingVisualModelProperties);
 	SB_ELEMENT_CLASS(SELatticeCreatorEditor);
+	SB_ELEMENT_CLASS(SEAdenitaImporterAdn);
+	SB_ELEMENT_CLASS(SEAdenitaImporterAdnpart);
+	SB_ELEMENT_CLASS(SEAdenitaImporterPly);
+	SB_ELEMENT_CLASS(SEAdenitaImporterJson);
 
 SB_ELEMENT_CLASSES_END;
 
 SB_ELEMENT_CATEGORIES_BEGIN;
 
 	SB_ELEMENT_CATEGORY(SBClass::Category::General);
+	SB_ELEMENT_CATEGORY(SBClass::Category::Biology);
 
 SB_ELEMENT_CATEGORIES_END;

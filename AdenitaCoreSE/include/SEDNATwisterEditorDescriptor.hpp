@@ -12,7 +12,7 @@
 SB_CLASS_BEGIN(SEDNATwisterEditor);
 
 	SB_CLASS_TYPE(SBCClass::Editor);
-        SB_CLASS_DESCRIPTION("aDeNitA Twister Editor : Twist double helices");
+        SB_CLASS_DESCRIPTION("Adenita Twister Editor : Twist double helices");
 
 	SB_FACTORY_BEGIN;
 

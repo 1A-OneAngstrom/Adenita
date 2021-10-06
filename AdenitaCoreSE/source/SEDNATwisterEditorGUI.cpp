@@ -1,7 +1,6 @@
 #include "SEDNATwisterEditorGUI.hpp"
 #include "SEDNATwisterEditor.hpp"
-#include "SAMSON.hpp"
-#include "SBGWindow.hpp"
+
 
 SEDNATwisterEditorGUI::SEDNATwisterEditorGUI(SEDNATwisterEditor* editor) {
 
@@ -18,7 +17,7 @@ SEDNATwisterEditor* SEDNATwisterEditorGUI::getEditor() const { return editor; }
 
 void SEDNATwisterEditorGUI::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -26,32 +25,29 @@ void SEDNATwisterEditorGUI::loadSettings( SBGSettings *settings ) {
 
 void SEDNATwisterEditorGUI::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
 }
 
-void SEDNATwisterEditorGUI::setUntwistTwist()
-{
-  SEDNATwisterEditor* t = getEditor();
-  t->setBendingType(BendingType::UNTWIST);
-}
+void SEDNATwisterEditorGUI::setUntwistTwist() {
 
-void SEDNATwisterEditorGUI::setInvisibleVisible()
-{
-  SEDNATwisterEditor* t = getEditor();
-  t->setBendingType(BendingType::SPHEREVISIBILITY);
+	getEditor()->setBendingType(SEDNATwisterEditor::BendingType::UNTWIST);
 
 }
 
-void SEDNATwisterEditorGUI::resetUntwist()
-{
+void SEDNATwisterEditorGUI::setInvisibleVisible() {
+
+	getEditor()->setBendingType(SEDNATwisterEditor::BendingType::SPHEREVISIBILITY);
 
 }
 
-void SEDNATwisterEditorGUI::resetInvisible()
-{
+void SEDNATwisterEditorGUI::resetUntwist() {
+
+}
+
+void SEDNATwisterEditorGUI::resetInvisible() {
 
 }
 
@@ -71,7 +67,7 @@ QString SEDNATwisterEditorGUI::getName() const {
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your editor inside SAMSON
 
-	return "aDeNitA Teister Editor"; 
+	return "Adenita Twister Editor"; 
 
 }
 
@@ -92,5 +88,6 @@ QString SEDNATwisterEditorGUI::getCitation() const {
 
 	// SAMSON Element generator pro tip: modify this function to add citation information
 
-  return ADNAuxiliary::AdenitaCitation();
+	return ADNAuxiliary::AdenitaCitation();
+
 }

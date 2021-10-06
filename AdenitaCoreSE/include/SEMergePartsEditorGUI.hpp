@@ -11,7 +11,7 @@ class SEMergePartsEditor;
 // SAMSON Element generator pro tip: add GUI functionality in this class. 
 // The non-GUI functionality (and the mouse and keyboard event handling methods that are specific to the editor) should go in the SEConnectSSDNAEditor class
 
-class SEMergePartsEditorGUI : public SBGWindowWidget {
+class SB_EXPORT SEMergePartsEditorGUI : public SBGWindowWidget {
 
 	Q_OBJECT
 
@@ -20,15 +20,15 @@ public:
 	/// \name Constructors and destructors
 	//@{
 
-  SEMergePartsEditorGUI(SEMergePartsEditor* editor);																		///< Constructs a GUI for the editor
-	virtual ~SEMergePartsEditorGUI();																										///< Destructs the GUI of the editor
+	SEMergePartsEditorGUI(SEMergePartsEditor* editor);																					///< Constructs a GUI for the editor
+	virtual ~SEMergePartsEditorGUI();																									///< Destructs the GUI of the editor
 
 	//@}
 
 	/// \name Editor
 	//@{
 
-  SEMergePartsEditor*												getEditor() const;														///< Returns a pointer to the editor
+	SEMergePartsEditor*											getEditor() const;														///< Returns a pointer to the editor
 
 	//@}
 
@@ -46,20 +46,25 @@ public:
 	///\name Settings
 	//@{
 
-	void														loadSettings(SBGSettings* settings);										///< Load GUI settings
-	void														saveSettings(SBGSettings* settings);										///< Save GUI settings
+	void														loadSettings(SBGSettings* settings);									///< Load GUI settings
+	void														saveSettings(SBGSettings* settings);									///< Save GUI settings
 
 	//@}
 
 public slots:
-  void updatePartsList();
-  void onMerge();
-  void onMove();
+
+	void														updatePartsList();
+	void														onComboBoxMergeComponent1CurrentIndexChanged(int index);
+	void														onComboBoxMergeComponent2CurrentIndexChanged(int index);
+	void														onComboBoxMoveElementCurrentIndexChanged(int index);
+	void														onComboBoxMoveToComponentCurrentIndexChanged(int index);
+	void														onMerge();
+	void														onMove();
 
 private:
 
-	Ui::SEMergePartsEditorGUIClass									ui;
-  SEMergePartsEditor*												editor;
+	Ui::SEMergePartsEditorGUIClass								ui;
+	SEMergePartsEditor*											editor{ nullptr };
 
 };
 

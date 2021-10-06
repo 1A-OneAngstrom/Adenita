@@ -3,21 +3,15 @@
 #include "SBGEditor.hpp"
 #include "SENanotubeCreatorEditorGUI.hpp"
 
-#include "SBBaseEvent.hpp"
-#include "SBDocumentEvent.hpp"
-#include "SBDynamicalEvent.hpp"
-#include "SBStructuralEvent.hpp"
 #include "SBAction.hpp"
+
 #include "ADNPart.hpp"
-#include "SEAdenitaCoreSEApp.hpp"
-#include "MSVDisplayHelper.hpp"
-#include "DASCreator.hpp"
 #include "DASRouter.hpp"
 
 
 /// This class implements an editor
 
-class SENanotubeCreatorEditor : public SBGEditor {
+class SB_EXPORT SENanotubeCreatorEditor : public SBGEditor {
 
 	SB_CLASS
 	Q_OBJECT
@@ -27,31 +21,31 @@ public :
 	/// \name Constructors and destructors
 	//@{
 
-	SENanotubeCreatorEditor();																													///< Builds an editor					
-	virtual ~SENanotubeCreatorEditor();																											///< Destructs the editor
+	SENanotubeCreatorEditor();																											///< Builds an editor					
+	virtual ~SENanotubeCreatorEditor();																									///< Destructs the editor
 
 	//@}
 
 	/// \name Identity
 	//@{
 
-  virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
-  virtual QString												getName() const;														///< Returns the class name
-  virtual QString	                      getDescription() const;	                      ///< Returns the menu item text
-  virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
-  virtual int													getFormat() const;														///< Returns the format
-  virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
-  virtual QString												getToolTip() const;														///< Returns the tool tip
+	virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
+	virtual QString												getName() const;														///< Returns the class name
+	virtual QString												getDescription() const;													///< Returns the menu item text
+	virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
+	virtual int													getFormat() const;														///< Returns the format
+	virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
+	virtual QString												getToolTip() const;														///< Returns the tool tip
 
-  //@}
+	//@}
 
-  ///\name Settings
-  //@{
+	///\name Settings
+	//@{
 
-  virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
-  virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
+	virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
+	virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
 
-  //@}
+	//@}
 
 	/// \name Editing
 	//@{
@@ -92,43 +86,42 @@ public :
 
 	//@}
 
-	/// \name SAMSON Events
-	//@{
-
-	virtual void												onBaseEvent(SBBaseEvent* baseEvent);									///< Handles base events
-	virtual void												onDynamicalEvent(SBDynamicalEvent* dynamicalEvent);						///< Handles dynamical events
-	virtual void												onDocumentEvent(SBDocumentEvent* documentEvent);						///< Handles document events
-	virtual void												onStructuralEvent(SBStructuralEvent* documentEvent);					///< Handles structural events
-
-	//@}
-
 	/// \name GUI
 	//@{
 
-	SENanotubeCreatorEditorGUI*											getPropertyWidget() const;												///< Returns the property widget of the editor
+	SENanotubeCreatorEditorGUI*									getPropertyWidget() const;												///< Returns the property widget of the editor
 
 	//@}
 
-  void SetRouting(RoutingType t);
-  void SetPredefined(bool predefined, double radius, int numBp);
-  void SetRadius(double radius);
-  void SetBp(int bp);
+	void														setRoutingType(RoutingType t);
+	void														setPredefined(bool predefined, const SBQuantity::length& radius, int numBp);
+	void														setRadius(const SBQuantity::length& radius);
+	void														setNumberOfBasePairs(int bp);
+
+	void														resetData();
 
 private:
 
-  ADNPointer<ADNPart> generateNanotube(bool mock = false);
-  void displayNanotube();
-  void sendPartToAdenita(ADNPointer<ADNPart> nanotube);
-  void updateGUI(SBQuantity::length radius, int numBp, bool clear = false);
+	ADNPointer<ADNPart>											generateNanotube(bool mock = false);
+	void														displayNanotube();
+	void														sendPartToAdenita(ADNPointer<ADNPart> nanotube);
+	void														updateGUI(SBQuantity::length radius, int numBp, bool clear = false);
 
-  DASCreatorEditors::UIData positions_;
-  bool display_ = false;
-  ADNPointer<ADNPart> tempPart_ = nullptr;
-  RoutingType routing_ = RoutingType::None;
-  //! for manual setting of base pairs and double strands
-  bool predefined_ = false;
-  int numBp_ = 0;
-  double radius_ = 0.0;
+	SBPosition3													firstPosition;
+	SBPosition3													secondPosition;
+	SBPosition3													thirdPosition;
+	bool														displayFlag = false;
+	bool														isPressing = false;
+	bool														lengthSelected = false;
+
+	ADNPointer<ADNPart>											tempPart = nullptr;
+	RoutingType													routingType = RoutingType::None;
+
+	//! for manual setting of base pairs and double strands
+	bool														predefinedFlag = false;
+	int															numberOfBasePairs = 0;
+	SBQuantity::length											radius = SBQuantity::length(0.0);
+
 };
 
 

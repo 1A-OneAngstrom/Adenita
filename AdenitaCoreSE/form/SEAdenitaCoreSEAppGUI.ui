@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>389</width>
-    <height>209</height>
+    <width>400</width>
+    <height>400</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -16,63 +16,22 @@
     <verstretch>0</verstretch>
    </sizepolicy>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>400</width>
+    <height>400</height>
+   </size>
+  </property>
   <property name="focusPolicy">
    <enum>Qt::ClickFocus</enum>
   </property>
   <property name="windowTitle">
    <string/>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="QComboBox" name="cmbSelector">
-     <item>
-      <property name="text">
-       <string>Menu</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Edit Sequences</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Modeling</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Creators</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Debug</string>
-      </property>
-     </item>
-    </widget>
-   </item>
-  </layout>
+  <layout class="QVBoxLayout" name="verticalLayout"/>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>cmbSelector</sender>
-   <signal>currentIndexChanged(int)</signal>
-   <receiver>SEAdenitaCoreSEAppGUIClass</receiver>
-   <slot>onChangeSelector(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>194</x>
-     <y>103</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>194</x>
-     <y>104</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
  <slots>
   <slot>onChangeSelector(int)</slot>
  </slots>

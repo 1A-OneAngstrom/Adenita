@@ -1,12 +1,19 @@
 #include "SELatticeCreatorEditorGUI.hpp"
 #include "SELatticeCreatorEditor.hpp"
-#include "SAMSON.hpp"
-#include "SBGWindow.hpp"
+
 
 SELatticeCreatorEditorGUI::SELatticeCreatorEditorGUI(SELatticeCreatorEditor* editor) {
 
 	ui.setupUi( this );
 	this->editor = editor;
+
+	ui.labelPatterns->setVisible(false);
+	ui.labelPatternsX->setVisible(false);
+	ui.labelPatternsY->setVisible(false);
+	ui.labelPatternsZ->setVisible(false);
+	ui.comboBoxXPattern->setVisible(false);
+	ui.comboBoxYPattern->setVisible(false);
+	ui.comboBoxZPattern->setVisible(false);
 
 }
 
@@ -18,70 +25,95 @@ SELatticeCreatorEditor* SELatticeCreatorEditorGUI::getEditor() const { return ed
 
 void SELatticeCreatorEditorGUI::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
+
+	const bool isSquareLattice = settings->loadBoolValue("isSquareLattice", false);
+	if (isSquareLattice) {
+
+		ui.radioButtonSquareLattice->setChecked(true);
+		setSquare();
+
+	}
+	else {
+
+		ui.radioButtonHoneycombLattice->setChecked(true);
+		setHoneycomb();
+
+	}
+
+	ui.spinBoxMaxXds->setValue(settings->loadIntValue("spinBoxMaxXds", 32));
+	ui.spinBoxMaxYds->setValue(settings->loadIntValue("spinBoxMaxYds", 30));
+	ui.spinBoxMaxZbp->setValue(settings->loadIntValue("spinBoxMaxZbp", 400));
+
+	getEditor()->setMaxXDoubleStrands(ui.spinBoxMaxXds->value());
+	getEditor()->setMaxYDoubleStrands(ui.spinBoxMaxYds->value());
+	getEditor()->setMaxZBasePairs(ui.spinBoxMaxZbp->value());
 
 }
 
 void SELatticeCreatorEditorGUI::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if ( settings == nullptr ) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
-}
+	settings->saveValue("isSquareLattice", ui.radioButtonSquareLattice->isChecked());
 
-void SELatticeCreatorEditorGUI::setHoneycomb()
-{
-  SELatticeCreatorEditor* t = getEditor();
-  t->setLatticeType(LatticeType::Honeycomb);
-	ui.spbMaxXds->setMaximum(32);
-	ui.spbMaxYds->setMaximum(30);
-}
-
-void SELatticeCreatorEditorGUI::setSquare()
-{
-  SELatticeCreatorEditor* t = getEditor();
-  t->setLatticeType(LatticeType::Square);
-	ui.spbMaxXds->setMaximum(50);
-	ui.spbMaxYds->setMaximum(50);
-}
-
-void SELatticeCreatorEditorGUI::onZPatternChanged(int index)
-{
-  SELatticeCreatorEditor* t = getEditor();
-  if (index == 0)
-  {
-    t->setZPattern(ZLatticePattern::ALLZ);
-  }
-  else if (index == 1)
-  {
-    t->setZPattern(ZLatticePattern::TRIANGLE);
-  }
-  else if (index == 2)
-  {
-    t->setZPattern(ZLatticePattern::CIRCLE);
-  }
+	settings->saveValue("spinBoxMaxXds", ui.spinBoxMaxXds->value());
+	settings->saveValue("spinBoxMaxYds", ui.spinBoxMaxYds->value());
+	settings->saveValue("spinBoxMaxZbp", ui.spinBoxMaxZbp->value());
 
 }
 
-void SELatticeCreatorEditorGUI::onMaxXdsChanged(int val)
-{
-	SELatticeCreatorEditor* t = getEditor();
-	t->setMaxXds(val);
+void SELatticeCreatorEditorGUI::setHoneycomb() {
+
+	getEditor()->setLatticeType(LatticeType::Honeycomb);
+	ui.spinBoxMaxXds->setMaximum(32);
+	ui.spinBoxMaxYds->setMaximum(30);
+
+	getEditor()->setMaxXDoubleStrands(ui.spinBoxMaxXds->value());
+	getEditor()->setMaxYDoubleStrands(ui.spinBoxMaxYds->value());
+	getEditor()->setMaxZBasePairs(ui.spinBoxMaxZbp->value());
+
 }
 
-void SELatticeCreatorEditorGUI::onMaxYdsChanged(int val)
-{
-	SELatticeCreatorEditor* t = getEditor();
-	t->setMaxYds(val);
+void SELatticeCreatorEditorGUI::setSquare() {
+
+	getEditor()->setLatticeType(LatticeType::Square);
+	ui.spinBoxMaxXds->setMaximum(50);
+	ui.spinBoxMaxYds->setMaximum(50);
+
+	getEditor()->setMaxXDoubleStrands(ui.spinBoxMaxXds->value());
+	getEditor()->setMaxYDoubleStrands(ui.spinBoxMaxYds->value());
+	getEditor()->setMaxZBasePairs(ui.spinBoxMaxZbp->value());
+
 }
 
-void SELatticeCreatorEditorGUI::onMaxZBpsChanged(int val)
-{
-	SELatticeCreatorEditor* t = getEditor();
-	t->setMaxZBps(val);
+void SELatticeCreatorEditorGUI::onZPatternChanged(int index) {
+
+	SELatticeCreatorEditor::ZLatticePattern pattern = static_cast<SELatticeCreatorEditor::ZLatticePattern>(index);
+	getEditor()->setZPattern(pattern);
+
+}
+
+void SELatticeCreatorEditorGUI::onMaxXdsChanged(int val) {
+
+	getEditor()->setMaxXDoubleStrands(val);
+
+}
+
+void SELatticeCreatorEditorGUI::onMaxYdsChanged(int val) {
+
+	getEditor()->setMaxYDoubleStrands(val);
+
+}
+
+void SELatticeCreatorEditorGUI::onMaxZBpsChanged(int val) {
+
+	getEditor()->setMaxZBasePairs(val);
+
 }
 
 SBCContainerUUID SELatticeCreatorEditorGUI::getUUID() const { return SBCContainerUUID( "A9C48A6E-8BD1-B387-6A63-1CB8A19C1948" );}
@@ -100,7 +132,7 @@ QString SELatticeCreatorEditorGUI::getName() const {
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your editor inside SAMSON
 
-	return "SELatticeCreatorEditor"; 
+	return "Lattice Creator"; 
 
 }
 
@@ -121,5 +153,6 @@ QString SELatticeCreatorEditorGUI::getCitation() const {
 
 	// SAMSON Element generator pro tip: modify this function to add citation information
 
-  return ADNAuxiliary::AdenitaCitation();
+	return ADNAuxiliary::AdenitaCitation();
+
 }

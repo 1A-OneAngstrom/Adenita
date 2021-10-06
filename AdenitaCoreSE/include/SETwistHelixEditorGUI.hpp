@@ -11,7 +11,7 @@ class SETwistHelixEditor;
 // SAMSON Element generator pro tip: add GUI functionality in this class. 
 // The non-GUI functionality (and the mouse and keyboard event handling methods that are specific to the editor) should go in the SEConnectSSDNAEditor class
 
-class SETwistHelixEditorGUI : public SBGWindowWidget {
+class SB_EXPORT SETwistHelixEditorGUI : public SBGWindowWidget {
 
 	Q_OBJECT
 
@@ -20,15 +20,15 @@ public:
 	/// \name Constructors and destructors
 	//@{
 
-  SETwistHelixEditorGUI(SETwistHelixEditor* editor);																		///< Constructs a GUI for the editor
-	virtual ~SETwistHelixEditorGUI();																										///< Destructs the GUI of the editor
+	SETwistHelixEditorGUI(SETwistHelixEditor* editor);																					///< Constructs a GUI for the editor
+	virtual ~SETwistHelixEditorGUI();																									///< Destructs the GUI of the editor
 
 	//@}
 
 	/// \name Editor
 	//@{
 
-  SETwistHelixEditor*												getEditor() const;														///< Returns a pointer to the editor
+	SETwistHelixEditor*											getEditor() const;														///< Returns a pointer to the editor
 
 	//@}
 
@@ -46,26 +46,27 @@ public:
 	///\name Settings
 	//@{
 
-	void														loadSettings(SBGSettings* settings);										///< Load GUI settings
-	void														saveSettings(SBGSettings* settings);										///< Save GUI settings
+	void														loadSettings(SBGSettings* settings);									///< Load GUI settings
+	void														saveSettings(SBGSettings* settings);									///< Save GUI settings
 
 	//@}
 
-  //! Sets the mode to plus or minus, for use with Adenita App menu
-  void CheckPlusOrMinus(bool plus);
+	void														checkPlusOrMinus(bool plus);											///< Sets the mode to plus or minus
 
 public slots:
-  void onMinus(bool checked);
-  void onPlus(bool checked);
-  void onTwistAngle(bool checked);
-  void onTwistTurns(bool checked);
-  void onTwistAngleChanged(double angle);
-  void onTwistTurnsChanged(int turns);
+
+	void														onMinus(bool checked);
+	void														onPlus(bool checked);
+	void														onTwistAngle(bool checked);
+	void														onTwistTurns(bool checked);
+	void														onTwistAngleChanged(double angle);
+	void														onTwistTurnsChanged(int turns);
 
 private:
 
-	Ui::SETwistHelixEditorGUIClass									ui;
-  SETwistHelixEditor*												editor;
+	void														updateAngleInEditor();													///< Update the angle in the editor based on the value in GUI
+
+	Ui::SETwistHelixEditorGUIClass								ui;
+	SETwistHelixEditor*											editor{ nullptr };
 
 };
-

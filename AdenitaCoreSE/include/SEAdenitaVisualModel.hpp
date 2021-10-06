@@ -1,39 +1,25 @@
 #pragma once 
 
 #include "SBMVisualModel.hpp"
-#include "SBGApp.hpp" 
-#include "SEAdenitaCoreSEApp.hpp"
 #include "SBBaseEvent.hpp"
 #include "SBDocumentEvent.hpp"
 #include "SBStructuralEvent.hpp"
-#include "ADNAuxiliary.hpp"
+
 #include "ADNArray.hpp"
 #include "ADNMixins.hpp"
 #include "ADNPart.hpp"
-#include "ADNNanorobot.hpp"
-#include "ADNConfig.hpp"
-#include "MSVColors.hpp"
-#include "MSVDisplayHelper.hpp"
-#include "PIPrimer3.hpp"
-#include <QOpenGLFunctions_4_3_Core>
 
+
+class MSVColors;
+class ADNNanorobot;
 
 /// This class implements a visual model
 
-class SEAdenitaVisualModel : public SBMVisualModel {
+class SB_EXPORT SEAdenitaVisualModel : public SBMVisualModel {
 
 	SB_CLASS
 
 public :
-
-	enum class Scale {
-		ATOMS_STICKS = 0,
-		ATOMS_BALLS = 1,
-		NUCLEOTIDES = 2,
-		SINGLE_STRANDS = 3,
-		DOUBLE_STRANDS = 4,
-		OBJECTS = 5
-	};
 
 	/// \name Constructors and destructors
 	//@{
@@ -63,6 +49,15 @@ public :
 
 	/// \name Rendering options
 	//@{
+
+	enum class Scale {
+		ATOMS_STICKS = 0,
+		ATOMS_BALLS = 1,
+		NUCLEOTIDES = 2,
+		SINGLE_STRANDS = 3,
+		DOUBLE_STRANDS = 4,
+		OBJECTS = 5
+	};
 
 	float       												getScale() const;
 	void												        setScale(float scale);
@@ -150,7 +145,20 @@ public :
 	bool														getShowBasePairingFlag() const;
 	void														setShowBasePairingFlag(bool show);
 
+	//@}
+
+	/// \name Update
+	//@{
+
+	void														requestUpdate();
 	void														update();
+
+	static void													requestVisualModelUpdate();												///< Requests an update of the Adenita visual model in the active document on the next display call
+
+	//@}
+
+	/// \name Display
+	//@{
 
 	virtual void												display();																///< Displays the visual model
 	virtual void												displayForShadow();														///< Displays the visual model for shadow purposes
@@ -167,7 +175,7 @@ public :
 
 	virtual void												onBaseEvent(SBBaseEvent* baseEvent);									///< Handles base events
 	virtual void												onDocumentEvent(SBDocumentEvent* documentEvent);						///< Handles document events
-	virtual void												onStructuralEvent(SBStructuralEvent* documentEvent);					///< Handles structural events
+	virtual void												onStructuralEvent(SBStructuralEvent* structuralEvent);					///< Handles structural events
 
 	//@}
 
@@ -182,7 +190,6 @@ private:
 	ADNArray<unsigned int>										getNucleotideIndices();
 	ADNArray<unsigned int>										getBaseSegmentIndices();
 	void														changeHighlightFlag(); //scale 9: display polyhedron 
-	SEAdenitaCoreSEApp*											getAdenitaApp() const;													///< Returns a pointer to the app
 	void														orderVisibility();
 	void														setupPropertyColors();
 	ADNArray<float>												calcPropertyColor(int colorSchemeIdx, float min, float max, float val);
@@ -209,10 +216,11 @@ private:
 	void														prepare1Dto2D(double iv);
 	void														prepare2Dto3D(double iv);
 	void														prepare3D(double iv);
-	void														emphasizeColors(ADNArray<float> & colors, vector<unsigned int> & indices, float r, float g, float b, float a);
-	void														replaceColors(ADNArray<float> & colors, vector<unsigned int> & indices, float * color);
+	void														emphasizeColors(ADNArray<float> & colors, std::vector<unsigned int> & indices, float r, float g, float b, float a);
+	void														replaceColors(ADNArray<float> & colors, std::vector<unsigned int> & indices, float * color);
 
 	// general display properties 
+
 	ADNArray<float>												nucleotideEColor_;
   
 	float														scale_ = 3.0f;
@@ -220,13 +228,15 @@ private:
 
 	double														visibility_ = 0.99;
 
-	ADNNanorobot*												nanorobot_;
+	ADNNanorobot*												nanorobot_{ nullptr };
+
+	bool														isUpdateRequested = true;
 
 	/// \name Transitional scale
 	//@{
 
-	unsigned int												nPositions_;
-	unsigned int												nCylinders_;
+	unsigned int												nPositions_ = 0;
+	unsigned int												nCylinders_ = 0;
 	ADNArray<float>												colorsV_;
 	ADNArray<float>												colorsE_;
 	ADNArray<float>												positions_;
@@ -241,8 +251,8 @@ private:
 	/// \name Atom scale
 	//@{
 
-	unsigned int												nPositionsAtom_;
-	unsigned int												nCylindersAtom_;
+	unsigned int												nPositionsAtom_ = 0;
+	unsigned int												nCylindersAtom_ = 0;
 	ADNArray<float>												colorsVAtom_;
 	ADNArray<float>												colorsEAtom_;
 	ADNArray<float>												positionsAtom_;
@@ -257,8 +267,8 @@ private:
 	/// \name Nucleotide scale
 	//@{
 
-	unsigned int												nPositionsNt_;
-	unsigned int												nCylindersNt_;
+	unsigned int												nPositionsNt_ = 0;
+	unsigned int												nCylindersNt_ = 0;
 	ADNArray<float>												colorsVNt_;
 	ADNArray<float>												colorsENt_;
 	ADNArray<float>												positionsNt_;
@@ -283,8 +293,8 @@ private:
 	/// \name Double strand scale
 	//@{
 
-	unsigned int												nPositionsDS_;
-	unsigned int												nCylindersDS_;
+	unsigned int												nPositionsDS_ = 0;
+	unsigned int												nCylindersDS_ = 0;
 	ADNArray<float>												colorsVDS_;
 	ADNArray<float>												positionsDS_;
 	ADNArray<float>												radiiVDS_;
@@ -300,18 +310,18 @@ private:
 	std::map<ADNAtom*, unsigned int>							atomMap_;
 	std::map<ADNNucleotide*, unsigned int>						ntMap_;
 	std::map<ADNBaseSegment*, unsigned int>						bsMap_;
-	map<unsigned int, unsigned>									atomNtIndexMap_;
-	map<unsigned int, unsigned>									ntBsIndexMap_;
+	std::map<unsigned int, unsigned>							atomNtIndexMap_;
+	std::map<unsigned int, unsigned>							ntBsIndexMap_;
 
-	map<ADNNucleotide*, float>									sortedNucleotidesByDist_;
-	map<ADNSingleStrand*, float>								sortedSingleStrandsByDist_;
+	std::map<ADNNucleotide*, float>								sortedNucleotidesByDist_;
+	std::map<ADNSingleStrand*, float>							sortedSingleStrandsByDist_;
  
 	// current arrays for being displayed (only spheres and cylinders)
 
 	/// \name Property colors
 	//@{
 
-	vector<ADNArray<float>>										propertyColorSchemes_;
+	std::vector<ADNArray<float>>								propertyColorSchemes_;
   
 	enum class ColorType {
 		REGULAR = 0,	///< default color map
@@ -345,6 +355,7 @@ private:
 
 	void														setHighlight(const HighlightType highlightType);
 	HighlightType												highlightType_ = HighlightType::NONE;
+	void														updateEnabledFlagForHighlightAttributes();
 
 	bool														showBasePairing_ = false;
 	unsigned int												highlightMinLen_ = 0;

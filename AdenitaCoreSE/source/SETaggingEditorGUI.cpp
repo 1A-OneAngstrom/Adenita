@@ -1,7 +1,6 @@
 #include "SETaggingEditorGUI.hpp"
 #include "SETaggingEditor.hpp"
-#include "SAMSON.hpp"
-#include "SBGWindow.hpp"
+
 
 SETaggingEditorGUI::SETaggingEditorGUI(SETaggingEditor* editor) {
 
@@ -18,17 +17,33 @@ SETaggingEditor* SETaggingEditorGUI::getEditor() const { return editor; }
 
 void SETaggingEditorGUI::loadSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if (settings == nullptr) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
+
+	const bool isTags = settings->loadBoolValue("isTags", true);
+	if (isTags) {
+
+		ui.radioButtonTags->setChecked(true);
+		getEditor()->setTaggingMode(SETaggingEditor::TaggingMode::Tags);
+
+	}
+	else {
+
+		ui.radioButtonBase->setChecked(true);
+		getEditor()->setTaggingMode(SETaggingEditor::TaggingMode::Base);
+
+	}
 
 }
 
 void SETaggingEditorGUI::saveSettings( SBGSettings *settings ) {
 
-	if ( settings == NULL ) return;
+	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
+
+	settings->saveValue("isTags", ui.radioButtonTags->isChecked());
 
 }
 
@@ -48,7 +63,7 @@ QString SETaggingEditorGUI::getName() const {
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your editor inside SAMSON
 
-	return "Tagging Editor"; 
+	return "Tag Nucleotides"; 
 
 }
 
@@ -69,13 +84,15 @@ QString SETaggingEditorGUI::getCitation() const {
 
 	// SAMSON Element generator pro tip: modify this function to add citation information
 
-  return ADNAuxiliary::AdenitaCitation();
+	return ADNAuxiliary::AdenitaCitation();
+
 }
 
-void SETaggingEditorGUI::onModeChanged(bool tags) {
-  int m = 0;
-  if (!tags) m = 1;
+void SETaggingEditorGUI::onModeChanged() {
 
-  SETaggingEditor* t = getEditor();
-  t->changeMode(m);
+	if (ui.radioButtonTags->isChecked())
+		getEditor()->setTaggingMode(SETaggingEditor::TaggingMode::Tags);
+	else
+		getEditor()->setTaggingMode(SETaggingEditor::TaggingMode::Base);
+
 }
