@@ -4,10 +4,15 @@
 
 #include <vector>
 #include <map>
-#include <boost/algorithm/string.hpp>
+
 #include "SBIFileReader.hpp"
+
 #include "ADNVectorMath.hpp"
 #include "ADNAuxiliary.hpp"
+
+#undef foreach
+#include <boost/foreach.hpp>
+#include <boost/algorithm/string.hpp>
 
 
 /* Half-edge implementation */

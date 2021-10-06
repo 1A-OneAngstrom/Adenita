@@ -6,14 +6,16 @@
 #include <QTextStream>
 #include <QFile>
 
+#include <SAMSON.hpp>
+
+#include <ADNConfig.hpp>
+
+#undef foreach
+#include <boost/foreach.hpp>
 #include <boost/numeric/conversion/cast.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
-
-#include <SAMSON.hpp>
-
-#include <ADNConfig.hpp>
 
 
 namespace ublas = boost::numeric::ublas;

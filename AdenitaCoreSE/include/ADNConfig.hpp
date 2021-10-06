@@ -1,8 +1,6 @@
 #pragma once
 
 #include <SAMSON.hpp>
-#include <QFileInfo>
-#include <QFileSystemWatcher>
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/reader.h"
 #include "rapidjson/document.h"
@@ -11,6 +9,9 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+
+#include <QFileInfo>
+#include <QFileSystemWatcher>
 
 
 //using namespace rapidjson;

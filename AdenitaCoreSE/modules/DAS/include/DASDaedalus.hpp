@@ -14,17 +14,20 @@
 #include <cmath>
 #include <map>
 #include <algorithm>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/prim_minimum_spanning_tree.hpp>
-#include <boost/graph/copy.hpp>
-#include <boost/graph/connected_components.hpp>
-#include <boost/graph/graphviz.hpp>
+
 #include "DASPolyhedron.hpp"
 #include "DASCreator.hpp"
 #include "ADNNanorobot.hpp"
 #include "ADNVectorMath.hpp"
 #include "ADNConstants.hpp"
 
+#undef foreach
+#include <boost/foreach.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/prim_minimum_spanning_tree.hpp>
+#include <boost/graph/copy.hpp>
+#include <boost/graph/connected_components.hpp>
+#include <boost/graph/graphviz.hpp>
 
 const double BP_RISE = ADNConstants::BP_RISE * 10;  // angstroms
 const double SS_PADDING = 10;  //angstroms

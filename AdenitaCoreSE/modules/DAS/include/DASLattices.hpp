@@ -1,10 +1,12 @@
 #pragma once
 
-#include <boost/numeric/ublas/matrix.hpp>
 #include "ADNConstants.hpp"
 #include "ADNVectorMath.hpp"
 #include "ADNLogger.hpp"
 
+#undef foreach
+#include <boost/foreach.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
 
 using LatticeType = ADNConstants::LatticeType;
 

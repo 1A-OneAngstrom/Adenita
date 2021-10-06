@@ -4,12 +4,14 @@
 #include <memory>
 #include <map>
 
-#include <boost/numeric/ublas/vector.hpp>
-
 #include "SAMSON.hpp"
 #include "SBResidue.hpp"
 #include "SBCReferencePointer.hpp"
 #include "SBCReferencePointerIndexer.hpp"
+
+#undef foreach
+#include <boost/foreach.hpp>
+#include <boost/numeric/ublas/vector.hpp>
 
 
 namespace ublas = boost::numeric::ublas;

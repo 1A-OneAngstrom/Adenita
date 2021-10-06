@@ -1,13 +1,18 @@
 #pragma once
 
 #include <vector>
+
+#include <cmath>
+
+#include "SBVector3.hpp"
+#include "ADNConstants.hpp"
+
+#undef foreach
+#include <boost/foreach.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/lu.hpp>
-#include <cmath>
-#include "SAMSON.hpp"
-#include "ADNConstants.hpp"
 
 
 namespace ublas = boost::numeric::ublas;

@@ -6,14 +6,19 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/pointer.h"
 #include "rapidjson/filereadstream.h"
+
 #include <iostream>
-#include <boost/numeric/ublas/matrix.hpp>
 #include <string>
+
 #include "ADNNanorobot.hpp"
 #include "ADNAuxiliary.hpp"
 #include "ADNConstants.hpp"
 #include "ADNConformations.hpp"
 #include "DASLattices.hpp"
+
+#undef foreach
+#include <boost/foreach.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
 
 
 //using namespace std;

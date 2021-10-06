@@ -1,4 +1,5 @@
 #pragma once
+
 #ifndef BACKTOTHEATOM_H
 #define BACKTOTHEATOM_H
 
@@ -8,18 +9,22 @@
 #include <map>
 #include <stdlib.h>
 #include <fstream>
-#include <boost/algorithm/string.hpp>
+
 #include "SBProxy.hpp"
 #include "SBDDataGraphNode.hpp"
 #include "SBStructuralModel.hpp"
 #include "SAMSON.hpp"
 #include "SBChain.hpp"
 #include "SBMolecule.hpp"
+
 #include "ADNNanorobot.hpp"
 #include "ADNVectorMath.hpp"
 #include "ADNBasicOperations.hpp"
 #include "DASPolyhedron.hpp"
 
+#undef foreach
+#include <boost/foreach.hpp>
+#include <boost/algorithm/string.hpp>
 
 typedef std::map<int, std::vector<double>> BasePositions;
 typedef std::map<DASEdge*, BasePositions> SequencePositions;

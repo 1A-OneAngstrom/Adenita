@@ -6,10 +6,6 @@
 #include "SBGWindow.hpp"
 #include "SBGWindowDialog.hpp"
 
-#include <QInputDialog>
-#include <QFormLayout>
-#include <QToolButton>
-
 #include "SEWireframeEditor.hpp"
 #include "SEBreakEditor.hpp"
 #include "SEConnectSSDNAEditor.hpp"
@@ -26,6 +22,9 @@
 #include <QTimer>
 #include <QGroupBox>
 #include <QMessageBox>
+#include <QInputDialog>
+#include <QFormLayout>
+#include <QToolButton>
 
 #include "SEAdenitaCoreSEAppGUIFlowLayout.hpp"
 

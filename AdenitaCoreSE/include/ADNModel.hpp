@@ -2,13 +2,10 @@
 
 #define _USE_MATH_DEFINES
 
-#include <boost/bimap.hpp>
-#include <boost/assign/list_of.hpp>
-
-#include "ADNAuxiliary.hpp"
 #include "ADNVectorMath.hpp"
-#include "ADNLogger.hpp"
 #include "ADNMixins.hpp"
+#include "ADNAuxiliary.hpp"
+#include "ADNLogger.hpp"
 
 #include "ADNAtom.hpp"
 #include "ADNBackbone.hpp"
@@ -19,6 +16,11 @@
 #include "ADNNucleotide.hpp"
 #include "ADNSidechain.hpp"
 #include "ADNSingleStrand.hpp"
+
+#undef foreach
+#include <boost/foreach.hpp>
+#include <boost/bimap.hpp>
+#include <boost/assign/list_of.hpp>
 
 #include <cmath>
 

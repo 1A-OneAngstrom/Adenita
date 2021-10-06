@@ -1,6 +1,7 @@
-#include <QInputDialog>
 #include "SEDSDNACreatorEditorGUI.hpp"
 #include "SEDSDNACreatorEditor.hpp"
+
+#include <QInputDialog>
 
 
 SEDSDNACreatorEditorGUI::SEDSDNACreatorEditorGUI(SEDSDNACreatorEditor* editor) {
