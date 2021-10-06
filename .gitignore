@@ -1,5 +1,7 @@
-/build*
+/build/
 
 ElementVersionHash.cmake
 
 .vscode/
+
+!AdenitaCoreSE/data/*
