@@ -440,6 +440,7 @@ void SEAdenitaVisualModel::initNucleotidesAndSingleStrands(bool createIndex /* =
 	radiiENt_ = ADNArray<float>(nPositions);
 	colorsVNt_ = ADNArray<float>(4, nPositions);
 	colorsENt_ = ADNArray<float>(4, nPositions);
+	capDataNt_ = ADNArray<unsigned int>(nPositions);
 	flagsNt_ = ADNArray<unsigned int>(nPositions);
 	nodeIndicesNt_ = ADNArray<unsigned int>(nPositions);
 
@@ -709,6 +710,14 @@ void SEAdenitaVisualModel::prepareDimensions() {
 
 void SEAdenitaVisualModel::displayTransition(bool forSelection) {
 
+	ADNArray<unsigned int> capData = ADNArray<unsigned int>(nodeIndices_.GetNumElements());
+	if (nCylinders_ > 0) {
+
+		for (int i = 0; i < capData.GetNumElements(); ++i)
+			capData(i) = 1;
+
+	}
+
 	if (forSelection) {
 		if (nCylinders_ > 0) {
 			SAMSON::displayCylindersSelection(
@@ -717,7 +726,7 @@ void SEAdenitaVisualModel::displayTransition(bool forSelection) {
 				indices_.GetArray(),
 				positions_.GetArray(),
 				radiiE_.GetArray(),
-				nullptr,
+				capData.GetArray(),
 				nodeIndices_.GetArray());
 		}
 
@@ -738,7 +747,7 @@ void SEAdenitaVisualModel::displayTransition(bool forSelection) {
 				indices_.GetArray(),
 				positions_.GetArray(),
 				radiiE_.GetArray(),
-				nullptr,
+				capData.GetArray(),
 				colorsE_.GetArray(),
 				flags_.GetArray());
 		}
@@ -1909,6 +1918,7 @@ void SEAdenitaVisualModel::prepareNucleotides() {
 				colorsENt_.SetRow(index, nucleotideEColor_);
 				nodeIndicesNt_(index) = nt->getNodeIndex();
 				flagsNt_(index) = nt->getInheritedFlags();
+				capDataNt_(index) = 1;
 
 				auto baseColor = curColors->GetColor(nt);
 				colorsVNt_.SetRow(index, baseColor);
@@ -2104,7 +2114,7 @@ void SEAdenitaVisualModel::displayNucleotides(bool forSelection) {
 				indicesNt_.GetArray(),
 				positionsNt_.GetArray(),
 				radiiENt_.GetArray(),
-				nullptr,
+				capDataNt_.GetArray(),
 				nodeIndicesNt_.GetArray());
 		}
 
@@ -2125,7 +2135,7 @@ void SEAdenitaVisualModel::displayNucleotides(bool forSelection) {
 				indicesNt_.GetArray(),
 				positionsNt_.GetArray(),
 				radiiENt_.GetArray(),
-				nullptr,
+				capDataNt_.GetArray(),
 				colorsENt_.GetArray(),
 				flagsNt_.GetArray());
 		}
@@ -2152,7 +2162,7 @@ void SEAdenitaVisualModel::displaySingleStrands(bool forSelection) {
 				indicesNt_.GetArray(),
 				positionsNt_.GetArray(),
 				radiiESS_.GetArray(),
-				nullptr,
+				capDataNt_.GetArray(),
 				nodeIndicesNt_.GetArray());
 		}
 
@@ -2173,7 +2183,7 @@ void SEAdenitaVisualModel::displaySingleStrands(bool forSelection) {
 				indicesNt_.GetArray(),
 				positionsNt_.GetArray(),
 				radiiESS_.GetArray(),
-				nullptr,
+				capDataNt_.GetArray(),
 				colorsESS_.GetArray(),
 				flagsNt_.GetArray());
 		}
@@ -2279,6 +2289,7 @@ void SEAdenitaVisualModel::displayBasePairConnections(bool onlySelected) {
 	ADNArray<unsigned int> indices = ADNArray<unsigned int>(nCylinders * 2);
 	ADNArray<float> radii = ADNArray<float>(nPositions);
 	ADNArray<float> colors = ADNArray<float>(4, nPositions);
+	ADNArray<unsigned int> caps = ADNArray<unsigned int>(nPositions);
 	ADNArray<unsigned int> flags = ADNArray<unsigned int>(nPositions);
 
 	unsigned int j = 0;
@@ -2300,6 +2311,7 @@ void SEAdenitaVisualModel::displayBasePairConnections(bool onlySelected) {
 		radii(index) = config.nucleotide_E_radius;
 		colors.SetRow(index, baseColors->GetColor(nt));
 		flags(index) = 0;
+		caps(index) = 1;
 
 		if (std::find(registerIndices.begin(), registerIndices.end(), ntMap[nucleotidePair()]) == registerIndices.end()) {
 
@@ -2326,7 +2338,7 @@ void SEAdenitaVisualModel::displayBasePairConnections(bool onlySelected) {
 		indices.GetArray(),
 		positions.GetArray(),
 		radii.GetArray(),
-		nullptr,
+		caps.GetArray(),
 		colors.GetArray(),
 		flags.GetArray()
 		);

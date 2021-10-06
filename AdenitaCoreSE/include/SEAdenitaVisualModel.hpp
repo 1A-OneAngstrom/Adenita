@@ -274,6 +274,7 @@ private:
 	ADNArray<float>												positionsNt_;
 	ADNArray<float>												radiiVNt_;
 	ADNArray<float>												radiiENt_;
+	ADNArray<unsigned int>										capDataNt_;
 	ADNArray<unsigned int>										flagsNt_;
 	ADNArray<unsigned int>										nodeIndicesNt_;
 	ADNArray<unsigned int>										indicesNt_;
