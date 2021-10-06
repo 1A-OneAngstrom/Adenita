@@ -34,96 +34,101 @@ namespace ublas = boost::numeric::ublas;
 
 //JSON Parsing
 struct vec2 {
-  int n0;
-  int n1;
+	int n0;
+	int n1;
 };
 
 struct vec4 {
-  int n0;
-  int n1;
-  int n2;
-  int n3;
+	int n0;
+	int n1;
+	int n2;
+	int n3;
 };
 
 using Vec4List = std::map<int, vec4>;
 
 struct Vstrand {
-  int totalLength_;  // total length, including positions without nothing
-  int num_;  // identification
-  Vec4List scaf_;  // key is position that scaffold base occupies in the vhelix
-  Vec4List stap_;
-  int col_;  // row and column
-  int row_;
-  std::map<int, int> loops_;
-  std::map<int, int> skips_;
+	int totalLength_;  // total length, including positions without nothing
+	int num_;  // identification
+	Vec4List scaf_;  // key is position that scaffold base occupies in the vhelix
+	Vec4List stap_;
+	int col_;  // row and column
+	int row_;
+	std::map<int, int> loops_;
+	std::map<int, int> skips_;
 };
 
 struct CadnanoJSONFile {
-  std::string name_;
-  std::map<int, Vstrand> vstrands_;  // key is vStrand num
-  LatticeType lType_;
-  std::vector<std::pair<int, int>> scaffoldStartPositions_;  // first is vhelix num, second is position  within it
-  std::vector<vec2> stapleStarts_;  // list of staple starts
+	std::string name_;
+	std::map<int, Vstrand> vstrands_;  // key is vStrand num
+	LatticeType lType_;
+	std::vector<std::pair<int, int>> scaffoldStartPositions_;  // first is vhelix num, second is position  within it
+	std::vector<vec2> stapleStarts_;  // list of staple starts
 };
 
 struct VTube {
-  int vStrandId_;
-  int initPos_;
-  int endPos_;
+	int vStrandId_;
+	int initPos_;
+	int endPos_;
 };
 
 struct VGrid {
-  std::vector<VTube> vDoubleStrands_; // = vstrands
-  DASLattice lattice_;
 
-  void CreateLattice(LatticeType lType);
+	std::vector<VTube> vDoubleStrands_; // = vstrands
+	DASLattice lattice_;
 
-  void AddTube(VTube tube);
+	void CreateLattice(LatticeType lType);
 
-  SBPosition3 GetGridCellPos3D(int z, unsigned int row, unsigned int column);
-  SBPosition3 GetGridCellPos2D(int vStrandId, int z, bool isScaffold);
-  SBPosition3 GetGridCellPos1D(int vStrandId, int ntId);
+	void AddTube(VTube tube);
+
+	SBPosition3 GetGridCellPos3D(int z, unsigned int row, unsigned int column);
+	SBPosition3 GetGridCellPos2D(int vStrandId, int z, bool isScaffold);
+	SBPosition3 GetGridCellPos1D(int vStrandId, int ntId);
+
 };
 
 class DASCadnano {
 
 private:
-  CadnanoJSONFile json_;
-  VGrid vGrid_;
-  std::map<Vstrand*, std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>>> cellBsMap_;
-  //! To speed up calculation of 1D conformation we keep track to relative position of nt whithin the single strand
-  std::map<ADNNucleotide*, int> ntPositions_;
-  std::map<ADNSingleStrand*, int> ssId_;
-  int lastKey = -1;
 
-  ADNPointer<ADNConformation> conformation3D_;
-  ADNPointer<ADNConformation> conformation2D_;
-  ADNPointer<ADNConformation> conformation1D_;
+	CadnanoJSONFile json_;
+	VGrid vGrid_;
+	std::map<Vstrand*, std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>>> cellBsMap_;
+	//! To speed up calculation of 1D conformation we keep track to relative position of nt whithin the single strand
+	std::map<ADNNucleotide*, int> ntPositions_;
+	std::map<ADNSingleStrand*, int> ssId_;
+	int lastKey = -1;
 
-  void ParseJSON(std::string filename);
-  void ParseCadnanoFormat3(rapidjson::Document& d);
-  void ParseCadnanoLegacy(rapidjson::Document& d);
+	ADNPointer<ADNConformation> conformation3D_;
+	ADNPointer<ADNConformation> conformation2D_;
+	ADNPointer<ADNConformation> conformation1D_;
 
-  ADNPointer<ADNPart> CreateCadnanoModel();
-  void CreateEdgeMap(ADNPointer<ADNPart> part);
-  void CreateScaffold(ADNPointer<ADNPart> part);
-  void CreateStaples(ADNPointer<ADNPart> part);
-  void TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNPart> part, bool scaf = true);
+	void ParseJSON(std::string filename);
+	void ParseCadnanoFormat3(rapidjson::Document& d);
+	void ParseCadnanoLegacy(rapidjson::Document& d);
 
-  static DNABlocks GetComplementaryBase(DNABlocks type);
-  bool IsThereBase(vec4 data);
-  void AddSingleStrandToMap(ADNPointer<ADNSingleStrand> ss);
+	ADNPointer<ADNPart> CreateCadnanoModel();
+	void CreateEdgeMap(ADNPointer<ADNPart> part);
+	void CreateScaffold(ADNPointer<ADNPart> part);
+	void CreateStaples(ADNPointer<ADNPart> part);
+	void TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNPart> part, bool scaf = true);
+
+	static DNABlocks GetComplementaryBase(DNABlocks type);
+	bool IsThereBase(vec4 data);
+	void AddSingleStrandToMap(ADNPointer<ADNSingleStrand> ss);
 
 public:
-  DASCadnano() = default;
-  ~DASCadnano() = default;
 
-  SBPointer<SBMStructuralModelConformation> Get3DConformation();
-  SBPointer<SBMStructuralModelConformation> Get2DConformation();
-  SBPointer<SBMStructuralModelConformation> Get1DConformation();
+	DASCadnano() = default;
+	~DASCadnano() = default;
 
-  ADNPointer<ADNPart> CreateCadnanoPart(std::string file);
+	ADNPointer<ADNConformation> Get3DConformation();
+	ADNPointer<ADNConformation> Get2DConformation();
+	ADNPointer<ADNConformation> Get1DConformation();
 
-  //! once 3D model has been created, set 2D and 1D positions
-  void CreateConformations(ADNPointer<ADNPart> part);
+	ADNPointer<ADNPart> CreateCadnanoPart(std::string file);
+
+	//! once 3D model has been created, set 2D and 1D positions
+	void CreateConformations(ADNPointer<ADNPart> part);
+
 };

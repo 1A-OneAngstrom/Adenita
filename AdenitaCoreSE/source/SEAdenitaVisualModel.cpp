@@ -678,8 +678,32 @@ void SEAdenitaVisualModel::prepareDimensions() {
 	if (conformations.size() <= 1) return;
 
 	// TODO: fix getting and determining 1D, 2D, 3D conformations
-	auto conf2D = conformations[1];
-	auto conf1D = conformations[2];
+#if 1
+	CollectionMap<ADNConformation> conformations1D;
+	CollectionMap<ADNConformation> conformations2D;
+
+	for (auto conf : conformations) {
+
+		const QString confName = QString::fromStdString(conf->getName());
+		if (confName.contains(" 1D")) conformations1D.addReferenceTarget(conf);
+		else if (confName.contains(" 2D")) conformations2D.addReferenceTarget(conf);
+
+	}
+#else
+	ADNConformation* conf2D = nullptr;
+	ADNConformation* conf1D = nullptr;
+	const QString conf1Name = QString::fromStdString(conformations[1]->getName());
+	const QString conf2Name = QString::fromStdString(conformations[2]->getName());
+	if (conf1Name.contains("1D")) conf1D = conformations[1];
+	else if (conf1Name.contains("2D")) conf2D = conformations[1];
+	
+	if (conformations.size() > 2) {
+		
+		if (conf2Name.contains("1D")) conf1D = conformations[2];
+		else if (conf2Name.contains("2D")) conf2D = conformations[2];
+
+	}
+#endif
 
 	for (auto it = ntMap_.begin(); it != ntMap_.end(); it++) {
 
@@ -690,19 +714,61 @@ void SEAdenitaVisualModel::prepareDimensions() {
 		if (index >= positionsNt2D_.GetNumElements()) continue;
 		if (index >= positionsNt1D_.GetNumElements()) continue;
 
-		SBPosition3 pos2D;
-		conf2D->getPosition(nt->GetBackboneCenterAtom()(), pos2D);
+#if 1
+		SBPosition3 pos2D, pos1D;
 
-		positionsNt2D_(index, 0) = pos2D[0].getValue();
-		positionsNt2D_(index, 1) = pos2D[1].getValue();
-		positionsNt2D_(index, 2) = pos2D[2].getValue();
+		for (auto conf : conformations2D) {
 
-		SBPosition3 pos1D;
-		conf1D->getPosition(nt->GetBackboneCenterAtom()(), pos1D);
+			if (conf->getPosition(nt->GetBackboneCenterAtom()(), pos2D)) {
 
-		positionsNt1D_(index, 0) = pos1D[0].getValue();
-		positionsNt1D_(index, 1) = pos1D[1].getValue();
-		positionsNt1D_(index, 2) = pos1D[2].getValue();
+				positionsNt2D_(index, 0) = pos2D[0].getValue();
+				positionsNt2D_(index, 1) = pos2D[1].getValue();
+				positionsNt2D_(index, 2) = pos2D[2].getValue();
+				break;
+
+			}
+
+		}
+
+		for (auto conf : conformations1D) {
+
+			if (conf->getPosition(nt->GetBackboneCenterAtom()(), pos1D)) {
+
+				positionsNt1D_(index, 0) = pos1D[0].getValue();
+				positionsNt1D_(index, 1) = pos1D[1].getValue();
+				positionsNt1D_(index, 2) = pos1D[2].getValue();
+				break;
+
+			}
+
+		}
+#else
+		if (conf2D) {
+
+			SBPosition3 pos2D;
+			if (conf2D->getPosition(nt->GetBackboneCenterAtom()(), pos2D)) {
+
+				positionsNt2D_(index, 0) = pos2D[0].getValue();
+				positionsNt2D_(index, 1) = pos2D[1].getValue();
+				positionsNt2D_(index, 2) = pos2D[2].getValue();
+
+			}
+
+		}
+
+		if (conf1D) {
+
+			SBPosition3 pos1D;
+			if (conf1D->getPosition(nt->GetBackboneCenterAtom()(), pos1D)) {
+
+				positionsNt1D_(index, 0) = pos1D[0].getValue();
+				positionsNt1D_(index, 1) = pos1D[1].getValue();
+				positionsNt1D_(index, 2) = pos1D[2].getValue();
+
+			}
+
+		}
+#endif
 
 	}
 
@@ -1914,6 +1980,14 @@ void SEAdenitaVisualModel::prepareNucleotides() {
 				positionsNt_(index, 0) = nucleotideBackbonePosition[0].getValue();
 				positionsNt_(index, 1) = nucleotideBackbonePosition[1].getValue();
 				positionsNt_(index, 2) = nucleotideBackbonePosition[2].getValue();
+
+				// fill in position arrays for 1D and 2D
+				positionsNt2D_(index, 0) = nucleotideBackbonePosition[0].getValue();
+				positionsNt2D_(index, 1) = nucleotideBackbonePosition[1].getValue();
+				positionsNt2D_(index, 2) = nucleotideBackbonePosition[2].getValue();
+				positionsNt1D_(index, 0) = nucleotideBackbonePosition[0].getValue();
+				positionsNt1D_(index, 1) = nucleotideBackbonePosition[1].getValue();
+				positionsNt1D_(index, 2) = nucleotideBackbonePosition[2].getValue();
 
 				colorsENt_.SetRow(index, nucleotideEColor_);
 				nodeIndicesNt_(index) = nt->getNodeIndex();
