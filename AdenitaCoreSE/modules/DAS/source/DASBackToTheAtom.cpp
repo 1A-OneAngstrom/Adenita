@@ -1,5 +1,6 @@
 #include "DASBackToTheAtom.hpp"
 
+#include <QFileInfo>
 
 DASBackToTheAtom::DASBackToTheAtom() {
   //LoadNucleotides();
@@ -1043,11 +1044,19 @@ void DASBackToTheAtom::SetNucleotidesPostions(ADNPointer<ADNPart> part) {
 //}
 
 void DASBackToTheAtom::LoadNucleotides() {
-  std::map<DNABlocks, char> residueNames = { { DNABlocks::DA, 'A' },{ DNABlocks::DT, 'T' },{ DNABlocks::DC, 'C' },{ DNABlocks::DG, 'G' } };;
+
+  std::map<DNABlocks, char> residueNames = { { DNABlocks::DA, 'A' },{ DNABlocks::DT, 'T' },{ DNABlocks::DC, 'C' },{ DNABlocks::DG, 'G' } };
   for (auto it = residueNames.begin(); it != residueNames.end(); ++it) {
     if (it->second == 'N') continue;
     std::string name(1, it->second);
-    std::string nt_source = SB_ELEMENT_PATH + "/Data/" + name + ".pdb";
+    const std::string nt_source = SB_ELEMENT_PATH + "/Data/" + name + ".pdb";
+    if (!QFileInfo::exists(QString::fromStdString(nt_source))) {
+
+        std::cerr << "ERROR: Adenita - could not find file: " << nt_source << std::endl;
+        return;
+
+    }
+
     ADNPointer<ADNNucleotide> nt = ParsePDB(nt_source);
     nt->setNucleotideType(it->first);
     auto atoms = nt->GetAtoms();
@@ -1083,10 +1092,19 @@ void DASBackToTheAtom::LoadNucleotides() {
 }
 
 void DASBackToTheAtom::LoadNtPairs() {
+
   for (auto it = nt_pairs_names_.begin(); it != nt_pairs_names_.end(); ++it) {
+
     std::string name = it->right;
     if (name == "NN") continue;
-    std::string nt_source = SB_ELEMENT_PATH + "/Data/" + name + ".pdb";
+    const std::string nt_source = SB_ELEMENT_PATH + "/Data/" + name + ".pdb";
+    if (!QFileInfo::exists(QString::fromStdString(nt_source))) {
+
+        std::cerr << "ERROR: Adenita - could not find file: " << nt_source << std::endl;
+        return;
+
+    }
+
     NtPair nt_pair = ParseBasePairPDB(nt_source);
     ADNPointer<ADNNucleotide> nt_left = nt_pair.first;
     ADNPointer<ADNNucleotide> nt_right = nt_pair.second;
