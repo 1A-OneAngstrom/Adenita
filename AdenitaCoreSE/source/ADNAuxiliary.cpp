@@ -303,17 +303,15 @@ QString ADNAuxiliary::AdenitaCitation() {
         "<br/>"
         "[1] E. de Llano et al. <strong>Adenita: Interactive 3D modeling and visualization of DNA nanostructures</strong>, <em>Nucleic Acids Research, Volume 48, Issue 15</em>, "
         "<a href=\"https://doi.org/10.1093/nar/gkaa593\">https://doi.org/10.1093/nar/gkaa593</a>, September 2020 <br />"
-        "[2] E. de Llano et al. <strong>Adenita: Interactive 3D modeling and visualization of DNA nanostructures</strong>, <em>Preprint at bioRxiv</em>, "
-        "<a href=\"https://doi.org/10.1101/849976\">https://doi.org/10.1101/849976</a>, November 2019 <br />"
         "<br/>You can also cite the visual model as: <br />"
-        "[3] H. Miao et al. <strong>Multiscale Visualization and Scale-adaptive Modification of DNA Nanostructures</strong>, "
+        "[2] H. Miao et al. <strong>Multiscale Visualization and Scale-adaptive Modification of DNA Nanostructures</strong>, "
         "<em>IEEE Transactions on Visualization and Computer Graphics</em>, 24(1), January 2018 <br/>"
-        "[4] H. Miao et al. <strong>DimSUM: Dimension and Scale Unifying Maps for Visual Abstraction of DNA Origami Structures</strong>, "
+        "[3] H. Miao et al. <strong>DimSUM: Dimension and Scale Unifying Maps for Visual Abstraction of DNA Origami Structures</strong>, "
         "<em>Computer Graphics Forum</em>, 37(3), June 2018 <br/>"
         "<br/>If you used the wireframe editor or loaded a .ply file, please do not forget to cite: <br />"
-        "[5] R. Veneziano et al. <strong>Designer nanoscale DNA assemblies programmed from the top down</strong>, "
+        "[4] R. Veneziano et al. <strong>Designer nanoscale DNA assemblies programmed from the top down</strong>, "
         "<em>Science</em>, <a href=\"https://doi.org/10.1126/science.aaf4388\">https://doi.org/10.1126/science.aaf4388</a>, June 2016 <br/>"
         "<br/>You can also cite SAMSON:<br/>"
-        "[6] SAMSON software: <a href=\"https://samson-connect.net\">https://samson-connect.net</a>";
+        "[5] SAMSON software: <a href=\"https://samson-connect.net\">https://samson-connect.net</a>";
 
 }
