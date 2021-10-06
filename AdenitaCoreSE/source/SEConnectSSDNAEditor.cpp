@@ -1,6 +1,8 @@
 #include "SEConnectSSDNAEditor.hpp"
 #include "SEAdenitaCoreSEApp.hpp"
 
+#include "MSVDisplayHelper.hpp"
+
 #include "SAMSON.hpp"
 
 
