@@ -2,7 +2,17 @@
 #include "SEAdenitaCoreSEApp.hpp"
 #include "SAMSON.hpp"
 #include "ADNLogger.hpp"
+#include "ADNAuxiliary.hpp"
+#include "ADNConfig.hpp"
+#include "ADNNanorobot.hpp"
+
 #include "PICrossovers.hpp"
+#include "PIPrimer3.hpp"
+
+#include "MSVColors.hpp"
+#include "MSVDisplayHelper.hpp"
+
+#include <QOpenGLFunctions_4_3_Core>
 
 #include <cmath>
 
@@ -11,6 +21,7 @@ SEAdenitaVisualModel::SEAdenitaVisualModel() {
 	// SAMSON Element generator pro tip: this default constructor is called when unserializing the node, so it should perform all default initializations.
 	
 	init();
+	setName("Adenita Visual Model");
 
 }
 
@@ -24,6 +35,7 @@ SEAdenitaVisualModel::SEAdenitaVisualModel(const SBNodeIndexer& nodeIndexer) {
 	SEAdenitaCoreSEApp::getAdenitaApp()->FromDatagraph();
 
 	init();
+	setName("Adenita Visual Model");
 
 }
 
@@ -336,6 +348,12 @@ void SEAdenitaVisualModel::requestUpdate() {
 
 }
 
+void SEAdenitaVisualModel::requestVisualModelUpdate() {
+
+	SEAdenitaCoreSEApp::requestVisualModelUpdate();
+
+}
+
 void SEAdenitaVisualModel::update() {
 
 	auto parts = nanorobot_->GetParts();
@@ -411,10 +429,9 @@ bool SEAdenitaVisualModel::getDefaultNotScaffold() const { return true; }
 
 void SEAdenitaVisualModel::initNucleotidesAndSingleStrands(bool createIndex /* = true */) {
 
-	auto singleStrands = nanorobot_->GetSingleStrands();
-
-	unsigned int nPositions = nanorobot_->GetNumberOfNucleotides();
-	unsigned int nCylinders = boost::numeric_cast<unsigned int>(nPositions - singleStrands.size());
+	const int nSingleStrands = nanorobot_->GetNumberOfSingleStrands();
+	const unsigned int nPositions = nanorobot_->GetNumberOfNucleotides();
+	const unsigned int nCylinders = boost::numeric_cast<unsigned int>(nPositions - nSingleStrands);
 
 	nPositionsNt_ = nPositions;
 	nCylindersNt_ = nCylinders;
@@ -668,6 +685,10 @@ void SEAdenitaVisualModel::prepareDimensions() {
 		auto nt = it->first;
 		auto index = it->second;
 
+		if (nt == nullptr) continue;
+		if (index >= positionsNt2D_.GetNumElements()) continue;
+		if (index >= positionsNt1D_.GetNumElements()) continue;
+
 		SBPosition3 pos2D;
 		conf2D->getPosition(nt->GetBackboneCenterAtom()(), pos2D);
 
@@ -770,6 +791,14 @@ void SEAdenitaVisualModel::prepareBallsToNucleotides(double iv) {
 		auto indexAtom = it->second;
 		auto indexNt = atomNtIndexMap_[indexAtom];
 
+		if (indexAtom >= nPositions_) continue;
+		if (indexAtom >= positionsAtom_.GetNumElements()) continue;
+		if (indexAtom >= colorsVAtom_.GetNumElements()) continue;
+		if (indexAtom >= radiiVAtom_.GetNumElements()) continue;
+		if (indexNt >= positionsNt_.GetNumElements()) continue;
+		if (indexNt >= colorsVNt_.GetNumElements()) continue;
+		if (indexNt >= radiiVNt_.GetNumElements()) continue;
+
 		positions_(indexAtom, 0) = positionsAtom_(indexAtom, 0) + iv * (positionsNt_(indexNt, 0) - positionsAtom_(indexAtom, 0));
 		positions_(indexAtom, 1) = positionsAtom_(indexAtom, 1) + iv * (positionsNt_(indexNt, 1) - positionsAtom_(indexAtom, 1));
 		positions_(indexAtom, 2) = positionsAtom_(indexAtom, 2) + iv * (positionsNt_(indexNt, 2) - positionsAtom_(indexAtom, 2));
@@ -808,6 +837,12 @@ void SEAdenitaVisualModel::prepareNucleotidesToSingleStrands(double iv) {
 	for (auto it = ntMap_.begin(); it != ntMap_.end(); it++) {
 
 		auto index = it->second;
+
+		if (index >= nPositions_) continue;
+		if (index >= radiiENt_.GetNumElements()) continue;
+		if (index >= radiiESS_.GetNumElements()) continue;
+		if (index >= colorsVNt_.GetNumElements()) continue;
+		if (index >= colorsVSS_.GetNumElements()) continue;
 
 		radiiE_(index) = radiiENt_(index) + iv * (radiiESS_(index) - radiiENt_(index));
 		colorsV_(index, 0) = colorsVNt_(index, 0) + iv * (colorsVSS_(index, 0) - colorsVNt_(index, 0));
@@ -851,6 +886,15 @@ void SEAdenitaVisualModel::prepareSingleStrandsToDoubleStrands(double iv) {
 		auto indexSS = it->second;
 		auto indexDS = ntBsIndexMap_[indexSS];
 
+		if (nt == nullptr) continue;
+		if (indexSS >= nPositions_) continue;
+		if (indexSS >= radiiVSS_.GetNumElements()) continue;
+		if (indexDS >= radiiVDS_.GetNumElements()) continue;
+		if (indexSS >= positionsNt_.GetNumElements()) continue;
+		if (indexDS >= positionsDS_.GetNumElements()) continue;
+		if (indexSS >= colorsVSS_.GetNumElements()) continue;
+		if (indexDS >= colorsVDS_.GetNumElements()) continue;
+
 		radiiV_(indexSS) = radiiVSS_(indexSS) + iv * (radiiVDS_(indexDS) - radiiVSS_(indexSS));
 		radiiE_(indexSS) = radiiESS_(indexSS) - iv * radiiESS_(indexSS);
 
@@ -887,6 +931,11 @@ void SEAdenitaVisualModel::prepare1Dto2D(double iv) {
 		auto nt = it->first;
 		auto index = it->second;
 
+		if (nt == nullptr) continue;
+		if (index >= positions_.GetNumElements()) continue;
+		if (index >= positionsNt1D_.GetNumElements()) continue;
+		if (index >= positionsNt2D_.GetNumElements()) continue;
+
 		positions_(index, 0) = positionsNt1D_(index, 0) + iv * (positionsNt2D_(index, 0) - positionsNt1D_(index, 0));
 		positions_(index, 1) = positionsNt1D_(index, 1) + iv * (positionsNt2D_(index, 1) - positionsNt1D_(index, 1));
 		positions_(index, 2) = positionsNt1D_(index, 2) + iv * (positionsNt2D_(index, 2) - positionsNt1D_(index, 2));
@@ -901,6 +950,11 @@ void SEAdenitaVisualModel::prepare2Dto3D(double iv) {
 
 		auto nt = it->first;
 		auto index = it->second;
+
+		if (nt == nullptr) continue;
+		if (index >= positions_.GetNumElements()) continue;
+		if (index >= positionsNt_.GetNumElements()) continue;
+		if (index >= positionsNt2D_.GetNumElements()) continue;
     
 		positions_(index, 0) = positionsNt2D_(index, 0) + iv * (positionsNt_(index, 0) - positionsNt2D_(index, 0));
 		positions_(index, 1) = positionsNt2D_(index, 1) + iv * (positionsNt_(index, 1) - positionsNt2D_(index, 1));
@@ -922,6 +976,8 @@ void SEAdenitaVisualModel::emphasizeColors(ADNArray<float> & colors, std::vector
 
 		auto index = indices[i];
 
+		if (index >= colors.GetNumElements()) continue;
+
 		colors(index, 0) *= r;
 		colors(index, 1) *= g;
 		colors(index, 2) *= b;
@@ -941,6 +997,8 @@ void SEAdenitaVisualModel::replaceColors(ADNArray<float> & colors, std::vector<u
 	for (int i = 0; i < indices.size(); i++) {
 
 		auto index = indices[i];
+
+		if (index >= colors.GetNumElements()) continue;
 
 		colors(index, 0) = color[0];
 		colors(index, 1) = color[1];
@@ -962,6 +1020,9 @@ void SEAdenitaVisualModel::changeHighlightFlag() {
 			auto a = it->first;
 			auto index = it->second;
 
+			if (a == nullptr) continue;
+			if (index >= flagsAtom_.GetNumElements()) continue;
+
 			flagsAtom_(index) = a->getInheritedFlags();
 
 		}
@@ -974,6 +1035,9 @@ void SEAdenitaVisualModel::changeHighlightFlag() {
 			auto nt = it->first;
 			auto index = it->second;
 
+			if (nt == nullptr) continue;
+			if (index >= flagsNt_.GetNumElements()) continue;
+
 			flagsNt_(index) = nt->getInheritedFlags();
 
 		}
@@ -985,6 +1049,9 @@ void SEAdenitaVisualModel::changeHighlightFlag() {
 
 			auto bs = it->first;
 			auto index = it->second;
+
+			if (bs == nullptr) continue;
+			if (index >= flagsDS_.GetNumElements()) continue;
 
 			flagsDS_(index) = bs->getInheritedFlags();
 
@@ -1979,9 +2046,10 @@ void SEAdenitaVisualModel::prepareDoubleStrands() {
 				if (baseSegment == nullptr) continue;
 
 				auto index = bsMap_[baseSegment];
-				auto cell = baseSegment->GetCell();
+				//auto cell = baseSegment->GetCell();
+				if (index >= positionsDS_.GetNumElements()) continue;
 
-				const SBPosition3 pos = baseSegment->GetPosition();
+				const Position3D pos = baseSegment->GetPosition();
 				positionsDS_(index, 0) = static_cast<float>(pos.v[0].getValue());
 				positionsDS_(index, 1) = static_cast<float>(pos.v[1].getValue());
 				positionsDS_(index, 2) = static_cast<float>(pos.v[2].getValue());

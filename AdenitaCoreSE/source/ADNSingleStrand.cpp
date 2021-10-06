@@ -130,17 +130,13 @@ CollectionMap<ADNNucleotide> ADNSingleStrand::GetNucleotides() const {
     SBNodeIndexer nodeIndexer;
     getNodes(nodeIndexer, SBNode::IsType(SBNode::Residue) && (SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
     SB_FOR(SBNode * n, nodeIndexer)
-        nucleotideList.addReferenceTarget(static_cast<ADNBaseSegment*>(n));
+        nucleotideList.addReferenceTarget(static_cast<ADNNucleotide*>(n));
 #else
     const SBPointerList<SBStructuralNode>* children = getChildren();
     SB_FOR(SBStructuralNode * n, *children) {
 
-        if (n->getProxy()->getName() == "ADNNucleotide" && n->getProxy()->getElementUUID() == SBUUID(SB_ELEMENT_UUID)) {
-
-            ADNPointer<ADNNucleotide> a = static_cast<ADNNucleotide*>(n);
-            nucleotideList.addReferenceTarget(a());
-
-        }
+        if (n->getProxy()->getName() == "ADNNucleotide" && n->getProxy()->getElementUUID() == SBUUID(SB_ELEMENT_UUID))
+            nucleotideList.addReferenceTarget(static_cast<ADNNucleotide*>(n));
 
     }
 #endif

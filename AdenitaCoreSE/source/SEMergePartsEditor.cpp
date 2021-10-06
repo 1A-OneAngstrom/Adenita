@@ -97,12 +97,12 @@ void SEMergePartsEditor::selectElement(int idx) {
 
 }
 
-void SEMergePartsEditor::MergeParts(int idx, int jdx) {
+bool SEMergePartsEditor::mergeParts(int idx, int jdx) {
 
 	if (idx == jdx) {
 
 		SAMSON::informUser("Adenita", "Cannot merge a component with itself.\nPlease select two different components.");
-		return;
+		return false;
 
 	}
 
@@ -117,15 +117,17 @@ void SEMergePartsEditor::MergeParts(int idx, int jdx) {
 	if (p1 != nullptr && p2 != nullptr) {
 		
 		app->MergeComponents(p1, p2);
-		if (p2 != nullptr) p2->erase();
+		if (p2 != nullptr) if (!p2->isErased()) p2->erase();
 
 	}
 
 	app->SetMod(false);
 
+	return true;
+
 }
 
-void SEMergePartsEditor::MoveElement(int edx, int pdx) {
+bool SEMergePartsEditor::moveElement(int edx, int pdx) {
 
 	auto app = SEAdenitaCoreSEApp::getAdenitaApp();
 	app->SetMod(true);
@@ -145,6 +147,8 @@ void SEMergePartsEditor::MoveElement(int edx, int pdx) {
 	}
 
 	app->SetMod(false);
+
+	return true;
 
 }
 

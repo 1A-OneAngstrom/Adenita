@@ -172,7 +172,7 @@ SB_CLASS_BEGIN(ADNNucleotide);
 
     SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNNucleotide, Name, "Name", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(DNABlocks, ADNNucleotide, NucleotideType, "Type", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, SingleStrand, "Single Strand", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, SingleStrand, "Single strand", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, BaseSegment, "Base segment", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, Next, "Next nucleotide", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, Prev, "Previous nucleotide", "Adenita");
@@ -207,8 +207,8 @@ SB_CLASS_BEGIN(ADNSingleStrand);
   SB_INTERFACE_BEGIN;
 
     SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNSingleStrand, Name, "Name", "Adenita");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNSingleStrand, IsScaffold, "Is Scaffold", "Adenita");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNSingleStrand, IsCircular, "Is Circular", "Adenita");
+    SB_ATTRIBUTE_READ_WRITE(bool, ADNSingleStrand, IsScaffold, "Is scaffold", "Adenita");
+    SB_ATTRIBUTE_READ_WRITE(bool, ADNSingleStrand, IsCircular, "Is circular", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(int, ADNSingleStrand, NumberOfNucleotides, "Nucleotides", "Adenita");
     SB_ATTRIBUTE_READ_WRITE(std::string, ADNSingleStrand, Sequence, "Sequence", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(double, ADNSingleStrand, GCContent, "GC %", "Adenita");
@@ -365,7 +365,7 @@ SB_CLASS_BEGIN(ADNBaseSegment);
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBaseSegment, DoubleStrand, "Double Strand", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBaseSegment, DoubleStrand, "Double strand", "Adenita");
     SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNBaseSegment, Name, "Name", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(int, ADNBaseSegment, Number, "Number", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(std::string, ADNBaseSegment, CellTypeString, "Contains", "Adenita");

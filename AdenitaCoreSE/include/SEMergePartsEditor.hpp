@@ -110,8 +110,9 @@ public :
 
 	std::map<int, ADNPointer<ADNPart>>							getPartsList();
 	std::map<int, Element>										getElementsList();
-	void														MergeParts(int idx, int jdx);
-	void														MoveElement(int edx, int pdx);
+
+	bool														mergeParts(int idx, int jdx);
+	bool														moveElement(int edx, int pdx);
 
 	void														selectComponent(int idx);
 	void														selectElement(int idx);

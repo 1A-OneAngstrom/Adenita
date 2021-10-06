@@ -5,18 +5,13 @@
 #include "SBDocumentEvent.hpp"
 #include "SBStructuralEvent.hpp"
 
-#include "ADNAuxiliary.hpp"
 #include "ADNArray.hpp"
 #include "ADNMixins.hpp"
 #include "ADNPart.hpp"
-#include "ADNNanorobot.hpp"
-#include "ADNConfig.hpp"
-#include "MSVColors.hpp"
-#include "MSVDisplayHelper.hpp"
-#include "PIPrimer3.hpp"
 
-#include <QOpenGLFunctions_4_3_Core>
 
+class MSVColors;
+class ADNNanorobot;
 
 /// This class implements a visual model
 
@@ -150,8 +145,20 @@ public :
 	bool														getShowBasePairingFlag() const;
 	void														setShowBasePairingFlag(bool show);
 
+	//@}
+
+	/// \name Update
+	//@{
+
 	void														requestUpdate();
 	void														update();
+
+	static void													requestVisualModelUpdate();												///< Requests an update of the Adenita visual model in the active document on the next display call
+
+	//@}
+
+	/// \name Display
+	//@{
 
 	virtual void												display();																///< Displays the visual model
 	virtual void												displayForShadow();														///< Displays the visual model for shadow purposes

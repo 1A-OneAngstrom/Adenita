@@ -113,19 +113,21 @@ void SEMergePartsEditorGUI::onComboBoxMoveToComponentCurrentIndexChanged(int ind
 
 void SEMergePartsEditorGUI::onMerge() {
 
-	int sel1 = ui.comboBoxMergeComponent1->currentIndex();
-	int sel2 = ui.comboBoxMergeComponent2->currentIndex();
+	const int sel1 = ui.comboBoxMergeComponent1->currentIndex();
+	const int sel2 = ui.comboBoxMergeComponent2->currentIndex();
 
-	getEditor()->MergeParts(sel1, sel2);
+	if (getEditor()->mergeParts(sel1, sel2))
+		updatePartsList();
 
 }
 
 void SEMergePartsEditorGUI::onMove() {
 
-	int sel1 = ui.comboBoxMoveElement->currentIndex();
-	int sel2 = ui.comboBoxMoveToComponent->currentIndex();
+	const int sel1 = ui.comboBoxMoveElement->currentIndex();
+	const int sel2 = ui.comboBoxMoveToComponent->currentIndex();
 
-	getEditor()->MoveElement(sel1, sel2);
+	if (getEditor()->moveElement(sel1, sel2))
+		updatePartsList();
 
 }
 

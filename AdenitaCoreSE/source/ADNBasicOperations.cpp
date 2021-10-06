@@ -16,6 +16,7 @@ ADNPointer<ADNSingleStrand> ADNBasicOperations::MergeSingleStrands(ADNPointer<AD
     auto fivePrimeF = first_strand->GetFivePrime();
     ADNPointer<ADNNucleotide> nt = fivePrimeF;
     while (nt != nullptr) {
+
         ADNPointer<ADNNucleotide> ntNext = nt->GetNext();
         // keep record of nt position in base segment
         auto info = GetBaseSegmentInfo(nt);
@@ -26,11 +27,13 @@ ADNPointer<ADNSingleStrand> ADNBasicOperations::MergeSingleStrands(ADNPointer<AD
         // nt was removed from base segment add it again
         SetBackNucleotideIntoBaseSegment(nt, info);
         nt = ntNext;
+
     }
 
     auto fivePrimeS = second_strand->GetFivePrime();
     nt = fivePrimeS;
     while (nt != nullptr) {
+
         ADNPointer<ADNNucleotide> ntNext = nt->GetNext();
         // keep record of nt position in base segment
         auto info = GetBaseSegmentInfo(nt);
@@ -42,29 +45,34 @@ ADNPointer<ADNSingleStrand> ADNBasicOperations::MergeSingleStrands(ADNPointer<AD
         SetBackNucleotideIntoBaseSegment(nt, info);
 
         nt = ntNext;
+
     }
 
-    if (first_strand->IsScaffold() || second_strand->IsScaffold()) {
+    if (first_strand->IsScaffold() || second_strand->IsScaffold())
         ss->IsScaffold(true);
-    }
 
     auto firstSize = first_strand->getNumberOfNucleotides();
     auto secondSize = second_strand->getNumberOfNucleotides();
     if (firstSize > 0 || secondSize > 0) {
+
         std::string msg = "Possible error when merging strands inside part";
         ADNLogger::LogDebug(msg);
+
     }
     else {
+
         // deregister single strands
         part1->DeregisterSingleStrand(first_strand);
         part2->DeregisterSingleStrand(second_strand);
+
     }
 
     return ss;
+
 }
 
-ADNPointer<ADNDoubleStrand> ADNBasicOperations::MergeDoubleStrand(ADNPointer<ADNPart> part, ADNPointer<ADNDoubleStrand> first_strand, ADNPointer<ADNDoubleStrand> second_strand)
-{
+ADNPointer<ADNDoubleStrand> ADNBasicOperations::MergeDoubleStrand(ADNPointer<ADNPart> part, ADNPointer<ADNDoubleStrand> first_strand, ADNPointer<ADNDoubleStrand> second_strand) {
+
     ADNPointer<ADNDoubleStrand> ds = ADNPointer<ADNDoubleStrand>(new ADNDoubleStrand());
     ds->setName("Merged Double Strand");
     if (SAMSON::isHolding()) SAMSON::hold(ds());
@@ -74,33 +82,40 @@ ADNPointer<ADNDoubleStrand> ADNBasicOperations::MergeDoubleStrand(ADNPointer<ADN
     auto firstF = first_strand->GetFirstBaseSegment();
     ADNPointer<ADNBaseSegment> bs = firstF;
     while (bs != nullptr) {
+
         ADNPointer<ADNBaseSegment> nextBs = bs->GetNext();
         part->DeregisterBaseSegment(bs, true, true);
         part->RegisterBaseSegmentEnd(ds, bs);
         bs = nextBs;
+
     }
 
     auto firstS = second_strand->GetFirstBaseSegment();
     bs = firstS;
     while (bs != nullptr) {
+
         ADNPointer<ADNBaseSegment> nextBs = bs->GetNext();
         part->DeregisterBaseSegment(bs, true, true);
         part->RegisterBaseSegmentEnd(ds, bs);
         bs = nextBs;
+
     }
 
     auto firstSize = first_strand->GetLength();
     auto secondSize = second_strand->GetLength();
     if (firstSize > 0 || secondSize > 0) {
+
         std::string msg = "Possible error when merging strands inside part";
         ADNLogger::LogDebug(msg);
+
     }
 
     return ds;
+
 }
 
-CollectionMap<ADNNucleotide> ADNBasicOperations::AddNucleotidesThreePrime(ADNPointer<ADNPart> part, ADNPointer<ADNSingleStrand> ss, int number, SBVector3 dir)
-{
+CollectionMap<ADNNucleotide> ADNBasicOperations::AddNucleotidesThreePrime(ADNPointer<ADNPart> part, ADNPointer<ADNSingleStrand> ss, int number, SBVector3 dir) {
+
     CollectionMap<ADNNucleotide> nts;
 
     for (int i = 0; i < number; ++i) {
@@ -115,6 +130,7 @@ CollectionMap<ADNNucleotide> ADNBasicOperations::AddNucleotidesThreePrime(ADNPoi
         SBPosition3 pos = nt->GetPosition() + SBQuantity::nanometer(ADNConstants::BP_RISE) * dir;
 
         if (nextBs == nullptr) {
+
             nextBs = new ADNBaseSegment(CellType::BasePair);
             if (SAMSON::isHolding()) SAMSON::hold(nextBs());
             nextBs->create();
@@ -126,6 +142,7 @@ CollectionMap<ADNNucleotide> ADNBasicOperations::AddNucleotidesThreePrime(ADNPoi
             }
             nextBs->SetPosition(pos);
             nextBs->SetE3(ADNAuxiliary::SBVectorToUblasVector(dir));
+
         }
         ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(nextBs->GetCell()());
 
@@ -145,58 +162,74 @@ CollectionMap<ADNNucleotide> ADNBasicOperations::AddNucleotidesThreePrime(ADNPoi
         part->RegisterNucleotideThreePrime(ss, newNt);
 
         nts.addReferenceTarget(newNt());
+
     }
 
     return nts;
+
 }
 
-ADNPointer<ADNPart> ADNBasicOperations::MergeParts(ADNPointer<ADNPart> part1, ADNPointer<ADNPart> part2)
-{
+ADNPointer<ADNPart> ADNBasicOperations::MergeParts(ADNPointer<ADNPart> part1, ADNPointer<ADNPart> part2) {
+
     ADNPointer<ADNPart> part = part1;
 
     auto doubleStrands = part2->GetDoubleStrands();
     SB_FOR(ADNPointer<ADNDoubleStrand> ds, doubleStrands) {
+
         part2->DeregisterDoubleStrand(ds);
         part->RegisterDoubleStrand(ds);
+
+        // the code below does smth only if ADNPart registers nodes
         auto bs = ds->GetFirstBaseSegment();
         while (bs != nullptr) {
+
             auto bsNext = bs->GetNext();
             part2->DeregisterBaseSegment(bs, false);
             part->RegisterBaseSegmentEnd(ds, bs, false);
             bs = bsNext;
+
         }
-        auto numBs = ds->GetBaseSegments().size();
-        int test = 1;
+        //auto numBs = ds->GetBaseSegments().size();
+        //int test = 1;
+
     }
 
     auto singleStrands = part2->GetSingleStrands();
     SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
+
         part2->DeregisterSingleStrand(ss);
         part->RegisterSingleStrand(ss);
+
         auto nt = ss->GetFivePrime();
         while (nt != nullptr) {
+
             auto ntNext = nt->GetNext();
-            auto info = GetBaseSegmentInfo(nt);
+            auto info = ADNBasicOperations::GetBaseSegmentInfo(nt);
 
             part2->DeregisterNucleotide(nt, false);
             // nt has de-registered from bp or loop pair
             part->RegisterNucleotideThreePrime(ss, nt, false);
 
-            SetBackNucleotideIntoBaseSegment(nt, info);
+            ADNBasicOperations::SetBackNucleotideIntoBaseSegment(nt, info);
 
             auto atoms = nt->GetAtoms();
             SB_FOR(ADNPointer<ADNAtom> atom, atoms) {
+
                 part2->DeregisterAtom(atom, false);
                 NucleotideGroup g = NucleotideGroup::SideChain;
                 if (atom->IsInADNBackbone()) g = NucleotideGroup::Backbone;
                 part->RegisterAtom(nt, g, atom);
+
             }
 
             nt = ntNext;
+
         }
+
     }
 
     return part;
+
 }
 
 std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOperations::BreakSingleStrand(ADNPointer<ADNPart> part, ADNPointer<ADNNucleotide> nt) {
@@ -691,56 +724,73 @@ std::pair<ADNNucleotide::EndType, ADNPointer<ADNBaseSegment>> ADNBasicOperations
     return std::make_pair(end, nextBs);
 }
 
-std::tuple<ADNPointer<ADNBaseSegment>, bool, bool, bool> ADNBasicOperations::GetBaseSegmentInfo(ADNPointer<ADNNucleotide> nt)
-{
+std::tuple<ADNPointer<ADNBaseSegment>, bool, bool, bool> ADNBasicOperations::GetBaseSegmentInfo(ADNPointer<ADNNucleotide> nt) {
+
     auto bs = nt->GetBaseSegment();
     auto cell = bs->GetCell();
     bool left = bs->IsLeft(nt);
     bool start = false;
     bool end = false;
+
     if (bs->GetCellType() == CellType::LoopPair) {
+
         ADNPointer<ADNLoopPair> lp = static_cast<ADNLoopPair*>(cell());
         if (left) {
+
             auto leftLoop = lp->GetLeftLoop();
             start = leftLoop->GetStart() == nt;
             end = leftLoop->GetEnd() == nt;
+
         }
         else {
+
             auto rightLoop = lp->GetRightLoop();
             start = rightLoop->GetStart() == nt;
             end = rightLoop->GetEnd() == nt;
+
         }
+
     }
 
     return std::make_tuple(bs, left, start, end);
+
 }
 
-void ADNBasicOperations::SetBackNucleotideIntoBaseSegment(ADNPointer<ADNNucleotide> nt, std::tuple<ADNPointer<ADNBaseSegment>, bool, bool, bool> info)
-{
+void ADNBasicOperations::SetBackNucleotideIntoBaseSegment(ADNPointer<ADNNucleotide> nt, std::tuple<ADNPointer<ADNBaseSegment>, bool, bool, bool> info) {
+
     auto bs = std::get<0>(info);
-    bool left = std::get<1>(info);
-    bool start = std::get<2>(info);
-    bool end = std::get<3>(info);
+    const bool left = std::get<1>(info);
+    const bool start = std::get<2>(info);
+    const bool end = std::get<3>(info);
 
     auto cell = bs->GetCell();
     if (bs->GetCellType() == CellType::BasePair) {
+
         ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(cell());
         if (left) bp->SetLeftNucleotide(nt);
         else bp->SetRightNucleotide(nt);
+
     }
     else if (bs->GetCellType() == CellType::LoopPair) {
+
         ADNPointer<ADNLoopPair> lp = static_cast<ADNLoopPair*>(cell());
         if (left) {
+
             auto leftLoop = lp->GetLeftLoop();
             leftLoop->AddNucleotide(nt);
             if (start) leftLoop->SetStart(nt);
             if (end) leftLoop->SetEnd(nt);
+
         }
         else {
+
             auto rightLoop = lp->GetRightLoop();
             rightLoop->AddNucleotide(nt);
             if (start) rightLoop->SetStart(nt);
             if (end) rightLoop->SetEnd(nt);
+
         }
+
     }
+
 }

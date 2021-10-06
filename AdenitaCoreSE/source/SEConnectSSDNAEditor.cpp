@@ -285,6 +285,12 @@ void SEConnectSSDNAEditor::mouseReleaseEvent(QMouseEvent* event) {
 				SAMSON::informUser("Adenita - Connect editor", "Cannot connect these two nucleotides.\nOne of the nucleotides should be the end nucleotide or both nucleotides should be from different strands.");
 
 			}
+			else if (startNuclecotide->getEndType() == endNuclecotide->getEndType() && 
+				(startNuclecotide->getEndType() == ADNNucleotide::EndType::ThreePrime || startNuclecotide->getEndType() == ADNNucleotide::EndType::FivePrime)) {
+
+				SAMSON::informUser("Adenita - Connect editor", "Cannot connect nucleotides of the same end type, i.e. 3' with 3' or 5' with 5'. One of the nucleotides should be the end nucleotide or both nucleotides should be from different strands.");
+
+			}
 			else {
 
 				bool two = (connectionMode == ConnectionMode::Double);

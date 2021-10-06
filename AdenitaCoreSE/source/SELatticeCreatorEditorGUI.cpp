@@ -73,6 +73,10 @@ void SELatticeCreatorEditorGUI::setHoneycomb() {
 	ui.spinBoxMaxXds->setMaximum(32);
 	ui.spinBoxMaxYds->setMaximum(30);
 
+	getEditor()->setMaxXDoubleStrands(ui.spinBoxMaxXds->value());
+	getEditor()->setMaxYDoubleStrands(ui.spinBoxMaxYds->value());
+	getEditor()->setMaxZBasePairs(ui.spinBoxMaxZbp->value());
+
 }
 
 void SELatticeCreatorEditorGUI::setSquare() {
@@ -80,6 +84,10 @@ void SELatticeCreatorEditorGUI::setSquare() {
 	getEditor()->setLatticeType(LatticeType::Square);
 	ui.spinBoxMaxXds->setMaximum(50);
 	ui.spinBoxMaxYds->setMaximum(50);
+
+	getEditor()->setMaxXDoubleStrands(ui.spinBoxMaxXds->value());
+	getEditor()->setMaxYDoubleStrands(ui.spinBoxMaxYds->value());
+	getEditor()->setMaxZBasePairs(ui.spinBoxMaxZbp->value());
 
 }
 

@@ -2,7 +2,11 @@
 #include "SEAdenitaCoreSEApp.hpp"
 #include "DASCreator.hpp"
 
+#include "MSVDisplayHelper.hpp"
+
 #include "SAMSON.hpp"
+
+#include <QOpenGLFunctions_4_3_Core>
 
 
 SENanotubeCreatorEditor::SENanotubeCreatorEditor() {

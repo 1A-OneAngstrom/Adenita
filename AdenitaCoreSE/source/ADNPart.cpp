@@ -1,4 +1,5 @@
 #include "ADNPart.hpp"
+//#include "SEAdenitaVisualModel.hpp"
 
 ADNPart::ADNPart() : SBStructuralModel() {
     
@@ -14,7 +15,7 @@ ADNPart::ADNPart(const ADNPart & n) : SBStructuralModel(n) {
 
 ADNPart & ADNPart::operator=(const ADNPart& other) {
 
-    SBStructuralModel::operator =(other);  
+    SBStructuralModel::operator =(other);
 
     if (this != &other) {
     
@@ -179,11 +180,13 @@ void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & node
 
     setLoadedViaSAMSON(true);
 
+    //SEAdenitaVisualModel::requestVisualModelUpdate();
+
 }
 
 CollectionMap<ADNBaseSegment> ADNPart::GetBaseSegments(CellType celltype) const {
 
-#if ADENITA_ADNPART_REGISTER_BASESEGMENTS
+#if 0//ADENITA_ADNPART_REGISTER_BASESEGMENTS
     auto baseSegmentIndexer = baseSegmentsIndex_;
 #else
     SBNodeIndexer nodeIndexer;
@@ -279,7 +282,7 @@ int ADNPart::getNumberOfAtoms() const {
 
 int ADNPart::GetNumberOfBaseSegments() const {
 
-#if ADENITA_ADNPART_REGISTER_BASESEGMENTS
+#if 0//ADENITA_ADNPART_REGISTER_BASESEGMENTS
     return static_cast<int>(GetBaseSegments().size());
 #else
     return countNodes((SBNode::GetClass() == std::string("ADNBaseSegment")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
@@ -497,7 +500,7 @@ void ADNPart::RegisterSingleStrand(ADNPointer<ADNSingleStrand> ss) {
 
     if (ss->getName().empty()) {
 
-        ss->setName("Single Strand " + std::to_string(singleStrandId_));
+        ss->setName("Single strand " + std::to_string(singleStrandId_));
         ++singleStrandId_;
 
     }
@@ -565,14 +568,21 @@ void ADNPart::RegisterNucleotide(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNN
 
 void ADNPart::RegisterAtom(ADNPointer<ADNNucleotide> nt, NucleotideGroup g, ADNPointer<ADNAtom> at, bool create) {
 
+    if (!at.isValid()) return;
+
     if (create) {
-        
+
         if (SAMSON::isHolding()) SAMSON::hold(at());
         at->create();
 
     }
 
-    nt->AddAtom(g, at);
+    if (nt.isValid()) {
+
+        if (at->getNucleotide() != nt())
+            nt->AddAtom(g, at);
+
+    }
 
 #if ADENITA_ADNPART_REGISTER_ATOMS
     atomsIndex_.addReferenceTarget(at());
@@ -609,14 +619,16 @@ void ADNPart::RegisterBaseSegmentEnd(ADNPointer<ADNDoubleStrand> ds, ADNPointer<
 }
 
 unsigned int ADNPart::GetBaseSegmentIndex(ADNPointer<ADNBaseSegment> bs) {
+
     return baseSegmentsIndex_.getIndex(bs());
+
 }
 
 void ADNPart::RegisterDoubleStrand(ADNPointer<ADNDoubleStrand> ds) {
 
     if (ds->getName().empty()) {
 
-        ds->setName("Double Strand " + std::to_string(doubleStrandId_));
+        ds->setName("Double strand " + std::to_string(doubleStrandId_));
         ++doubleStrandId_;
 
     }

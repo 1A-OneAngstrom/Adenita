@@ -1,5 +1,8 @@
 #include "SEWireframeEditor.hpp"
 #include "SEAdenitaCoreSEApp.hpp"
+
+#include "MSVDisplayHelper.hpp"
+
 #include "SAMSON.hpp"
 
 #include <QOpenGLFunctions_4_3_Core>

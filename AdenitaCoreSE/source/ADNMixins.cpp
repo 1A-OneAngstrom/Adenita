@@ -73,11 +73,19 @@ PositionableSB& PositionableSB::operator=(const PositionableSB& other) {
 }
 
 void PositionableSB::SetPosition(Position3D pos) {
-    centerAtom_->setPosition(pos);
+
+    if (centerAtom_.isValid())
+        centerAtom_->setPosition(pos);
+
 }
 
 Position3D PositionableSB::GetPosition() const {
-    return centerAtom_->getPosition();
+
+    if (centerAtom_.isValid())
+        return centerAtom_->getPosition();
+    else
+        return Position3D();
+
 }
 
 ADNPointer<ADNAtom> PositionableSB::GetCenterAtom() const {
@@ -89,7 +97,10 @@ void PositionableSB::SetCenterAtom(ADNPointer<ADNAtom> centerAtom) {
 }
 
 void PositionableSB::HideCenterAtom() {
-    centerAtom_->setVisibilityFlag(false);
+
+    if (centerAtom_.isValid())
+        centerAtom_->setVisibilityFlag(false);
+
 }
 
 Identifiable::Identifiable(const Identifiable& other) {

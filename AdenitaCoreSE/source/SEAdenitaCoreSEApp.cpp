@@ -1,5 +1,6 @@
 #include "SEAdenitaCoreSEApp.hpp"
 #include "SEAdenitaCoreSEAppGUI.hpp"
+#include "SEAdenitaVisualModel.hpp"
 #include "SEAdenitaVisualModelProperties.hpp"
 
 #include "PICrossovers.hpp"
@@ -218,8 +219,8 @@ void SEAdenitaCoreSEApp::requestVisualModelUpdate() {
 	}
 	else {
 
-		SBProxy* visualModelProxy = SAMSON::getProxy("SEAdenitaVisualModel", SBUUID(SB_ELEMENT_UUID));
-		SEAdenitaVisualModel* newVisualModel = visualModelProxy->createInstance();
+		//SBProxy* visualModelProxy = SAMSON::getProxy("SEAdenitaVisualModel", SBUUID(SB_ELEMENT_UUID));
+		SEAdenitaVisualModel* newVisualModel = new SEAdenitaVisualModel();// visualModelProxy->createInstance();
 		if (SAMSON::isHolding()) SAMSON::hold(newVisualModel);
 		newVisualModel->create();
 		SAMSON::getActiveDocument()->addChild(newVisualModel);
@@ -244,8 +245,8 @@ void SEAdenitaCoreSEApp::resetVisualModel() {
 	}
 	else {
 
-		SBProxy* visualModelProxy = SAMSON::getProxy("SEAdenitaVisualModel", SBUUID(SB_ELEMENT_UUID));
-		SEAdenitaVisualModel* newVisualModel = visualModelProxy->createInstance();
+		//SBProxy* visualModelProxy = SAMSON::getProxy("SEAdenitaVisualModel", SBUUID(SB_ELEMENT_UUID));
+		SEAdenitaVisualModel* newVisualModel = new SEAdenitaVisualModel();// visualModelProxy->createInstance();
 		if (SAMSON::isHolding()) SAMSON::hold(newVisualModel);
 		newVisualModel->create();
 		SAMSON::getActiveDocument()->addChild(newVisualModel);
@@ -405,9 +406,11 @@ void SEAdenitaCoreSEApp::setStartNucleotide() {
 void SEAdenitaCoreSEApp::MergeComponents(ADNPointer<ADNPart> p1, ADNPointer<ADNPart> p2) {
 
 	ADNPointer<ADNPart> newPart = ADNBasicOperations::MergeParts(p1, p2);
+	
 	GetNanorobot()->DeregisterPart(p2);
-	p2->getParent()->removeChild(p2());
+	if (p2->getParent()) p2->getParent()->removeChild(p2());
 	p1 = newPart;
+
 	SEAdenitaCoreSEApp::resetVisualModel();
 
 }
