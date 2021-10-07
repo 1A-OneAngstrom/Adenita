@@ -7,7 +7,7 @@
 class ADNBaseSegment;
 class ADNNucleotide;
 
-class SB_EXPORT ADNLoop : public SBStructuralGroup {
+class ADNLoop : public SBStructuralGroup {
 
 	SB_CLASS
 
