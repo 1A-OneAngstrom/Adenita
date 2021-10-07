@@ -356,8 +356,14 @@ CollectionMap<ADNConformation> ADNNanorobot::GetConformations() {
     //SB_FOR(SBNode * node, auxIndexer)
     //    node->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNConformation")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
-    SB_FOR(SBNode * node, auxIndexer)
-        conformationIndexer.addReferenceTarget(static_cast<ADNConformation*>(node));
+    SB_FOR(SBNode * node, auxIndexer) {
+
+        const QString name = QString::fromStdString(node->getName());
+
+        if (name.endsWith(" 1D") || name.endsWith(" 2D") || name.endsWith(" 3D"))
+            conformationIndexer.addReferenceTarget(static_cast<ADNConformation*>(node));
+
+    }
 
     return conformationIndexer;
 #endif
