@@ -12,7 +12,7 @@
 #define ADENITA_ADNPART_REGISTER_NUCLEOTIDES 0
 #define ADENITA_ADNPART_REGISTER_ATOMS 0
 
-class ADNPart : public SBStructuralModel {
+class SB_EXPORT ADNPart : public SBStructuralModel {
 
   SB_CLASS
 

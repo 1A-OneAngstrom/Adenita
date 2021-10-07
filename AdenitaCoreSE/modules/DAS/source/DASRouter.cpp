@@ -1,12 +1,15 @@
 #include "DASRouter.hpp"
 
-DASRouter * DASRouter::GetRouter(RoutingType t)
-{
-  DASRouter* router;
+#include "ADNPart.hpp"
 
-  if (t == RoutingType::None) {
-    router = new DASRouterNone();
-  }
+DASRouter* DASRouter::GetRouter(RoutingType t) {
 
-  return router;
+    DASRouter* router;
+
+    if (t == RoutingType::None) {
+        router = new DASRouterNone();
+    }
+
+    return router;
+
 }

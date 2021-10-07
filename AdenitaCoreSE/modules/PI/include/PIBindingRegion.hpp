@@ -1,9 +1,14 @@
 #pragma once
 
 #include "ADNConfig.hpp"
-#include "ADNNanorobot.hpp"
 #include "ADNArray.hpp"
+#include "ADNMixins.hpp"
 
+#include "SBNodeGroup.hpp"
+
+
+class ADNNucleotide;
+class ADNPart;
 
 struct ThermParam {
 
@@ -14,7 +19,7 @@ struct ThermParam {
 
 };
 
-class PIBindingRegion : public SBNodeGroup {
+class SB_EXPORT PIBindingRegion : public SBNodeGroup {
 
 	SB_CLASS
 

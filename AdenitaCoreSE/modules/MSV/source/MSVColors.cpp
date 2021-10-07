@@ -1,8 +1,13 @@
 #include "MSVColors.hpp"
 
+#include "ADNAtom.hpp"
+#include "ADNNucleotide.hpp"
+#include "ADNBaseSegment.hpp"
+#include "ADNDoubleStrand.hpp"
+#include "ADNSingleStrand.hpp"
 
-MSVColors::MSVColors()
-{
+
+MSVColors::MSVColors() {
 
     SetStandardAtomColorScheme();
     SetStandardNucleotideColorScheme();
@@ -11,8 +16,7 @@ MSVColors::MSVColors()
 
 }
 
-ADNArray<float> MSVColors::GetColor(ADNPointer<ADNAtom> a)
-{
+ADNArray<float> MSVColors::GetColor(ADNPointer<ADNAtom> a) {
 
     auto res = GetColor(a(), atomColors_);
     auto color = res.second;
@@ -71,8 +75,7 @@ ADNArray<float> MSVColors::GetColor(ADNPointer<ADNAtom> a)
 
 }
 
-ADNArray<float> MSVColors::GetColor(ADNPointer<ADNNucleotide> nt)
-{
+ADNArray<float> MSVColors::GetColor(ADNPointer<ADNNucleotide> nt) {
 
     auto res = GetColor(nt(), ntsColors_);
     auto color = res.second;
@@ -119,8 +122,7 @@ ADNArray<float> MSVColors::GetColor(ADNPointer<ADNNucleotide> nt)
 
 }
 
-ADNArray<float> MSVColors::GetColor(ADNPointer<ADNSingleStrand> ss)
-{
+ADNArray<float> MSVColors::GetColor(ADNPointer<ADNSingleStrand> ss) {
 
     auto res = GetColor(ss(), sssColors_);
     auto color = res.second;
@@ -148,8 +150,7 @@ ADNArray<float> MSVColors::GetColor(ADNPointer<ADNSingleStrand> ss)
 
 }
 
-ADNArray<float> MSVColors::GetColor(ADNPointer<ADNBaseSegment> bs)
-{
+ADNArray<float> MSVColors::GetColor(ADNPointer<ADNBaseSegment> bs) {
 
     auto res = GetColor(bs(), bssColors_);
     auto color = res.second;
@@ -171,8 +172,7 @@ ADNArray<float> MSVColors::GetColor(ADNPointer<ADNBaseSegment> bs)
 
 }
 
-ADNArray<float> MSVColors::GetColor(ADNPointer<ADNDoubleStrand> ds)
-{
+ADNArray<float> MSVColors::GetColor(ADNPointer<ADNDoubleStrand> ds) {
 
     auto res = GetColor(ds(), dssColors_);
     auto color = res.second;
@@ -184,33 +184,27 @@ ADNArray<float> MSVColors::GetColor(ADNPointer<ADNDoubleStrand> ds)
 
 }
 
-void MSVColors::SetColor(ADNArray<float> color, ADNPointer<ADNAtom> a)
-{
+void MSVColors::SetColor(ADNArray<float> color, ADNPointer<ADNAtom> a) {
     SetColor(color, a(), atomColors_);
 }
 
-void MSVColors::SetColor(ADNArray<float> color, ADNPointer<ADNNucleotide> nt)
-{
+void MSVColors::SetColor(ADNArray<float> color, ADNPointer<ADNNucleotide> nt) {
     SetColor(color, nt(), ntsColors_);
 }
 
-void MSVColors::SetColor(ADNArray<float> color, ADNPointer<ADNSingleStrand> ss)
-{
+void MSVColors::SetColor(ADNArray<float> color, ADNPointer<ADNSingleStrand> ss) {
     SetColor(color, ss(), sssColors_);
 }
 
-void MSVColors::SetColor(ADNArray<float> color, ADNPointer<ADNBaseSegment> bs)
-{
+void MSVColors::SetColor(ADNArray<float> color, ADNPointer<ADNBaseSegment> bs) {
     SetColor(color, bs(), bssColors_);
 }
 
-void MSVColors::SetColor(ADNArray<float> color, ADNPointer<ADNDoubleStrand> ds)
-{
+void MSVColors::SetColor(ADNArray<float> color, ADNPointer<ADNDoubleStrand> ds) {
     SetColor(color, ds(), dssColors_);
 }
 
-void MSVColors::SetStandardDoubleStrandColorScheme()
-{
+void MSVColors::SetStandardDoubleStrandColorScheme() {
 
     SEConfig& config = SEConfig::GetInstance();
 
@@ -222,13 +216,11 @@ void MSVColors::SetStandardDoubleStrandColorScheme()
 
 }
 
-void MSVColors::SetAtomColorScheme(ADNArray<float> colorScheme)
-{
+void MSVColors::SetAtomColorScheme(ADNArray<float> colorScheme) {
     atomColorScheme_ = colorScheme;
 }
 
-void MSVColors::SetStandardSingleStrandColorScheme()
-{
+void MSVColors::SetStandardSingleStrandColorScheme() {
 
     SEConfig& config = SEConfig::GetInstance();
 
@@ -250,8 +242,7 @@ void MSVColors::SetStandardSingleStrandColorScheme()
 
 }
 
-void MSVColors::SetStandardAtomColorScheme()
-{
+void MSVColors::SetStandardAtomColorScheme() {
 
     SEConfig& config = SEConfig::GetInstance();
 
@@ -297,8 +288,7 @@ void MSVColors::SetStandardAtomColorScheme()
 
 }
 
-void MSVColors::SetStandardNucleotideColorScheme()
-{
+void MSVColors::SetStandardNucleotideColorScheme() {
 
     SEConfig& config = SEConfig::GetInstance();
 
@@ -328,24 +318,20 @@ void MSVColors::SetStandardNucleotideColorScheme()
 
 }
 
-void MSVColors::SetSingleStrandColorScheme(ADNArray<float> colorScheme)
-{
+void MSVColors::SetSingleStrandColorScheme(ADNArray<float> colorScheme) {
     singleStrandColorScheme_ = colorScheme;
 }
 
-void MSVColors::SetDoubleStrandColorScheme(ADNArray<float> colorScheme)
-{
+void MSVColors::SetDoubleStrandColorScheme(ADNArray<float> colorScheme) {
     doubleStrandColorScheme_ = colorScheme;
 
 }
 
-void MSVColors::SetNucleotideColorScheme(ADNArray<float> colorScheme)
-{
+void MSVColors::SetNucleotideColorScheme(ADNArray<float> colorScheme) {
     nucleotideColorScheme_ = colorScheme;
 }
 
-ADNArray<float> MSVColors::GetMaterialColor(SBNode* node)
-{
+ADNArray<float> MSVColors::GetMaterialColor(SBNode* node) {
 
     ADNArray<float> color = ADNArray<float>(4);
 

@@ -1,8 +1,10 @@
 #pragma once
 
+#include "SBCHeapExport.hpp"
+
 #define _CRTDBG_MAP_ALLOC
 
-template <class T> class ADNArray {
+template <class T> class SB_EXPORT ADNArray {
 public:
   ADNArray() = default;
 

@@ -3,8 +3,8 @@
 #include "SBStructuralGroup.hpp"
 
 #include "ADNMixins.hpp"
+#include "ADNLoop.hpp"
 
-class ADNLoop;
 class ADNNucleotide;
 
 enum class CellType {

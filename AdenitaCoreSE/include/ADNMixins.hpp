@@ -4,7 +4,6 @@
 #include <memory>
 #include <map>
 
-#include "SAMSON.hpp"
 #include "SBResidue.hpp"
 #include "SBCReferencePointer.hpp"
 #include "SBCReferencePointerIndexer.hpp"
@@ -44,7 +43,7 @@ using NucleotideGroup = SBNode::Type;
 
 #if 0
 // used as a base class of the ADNNanorobot class, while there was no need for naming
-class Nameable {
+class SB_EXPORT Nameable {
 
 public:
 
@@ -64,7 +63,7 @@ private:
 };
 #endif
 
-class Positionable {
+class SB_EXPORT Positionable {
 
 public:
 
@@ -85,7 +84,7 @@ private:
 
 class ADNAtom; // PositionableSB needs ADNAtom defined, hence defined here
 
-class PositionableSB {
+class SB_EXPORT PositionableSB {
 
 public:
 
@@ -108,7 +107,7 @@ private:
 
 };
 
-class Identifiable {
+class SB_EXPORT Identifiable {
 
 public:
 
@@ -127,7 +126,7 @@ private:
 
 };
 
-class Orientable {
+class SB_EXPORT Orientable {
 
 public:
 
@@ -153,7 +152,7 @@ private:
 };
 
 template <class T>
-class Collection {
+class SB_EXPORT Collection {
 
 public:
 
@@ -177,49 +176,66 @@ private:
 
 template<class T>
 inline Collection<T>::Collection(const Collection<T>& other) {
+
     *this = other;
+
 }
 
 template<class T>
 inline Collection<T>& Collection<T>::operator=(const Collection<T>& other) {
-    if (&other == this) {
+
+    if (&other == this)
         return *this;
-    }
 
     collection_ = other.GetCollection();
 
     return *this;
+
 }
 
 template<class T>
 inline void Collection<T>::AddElement(ADNPointer<T> elem, int id) {
+
     if (id == -1) {
+
         id = 0;
         if (collection_.size() > 0) id = collection_.rbegin()->first + 1;
+
     }
+
     collection_.insert(std::make_pair(id, elem));
+
 }
 
 template<class T>
 inline CollectionMap<T> Collection<T>::GetCollection() const {
+
     return collection_;
+
 }
 
 template<class T>
 inline void Collection<T>::DeleteElement(int id) {
+
     collection_.erase(id);
+
 }
 
 template<class T>
 inline int Collection<T>::GetLastKey() {
+
     int id = -1;
     if (collection_.size() > 0) {
         id = collection_.rbegin()->first;
     }
+
     return id;
+
 }
 
 template<class T>
 inline ADNPointer<T> Collection<T>::GetElement(int id) const {
+
     return collection_.at(id);
+
 }

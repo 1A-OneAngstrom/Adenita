@@ -6,7 +6,7 @@
 using ADNConformation = SBMStructuralModelConformation;
 
 ////! ADNConformation: set different positions for atoms of a ADNPart (e.g. 2D or 1D)
-//class ADNConformation : public SBMStructuralModelConformation  {
+//class SB_EXPORT ADNConformation : public SBMStructuralModelConformation  {
 //  SB_CLASS
 //public:
 //  //! Default constructor

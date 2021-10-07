@@ -7,7 +7,7 @@
 class ADNBaseSegment;
 class ADNPart;
 
-class ADNDoubleStrand : public SBStructuralGroup {
+class SB_EXPORT ADNDoubleStrand : public SBStructuralGroup {
 
 	SB_CLASS
 
