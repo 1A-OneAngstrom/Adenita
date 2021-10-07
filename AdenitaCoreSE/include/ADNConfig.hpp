@@ -1,11 +1,13 @@
 #pragma once
 
 #include <SAMSON.hpp>
+
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/reader.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/filereadstream.h"
+
 #include <fstream>
 #include <string>
 #include <iostream>

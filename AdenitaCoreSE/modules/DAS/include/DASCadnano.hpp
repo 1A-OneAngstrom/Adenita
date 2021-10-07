@@ -87,7 +87,7 @@ struct VGrid {
 
 };
 
-class DASCadnano {
+class SB_EXPORT DASCadnano {
 
 private:
 

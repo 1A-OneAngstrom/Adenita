@@ -1,5 +1,8 @@
 #include "PIBindingRegion.hpp"
 
+#include "ADNPart.hpp"
+
+
 PIBindingRegion& PIBindingRegion::operator=(const PIBindingRegion& other) {
 
     SBNodeGroup::operator =(other);

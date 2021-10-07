@@ -10,7 +10,7 @@ class ADNBackbone;
 class ADNSidechain;
 class ADNSingleStrand;
 
-class ADNNucleotide : public SBResidue, public PositionableSB, public Orientable {
+class SB_EXPORT ADNNucleotide : public SBResidue, public PositionableSB, public Orientable {
 
 	SB_CLASS
 

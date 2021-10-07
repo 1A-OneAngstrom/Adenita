@@ -6,7 +6,7 @@
 
 class ADNNucleotide;
 
-class ADNBackbone : public SBBackbone, public PositionableSB {
+class SB_EXPORT ADNBackbone : public SBBackbone, public PositionableSB {
 
 	SB_CLASS
 

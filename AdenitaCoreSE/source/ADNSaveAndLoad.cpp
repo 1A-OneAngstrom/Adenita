@@ -2,6 +2,9 @@
 
 #include "ADNSaveAndLoad.hpp"
 
+#undef foreach
+#include <boost/foreach.hpp>
+#include <boost/algorithm/string.hpp>
 
 ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(std::string filename) {
 

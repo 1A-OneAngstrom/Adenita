@@ -7,7 +7,7 @@
 class ADNNucleotide;
 class ADNPart;
 
-class ADNSingleStrand : public SBChain {
+class SB_EXPORT ADNSingleStrand : public SBChain {
 
     SB_CLASS
 

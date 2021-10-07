@@ -1,63 +1,77 @@
 #include "PICrossovers.hpp"
 
-std::vector<XOPair> PICrossovers::GetCrossovers(ADNPointer<ADNPart> part)
-{
-  auto nucleotides = part->GetNucleotides();
+#include "ADNNeighbors.hpp"
+#include "ADNPart.hpp"
 
-  std::vector<XOPair> xos;
+std::vector<XOPair> PICrossovers::GetCrossovers(ADNPointer<ADNPart> part) {
 
-  SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
-    ADNPointer<ADNBaseSegment> bs = nt->GetBaseSegment();
-    ADNPointer<ADNDoubleStrand> ds1 = bs->GetDoubleStrand();
+    auto nucleotides = part->GetNucleotides();
 
-    ADNPointer<ADNNucleotide> next = nt->GetNext();
-    if (next != nullptr) {
-      ADNPointer<ADNDoubleStrand> ds2 = next->GetBaseSegment()->GetDoubleStrand();
-      if (ds1 != ds2) {
-        XOPair xo = std::make_pair(nt, next);
-        xos.push_back(xo);
+    std::vector<XOPair> xos;
 
-        /*nt->setHighlightingFlag(true);
-        next->setHighlightingFlag(true);*/
-      }
+    SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
+
+        ADNPointer<ADNBaseSegment> bs = nt->GetBaseSegment();
+        if (!bs.isValid()) continue;
+        ADNPointer<ADNDoubleStrand> ds1 = bs->GetDoubleStrand();
+        if (!ds1.isValid()) continue;
+
+        ADNPointer<ADNNucleotide> next = nt->GetNext();
+        if (next != nullptr) {
+
+            ADNPointer<ADNDoubleStrand> ds2 = next->GetBaseSegment()->GetDoubleStrand();
+            if (ds1 != ds2) {
+
+                XOPair xo = std::make_pair(nt, next);
+                xos.push_back(xo);
+
+                /*nt->setHighlightingFlag(true);
+                next->setHighlightingFlag(true);*/
+
+            }
+
+        }
+
     }
-  }
 
-  return xos;
+    return xos;
+
 }
 
-std::vector<XOPair> PICrossovers::GetPossibleCrossovers(ADNPointer<ADNPart> part, ADNPointer<ADNNucleotide> nt, ADNNeighbors* neigh)
-{
-  // highlight neighbors of selected nucleotide
-  auto ntNeighbors = neigh->GetNeighbors(nt);
-  SB_FOR(ADNPointer<ADNNucleotide> ntN, ntNeighbors) {
-    ntN->setSelectionFlag(true);
-  }
+std::vector<XOPair> PICrossovers::GetPossibleCrossovers(ADNPointer<ADNPart> part, ADNPointer<ADNNucleotide> nt, ADNNeighbors* neigh) {
 
-  return std::vector<XOPair>();
+    // highlight neighbors of selected nucleotide
+    auto ntNeighbors = neigh->GetNeighbors(nt);
+    SB_FOR(ADNPointer<ADNNucleotide> ntN, ntNeighbors) {
+        ntN->setSelectionFlag(true);
+    }
+
+    return std::vector<XOPair>();
+
 }
 
-std::vector<XOPair> PICrossovers::GetPossibleCrossovers(ADNPointer<ADNPart> part, ADNNeighbors* neigh)
-{
-  if (neigh == nullptr) {
-    // create neighbors
-    neigh = new ADNNeighbors();
-    SEConfig& c = SEConfig::GetInstance();
-    neigh->SetMaxCutOff(SBQuantity::nanometer(c.debugOptions.maxCutOff));
-    neigh->SetMinCutOff(SBQuantity::nanometer(c.debugOptions.minCutOff));
-    neigh->SetIncludePairs(false);
-    neigh->SetFromOwnSingleStrand(true);
-    neigh->InitializeNeighbors(part);
-  }
+std::vector<XOPair> PICrossovers::GetPossibleCrossovers(ADNPointer<ADNPart> part, ADNNeighbors* neigh) {
 
-  std::vector<XOPair> xos;
+    if (neigh == nullptr) {
+        // create neighbors
+        neigh = new ADNNeighbors();
+        SEConfig& c = SEConfig::GetInstance();
+        neigh->SetMaxCutOff(SBQuantity::nanometer(c.debugOptions.maxCutOff));
+        neigh->SetMinCutOff(SBQuantity::nanometer(c.debugOptions.minCutOff));
+        neigh->SetIncludePairs(false);
+        neigh->SetFromOwnSingleStrand(true);
+        neigh->InitializeNeighbors(part);
+    }
 
-  // highlight neighbors of selected nucleotide
-  auto nts = part->GetNucleotides();
-  SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
-    auto ntXO = GetPossibleCrossovers(part, nt, neigh);
-    xos.insert(xos.end(), ntXO.begin(), ntXO.end());
-  }
+    std::vector<XOPair> xos;
 
-  return std::vector<XOPair>();
+    // highlight neighbors of selected nucleotide
+    auto nts = part->GetNucleotides();
+    SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
+        auto ntXO = GetPossibleCrossovers(part, nt, neigh);
+        xos.insert(xos.end(), ntXO.begin(), ntXO.end());
+    }
+
+    return std::vector<XOPair>();
+
 }

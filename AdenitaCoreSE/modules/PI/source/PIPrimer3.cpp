@@ -1,10 +1,13 @@
 #include "PIPrimer3.hpp"
+
+#include "ADNPart.hpp"
+
 #include <cfloat>
 
 #include <QProcess>
 
-CollectionMap<PIBindingRegion> PIPrimer3::GetBindingRegions()
-{
+CollectionMap<PIBindingRegion> PIPrimer3::GetBindingRegions() {
+
     CollectionMap<PIBindingRegion> regions;
 
     for (auto it = regionsMap_.begin(); it != regionsMap_.end(); ++it) {
@@ -15,34 +18,38 @@ CollectionMap<PIBindingRegion> PIPrimer3::GetBindingRegions()
     }
 
     return regions;
+
 }
 
-PIPrimer3& PIPrimer3::GetInstance()
-{
+PIPrimer3& PIPrimer3::GetInstance() {
+
     static PIPrimer3 instance;
     return instance;
+
 }
 
-CollectionMap<PIBindingRegion> PIPrimer3::GetBindingRegions(ADNPointer<ADNPart> p)
-{
+CollectionMap<PIBindingRegion> PIPrimer3::GetBindingRegions(ADNPointer<ADNPart> p) {
+
     CollectionMap<PIBindingRegion> regions;
     if (regionsMap_.find(p()) != regionsMap_.end()) {
         regions = regionsMap_[p()];
     }
 
     return regions;
+
 }
 
-void PIPrimer3::DeleteBindingRegions(ADNPointer<ADNPart> p)
-{
+void PIPrimer3::DeleteBindingRegions(ADNPointer<ADNPart> p) {
+
     auto regions = GetBindingRegions(p);
     SB_FOR(ADNPointer<PIBindingRegion> r, regions) {
         r->UnregisterBindingRegion();
     }
+
 }
 
-ThermParam PIPrimer3::ExecuteNtthal(std::string leftSequence, std::string rightSequence, int oligo_conc, int mv, int dv)
-{
+ThermParam PIPrimer3::ExecuteNtthal(std::string leftSequence, std::string rightSequence, int oligo_conc, int mv, int dv) {
+
     SEConfig& c = SEConfig::GetInstance();
     QFileInfo ntthal(QString::fromStdString(c.ntthal));
     QString workingDirection = ntthal.absolutePath();
@@ -100,21 +107,25 @@ ThermParam PIPrimer3::ExecuteNtthal(std::string leftSequence, std::string rightS
     res.T_ = tVal.toFloat();
 
     return res;
+
 }
 
-void PIPrimer3::Calculate(ADNPointer<ADNPart> p, int oligo_conc, int mv, int dv)
-{
+void PIPrimer3::Calculate(ADNPointer<ADNPart> p, int oligo_conc, int mv, int dv) {
+
     auto regions = GetBindingRegions(p);
 
     SB_FOR(ADNPointer<PIBindingRegion> r, regions) {
+
         auto seqs = r->GetSequences();
         ThermParam res = ExecuteNtthal(seqs.first, seqs.second, oligo_conc, mv, dv);
         r->SetThermParam(res);
+
     }
+
 }
 
-void PIPrimer3::UpdateBindingRegions(ADNPointer<ADNPart> p)
-{
+void PIPrimer3::UpdateBindingRegions(ADNPointer<ADNPart> p) {
+
     if (regionsMap_.find(p()) != regionsMap_.end()) {
         regionsMap_[p()].clear();
     }
@@ -137,6 +148,7 @@ void PIPrimer3::UpdateBindingRegions(ADNPointer<ADNPart> p)
         while (nt != nullptr) {
 
             if (std::find(added_nt.begin(), added_nt.end(), nt) == added_nt.end()) {
+
                 bool endOfRegion = true;
 
                 auto st_cur = nt->GetPair();
@@ -167,6 +179,7 @@ void PIPrimer3::UpdateBindingRegions(ADNPointer<ADNPart> p)
                 ++regionSize;
 
                 if (endOfRegion) {
+
                     regionSize = 0;
                     std::string name = "Binding Region " + std::to_string(numRegions);
                     ADNPointer<PIBindingRegion> region = new PIBindingRegion(name, nodeIndexer);
@@ -178,9 +191,13 @@ void PIPrimer3::UpdateBindingRegions(ADNPointer<ADNPart> p)
                     ++numRegions;
                     nodeIndexer.clear();
                 }
+
             }
 
             nt = nt->GetNext();
+
         }
+
     }
+
 }

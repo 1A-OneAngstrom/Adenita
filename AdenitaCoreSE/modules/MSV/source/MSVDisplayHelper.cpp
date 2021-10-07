@@ -1,5 +1,8 @@
 #include "MSVDisplayHelper.hpp"
 
+#include "ADNPart.hpp"
+#include "DASPolyhedron.hpp"
+
 void ADNDisplayHelper::displayLine(SBPosition3 start, SBPosition3 end, std::string text) {
 
     unsigned int nLines = 1;
@@ -792,7 +795,6 @@ void ADNDisplayHelper::displayTriangleMesh(DASPolyhedron* p) {
     );
 
 }
-
 
 void ADNDisplayHelper::displayPart(ADNPointer<ADNPart> part, float basePairRadius, float opaqueness) {
 

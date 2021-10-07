@@ -3,7 +3,7 @@
 #include "PIBindingRegion.hpp"
 
 
-class PIPrimer3 {
+class SB_EXPORT PIPrimer3 {
 
 public:
 

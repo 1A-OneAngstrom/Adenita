@@ -1,9 +1,10 @@
 #pragma once
 
 #include "SBAtom.hpp"
+
 #include "ADNAuxiliary.hpp"
 
-class ADNAtom : public SBAtom {
+class SB_EXPORT ADNAtom : public SBAtom {
 
 	SB_CLASS
 
