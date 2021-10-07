@@ -685,8 +685,8 @@ void SEAdenitaVisualModel::prepareDimensions() {
 	for (auto conf : conformations) {
 
 		const QString confName = QString::fromStdString(conf->getName());
-		if (confName.contains(" 1D")) conformations1D.addReferenceTarget(conf);
-		else if (confName.contains(" 2D")) conformations2D.addReferenceTarget(conf);
+		if (confName.endsWith(" 1D")) conformations1D.addReferenceTarget(conf);
+		else if (confName.endsWith(" 2D")) conformations2D.addReferenceTarget(conf);
 
 	}
 #else
@@ -694,13 +694,13 @@ void SEAdenitaVisualModel::prepareDimensions() {
 	ADNConformation* conf1D = nullptr;
 	const QString conf1Name = QString::fromStdString(conformations[1]->getName());
 	const QString conf2Name = QString::fromStdString(conformations[2]->getName());
-	if (conf1Name.contains("1D")) conf1D = conformations[1];
-	else if (conf1Name.contains("2D")) conf2D = conformations[1];
+	if (conf1Name.endsWith(" 1D")) conf1D = conformations[1];
+	else if (conf1Name.endsWith(" 2D")) conf2D = conformations[1];
 	
 	if (conformations.size() > 2) {
 		
-		if (conf2Name.contains("1D")) conf1D = conformations[2];
-		else if (conf2Name.contains("2D")) conf2D = conformations[2];
+		if (conf2Name.endsWith(" 1D")) conf1D = conformations[2];
+		else if (conf2Name.endsWith(" 2D")) conf2D = conformations[2];
 
 	}
 #endif
