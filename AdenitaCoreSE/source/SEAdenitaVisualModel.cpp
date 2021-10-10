@@ -1974,6 +1974,7 @@ void SEAdenitaVisualModel::prepareNucleotides() {
 			auto nucleotides = singleStrand->GetNucleotides();
 			SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
+				if (nt == nullptr) continue;
 				unsigned int index = ntMap_[nt()];
 
 				const Position3D nucleotideBackbonePosition = nt->GetBackbonePosition();
@@ -1999,9 +2000,12 @@ void SEAdenitaVisualModel::prepareNucleotides() {
 				radiiVNt_(index) = config.nucleotide_V_radius;
 				radiiENt_(index) = config.nucleotide_E_radius;
 
-				auto type = nt->GetBaseSegment()->GetCellType();
-				if (type == CellType::LoopPair) {
-					radiiVNt_(index) = radiiVNt_(index) * 0.7f;
+				if (nt->GetBaseSegment() != nullptr) {
+
+					auto type = nt->GetBaseSegment()->GetCellType();
+					if (type == CellType::LoopPair)
+						radiiVNt_(index) = radiiVNt_(index) * 0.7f;
+
 				}
         
 				//strand direction
