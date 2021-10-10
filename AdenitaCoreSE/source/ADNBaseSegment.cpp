@@ -240,7 +240,8 @@ ADNPointer<ADNCell> ADNBaseSegment::GetCell() const {
 CellType ADNBaseSegment::GetCellType() const {
 
     ADNPointer<ADNCell> cell = GetCell();
-    return cell->GetCellType();
+    if (cell.isValid()) return cell->GetCellType();
+    return CellType::Undefined;
 
 }
 
