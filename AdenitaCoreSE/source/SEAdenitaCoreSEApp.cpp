@@ -789,21 +789,33 @@ void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* structuralEvent) {
 	// handle deletion of ADN nodes for bookkeeping used in ADN nodes
 
 	if (eventType == SBStructuralEvent::ChainRemoved) {
+
 		ADNPointer<ADNSingleStrand> ss = dynamic_cast<ADNSingleStrand*>(node);
 		if (ss != nullptr) {
+
 			auto part = static_cast<ADNPart*>(structuralEvent->getSender()->getParent());
 			part->DeregisterSingleStrand(ss, false);
+
 		}
+
 	}
 	else if (eventType == SBStructuralEvent::ResidueRemoved) {
+
 		auto node = structuralEvent->getAuxiliaryNode();
 		ADNPointer<ADNNucleotide> nt = dynamic_cast<ADNNucleotide*>(node);
 		if (nt != nullptr) {
+
 			ADNPointer<ADNSingleStrand> ss = static_cast<ADNSingleStrand*>(structuralEvent->getSender());
-			auto part = ss->GetPart();
-			part->DeregisterNucleotide(nt, false, true, true);
-			if (ss->getNumberOfNucleotides() == 0) ss->erase();
+			if (ss != nullptr) {
+
+				auto part = ss->GetPart();
+				if (part != nullptr) part->DeregisterNucleotide(nt, false, true, true);
+				if (ss->getNumberOfNucleotides() == 0) ss->erase();
+
+			}
+
 		}
+
 	}
 	else if (eventType == SBStructuralEvent::StructuralGroupRemoved) {
 
@@ -812,20 +824,25 @@ void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* structuralEvent) {
 		if (bs != nullptr) {
 
 			auto nucleotides = bs->GetNucleotides();
-			SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
-				nt->erase();
-			}
+			SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) if (nt != nullptr) nt->erase();
+			
 			ADNPointer<ADNDoubleStrand> ds = static_cast<ADNDoubleStrand*>(structuralEvent->getSender());
-			auto part = ds->GetPart();
-			part->DeregisterBaseSegment(bs, false, true);
+			if (ds != nullptr) {
+
+				auto part = ds->GetPart();
+				if (part != nullptr) part->DeregisterBaseSegment(bs, false, true);
+
+			}
 
 		}
 		else {
 
 			ADNPointer<ADNDoubleStrand> ds = dynamic_cast<ADNDoubleStrand*>(node);
 			if (ds != nullptr) {
+
 				ADNPointer<ADNPart> part = static_cast<ADNPart*>(structuralEvent->getSender()->getParent());
-				part->DeregisterDoubleStrand(ds, false, true);
+				if (part != nullptr) part->DeregisterDoubleStrand(ds, false, true);
+
 			}
 
 		}   

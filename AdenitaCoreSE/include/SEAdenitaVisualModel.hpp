@@ -186,11 +186,16 @@ private:
 	void														initNucleotidesAndSingleStrands(bool createIndex = true);
 	void														initDoubleStrands(bool createIndex = true);
 	void														initDisplayIndices();
+
 	ADNArray<unsigned int>										getAtomIndices();
 	ADNArray<unsigned int>										getNucleotideIndices();
 	ADNArray<unsigned int>										getBaseSegmentIndices();
-	void														changeHighlightFlag(); //scale 9: display polyhedron 
+
+	void														changeHighlightFlag();													///< scale 9: display polyhedron
+	bool														isHighlightFlagChangeRequested = true;
+
 	void														orderVisibility();
+
 	void														setupPropertyColors();
 	ADNArray<float>												calcPropertyColor(int colorSchemeIdx, float min, float max, float val);
 	void														displayBasePairConnections(bool onlySelected);
@@ -202,20 +207,28 @@ private:
 	void														prepareNucleotides();
 	void														prepareSingleStrands();
 	void														prepareDoubleStrands();
+
 	void														displayNucleotides(bool forSelection = false);
 	void														displaySingleStrands(bool forSelection = false);
 	void														displayDoubleStrands(bool forSelection = false);
+
 	void														prepareDiscreteScalesDim();
+	bool														isPrepareDiscreteScalesDimRequested = true;
+
 	void														prepareDimensions();
+
 	void														displayTransition(bool forSelection); 
+
 	void														prepareSticksToBalls(double iv);
 	void														prepareBallsToNucleotides(double iv);
 	void														prepareNucleotidesToSingleStrands(double iv);
 	void														prepareSingleStrandsToDoubleStrands(double iv);
 	void														prepareDoubleStrandsToObjects(double iv);
+
 	void														prepare1Dto2D(double iv);
 	void														prepare2Dto3D(double iv);
 	void														prepare3D(double iv);
+
 	void														emphasizeColors(ADNArray<float> & colors, std::vector<unsigned int> & indices, float r, float g, float b, float a);
 	void														replaceColors(ADNArray<float> & colors, std::vector<unsigned int> & indices, float * color);
 

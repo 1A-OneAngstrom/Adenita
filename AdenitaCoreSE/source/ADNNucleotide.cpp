@@ -179,9 +179,9 @@ ADNPointer<ADNNucleotide> ADNNucleotide::GetPrev(bool checkCircular) const {
     if (checkCircular) {
 
         auto strand = GetStrand();
-        if (strand->IsCircular() && endType == EndType::FivePrime) {
-            p = strand->GetThreePrime();
-        }
+        if (strand != nullptr)
+            if (strand->IsCircular() && endType == EndType::FivePrime)
+                p = strand->GetThreePrime();
 
     }
 
@@ -200,9 +200,9 @@ ADNPointer<ADNNucleotide> ADNNucleotide::GetNext(bool checkCircular) const {
     if (checkCircular) {
 
         auto strand = GetStrand();
-        if (strand->IsCircular() && endType == EndType::ThreePrime) {
-            p = strand->GetFivePrime();
-        }
+        if (strand != nullptr)
+            if (strand->IsCircular() && endType == EndType::ThreePrime)
+                p = strand->GetFivePrime();
 
     }
 
@@ -240,13 +240,13 @@ void ADNNucleotide::AddAtom(NucleotideGroup g, ADNPointer<ADNAtom> a) {
     if (g == SBNode::Type::Backbone) {
 
         ADNPointer<ADNBackbone> bb = GetBackbone();
-        bb->AddAtom(a);
+        if (bb != nullptr) bb->AddAtom(a);
 
     }
     else if (g == SBNode::Type::SideChain) {
 
         ADNPointer<ADNSidechain> sc = GetSidechain();
-        sc->AddAtom(a);
+        if (sc != nullptr) sc->AddAtom(a);
 
     }
 
@@ -257,13 +257,13 @@ void ADNNucleotide::DeleteAtom(NucleotideGroup g, ADNPointer<ADNAtom> a) {
     if (g == SBNode::Type::Backbone) {
 
         ADNPointer<ADNBackbone> bb = GetBackbone();
-        bb->DeleteAtom(a);
+        if (bb != nullptr) bb->DeleteAtom(a);
 
     }
     else if (g == SBNode::Type::SideChain) {
 
         ADNPointer<ADNSidechain> sc = GetSidechain();
-        sc->DeleteAtom(a);
+        if (sc != nullptr) sc->DeleteAtom(a);
 
     }
 
@@ -271,13 +271,23 @@ void ADNNucleotide::DeleteAtom(NucleotideGroup g, ADNPointer<ADNAtom> a) {
 
 CollectionMap<ADNAtom> ADNNucleotide::GetAtoms() {
 
-    auto bb = GetBackbone();
-    auto sc = GetSidechain();
-    auto bbAtoms = bb->GetAtoms();
-    auto scAtoms = sc->GetAtoms();
+    CollectionMap<ADNAtom> atoms;
 
-    auto atoms = bbAtoms;
-    SB_FOR(ADNPointer<ADNAtom> a, scAtoms) atoms.addReferenceTarget(a());
+    auto bb = GetBackbone();
+    if (bb != nullptr) {
+
+        CollectionMap<ADNAtom> bbAtoms = bb->GetAtoms();
+        SB_FOR(ADNPointer<ADNAtom> a, bbAtoms) atoms.addReferenceTarget(a());
+
+    }
+
+    auto sc = GetSidechain();
+    if (sc != nullptr) {
+
+        CollectionMap<ADNAtom> scAtoms = sc->GetAtoms();
+        SB_FOR(ADNPointer<ADNAtom> a, scAtoms) atoms.addReferenceTarget(a());
+
+    }
 
     return atoms;
 
@@ -299,22 +309,24 @@ void ADNNucleotide::HideCenterAtoms() {
     auto sc = GetSidechain();
 
     HideCenterAtom();
-    bb->HideCenterAtom();
-    sc->HideCenterAtom();
+    if (bb != nullptr) bb->HideCenterAtom();
+    if (sc != nullptr) sc->HideCenterAtom();
 
 }
 
 ADNPointer<ADNAtom> ADNNucleotide::GetBackboneCenterAtom() {
 
     auto bb = GetBackbone();
-    return bb->GetCenterAtom();
+    if (bb != nullptr) return bb->GetCenterAtom();
+    else return nullptr;
 
 }
 
 ADNPointer<ADNAtom> ADNNucleotide::GetSidechainCenterAtom() {
 
     auto sc = GetSidechain();
-    return sc->GetCenterAtom();
+    if (sc != nullptr) return sc->GetCenterAtom();
+    else return nullptr;
 
 }
 
@@ -332,9 +344,8 @@ CollectionMap<ADNAtom> ADNNucleotide::GetAtomsByName(std::string name) {
     auto atoms = GetAtoms();
     SB_FOR(ADNPointer<ADNAtom> a, atoms) {
 
-        if (a->getName() == name) {
+        if (a->getName() == name)
             res.addReferenceTarget(a());
-        }
 
     }
 
@@ -362,7 +373,10 @@ SBNode* ADNNucleotide::getBaseSegment() const {
 
 std::string ADNNucleotide::getBaseSegmentTypeString() const {
 
-    return baseSegment->getCellTypeString();
+    if (baseSegment != nullptr)
+        return baseSegment->getCellTypeString();
+    else
+        return std::string();
 
 }
 
@@ -476,7 +490,8 @@ void ADNNucleotide::SetSidechainPosition(Position3D pos) {
 Position3D ADNNucleotide::GetSidechainPosition() const {
 
     auto sc = GetSidechain();
-    return sc->GetPosition();
+    if (sc.isValid()) return sc->GetPosition();
+    else Position3D();
 
 }
 
@@ -490,12 +505,15 @@ void ADNNucleotide::SetBackbonePosition(Position3D pos) {
 Position3D ADNNucleotide::GetBackbonePosition() const {
 
     auto bb = GetBackbone();
-    return bb->GetPosition();
+    if (bb.isValid()) return bb->GetPosition();
+    else Position3D();
 
 }
 
 Position3D ADNNucleotide::GetPosition() const {
+
     return (GetBackbonePosition() + GetSidechainPosition()) * 0.5;
+
 }
 
 bool ADNNucleotide::GlobalBaseIsSet() {
@@ -514,11 +532,17 @@ bool ADNNucleotide::GlobalBaseIsSet() {
 }
 
 bool ADNNucleotide::IsLeft() {
-    return baseSegment->IsLeft(this);
+
+    if (baseSegment != nullptr) return baseSegment->IsLeft(this);
+    else return false;
+
 }
 
 bool ADNNucleotide::IsRight() {
-    return baseSegment->IsRight(this);
+
+    if (baseSegment != nullptr) return baseSegment->IsRight(this);
+    else return false;
+
 }
 
 class setNucleotideTagCommand : public SBCUndoCommand {

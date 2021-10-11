@@ -130,8 +130,12 @@ ADNPointer<ADNBaseSegment> ADNDoubleStrand::GetNthBaseSegment(int n) {
 
     ADNPointer<ADNBaseSegment> bs = startBaseSegment;
 
-    for (int i = 0; i < n; ++i)
-        bs = bs->GetNext();
+    for (int i = 0; i < n; ++i) {
+
+        if (bs != nullptr) bs = bs->GetNext();
+        else break;
+
+    }
 
     return bs;
 
