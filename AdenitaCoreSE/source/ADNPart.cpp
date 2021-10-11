@@ -375,6 +375,8 @@ int ADNPart::getNumberOfSingleStrands() const {
 
 void ADNPart::DeregisterSingleStrand(ADNPointer<ADNSingleStrand> ss, bool removeFromParent, bool removeFromIndex) {
 
+    if (ss == nullptr) return;
+
     if (removeFromParent)
         removeChild(ss());
 
@@ -386,16 +388,19 @@ void ADNPart::DeregisterSingleStrand(ADNPointer<ADNSingleStrand> ss, bool remove
 
 void ADNPart::DeregisterNucleotide(ADNPointer<ADNNucleotide> nt, bool removeFromSs, bool removeFromBs, bool removeFromIndex) {
 
+    if (nt == nullptr) return;
+
     if (removeFromSs) {
 
         ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
-        ss->removeChild(nt());
+        if (ss != nullptr) ss->removeChild(nt());
 
     }
+
     if (removeFromBs) {
 
         auto bs = nt->GetBaseSegment();
-        bs->RemoveNucleotide(nt);
+        if (bs != nullptr) bs->RemoveNucleotide(nt);
 
     }
   
@@ -406,6 +411,8 @@ void ADNPart::DeregisterNucleotide(ADNPointer<ADNNucleotide> nt, bool removeFrom
 }
 
 void ADNPart::DeregisterDoubleStrand(ADNPointer<ADNDoubleStrand> ds, bool removeFromParent, bool removeFromIndex) {
+
+    if (ds == nullptr) return;
 
     if (removeFromParent)
         removeChild(ds());
@@ -418,6 +425,8 @@ void ADNPart::DeregisterDoubleStrand(ADNPointer<ADNDoubleStrand> ds, bool remove
 
 void ADNPart::DeregisterBaseSegment(ADNPointer<ADNBaseSegment> bs, bool removeFromDs, bool removeFromIndex) {
 
+    if (bs == nullptr) return;
+
     if (removeFromDs) 
         if (bs->getParent())
             bs->getParent()->removeChild(bs());
@@ -429,6 +438,8 @@ void ADNPart::DeregisterBaseSegment(ADNPointer<ADNBaseSegment> bs, bool removeFr
 }
 
 void ADNPart::DeregisterAtom(ADNPointer<ADNAtom> atom, bool removeFromAtom) {
+
+    if (atom == nullptr) return;
 
     if (removeFromAtom) 
         if (atom->getParent())
@@ -463,6 +474,8 @@ void ADNPart::ResetBoundingBox() {
 
 void ADNPart::SetBoundingBox(ADNPointer<ADNNucleotide> newNt) {
 
+    if (newNt == nullptr) return;
+
     const SBPosition3 pos = newNt->GetBackbonePosition();
     //boundingBox.bound(pos);
     if (pos[0] < minBox_[0]) minBox_[0] = pos[0];
@@ -475,6 +488,8 @@ void ADNPart::SetBoundingBox(ADNPointer<ADNNucleotide> newNt) {
 }
 
 void ADNPart::SetBoundingBox(ADNPointer<ADNBaseSegment> newBs) {
+
+    if (newBs == nullptr) return;
 
     const SBPosition3 pos = newBs->GetPosition();
     //boundingBox.bound(pos);
@@ -498,6 +513,8 @@ void ADNPart::InitBoundingBox() {
 
 void ADNPart::RegisterSingleStrand(ADNPointer<ADNSingleStrand> ss) {
 
+    if (ss == nullptr) return;
+
     if (ss->getName().empty()) {
 
         ss->setName("Single strand " + std::to_string(singleStrandId_));
@@ -515,13 +532,15 @@ void ADNPart::RegisterSingleStrand(ADNPointer<ADNSingleStrand> ss) {
 
 void ADNPart::RegisterNucleotideThreePrime(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nt, bool addToSs) {
 
+    if (nt == nullptr) return;
+
     if (nt->getName().empty()) {
 
         nt->setName(nt->getNucleotideTypeString() + " " + std::to_string(nucleotideId_));
         ++nucleotideId_;
 
     }
-    if (addToSs) ss->AddNucleotideThreePrime(nt);
+    if (addToSs && ss != nullptr) ss->AddNucleotideThreePrime(nt);
 
 #if ADENITA_ADNPART_REGISTER_NUCLEOTIDES
     nucleotidesIndex_.addReferenceTarget(nt());
@@ -532,6 +551,8 @@ void ADNPart::RegisterNucleotideThreePrime(ADNPointer<ADNSingleStrand> ss, ADNPo
 
 void ADNPart::RegisterNucleotideFivePrime(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nt, bool addToSs) {
 
+    if (nt == nullptr) return;
+
     if (nt->getName().empty()) {
 
         nt->setName(nt->getNucleotideTypeString() + " " + std::to_string(nucleotideId_));
@@ -539,7 +560,7 @@ void ADNPart::RegisterNucleotideFivePrime(ADNPointer<ADNSingleStrand> ss, ADNPoi
 
     }
 
-    if (addToSs) ss->AddNucleotideFivePrime(nt);
+    if (addToSs && ss != nullptr) ss->AddNucleotideFivePrime(nt);
 
 #if ADENITA_ADNPART_REGISTER_NUCLEOTIDES
     nucleotidesIndex_.addReferenceTarget(nt());
@@ -550,6 +571,8 @@ void ADNPart::RegisterNucleotideFivePrime(ADNPointer<ADNSingleStrand> ss, ADNPoi
 
 void ADNPart::RegisterNucleotide(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nt, ADNPointer<ADNNucleotide> ntNext, bool addToSs) {
 
+    if (nt == nullptr) return;
+
     if (nt->getName().empty()) {
 
         nt->setName(nt->getNucleotideTypeString() + " " + std::to_string(nucleotideId_));
@@ -557,7 +580,7 @@ void ADNPart::RegisterNucleotide(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNN
 
     }
 
-    if (addToSs) ss->AddNucleotide(nt, ntNext);
+    if (addToSs && ss != nullptr) ss->AddNucleotide(nt, ntNext);
 
 #if ADENITA_ADNPART_REGISTER_NUCLEOTIDES
     nucleotidesIndex_.addReferenceTarget(nt());
@@ -592,6 +615,8 @@ void ADNPart::RegisterAtom(ADNPointer<ADNNucleotide> nt, NucleotideGroup g, ADNP
 
 void ADNPart::RegisterAtom(ADNPointer<ADNBaseSegment> bs, ADNPointer<ADNAtom> at, bool create) {
 
+    if (at == nullptr) return;
+
     if (create) {
 
         if (SAMSON::isHolding()) SAMSON::hold(at());
@@ -599,7 +624,7 @@ void ADNPart::RegisterAtom(ADNPointer<ADNBaseSegment> bs, ADNPointer<ADNAtom> at
 
     }
 
-    bs->addChild(at());
+    if (bs != nullptr) bs->addChild(at());
 
 #if ADENITA_ADNPART_REGISTER_ATOMS
     atomsIndex_.addReferenceTarget(at());
@@ -609,7 +634,9 @@ void ADNPart::RegisterAtom(ADNPointer<ADNBaseSegment> bs, ADNPointer<ADNAtom> at
 
 void ADNPart::RegisterBaseSegmentEnd(ADNPointer<ADNDoubleStrand> ds, ADNPointer<ADNBaseSegment> bs, bool addToDs) {
 
-    if (addToDs) ds->AddBaseSegmentEnd(bs);
+    if (bs == nullptr) return;
+
+    if (addToDs && ds != nullptr) ds->AddBaseSegmentEnd(bs);
 
 #if ADENITA_ADNPART_REGISTER_BASESEGMENTS
     baseSegmentsIndex_.addReferenceTarget(bs());
@@ -625,6 +652,8 @@ unsigned int ADNPart::GetBaseSegmentIndex(ADNPointer<ADNBaseSegment> bs) {
 }
 
 void ADNPart::RegisterDoubleStrand(ADNPointer<ADNDoubleStrand> ds) {
+
+    if (ds == nullptr) return;
 
     if (ds->getName().empty()) {
 

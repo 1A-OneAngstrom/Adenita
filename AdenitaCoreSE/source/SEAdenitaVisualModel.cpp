@@ -381,6 +381,7 @@ void SEAdenitaVisualModel::update() {
 	if (highlightType_ != HighlightType::NONE) highlightNucleotides();
 	setScale(scale_);
 
+	isPrepareDiscreteScalesDimRequested = false;
 	isUpdateRequested = false;
 
 }
@@ -661,6 +662,8 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getBaseSegmentIndices() {
 }
 
 void SEAdenitaVisualModel::prepareDiscreteScalesDim() {
+
+	isPrepareDiscreteScalesDimRequested = false;
 
 	prepareAtoms();
 	prepareNucleotides();
@@ -1085,6 +1088,8 @@ void SEAdenitaVisualModel::replaceColors(ADNArray<float> & colors, std::vector<u
 }
 
 void SEAdenitaVisualModel::changeHighlightFlag() {
+
+	isHighlightFlagChangeRequested = false;
 
 	auto parts = nanorobot_->GetParts();
 
@@ -1941,12 +1946,13 @@ void SEAdenitaVisualModel::display() {
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
 
 	if (isUpdateRequested) update();
+	if (isHighlightFlagChangeRequested) changeHighlightFlag();
 
 	//ADNLogger& logger = ADNLogger::GetLogger();
 
 	SBEditor* activeEditor = SAMSON::getActiveEditor();
 	/*logger.Log(activeEditor->getName());*/
-	if (activeEditor->getName() == "SEERotation" || activeEditor->getName() == "SEETranslation") {
+	if (isPrepareDiscreteScalesDimRequested || activeEditor->getName() == "SEERotation" || activeEditor->getName() == "SEETranslation") {
 
 		prepareDiscreteScalesDim();
 		setScale(scale_);
@@ -2053,6 +2059,7 @@ void SEAdenitaVisualModel::prepareSingleStrands() {
 			auto nucleotides = ss->GetNucleotides();
 			SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
+				if (nt == nullptr) continue;
 				unsigned int index = ntMap_[nt()];
 
 				if (curColorType_ == ColorType::REGULAR) {
@@ -2925,19 +2932,18 @@ void SEAdenitaVisualModel::onBaseEvent(SBBaseEvent* baseEvent) {
 
 	const SBBaseEvent::Type eventType = baseEvent->getType();
 
-	if (eventType == SBBaseEvent::HighlightingFlagChanged){
-		changeHighlightFlag();
+	if (eventType == SBBaseEvent::HighlightingFlagChanged || eventType == SBBaseEvent::SelectionFlagChanged) {
+
+		isHighlightFlagChangeRequested = true;
+		//changeHighlightFlag();
+
 	}
-	else if (eventType == SBBaseEvent::SelectionFlagChanged) {
-		changeHighlightFlag();
-	}
-	else if (eventType == SBBaseEvent::VisibilityFlagChanged) {
-		prepareDiscreteScalesDim();
-		setScale(scale_);// , false);
-	}
-	else if (eventType == SBBaseEvent::MaterialChanged) {
-		prepareDiscreteScalesDim();
-		setScale(scale_);// , false);
+	else if (eventType == SBBaseEvent::VisibilityFlagChanged || eventType == SBBaseEvent::MaterialChanged) {
+
+		isPrepareDiscreteScalesDimRequested = true;
+		//prepareDiscreteScalesDim();
+		//setScale(scale_);// , false);
+
 	}
 
 	//ADNLogger& logger = ADNLogger::GetLogger();

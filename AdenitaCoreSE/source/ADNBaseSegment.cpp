@@ -153,11 +153,15 @@ ADNPointer<ADNBaseSegment> ADNBaseSegment::GetPrev(bool checkCircular) const {
     ADNPointer<ADNBaseSegment> p = static_cast<ADNBaseSegment*>(getPreviousStructuralNode());
 
     if (checkCircular) {
+
         auto ds = GetDoubleStrand();
-        if (ds->IsCircular() && GetNumber() == 0) {
+        if (ds != nullptr) if (ds->IsCircular() && GetNumber() == 0) {
+
             // is the first bs
             p = ds->GetLastBaseSegment();
+
         }
+
     }
 
     return p;
@@ -169,11 +173,15 @@ ADNPointer<ADNBaseSegment> ADNBaseSegment::GetNext(bool checkCircular) const {
     ADNPointer<ADNBaseSegment> p = static_cast<ADNBaseSegment*>(getNextStructuralNode());
 
     if (checkCircular) {
+
         auto ds = GetDoubleStrand();
-        if (ds->IsCircular() && this == ds->GetLastBaseSegment()()) {
+        if (ds != nullptr) if (ds->IsCircular() && this == ds->GetLastBaseSegment()()) {
+
             // is the last bs
             p = ds->GetFirstBaseSegment();
+
         }
+
     }
 
     return p;
@@ -190,7 +198,7 @@ bool ADNBaseSegment::IsFirst() const {
 
     bool e = false;
     auto ds = GetDoubleStrand();
-    if (ds->GetFirstBaseSegment()() == this) e = true;
+    if (ds != nullptr) if (ds->GetFirstBaseSegment()() == this) e = true;
 
     return e;
 
@@ -200,7 +208,7 @@ bool ADNBaseSegment::IsLast() const {
 
     bool e = false;
     auto ds = GetDoubleStrand();
-    if (ds->GetLastBaseSegment()() == this) e = true;
+    if (ds != nullptr) if (ds->GetLastBaseSegment()() == this) e = true;
 
     return e;
 
@@ -214,27 +222,40 @@ ADNPointer<ADNDoubleStrand> ADNBaseSegment::GetDoubleStrand() const {
 }
 
 SBNode* ADNBaseSegment::getDoubleStrand() const {
+
     return GetDoubleStrand()();
+
 }
 
 unsigned int ADNBaseSegment::getNumberOfNucleotides() const {
+
     return GetNucleotides().size();
+
 }
 
 CollectionMap<ADNNucleotide> ADNBaseSegment::GetNucleotides() const {
-    return cell_->GetNucleotides();
+    
+    if (this->cell_ != nullptr) return cell_->GetNucleotides();
+    else return CollectionMap<ADNNucleotide>();
+
 }
 
 void ADNBaseSegment::SetCell(ADNCell* c) {
 
     this->cell_ = ADNPointer<ADNCell>(c);
-    this->cell_->setName(cell_->getCellTypeString() + " " + std::to_string(this->cell_->getNodeIndex()));
-    addChild(this->cell_());
+    if (this->cell_ != nullptr) {
+
+        this->cell_->setName(cell_->getCellTypeString() + " " + std::to_string(this->cell_->getNodeIndex()));
+        addChild(this->cell_());
+
+    }
 
 }
 
 ADNPointer<ADNCell> ADNBaseSegment::GetCell() const {
+
     return cell_;
+
 }
 
 CellType ADNBaseSegment::GetCellType() const {
@@ -259,9 +280,15 @@ void ADNBaseSegment::RemoveNucleotide(ADNPointer<ADNNucleotide> nt) {
 }
 
 bool ADNBaseSegment::IsLeft(ADNPointer<ADNNucleotide> nt) {
-    return cell_->IsLeft(nt);
+
+    if (cell_ != nullptr) return cell_->IsLeft(nt);
+    else return false;
+
 }
 
 bool ADNBaseSegment::IsRight(ADNPointer<ADNNucleotide> nt) {
-    return cell_->IsRight(nt);
+
+    if (cell_ != nullptr) return cell_->IsRight(nt);
+    else return false;
+
 }
