@@ -2311,6 +2311,8 @@ void SEAdenitaVisualModel::displayForShadow() {
 	// Implement this function so that your visual model can cast shadows to other objects in SAMSON, for example thanks to the utility
 	// functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
 
+	display();
+
 }
 
 void SEAdenitaVisualModel::displayForSelection() {
@@ -2353,6 +2355,8 @@ void SEAdenitaVisualModel::displayBasePairConnections(bool onlySelected) {
 			SB_FOR(ADNPointer<ADNNucleotide> nucleotide, nucleotides) {
 
 				if (nucleotide == nullptr) continue;
+				// skip if at least one of the paired nucleotides is not visible
+				if (!nucleotide->isVisible() || !nucleotide->GetPair()->isVisible()) continue;
 
 				if (nucleotide->GetPair() != nullptr) {
 
@@ -2367,8 +2371,8 @@ void SEAdenitaVisualModel::displayBasePairConnections(bool onlySelected) {
 
 	}
 
-	unsigned int nPositions = boost::numeric_cast<unsigned int>(ntMap.size());
-	unsigned int nCylinders = nPositions / 2;
+	const unsigned int nPositions = boost::numeric_cast<unsigned int>(ntMap.size());
+	const unsigned int nCylinders = nPositions / 2;
 
 	ADNArray<float> positions = ADNArray<float>(3, nPositions);
 	ADNArray<unsigned int> indices = ADNArray<unsigned int>(nCylinders * 2);
@@ -2430,24 +2434,27 @@ void SEAdenitaVisualModel::displayBasePairConnections(bool onlySelected) {
 
 }
 
-void SEAdenitaVisualModel::displayForDebugging()
-{
-  SEConfig& config = SEConfig::GetInstance();
+void SEAdenitaVisualModel::displayForDebugging() {
 
-  if (config.debugOptions.display_nucleotide_basis) {
-    SB_FOR(auto pair, ntMap_) {
-      ADNPointer<ADNNucleotide> nt = pair.first;
-      unsigned int idx = pair.second;
-      if (nt->isSelected()) {
-        SBPosition3 currPos = SBPosition3(SBQuantity::picometer(positionsNt_(idx, 0)), 
-          SBQuantity::picometer(positionsNt_(idx, 1)), SBQuantity::picometer(positionsNt_(idx, 2)));
-        ADNDisplayHelper::displayBaseVectors(nt, currPos);
-      }
-    }
-  }
-  if (config.debugOptions.display_base_pairing) {
-    displayBasePairConnections(true);
-  }
+	return;
+
+	SEConfig& config = SEConfig::GetInstance();
+
+	if (config.debugOptions.display_nucleotide_basis) {
+		SB_FOR(auto pair, ntMap_) {
+			ADNPointer<ADNNucleotide> nt = pair.first;
+			unsigned int idx = pair.second;
+			if (nt->isSelected()) {
+				SBPosition3 currPos = SBPosition3(SBQuantity::picometer(positionsNt_(idx, 0)),
+					SBQuantity::picometer(positionsNt_(idx, 1)), SBQuantity::picometer(positionsNt_(idx, 2)));
+				ADNDisplayHelper::displayBaseVectors(nt, currPos);
+			}
+		}
+	}
+	if (config.debugOptions.display_base_pairing) {
+		displayBasePairConnections(true);
+	}
+
 }
 
 void SEAdenitaVisualModel::displayCircularDNAConnection() {
