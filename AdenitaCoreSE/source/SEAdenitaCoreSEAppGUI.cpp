@@ -1045,7 +1045,7 @@ QString SEAdenitaCoreSEAppGUI::getName() const {
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your app inside SAMSON
 
-	return "Adenita (alpha)"; 
+	return "Adenita"; 
 
 }
 
