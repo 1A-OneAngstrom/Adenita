@@ -12,8 +12,13 @@
 SB_CLASS_BEGIN(SEAdenitaCoreSEApp);
 
 	SB_CLASS_TYPE(SBCClass::App);
-
-        SB_CLASS_DESCRIPTION("Adenita: DNA Nanostructures Modeling and Visualization Toolkit");
+	SB_CLASS_DESCRIPTION("Adenita: DNA Nanostructures Modeling and Visualization Toolkit");
+	SB_CLASS_PUBLIC_NAME("Adenita");
+	SB_CLASS_GUI_UUID("386506A7-DD8B-69DD-4599-F136C1B91610");
+	SB_CLASS_GUI_SHORTCUT("");
+	SB_CLASS_ICON_FILE_NAME(SB_ELEMENT_PATH + "/Resource/icons/SEAdenitaCoreSEAppIcon.png");
+	SB_CLASS_TOOL_TIP("<b>Adenita</b><br><br>Design nanostructures using DNA strands.");
+	SB_CLASS_VERSION_NUMBER("1.0.0");
 
 	SB_FACTORY_BEGIN;
 
