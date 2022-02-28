@@ -32,9 +32,14 @@ SEAdenitaVisualModel::SEAdenitaVisualModel(const SBNodeIndexer& nodeIndexer) {
 	// the center of mass of a group of atoms, you might want to connect to the atoms' base signals (e.g. to update the center of mass when an atom is erased) and
 	// the atoms' structural signals (e.g. to update the center of mass when an atom is moved).
 
-	SEAdenitaCoreSEApp::getAdenitaApp()->FromDatagraph();
+	SEAdenitaCoreSEApp* adenitaApp = SEAdenitaCoreSEApp::getAdenitaApp();
+	if (adenitaApp) {
 
-	init();
+		adenitaApp->FromDatagraph();
+		init();
+
+	}
+
 	setName("Adenita Visual Model");
 
 }
@@ -207,6 +212,8 @@ void			SEAdenitaVisualModel::setVisibility(double layer) {
 
 	this->visibility_ = layer;
 
+	if (!nanorobot_) return;
+
 	auto parts = nanorobot_->GetParts();
 	SEConfig& config = SEConfig::GetInstance();
 
@@ -273,9 +280,12 @@ void			SEAdenitaVisualModel::setVisibility(double layer) {
 
 void SEAdenitaVisualModel::init() {
 	
+	SEAdenitaCoreSEApp* adenitaApp = SEAdenitaCoreSEApp::getAdenitaApp();
+	if (!adenitaApp) return;
+
 	SBDocument* document = getDocument();
-	if (document) nanorobot_ = SEAdenitaCoreSEApp::getAdenitaApp()->getNanorobot(document);
-	else nanorobot_ = SEAdenitaCoreSEApp::getAdenitaApp()->GetNanorobot();
+	if (document) nanorobot_ = adenitaApp->getNanorobot(document);
+	else nanorobot_ = adenitaApp->GetNanorobot();
 
 	SEConfig& config = SEConfig::GetInstance();
 
@@ -304,6 +314,8 @@ void SEAdenitaVisualModel::init() {
 }
 
 void SEAdenitaVisualModel::initAtoms(bool createIndex /*= true*/) {
+
+	if (!nanorobot_) return;
 
 	unsigned int nPositions = 0;
 
@@ -355,6 +367,8 @@ void SEAdenitaVisualModel::requestVisualModelUpdate() {
 }
 
 void SEAdenitaVisualModel::update() {
+
+	if (!nanorobot_) return;
 
 	auto parts = nanorobot_->GetParts();
 
@@ -430,6 +444,8 @@ bool SEAdenitaVisualModel::getDefaultNotScaffold() const { return true; }
 
 void SEAdenitaVisualModel::initNucleotidesAndSingleStrands(bool createIndex /* = true */) {
 
+	if (!nanorobot_) return;
+
 	const int nSingleStrands = nanorobot_->GetNumberOfSingleStrands();
 	const unsigned int nPositions = nanorobot_->GetNumberOfNucleotides();
 	const unsigned int nCylinders = boost::numeric_cast<unsigned int>(nPositions - nSingleStrands);
@@ -459,6 +475,8 @@ void SEAdenitaVisualModel::initNucleotidesAndSingleStrands(bool createIndex /* =
 }
 
 void SEAdenitaVisualModel::initDisplayIndices() {
+
+	if (!nanorobot_) return;
 
 	auto parts = nanorobot_->GetParts();
 
@@ -527,6 +545,8 @@ void SEAdenitaVisualModel::initDisplayIndices() {
 
 void SEAdenitaVisualModel::initDoubleStrands(bool createIndex /*= true*/) {
 
+	if (!nanorobot_) return;
+
 	const unsigned int nPositions = nanorobot_->GetNumberOfBaseSegments();
 
 	nPositionsDS_ = nPositions;
@@ -550,6 +570,8 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getAtomIndices() {
 }
 
 ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
+
+	if (!nanorobot_) return ADNArray<unsigned int>();
 
 	auto singleStrands = nanorobot_->GetSingleStrands();
 	auto parts = nanorobot_->GetParts();
@@ -648,7 +670,7 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getBaseSegmentIndices() {
 	//not clear yet whether the indices are needed
 	//for now this function is just used to construct the bsMap_
 
-	auto parts = nanorobot_->GetParts();
+	//auto parts = nanorobot_->GetParts();
 
 	const unsigned int nDs = bsMap_.size();
   
@@ -674,6 +696,8 @@ void SEAdenitaVisualModel::prepareDiscreteScalesDim() {
 }
 
 void SEAdenitaVisualModel::prepareDimensions() {
+
+	if (!nanorobot_) return;
 
 	auto parts = nanorobot_->GetParts();
 	auto conformations = nanorobot_->GetConformations();
@@ -1088,6 +1112,8 @@ void SEAdenitaVisualModel::replaceColors(ADNArray<float> & colors, std::vector<u
 }
 
 void SEAdenitaVisualModel::changeHighlightFlag() {
+	
+	if (!nanorobot_) return;
 
 	isHighlightFlagChangeRequested = false;
 
@@ -1144,6 +1170,8 @@ void SEAdenitaVisualModel::changeHighlightFlag() {
 }
 
 void SEAdenitaVisualModel::orderVisibility() {
+
+	if (!nanorobot_) return;
 
 	unsigned int order = 1;
 
@@ -1823,6 +1851,8 @@ void SEAdenitaVisualModel::changePropertyColors(const int propertyIdx, const int
 	this->curColorType_ = static_cast<ColorType>(propertyIdx);
 	this->colorSchemeCurrentIndex = colorSchemeIdx;
 
+	if (!nanorobot_) return;
+
 	if (this->curColorType_ == ColorType::MELTTEMP || this->curColorType_ == ColorType::GIBBS) {
 
 		auto meltingTempColors = colors_.at(ColorType::MELTTEMP);
@@ -1944,6 +1974,8 @@ void SEAdenitaVisualModel::display() {
 
 	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop. This is the main function of your visual model. 
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
+
+	if (!nanorobot_) return;
 
 	if (isUpdateRequested) update();
 	if (isHighlightFlagChangeRequested) changeHighlightFlag();
@@ -2330,6 +2362,8 @@ void SEAdenitaVisualModel::displayForSelection() {
 
 void SEAdenitaVisualModel::displayBasePairConnections(bool onlySelected) {
 
+	if (!nanorobot_) return;
+
 	if (scale_ < static_cast<float>(Scale::NUCLEOTIDES) && scale_ > static_cast<float>(Scale::SINGLE_STRANDS)) return;
 
 	SEConfig& config = SEConfig::GetInstance();
@@ -2459,6 +2493,8 @@ void SEAdenitaVisualModel::displayForDebugging() {
 
 void SEAdenitaVisualModel::displayCircularDNAConnection() {
 
+	if (!nanorobot_) return;
+
 	if (scale_ < static_cast<float>(Scale::NUCLEOTIDES) || scale_ > static_cast<float>(Scale::SINGLE_STRANDS)) return;
 
 	auto parts = nanorobot_->GetParts();
@@ -2512,6 +2548,8 @@ void SEAdenitaVisualModel::displayCircularDNAConnection() {
 
 void SEAdenitaVisualModel::displayTags() {
 
+	if (!nanorobot_) return;
+
 	//tagged nucleotides should be saved in a list
 	auto parts = nanorobot_->GetParts();
 
@@ -2532,6 +2570,8 @@ void SEAdenitaVisualModel::displayTags() {
 }
 
 void SEAdenitaVisualModel::prepareAtoms() {
+
+	if (!nanorobot_) return;
 
 	SEConfig& config = SEConfig::GetInstance();
 	MSVColors* curColors = colors_[curColorType_];
@@ -2587,6 +2627,8 @@ void SEAdenitaVisualModel::prepareAtoms() {
 }
 
 void SEAdenitaVisualModel::highlightNucleotides() {
+
+	if (!nanorobot_) return;
 
 	prepareDiscreteScalesDim();
 
