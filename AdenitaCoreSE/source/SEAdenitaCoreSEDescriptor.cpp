@@ -33,7 +33,7 @@
 
 SB_ELEMENT_DESCRIPTION("Modeling and Visualization of DNA Nanostructures");
 SB_ELEMENT_DOCUMENTATION("Resource/Documentation/doc.html");
-SB_ELEMENT_VERSION_NUMBER("0.12.8");
+SB_ELEMENT_VERSION_NUMBER("0.12.9");
 
 SB_ELEMENT_CLASSES_BEGIN;
 
@@ -52,8 +52,8 @@ SB_ELEMENT_CLASSES_BEGIN;
 	SB_ELEMENT_CLASS(ADNDoubleStrand);
 	SB_ELEMENT_CLASS(ADNPart);
 	SB_ELEMENT_CLASS(PIBindingRegion);
-	SB_ELEMENT_CLASS(SEAdenitaVisualModel);
-	SB_ELEMENT_CLASS(SEAdenitaVisualModelProperties);
+	//SB_ELEMENT_CLASS(SEAdenitaVisualModel);
+	//SB_ELEMENT_CLASS(SEAdenitaVisualModelProperties);
 	SB_ELEMENT_CLASS(SEWireframeEditor);
 	SB_ELEMENT_CLASS(SEBreakEditor);
 	SB_ELEMENT_CLASS(SEDeleteEditor);
@@ -64,8 +64,8 @@ SB_ELEMENT_CLASSES_BEGIN;
 	SB_ELEMENT_CLASS(SETwistHelixEditor);
 	SB_ELEMENT_CLASS(SEMergePartsEditor);
 	SB_ELEMENT_CLASS(SETaggingEditor);
-	SB_ELEMENT_CLASS(SETaggingVisualModel);
-	SB_ELEMENT_CLASS(SETaggingVisualModelProperties);
+	//SB_ELEMENT_CLASS(SETaggingVisualModel);
+	//SB_ELEMENT_CLASS(SETaggingVisualModelProperties);
 	SB_ELEMENT_CLASS(SELatticeCreatorEditor);
 	SB_ELEMENT_CLASS(SEAdenitaImporterAdn);
 	SB_ELEMENT_CLASS(SEAdenitaImporterAdnpart);

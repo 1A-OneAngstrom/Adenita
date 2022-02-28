@@ -16,6 +16,7 @@ SETaggingVisualModel::SETaggingVisualModel(const SBNodeIndexer& nodeIndexer) {
 	// the center of mass of a group of atoms, you might want to connect to the atoms' base signals (e.g. to update the center of mass when an atom is erased) and
 	// the atoms' structural signals (e.g. to update the center of mass when an atom is moved).
 
+	goldAtoms_.clear();
     SAMSON::getActiveDocument()->getNodes(goldAtoms_, SBNode::IsType(SBNode::Atom) && SBNode::IsSelected());
   
 }
