@@ -3,19 +3,10 @@
 #ifndef BACKTOTHEATOM_H
 #define BACKTOTHEATOM_H
 
-
 #include <vector>
 #include <string>
 #include <map>
 #include <stdlib.h>
-#include <fstream>
-
-#include "SBProxy.hpp"
-#include "SBDDataGraphNode.hpp"
-#include "SBStructuralModel.hpp"
-#include "SAMSON.hpp"
-#include "SBChain.hpp"
-#include "SBMolecule.hpp"
 
 #include "ADNNanorobot.hpp"
 #include "ADNVectorMath.hpp"
@@ -103,11 +94,13 @@ private:
     /** Loads the four base pairs as members
     */
     void LoadNtPairs();
+
     /** Parses a nucleotide PDB file.
      *  \param a string with the location of the PDB.
      *  \return a nucleotide object.
      */
     ADNPointer<ADNNucleotide> ParsePDB(std::string source);
+
     /** Parses a base pair PDB file.
      *  \param a string with the location of the PDB.
      *  \return a pair of nucleotide objects.

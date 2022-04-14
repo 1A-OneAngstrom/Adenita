@@ -2,6 +2,11 @@
 
 #include "ADNSaveAndLoad.hpp"
 
+#ifdef _WIN32
+#include <locale>
+#include <codecvt>
+#endif
+
 #undef foreach
 #include <boost/foreach.hpp>
 #include <boost/algorithm/string.hpp>
@@ -1172,148 +1177,181 @@ void ADNLoader::SingleStrandsToOxDNA(CollectionMap<ADNSingleStrand> singleStrand
   }
 }
 
-void ADNLoader::SignOutputFile(std::ofstream& output)
-{
-  time_t rawtime;
-  struct tm * timeinfo;
-  char buffer[80];
+void ADNLoader::SignOutputFile(std::ofstream& output) {
 
-  time(&rawtime);
-  timeinfo = localtime(&rawtime);
+    time_t rawtime;
+    struct tm * timeinfo;
+    char buffer[80];
 
-  strftime(buffer, sizeof(buffer), "%d-%m-%Y %I:%M:%S", timeinfo);
-  std::string str(buffer);
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
 
-  output << "## File created with Adenita on " + str + "\n";
+    strftime(buffer, sizeof(buffer), "%d-%m-%Y %I:%M:%S", timeinfo);
+    std::string str(buffer);
+
+    output << "## File created with Adenita on " + str + "\n";
+
 }
 
-std::pair<bool, ADNPointer<ADNPart>> ADNLoader::InputFromOxDNA(std::string topoFile, std::string configFile)
-{
-  ADNPointer<ADNPart> part = new ADNPart();
-  bool error = false;
-  std::vector<NucleotideWrap> oxDNAIndices;
+std::pair<bool, ADNPointer<ADNPart>> ADNLoader::InputFromOxDNA(std::string topoFile, std::string configFile) {
 
-  // parse topology file
-  std::ifstream topo(topoFile);
-  if (topo.is_open()) {
+    ADNPointer<ADNPart> part = new ADNPart();
+    bool error = false;
+    std::vector<NucleotideWrap> oxDNAIndices;
 
-    std::string line;
-    ADNPointer<ADNSingleStrand> ss;
-    int currChain = -1;
-    int currNt = 0;
-    bool fstLine = true;
-    error = false;
+    // parse topology file
+#ifdef _WIN32
+    // convert to a wide string (UTF-8) to take care of special charachers
+    std::ifstream topo(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(topoFile));
+#else
+    std::ifstream topo(topoFile);
+#endif
 
-    while (std::getline(topo, line)) {
-      if (fstLine) {
-        fstLine = false;
-        continue;  // first line of topology contains number of chains and nucleotides
-      }
+    if (topo.is_open()) {
 
-      std::vector<std::string> cont;
-      boost::split(cont, line, boost::is_any_of(" "));
-      if (cont.size() != 4) {
-        error = true;
-        break;
-      }
+        std::string line;
+        ADNPointer<ADNSingleStrand> ss;
+        int currChain = -1;
+        int currNt = 0;
+        bool fstLine = true;
+        error = false;
 
-      int numChain = std::stoi(cont[0]);
-      char base = cont[1][0];
-      int numPrevNt = std::stoi(cont[2]);
-      int numNextNt = std::stoi(cont[3]);
+        while (std::getline(topo, line)) {
 
-      if (numChain != currChain) {
-        ss = new ADNSingleStrand();
-        ss->SetDefaultName();
-        part->RegisterSingleStrand(ss);
-        currChain = numChain;
-      }
+            if (fstLine) {
 
-      ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
-      nt->Init();
-      nt->setNucleotideType(ADNModel::ResidueNameToType(base));
-      part->RegisterNucleotideThreePrime(ss, nt);
+                fstLine = false;
+                continue;  // first line of topology contains number of chains and nucleotides
 
-      // if last nucleotide next is same as first close
+            }
 
-      // insert wraper
-      NucleotideWrap w = NucleotideWrap();
-      w.elem_ = nt;
-      w.id_ = currNt;
-      w.strandId_ = currChain;
-      oxDNAIndices.push_back(w);
+            std::vector<std::string> cont;
+            boost::split(cont, line, boost::is_any_of(" "));
+            if (cont.size() != 4) {
 
-      currNt++;
-    }
-  }
+                error = true;
+                break;
 
-  // parse config file and set positions if topology file was parsed correctly
-  if (!error) {
-    std::ifstream config(configFile);
+            }
 
-    if (config.is_open()) {
+            int numChain = std::stoi(cont[0]);
+            char base = cont[1][0];
+            int numPrevNt = std::stoi(cont[2]);
+            int numNextNt = std::stoi(cont[3]);
 
-      std::string line;
-      int lineCount = 0;
-      error = false;
+            if (numChain != currChain) {
 
-      while (std::getline(config, line)) {
-        if (lineCount > 2) {
+                ss = new ADNSingleStrand();
+                ss->SetDefaultName();
+                part->RegisterSingleStrand(ss);
+                currChain = numChain;
 
-          std::vector<std::string> cont;
-          boost::split(cont, line, boost::is_any_of(" "));
-          if (cont.size() != 15) {
-            error = true;
-            break;
-          }
+            }
 
-          double x = std::stod(cont[0]);
-          double y = std::stod(cont[1]);
-          double z = std::stod(cont[2]);
-          double e2x = std::stod(cont[3]);
-          double e2y = std::stod(cont[4]);
-          double e2z = std::stod(cont[5]);
-          double e1x = std::stod(cont[6]);
-          double e1y = std::stod(cont[7]);
-          double e1z = std::stod(cont[8]);
+            ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
+            nt->Init();
+            nt->setNucleotideType(ADNModel::ResidueNameToType(base));
+            part->RegisterNucleotideThreePrime(ss, nt);
 
-          if (oxDNAIndices.size() > (lineCount - 3)) {
-            SBPosition3 pos = SBPosition3(SBQuantity::nanometer(x), SBQuantity::nanometer(y), SBQuantity::nanometer(z));
-            ublas::vector<double> e2 = ublas::vector<double>(3, 0.0);
-            e2[0] = e2x;
-            e2[1] = e2y;
-            e2[2] = e2z;
-            ublas::vector<double> e1 = ublas::vector<double>(3, 0.0); 
-            e1[0] = e1x;
-            e1[1] = e1y;
-            e1[2] = e1z;
-            ublas::vector<double> e3 = ADNVectorMath::CrossProduct(e1, e2);
+            // if last nucleotide next is same as first close
 
-            auto w = oxDNAIndices.at(lineCount - 3);
-            auto nt = w.elem_;
-            nt->SetPosition(pos);
-            nt->SetE2(e2);
-            nt->SetE1(e1);
-            nt->SetE3(e3);
-          }
-          else {
-            error = true;
-            break;
-          }
+            // insert wraper
+            NucleotideWrap w = NucleotideWrap();
+            w.elem_ = nt;
+            w.id_ = currNt;
+            w.strandId_ = currChain;
+            oxDNAIndices.push_back(w);
+
+            currNt++;
+
         }
 
-        lineCount++;
-      }
     }
-  }
 
-  if (!error) {
-    // create base pairs and double strands
-    BuildTopScales(part);
+    // parse config file and set positions if topology file was parsed correctly
+    if (!error) {
 
-  }
+#ifdef _WIN32
+      // convert to a wide string (UTF-8) to take care of special charachers
+      std::ifstream config(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(configFile));
+#else
+      std::ifstream config(configFile);
+#endif
+
+        if (config.is_open()) {
+
+            std::string line;
+            int lineCount = 0;
+            error = false;
+
+            while (std::getline(config, line)) {
+
+                if (lineCount > 2) {
+
+                    std::vector<std::string> cont;
+                    boost::split(cont, line, boost::is_any_of(" "));
+                    if (cont.size() != 15) {
+                        error = true;
+                        break;
+                    }
+
+                    double x = std::stod(cont[0]);
+                    double y = std::stod(cont[1]);
+                    double z = std::stod(cont[2]);
+                    double e2x = std::stod(cont[3]);
+                    double e2y = std::stod(cont[4]);
+                    double e2z = std::stod(cont[5]);
+                    double e1x = std::stod(cont[6]);
+                    double e1y = std::stod(cont[7]);
+                    double e1z = std::stod(cont[8]);
+
+                    if (oxDNAIndices.size() > (lineCount - 3)) {
+
+                        SBPosition3 pos = SBPosition3(SBQuantity::nanometer(x), SBQuantity::nanometer(y), SBQuantity::nanometer(z));
+                        ublas::vector<double> e2 = ublas::vector<double>(3, 0.0);
+                        e2[0] = e2x;
+                        e2[1] = e2y;
+                        e2[2] = e2z;
+                        ublas::vector<double> e1 = ublas::vector<double>(3, 0.0); 
+                        e1[0] = e1x;
+                        e1[1] = e1y;
+                        e1[2] = e1z;
+                        ublas::vector<double> e3 = ADNVectorMath::CrossProduct(e1, e2);
+
+                        auto w = oxDNAIndices.at(lineCount - 3);
+                        auto nt = w.elem_;
+                        nt->SetPosition(pos);
+                        nt->SetE2(e2);
+                        nt->SetE1(e1);
+                        nt->SetE3(e3);
+
+                    }
+                    else {
+
+                        error = true;
+                        break;
+
+                    }
+
+                }
+
+                lineCount++;
+
+            }
+
+        }
+
+    }
+
+    if (!error) {
+
+        // create base pairs and double strands
+        BuildTopScales(part);
+
+    }
   
-  return std::make_pair(error, part);
+    return std::make_pair(error, part);
+
 }
 
 void ADNLoader::OutputToCanDo(ADNNanorobot * nanorobot, std::string filename)

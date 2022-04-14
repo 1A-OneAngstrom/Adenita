@@ -6,7 +6,7 @@
 
 void ADNLogger::LogError(const std::string& value) {
 
-    SB_ERROR("Adenita error: " + value);
+    SB_ERROR("[Adenita] Error: " + value);
 
 }
 
@@ -20,7 +20,7 @@ void ADNLogger::LogDebug(const std::string& value) {
 
     SEConfig& config = SEConfig::GetInstance();
     if (config.mode == SEConfigMode::DEBUG_LOG)
-        SB_WARNING("Adenita debug: " + value);
+        SB_WARNING("[Adenita] Debug: " + value);
 
 }
 
@@ -32,7 +32,7 @@ void ADNLogger::LogDebug(const QString& value) {
 
 void ADNLogger::Log(const std::string& value) {
 
-    SB_INFORMATION("Adenita info: " + value);
+    SB_INFORMATION("[Adenita] Info: " + value);
 
 }
 
