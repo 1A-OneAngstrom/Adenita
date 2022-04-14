@@ -13,7 +13,20 @@
 
 ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(std::string filename) {
 
-    FILE* fp = fopen(filename.c_str(), "rb");
+    FILE* fp = nullptr;
+    try {
+#ifdef _WIN32
+        // convert to a wide string (UTF-8) to take care of special charachers
+        std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
+        fp = _wfopen(wfileName.c_str(), L"rb");
+#else
+        fp = fopen(filename.c_str(), "rb");
+#endif
+    }
+    catch (...) {
+        return nullptr;
+    }
+
     if (fp == nullptr) return nullptr;
 
     char readBuffer[131072];
@@ -222,7 +235,20 @@ std::vector<ADNPointer<ADNPart>> ADNLoader::LoadPartsFromJson(std::string filena
 
     std::vector<ADNPointer<ADNPart>> parts;
 
-    FILE* fp = fopen(filename.c_str(), "rb");
+    FILE* fp = nullptr;
+    try {
+#ifdef _WIN32
+        // convert to a wide string (UTF-8) to take care of special charachers
+        std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
+        fp = _wfopen(wfileName.c_str(), L"rb");
+#else
+        fp = fopen(filename.c_str(), "rb");
+#endif
+    }
+    catch (...) {
+        return parts;
+    }
+
     if (fp == nullptr) return parts;
 
     char readBuffer[131072];
@@ -261,10 +287,23 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(std::string filename) {
 
   // ids are reset since old format didn't use unique ids
 
-  ADNPointer<ADNPart> part = new ADNPart();
+  FILE* fp = nullptr;
+  try {
+#ifdef _WIN32
+      // convert to a wide string (UTF-8) to take care of special charachers
+      std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
+      fp = _wfopen(wfileName.c_str(), L"rb");
+#else
+      fp = fopen(filename.c_str(), "rb");
+#endif
+  }
+  catch (...) {
+      return nullptr;
+  }
 
-  FILE* fp = fopen(filename.c_str(), "rb");
   if (fp == nullptr) return nullptr;
+
+  ADNPointer<ADNPart> part = new ADNPart();
 
   char readBuffer[131072];
   rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));

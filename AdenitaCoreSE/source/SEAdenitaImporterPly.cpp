@@ -37,7 +37,12 @@ bool SEAdenitaImporterPly::importFromFile(const std::string& fileName, const SBL
 
 	SEAdenitaCoreSEApp* adenitaApp = SEAdenitaCoreSEApp::getAdenitaApp();
 
-	if (!adenitaApp) return false;
+	if (!adenitaApp) {
+
+		SAMSON::informUser("Adenita", "Adenita is not initialized. Please start Adenita first.\n");
+		return false;
+
+	}
 
 	QString fn = QString::fromStdString(fileName);
 	if (!QFileInfo::exists(fn)) return false;
