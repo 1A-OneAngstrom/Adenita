@@ -38,12 +38,7 @@ bool SEAdenitaImporterJson::importFromFile(const std::string& fileName, const SB
 
 	SEAdenitaCoreSEApp* adenitaApp = SEAdenitaCoreSEApp::getAdenitaApp();
 
-	if (!adenitaApp) {
-
-		SAMSON::informUser("Adenita", "Adenita is not initialized. Please start Adenita first.\n");
-		return false;
-
-	}
+	if (!adenitaApp) return false;
 
 	const QString fn = QString::fromStdString(fileName);
 	if (!QFileInfo::exists(fn)) return false;
