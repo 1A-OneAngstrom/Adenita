@@ -18,6 +18,11 @@
 #include "SEDSDNACreatorEditor.hpp"
 #include "SEMergePartsEditor.hpp"
 
+#ifdef _WIN32
+#include <locale>
+#include <codecvt>
+#endif
+
 #include <QPixmap>
 #include <QTimer>
 #include <QGroupBox>
@@ -946,7 +951,24 @@ void SEAdenitaCoreSEAppGUI::onTwisterEditor() {
 
 std::string SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(QString filename) {
 
-	FILE* fp = fopen(filename.toStdString().c_str(), "rb");
+	FILE* fp = nullptr;
+	try {
+
+#ifdef _WIN32
+		// convert to a wide string (UTF-8) to take care of special charachers
+		std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename.toStdString());
+		fp = _wfopen(wfileName.c_str(), L"rb");
+#else
+		fp = fopen(filename.toStdString().c_str(), "rb");
+#endif
+
+	}
+	catch (...) { 
+		
+		return "unknown";
+
+	}
+
 	char readBuffer[65536];
 	rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
 	rapidjson::Document d;

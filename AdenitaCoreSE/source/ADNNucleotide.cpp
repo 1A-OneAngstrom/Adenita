@@ -462,7 +462,10 @@ void ADNNucleotide::Init() {
 
 ADNPointer<ADNBackbone> ADNNucleotide::GetBackbone() const {
 
-    auto bb = static_cast<ADNBackbone*>(getBackbone());
+    SBBackbone* backbone = getBackbone();
+    if (!backbone) return nullptr;
+
+    auto bb = static_cast<ADNBackbone*>(backbone);
     if (bb)
         return ADNPointer<ADNBackbone>(bb);
     else
@@ -472,7 +475,10 @@ ADNPointer<ADNBackbone> ADNNucleotide::GetBackbone() const {
 
 ADNPointer<ADNSidechain> ADNNucleotide::GetSidechain() const {
 
-    auto sc = static_cast<ADNSidechain*>(getSideChain());
+    SBSideChain* sideChain = getSideChain();
+    if (!sideChain) return nullptr;
+
+    auto sc = static_cast<ADNSidechain*>(sideChain);
     if (sc)
         return ADNPointer<ADNSidechain>(sc);
     else

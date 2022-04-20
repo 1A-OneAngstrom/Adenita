@@ -1,8 +1,30 @@
 #include "DASCadnano.hpp"
 
-void DASCadnano::ParseJSON(std::string filename)
-{
-    FILE* fp = fopen(filename.c_str(), "rb");
+#ifdef _WIN32
+#include <locale>
+#include <codecvt>
+#endif
+
+void DASCadnano::ParseJSON(std::string filename) {
+
+    FILE* fp = nullptr;
+    try {
+
+#ifdef _WIN32
+        // convert to a wide string (UTF-8) to take care of special charachers
+        std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
+        fp = _wfopen(wfileName.c_str(), L"rb");
+#else
+        fp = fopen(filename.c_str(), "rb");
+#endif
+
+    }
+    catch (...) {
+
+        return;
+
+    }
+
     char readBuffer[65536];
     rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
     rapidjson::Document d;
@@ -22,15 +44,17 @@ void DASCadnano::ParseJSON(std::string filename)
     }
 
     fclose(fp);
+
 }
 
-void DASCadnano::ParseCadnanoFormat3(rapidjson::Document& d)
-{
+void DASCadnano::ParseCadnanoFormat3(rapidjson::Document& d) {
+
     ADNLogger::LogError(std::string("Cadnano format 3.0 not yet supported."));
+
 }
 
-void DASCadnano::ParseCadnanoLegacy(rapidjson::Document& d)
-{
+void DASCadnano::ParseCadnanoLegacy(rapidjson::Document& d) {
+
     json_.name_ = d["name"].GetString();
     rapidjson::Value& vstrandsVal = d["vstrands"];
 
@@ -172,8 +196,8 @@ ADNPointer<ADNPart> DASCadnano::CreateCadnanoModel() {
 
 }
 
-void DASCadnano::CreateEdgeMap(ADNPointer<ADNPart> part)
-{
+void DASCadnano::CreateEdgeMap(ADNPointer<ADNPart> part) {
+
     auto tubes = vGrid_.vDoubleStrands_;
     for (auto& tube : tubes) {
 
