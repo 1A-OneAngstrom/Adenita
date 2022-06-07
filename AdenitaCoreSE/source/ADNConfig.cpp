@@ -1,174 +1,210 @@
 #include "ADNConfig.hpp"
 #include "rapidjson/filewritestream.h"
 
-SEConfig & SEConfig::GetInstance()
-{
-  static SEConfig instance;
-  return instance;
+SEConfig & SEConfig::GetInstance() {
+
+    static SEConfig instance;
+    return instance;
+
 }
 
-void SEConfig::setAutoSetScaffoldSequence(bool b)
-{
-  auto_set_scaffold_sequence = b;
-  if (setting_.FindMember("auto_set_scaffold_sequence") != setting_.MemberEnd()) {
-    setting_["auto_set_scaffold_sequence"].SetBool(b);
-  }
-  else {
-    Val v;
-    v.SetBool(b);
-    setting_.AddMember("auto_set_scaffold_sequence", v, setting_.GetAllocator());
-  }
-  writeDocumentToJson();
-}
+void SEConfig::setAutoSetScaffoldSequence(bool b) {
 
-void SEConfig::setShowOverlay(bool b)
-{
-  show_overlay = b;
-  if (setting_.FindMember("show_overlay") != setting_.MemberEnd()) {
-    setting_["show_overlay"].SetBool(b);
-  }
-  else {
-    Val v;
-    v.SetBool(b);
-    setting_.AddMember("show_overlay", v, setting_.GetAllocator());
-  }
-  writeDocumentToJson();
-}
+    auto_set_scaffold_sequence = b;
+    if (setting_.FindMember("auto_set_scaffold_sequence") != setting_.MemberEnd()) {
 
-void SEConfig::setDisplayPossibleCrossovers(bool b)
-{
-  display_possible_crossovers = b;
-  if (setting_.FindMember("display_possible_crossovers") != setting_.MemberEnd()) {
-    setting_["display_possible_crossovers"].SetBool(b);
-  }
-  else {
-    Val v;
-    v.SetBool(b);
-    setting_.AddMember("display_possible_crossovers", v, setting_.GetAllocator());
-  }
-  writeDocumentToJson();
-}
+        setting_["auto_set_scaffold_sequence"].SetBool(b);
 
-void SEConfig::setClearLogFile(bool b)
-{
-  clear_log_file = b;
-  if (setting_.FindMember("clear_log_file") != setting_.MemberEnd()) {
-    setting_["clear_log_file"].SetBool(b);
-  }
-  else {
-    Val v;
-    v.SetBool(b);
-    setting_.AddMember("clear_log_file", v, setting_.GetAllocator());
-  }
-  writeDocumentToJson();
-}
+    }
+    else {
 
-void SEConfig::setInterpolateDimensions(bool b)
-{
-  interpolate_dimensions = b;
-  if (setting_.FindMember("interpolate_dimensions") != setting_.MemberEnd()) {
-    setting_["interpolate_dimensions"].SetBool(b);
-  }
-  else {
-    Val v;
-    v.SetBool(b);
-    setting_.AddMember("interpolate_dimensions", v, setting_.GetAllocator());
-  }
-  writeDocumentToJson();
-}
+        Val v;
+        v.SetBool(b);
+        setting_.AddMember("auto_set_scaffold_sequence", v, setting_.GetAllocator());
 
-void SEConfig::setNtthalExe(std::string filename, bool write)
-{
-  ntthal = filename;
-  if (setting_.FindMember("ntthal") != setting_.MemberEnd()) {
-    setting_["ntthal"].SetString(filename.c_str(), filename.size());
-  }
-  else {
-    Val v;
-    v.SetString(filename.c_str(), filename.size());
-    setting_.AddMember("ntthal", v, setting_.GetAllocator());
-  }
-  if (write) writeDocumentToJson();
-}
-
-void SEConfig::setScaffType(int typ)
-{
-  scaffType = typ;
-  if (setting_.FindMember("scaffType") != setting_.MemberEnd()) {
-    setting_["scaffType"].SetInt(typ);
-  }
-  else {
-    Val v;
-    v.SetInt(typ);
-    setting_.AddMember("scaffType", v, setting_.GetAllocator());
-  }
-  writeDocumentToJson();
-}
-
-void SEConfig::setScaffCustomFilename(std::string filename, bool write)
-{
-  scaffCustomFilename = filename;
-  if (setting_.FindMember("scaffCustomFilename") != setting_.MemberEnd()) {
-    setting_["scaffCustomFilename"].SetString(filename.c_str(), filename.size());
-  }
-  else {
-    Val v;
-    v.SetString(filename.c_str(), filename.size());
-    setting_.AddMember("scaffCustomFilename", v, setting_.GetAllocator());
-  }
-  if (write) writeDocumentToJson();
-}
-
-void SEConfig::setCustomMeshModel(bool b)
-{
-  custom_mesh_model = b;
-  if (setting_.FindMember("custom_mesh_model") != setting_.MemberEnd()) {
-    setting_["custom_mesh_model"].SetBool(b);
-  }
-  else {
-    Val v;
-    v.SetBool(b);
-    setting_.AddMember("custom_mesh_model", v, setting_.GetAllocator());
-  }
-  writeDocumentToJson();
-}
-
-void SEConfig::updateDebugConfig()
-{
-  FILE* fp = fopen(DEBUG_CONFIGPATH.c_str(), "rb");
-  if (fp != NULL) {
-    char readBuffer[65536];
-	rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    debugSetting_.ParseStream(is);
-
-    if (debugSetting_.FindMember("min_cutoff") != debugSetting_.MemberEnd()) {
-      debugOptions.minCutOff = debugSetting_["min_cutoff"].GetDouble();
     }
     
-    if (debugSetting_.FindMember("max_cutoff") != debugSetting_.MemberEnd()) {
-      debugOptions.maxCutOff = debugSetting_["max_cutoff"].GetDouble();
+    writeDocumentToJson();
+
+}
+
+void SEConfig::setShowOverlay(bool b) {
+
+    show_overlay = b;
+    if (setting_.FindMember("show_overlay") != setting_.MemberEnd()) {
+
+        setting_["show_overlay"].SetBool(b);
+
+    }
+    else {
+
+        Val v;
+        v.SetBool(b);
+        setting_.AddMember("show_overlay", v, setting_.GetAllocator());
+
     }
 
-    if (debugSetting_.FindMember("display_nucleotide_basis") != debugSetting_.MemberEnd()) {
-      debugOptions.display_nucleotide_basis = debugSetting_["display_nucleotide_basis"].GetBool();
+    writeDocumentToJson();
+
+}
+
+void SEConfig::setDisplayPossibleCrossovers(bool b) {
+
+    display_possible_crossovers = b;
+    if (setting_.FindMember("display_possible_crossovers") != setting_.MemberEnd()) {
+        setting_["display_possible_crossovers"].SetBool(b);
+    }
+    else {
+        Val v;
+        v.SetBool(b);
+        setting_.AddMember("display_possible_crossovers", v, setting_.GetAllocator());
+    }
+    writeDocumentToJson();
+
+}
+
+void SEConfig::setClearLogFile(bool b) {
+
+    clear_log_file = b;
+    if (setting_.FindMember("clear_log_file") != setting_.MemberEnd()) {
+        setting_["clear_log_file"].SetBool(b);
+    }
+    else {
+        Val v;
+        v.SetBool(b);
+        setting_.AddMember("clear_log_file", v, setting_.GetAllocator());
+    }
+    writeDocumentToJson();
+
+}
+
+void SEConfig::setInterpolateDimensions(bool b) {
+
+    interpolate_dimensions = b;
+    if (setting_.FindMember("interpolate_dimensions") != setting_.MemberEnd()) {
+        setting_["interpolate_dimensions"].SetBool(b);
+    }
+    else {
+        Val v;
+        v.SetBool(b);
+        setting_.AddMember("interpolate_dimensions", v, setting_.GetAllocator());
+    }
+    writeDocumentToJson();
+
+}
+
+void SEConfig::setNtthalExe(std::string filename, bool write) {
+
+    ntthal = filename;
+    if (setting_.FindMember("ntthal") != setting_.MemberEnd()) {
+        setting_["ntthal"].SetString(filename.c_str(), filename.size());
+    }
+    else {
+        Val v;
+        v.SetString(filename.c_str(), filename.size());
+        setting_.AddMember("ntthal", v, setting_.GetAllocator());
+    }
+    if (write) writeDocumentToJson();
+
+}
+
+void SEConfig::setScaffType(int typ) {
+
+    scaffType = typ;
+    if (setting_.FindMember("scaffType") != setting_.MemberEnd()) {
+        setting_["scaffType"].SetInt(typ);
+    }
+    else {
+        Val v;
+        v.SetInt(typ);
+        setting_.AddMember("scaffType", v, setting_.GetAllocator());
+    }
+    writeDocumentToJson();
+
+}
+
+void SEConfig::setScaffCustomFilename(std::string filename, bool write) {
+
+    scaffCustomFilename = filename;
+    if (setting_.FindMember("scaffCustomFilename") != setting_.MemberEnd()) {
+        setting_["scaffCustomFilename"].SetString(filename.c_str(), filename.size());
+    }
+    else {
+        Val v;
+        v.SetString(filename.c_str(), filename.size());
+        setting_.AddMember("scaffCustomFilename", v, setting_.GetAllocator());
+    }
+    if (write) writeDocumentToJson();
+
+}
+
+void SEConfig::setCustomMeshModel(bool b) {
+
+    custom_mesh_model = b;
+    if (setting_.FindMember("custom_mesh_model") != setting_.MemberEnd()) {
+        setting_["custom_mesh_model"].SetBool(b);
+    }
+    else {
+        Val v;
+        v.SetBool(b);
+        setting_.AddMember("custom_mesh_model", v, setting_.GetAllocator());
+    }
+    writeDocumentToJson();
+
+}
+
+void SEConfig::setUseAtomicDetailsFlag(bool b) {
+
+    use_atomic_details = b;
+    if (setting_.FindMember("use_atomic_details") != setting_.MemberEnd()) {
+
+        setting_["use_atomic_details"].SetBool(b);
+
+    }
+    else {
+
+        Val v;
+        v.SetBool(b);
+        setting_.AddMember("use_atomic_details", v, setting_.GetAllocator());
+
     }
 
-    if (debugSetting_.FindMember("display_base_pairing") != debugSetting_.MemberEnd()) {
-      debugOptions.display_base_pairing = debugSetting_["display_base_pairing"].GetBool();
+    writeDocumentToJson();
+
+}
+
+void SEConfig::updateDebugConfig() {
+
+    FILE* fp = fopen(DEBUG_CONFIGPATH.c_str(), "rb");
+    if (fp != NULL) {
+
+        char readBuffer[65536];
+        rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+        debugSetting_.ParseStream(is);
+
+        if (debugSetting_.FindMember("min_cutoff") != debugSetting_.MemberEnd())
+            debugOptions.minCutOff = debugSetting_["min_cutoff"].GetDouble();
+    
+        if (debugSetting_.FindMember("max_cutoff") != debugSetting_.MemberEnd())
+            debugOptions.maxCutOff = debugSetting_["max_cutoff"].GetDouble();
+
+        if (debugSetting_.FindMember("display_nucleotide_basis") != debugSetting_.MemberEnd())
+            debugOptions.display_nucleotide_basis = debugSetting_["display_nucleotide_basis"].GetBool();
+
+        if (debugSetting_.FindMember("display_base_pairing") != debugSetting_.MemberEnd())
+            debugOptions.display_base_pairing = debugSetting_["display_base_pairing"].GetBool();
+
+        if (debugSetting_.FindMember("custom_bool") != debugSetting_.MemberEnd())
+            debugOptions.customBool = debugSetting_["custom_bool"].GetBool();
+
+        if (debugSetting_.FindMember("custom_double") != debugSetting_.MemberEnd())
+            debugOptions.customDouble = debugSetting_["custom_double"].GetDouble();
+
+        if (debugSetting_.FindMember("custom_int") != debugSetting_.MemberEnd())
+            debugOptions.customInt = debugSetting_["custom_int"].GetInt();
+
     }
 
-    if (debugSetting_.FindMember("custom_bool") != debugSetting_.MemberEnd()) {
-      debugOptions.customBool = debugSetting_["custom_bool"].GetBool();
-    }
-
-    if (debugSetting_.FindMember("custom_double") != debugSetting_.MemberEnd()) {
-      debugOptions.customDouble = debugSetting_["custom_double"].GetDouble();
-    }
-
-    if (debugSetting_.FindMember("custom_int") != debugSetting_.MemberEnd()) {
-      debugOptions.customInt = debugSetting_["custom_int"].GetInt();
-    }
-  }
 }
 
 SEConfig::SEConfig() {
@@ -288,54 +324,59 @@ void SEConfig::loadConfig() {
 	configFileWatcher_.addPath(DEFAULT_CONFIGPATH.c_str());
 
 	QObject::connect(&configFileWatcher_, SIGNAL(fileChanged(const QString &)), this, SLOT(updateConfig()));
+
 }
 
-void SEConfig::loadDebugConfig()
-{
-  QFileInfo check_file(DEBUG_CONFIGPATH.c_str());
+void SEConfig::loadDebugConfig() {
 
-  if (!(check_file.exists() && check_file.isFile())) {
-	  rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+    QFileInfo check_file(DEBUG_CONFIGPATH.c_str());
 
-    writer.StartObject();
+    if (!(check_file.exists() && check_file.isFile())) {
 
-    writer.Key("min_cutoff");
-    writer.Double(debugOptions.minCutOff);
+        rapidjson::StringBuffer s;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(s);
 
-    writer.Key("max_cutoff");
-    writer.Double(debugOptions.maxCutOff);
+        writer.StartObject();
 
-    writer.Key("display_nucleotide_basis");
-    writer.Bool(debugOptions.display_nucleotide_basis);
+        writer.Key("min_cutoff");
+        writer.Double(debugOptions.minCutOff);
 
-    writer.Key("display_base_pairing");
-    writer.Bool(debugOptions.display_base_pairing);
+        writer.Key("max_cutoff");
+        writer.Double(debugOptions.maxCutOff);
 
-    writer.Key("custom_bool");
-    writer.Bool(debugOptions.customBool);
+        writer.Key("display_nucleotide_basis");
+        writer.Bool(debugOptions.display_nucleotide_basis);
 
-    writer.Key("custom_double");
-    writer.Double(debugOptions.customDouble);
+        writer.Key("display_base_pairing");
+        writer.Bool(debugOptions.display_base_pairing);
 
-    writer.Key("custom_int");
-    writer.Int(debugOptions.customInt);
+        writer.Key("custom_bool");
+        writer.Bool(debugOptions.customBool);
 
-    writer.EndObject();
+        writer.Key("custom_double");
+        writer.Double(debugOptions.customDouble);
 
-    std::ofstream out(DEBUG_CONFIGPATH);
-    out << s.GetString();
-    out.close();
-  }
+        writer.Key("custom_int");
+        writer.Int(debugOptions.customInt);
 
-  updateDebugConfig();
+        writer.EndObject();
 
-  debugConfigFileWatcher_.addPath(DEBUG_CONFIGPATH.c_str());
+        std::ofstream out(DEBUG_CONFIGPATH);
+        out << s.GetString();
+        out.close();
 
-  QObject::connect(&debugConfigFileWatcher_, SIGNAL(fileChanged(const QString &)), this, SLOT(updateDebugConfig()));
+    }
+
+    updateDebugConfig();
+
+    debugConfigFileWatcher_.addPath(DEBUG_CONFIGPATH.c_str());
+
+    QObject::connect(&debugConfigFileWatcher_, SIGNAL(fileChanged(const QString &)), this, SLOT(updateDebugConfig()));
+
 }
 
 void SEConfig::updateConfig() {
+
   FILE* fp = fopen(DEFAULT_CONFIGPATH.c_str(), "rb");
   if (fp != NULL) {
     char readBuffer[65536];
@@ -493,32 +534,39 @@ void SEConfig::updateConfig() {
       custom_mesh_model = setting_["custom_mesh_model"].GetBool();
     }
   }
+
 }
 
 void SEConfig::writeDoubleArray(rapidjson::Writer<rapidjson::StringBuffer> & writer, std::string key, double * arr, int length) {
-  writer.Key(key.c_str());
 
-  writer.StartArray();
-  for (int i = 0; i < length; ++i) {
-    writer.Double(arr[i]);
-  }
+    writer.Key(key.c_str());
+
+    writer.StartArray();
+    for (int i = 0; i < length; ++i) writer.Double(arr[i]);
   
-  writer.EndArray();
+    writer.EndArray();
+
 }
 
 void SEConfig::readDoubleArray(Val & val, double * arr, int length) {
-  for (int i = 0; i < length; ++i) {
-    arr[i] = val[i].GetDouble();
-  }
+  
+    for (int i = 0; i < length; ++i) arr[i] = val[i].GetDouble();
+
 }
 
-void SEConfig::writeDocumentToJson()
-{
-  FILE* fp = fopen(DEFAULT_CONFIGPATH.c_str(), "wb"); // non-Windows use "w"
-  char writeBuffer[65536];
-  rapidjson::FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
-  rapidjson::Writer<rapidjson::FileWriteStream> writer(os);
-  setting_.Accept(writer);
-  fclose(fp);
+void SEConfig::readFloatArray(Val& val, float* arr, int length) {
+    
+    for (int i = 0; i < length; ++i) arr[i] = val[i].GetFloat();
+
 }
 
+void SEConfig::writeDocumentToJson() {
+
+    FILE* fp = fopen(DEFAULT_CONFIGPATH.c_str(), "wb"); // non-Windows use "w"
+    char writeBuffer[65536];
+    rapidjson::FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
+    rapidjson::Writer<rapidjson::FileWriteStream> writer(os);
+    setting_.Accept(writer);
+    fclose(fp);
+
+}

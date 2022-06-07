@@ -1,5 +1,6 @@
-//#include "ADNSidechain.hpp"
-//#include "ADNNucleotide.hpp"
+#include "ADNSidechain.hpp"
+#include "ADNNucleotide.hpp"
+#include "ADNAtom.hpp"
 #include "ADNModel.hpp"
 
 

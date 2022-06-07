@@ -340,7 +340,7 @@ ADNPointer<ADNDoubleStrand> DASCreator::AddRingToADNPart(ADNPointer<ADNPart> par
         ntRight->SetBackbonePosition(bs->GetPosition());
         ntRight->SetSidechainPosition(bs->GetPosition());
         ntRight->SetBaseSegment(bs);
-        ntRight->setNucleotideType(DNABlocks::DI);
+        ntRight->setNucleotideType(ADNModel::GetComplementaryBase(DNABlocks::DI));
 
         ntLeft->SetPair(ntRight);
         ntRight->SetPair(ntLeft);
@@ -408,7 +408,7 @@ RTDoubleStrand DASCreator::AddDoubleStrandToADNPart(ADNPointer<ADNPart> part, si
       ntRight->SetBackbonePosition(bs->GetPosition());
       ntRight->SetSidechainPosition(bs->GetPosition());
       ntRight->SetBaseSegment(bs);
-      ntRight->setNucleotideType(DNABlocks::DI);
+      ntRight->setNucleotideType(ADNModel::GetComplementaryBase(DNABlocks::DI));
 
       ntLeft->SetPair(ntRight);
       ntRight->SetPair(ntLeft);
@@ -428,54 +428,72 @@ RTDoubleStrand DASCreator::AddDoubleStrandToADNPart(ADNPointer<ADNPart> part, si
   return res;
 }
 
-RTDoubleStrand DASCreator::AddSingleStrandToADNPart(ADNPointer<ADNPart> part, size_t length, SBPosition3 start, SBVector3 direction)
-{
-  SBPosition3 delt = SBQuantity::nanometer(ADNConstants::BP_RISE) * direction;
-  SBPosition3 pos = start;
+RTDoubleStrand DASCreator::AddSingleStrandToADNPart(ADNPointer<ADNPart> part, size_t length, SBPosition3 start, SBVector3 direction) {
 
-  ADNPointer<ADNDoubleStrand> ds = new ADNDoubleStrand();
-  part->RegisterDoubleStrand(ds);
-  // create nucleotides
-  ADNPointer<ADNSingleStrand> ss = new ADNSingleStrand();
-  part->RegisterSingleStrand(ss);
+    SBPosition3 delt = SBQuantity::nanometer(ADNConstants::BP_RISE) * direction;
+    SBPosition3 pos = start;
 
-  for (size_t i = 0; i < length; ++i) {
-    ADNPointer<ADNBaseSegment> bs = new ADNBaseSegment();
-    bs->SetPosition(pos);
-    bs->SetE3(ADNAuxiliary::SBVectorToUblasVector(direction));
-    bs->SetNumber(boost::numeric_cast<int>(i));
-    part->RegisterBaseSegmentEnd(ds, bs);
+    ADNPointer<ADNDoubleStrand> ds = new ADNDoubleStrand();
+    part->RegisterDoubleStrand(ds);
+    // create nucleotides
+    ADNPointer<ADNSingleStrand> ss = new ADNSingleStrand();
+    part->RegisterSingleStrand(ss);
 
-    ADNPointer<ADNBasePair> bp = new ADNBasePair();
-    bs->SetCell(bp());
+    for (size_t i = 0; i < length; ++i) {
 
-    ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
-    nt->Init();
-    part->RegisterNucleotideThreePrime(ss, nt);
-    nt->setNucleotideType(DNABlocks::DI);
-    nt->SetPosition(bs->GetPosition());
-    nt->SetBackbonePosition(bs->GetPosition());
-    nt->SetSidechainPosition(bs->GetPosition());
-    nt->SetBaseSegment(bs);
-    bp->SetLeftNucleotide(nt);
+        ADNPointer<ADNBaseSegment> bs = new ADNBaseSegment();
+        bs->SetPosition(pos);
+        bs->SetE3(ADNAuxiliary::SBVectorToUblasVector(direction));
+        bs->SetNumber(boost::numeric_cast<int>(i));
+        part->RegisterBaseSegmentEnd(ds, bs);
 
-    pos += delt;
-  }
+        ADNPointer<ADNBasePair> bp = new ADNBasePair();
+        bs->SetCell(bp());
 
-  ss->SetDefaultName();
+        ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
+        nt->Init();
+        part->RegisterNucleotideThreePrime(ss, nt);
 
-  RTDoubleStrand res;
-  res.ds = ds;
-  res.ss1 = ss;
-  return res;
+        DNABlocks nucleotideType = DNABlocks::DI;
+        SBNode* rightNucleotideNode = bp->getRight();
+        if (rightNucleotideNode) if (rightNucleotideNode->getType() == SBNode::Residue) {
+
+            try {
+                ADNNucleotide* rightNucleotide = static_cast<ADNNucleotide*>(rightNucleotideNode);
+                nucleotideType = ADNModel::GetComplementaryBase(rightNucleotide->getNucleotideType());
+            }
+            catch (...) {}
+
+        }
+        nt->setNucleotideType(nucleotideType);
+
+        nt->SetPosition(bs->GetPosition());
+        nt->SetBackbonePosition(bs->GetPosition());
+        nt->SetSidechainPosition(bs->GetPosition());
+        nt->SetBaseSegment(bs);
+
+        bp->SetLeftNucleotide(nt);
+
+        pos += delt;
+
+    }
+
+    ss->SetDefaultName();
+
+    RTDoubleStrand res;
+    res.ds = ds;
+    res.ss1 = ss;
+    return res;
+
 }
 
-void DASCreatorEditors::resetPositions(UIData& pos)
-{
-  pos.FirstPosition = SBPosition3();
-  pos.SecondPosition = SBPosition3();
-  pos.ThirdPosition = SBPosition3();
-  pos.FirstVector = SBVector3();
-  pos.positionsCounter = 0;
-  pos.vectorsCounter = 0;
+void DASCreatorEditors::resetPositions(UIData& pos) {
+
+    pos.FirstPosition = SBPosition3();
+    pos.SecondPosition = SBPosition3();
+    pos.ThirdPosition = SBPosition3();
+    pos.FirstVector = SBVector3();
+    pos.positionsCounter = 0;
+    pos.vectorsCounter = 0;
+
 }

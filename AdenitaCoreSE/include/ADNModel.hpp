@@ -7,16 +7,6 @@
 #include "ADNAuxiliary.hpp"
 #include "ADNLogger.hpp"
 
-#include "ADNAtom.hpp"
-#include "ADNBackbone.hpp"
-#include "ADNBaseSegment.hpp"
-#include "ADNCell.hpp"
-#include "ADNDoubleStrand.hpp"
-#include "ADNLoop.hpp"
-#include "ADNNucleotide.hpp"
-#include "ADNSidechain.hpp"
-#include "ADNSingleStrand.hpp"
-
 #undef foreach
 #include <boost/foreach.hpp>
 #include <boost/bimap.hpp>
@@ -31,21 +21,24 @@ static std::vector<std::string> backbone_names_ = std::vector<std::string>{ "P",
 
 using DNAPairsToString = boost::bimap<std::pair<DNABlocks, DNABlocks>, std::string>;
 const DNAPairsToString nt_pairs_names_ = boost::assign::list_of<DNAPairsToString::relation>
-(std::make_pair(DNABlocks::DA, DNABlocks::DT), "AT")(std::make_pair(DNABlocks::DT, DNABlocks::DA), "TA")
-(std::make_pair(DNABlocks::DC, DNABlocks::DG), "CG")(std::make_pair(DNABlocks::DG, DNABlocks::DC), "GC")(std::make_pair(DNABlocks::DI, DNABlocks::DI), "NN");
+(std::make_pair(DNABlocks::DA, DNABlocks::DT), "AT")
+(std::make_pair(DNABlocks::DT, DNABlocks::DA), "TA")
+(std::make_pair(DNABlocks::DC, DNABlocks::DG), "CG")
+(std::make_pair(DNABlocks::DG, DNABlocks::DC), "GC")
+(std::make_pair(DNABlocks::DI, DNABlocks::DI), "NN");
 
 /* Namespace with static functions */
 namespace ADNModel {
 
-	DNABlocks GetComplementaryBase(DNABlocks base);
+	DNABlocks													GetComplementaryBase(DNABlocks base);
 
-	char GetResidueName(DNABlocks t);
-	DNABlocks ResidueNameToType(char n);
+	char														GetResidueName(DNABlocks t);
+	DNABlocks													ResidueNameToType(char n);
 
-	bool IsAtomInBackboneByName(std::string name);
+	bool														IsAtomInBackboneByName(std::string name);
 
-	SBElement::Type GetElementType(std::string atomName);
+	SBElement::Type												GetElementType(std::string atomName);
 
-	std::map<std::string, std::vector<std::string>> GetNucleotideBonds(DNABlocks t);
+	std::map<std::string, std::vector<std::string>>				GetNucleotideBonds(DNABlocks t);
 
 }

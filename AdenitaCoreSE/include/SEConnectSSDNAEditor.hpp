@@ -10,6 +10,7 @@
 #include "SBAction.hpp"
 
 #include "ADNModel.hpp"
+#include "ADNNucleotide.hpp"
 #include "ADNMixins.hpp"
 
 /// This class implements an editor

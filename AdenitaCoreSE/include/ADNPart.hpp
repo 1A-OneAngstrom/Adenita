@@ -2,6 +2,13 @@
 
 #include "ADNConstants.hpp"
 #include "ADNModel.hpp"
+#include "ADNCell.hpp"
+#include "ADNDoubleStrand.hpp"
+#include "ADNSingleStrand.hpp"
+#include "ADNNucleotide.hpp"
+#include "ADNAtom.hpp"
+#include "ADNBaseSegment.hpp"
+
 #include "SBStructuralModel.hpp"
 #include "SBMStructuralModelNodeRoot.hpp"
 #include "SBIAVector3.hpp"

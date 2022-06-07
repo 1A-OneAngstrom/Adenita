@@ -1,4 +1,5 @@
 #include "ADNCell.hpp"
+#include "ADNNucleotide.hpp"
 #include "ADNModel.hpp"
 
 void ADNCell::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber, const SBVersionNumber& classVersionNumber) const {

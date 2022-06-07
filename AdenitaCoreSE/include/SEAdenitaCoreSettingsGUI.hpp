@@ -36,5 +36,7 @@ private:
 
 	SBGWindow*													dialogWindow{ nullptr };
 
+	void														populateUi();
+
 };
 

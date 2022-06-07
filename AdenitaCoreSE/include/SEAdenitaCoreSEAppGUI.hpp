@@ -104,6 +104,8 @@ public slots:
 	void														onLatticeCreatorEditor();
 	void														onWireframeEditor();
 
+	void														onGenerateAtomicModel();
+
 	// Debug
 
 	void														onAddNtThreeP();

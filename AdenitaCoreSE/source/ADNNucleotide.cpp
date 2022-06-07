@@ -1,4 +1,10 @@
-//#include "ADNNucleotide.hpp"
+#include "ADNNucleotide.hpp"
+#include "ADNAtom.hpp"
+#include "ADNBackbone.hpp"
+#include "ADNSidechain.hpp"
+#include "ADNBaseSegment.hpp"
+#include "ADNSingleStrand.hpp"
+#include "ADNDoubleStrand.hpp"
 #include "ADNModel.hpp"
 
 ADNNucleotide::ADNNucleotide(const ADNNucleotide& other) : PositionableSB(other), SBResidue(other), Orientable(other) {
