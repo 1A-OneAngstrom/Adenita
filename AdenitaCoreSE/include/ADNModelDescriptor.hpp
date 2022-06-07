@@ -2,6 +2,14 @@
 
 #include "SBProxy.hpp"
 #include "ADNModel.hpp"
+#include "ADNAtom.hpp"
+#include "ADNBackbone.hpp"
+#include "ADNSidechain.hpp"
+#include "ADNNucleotide.hpp"
+#include "ADNSingleStrand.hpp"
+#include "ADNDoubleStrand.hpp"
+#include "ADNLoop.hpp"
+#include "ADNBaseSegment.hpp"
 
 
 // Class descriptor
