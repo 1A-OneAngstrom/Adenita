@@ -3,21 +3,17 @@
 
 DNABlocks ADNModel::GetComplementaryBase(DNABlocks base) {
 
-    DNABlocks comp_base = SBResidue::ResidueType::DI;
-    if (base == SBResidue::ResidueType::DA) {
-        comp_base = SBResidue::ResidueType::DT;
-    }
-    else if (base == SBResidue::ResidueType::DT) {
-        comp_base = SBResidue::ResidueType::DA;
-    }
-    else if (base == SBResidue::ResidueType::DG) {
-        comp_base = SBResidue::ResidueType::DC;
-    }
-    else if (base == SBResidue::ResidueType::DC) {
-        comp_base = SBResidue::ResidueType::DG;
+    switch (base) {
+
+    case SBResidue::ResidueType::DA: return SBResidue::ResidueType::DT;
+    case SBResidue::ResidueType::DT: return SBResidue::ResidueType::DA;
+    case SBResidue::ResidueType::DG: return SBResidue::ResidueType::DC;
+    case SBResidue::ResidueType::DC: return SBResidue::ResidueType::DG;
+    default: return SBResidue::ResidueType::DI;
+
     }
 
-    return comp_base;
+    return SBResidue::ResidueType::DI;
 
 }
 
@@ -25,7 +21,7 @@ char ADNModel::GetResidueName(DNABlocks t) {
 
     std::string name = SBResidue::getResidueTypeString(t);
     char n = name[0];
-    if (name.size() > 0) n = name[1];
+    if (name.size() > 1) n = name[1];
 
     if (n == 'I') n = 'N';
 
@@ -36,18 +32,10 @@ char ADNModel::GetResidueName(DNABlocks t) {
 DNABlocks ADNModel::ResidueNameToType(char n) {
 
     DNABlocks t = SBResidue::ResidueType::DI;
-    if (n == 'A') {
-        t = SBResidue::ResidueType::DA;
-    }
-    else if (n == 'T') {
-        t = SBResidue::ResidueType::DT;
-    }
-    else if (n == 'C') {
-        t = SBResidue::ResidueType::DC;
-    }
-    else if (n == 'G') {
-        t = SBResidue::ResidueType::DG;
-    }
+    if (n == 'A')       t = SBResidue::ResidueType::DA;
+    else if (n == 'T')  t = SBResidue::ResidueType::DT;
+    else if (n == 'C')  t = SBResidue::ResidueType::DC;
+    else if (n == 'G')  t = SBResidue::ResidueType::DG;
 
     return t;
 
@@ -55,11 +43,7 @@ DNABlocks ADNModel::ResidueNameToType(char n) {
 
 bool ADNModel::IsAtomInBackboneByName(std::string name) {
 
-    bool res = false;
-    if (std::find(backbone_names_.begin(), backbone_names_.end(), name) != backbone_names_.end()) {
-        res = true;
-    }
-    return res;
+    return (std::find(backbone_names_.begin(), backbone_names_.end(), name) != backbone_names_.end());
 
 }
 

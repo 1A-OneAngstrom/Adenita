@@ -1,4 +1,6 @@
 #include "DASCadnano.hpp"
+#include "ADNBackbone.hpp"
+#include "ADNSidechain.hpp"
 
 #ifdef _WIN32
 #include <locale>

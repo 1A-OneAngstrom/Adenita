@@ -1,4 +1,6 @@
 ﻿#include "DASBackToTheAtom.hpp"
+#include "ADNBackbone.hpp"
+#include "ADNSidechain.hpp"
 
 #include "SBProxy.hpp"
 #include "SAMSON.hpp"
@@ -610,52 +612,90 @@ void DASBackToTheAtom::PositionLoopNucleotidesQBezier(ADNPointer<ADNLoop> loop, 
   }
 }
 
-void DASBackToTheAtom::CreateBonds(ADNPointer<ADNPart> origami)
-{
-  auto nts = origami->GetNucleotides();
+void DASBackToTheAtom::CreateBonds(ADNPointer<ADNPart> origami, bool createFlag) {
 
-  SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
-    auto atoms = nt->GetAtoms();
-    auto bb = nt->GetBackbone();
-    auto sc = nt->GetSidechain();
-    auto connections = ADNModel::GetNucleotideBonds(nt->getNucleotideType());
+    if (origami == nullptr) return;
 
-    SB_FOR(ADNPointer<ADNAtom> at, atoms) {
-      ADNPointer<ADNAtom> atC = nullptr;
-      std::string atName = at->getName();
-      if (connections.find(atName) != connections.end()) {
-        auto conns = connections.at(at->getName());
-        for (std::string name : conns) {
-          auto lst = nt->GetAtomsByName(name);
-          if (lst.size() == 1) {
-            atC = *lst.begin();
-            SBPointer<SBBond> bond = new SBBond(at(), atC());
-            if (at->IsInADNBackbone()) {
-              bb->addChild(bond());
+    auto nts = origami->GetNucleotides();
+
+    SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
+
+        if (nt == nullptr) continue;
+
+        auto atoms = nt->GetAtoms();
+        auto bb = nt->GetBackbone();
+        auto sc = nt->GetSidechain();
+        if (bb == nullptr || sc == nullptr) continue;
+        auto connections = ADNModel::GetNucleotideBonds(nt->getNucleotideType());
+
+        SB_FOR(ADNPointer<ADNAtom> at, atoms) {
+
+            if (at == nullptr) continue;
+
+            ADNPointer<ADNAtom> atC = nullptr;
+            std::string atName = at->getName();
+            if (connections.find(atName) != connections.end()) {
+
+                auto conns = connections.at(at->getName());
+                for (std::string name : conns) {
+
+                    auto lst = nt->GetAtomsByName(name);
+                    if (lst.size() == 1) {
+
+                        atC = *lst.begin();
+                        SBPointer<SBBond> bond = new SBBond(at(), atC());
+                        if (createFlag) {
+
+                            if (SAMSON::isHolding()) SAMSON::hold(bond());
+                            bond->create();
+
+                        }
+                        if (at->IsInADNBackbone()) bb->addChild(bond());
+                        else sc->addChild(bond());
+                        //bond->setVisibilityFlag(false);
+
+                    }
+
+                }
+
             }
-            else {
-              sc->addChild(bond());
-            }
-            bond->setVisibilityFlag(false);
-          }
+
         }
-      }
+
+        // create connection with previous nucleotide
+        if (nt->getEndType() != ADNNucleotide::EndType::FivePrime && nt->getEndType() != ADNNucleotide::EndType::FiveAndThreePrime) {
+
+            auto prevNt = nt->GetPrev(true);
+            if (prevNt != nullptr) {
+
+                ADNPointer<ADNAtom> atP = *nt->GetAtomsByName("P").begin();
+                ADNPointer<ADNAtom> atO3p = *prevNt->GetAtomsByName("O3'").begin();
+                if (atP != nullptr && atO3p != nullptr) {
+
+                    SBPointer<SBBond> bond = new SBBond(atP(), atO3p());
+                    if (createFlag) {
+
+                        if (SAMSON::isHolding()) SAMSON::hold(bond());
+                        bond->create();
+
+                    }
+                    bb->addChild(bond());
+                    //bond->setVisibilityFlag(false);
+
+                }
+
+            }
+
+        }
+
     }
 
-    // create connection with previous nucleotide
-    if (nt->getEndType() != ADNNucleotide::EndType::FivePrime && nt->getEndType() != ADNNucleotide::EndType::FiveAndThreePrime) {
-      auto prevNt = nt->GetPrev(true);
-      ADNPointer<ADNAtom> atP = *nt->GetAtomsByName("P").begin();
-      ADNPointer<ADNAtom> atO3p = *prevNt->GetAtomsByName("O3'").begin();
-      SBPointer<SBBond> bond = new SBBond(atP(), atO3p());
-      bb->addChild(bond());
-      bond->setVisibilityFlag(false);
-    }
-  }
 }
 
-void DASBackToTheAtom::FindAtomsPositions(ADNPointer<ADNNucleotide> nt)
-{
+void DASBackToTheAtom::FindAtomsPositions(ADNPointer<ADNNucleotide> nt) {
+    
+    if (nt == nullptr) return;
+
   auto bs = nt->GetBaseSegment();
   // Save positions in matrix
   size_t cols = 3;
@@ -694,8 +734,10 @@ void DASBackToTheAtom::FindAtomsPositions(ADNPointer<ADNNucleotide> nt)
   }
 }
 
-void DASBackToTheAtom::PopulateWithMockAtoms(ADNPointer<ADNPart> origami, bool positionsFromNucleotide, bool createAtoms)
-{
+void DASBackToTheAtom::PopulateWithMockAtoms(ADNPointer<ADNPart> origami, bool positionsFromNucleotide, bool createAtoms) {
+
+    if (origami == nullptr) return;
+
   auto nts = origami->GetNucleotides();
   SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
     auto bb = nt->GetBackbone();
@@ -725,55 +767,60 @@ void DASBackToTheAtom::PopulateWithMockAtoms(ADNPointer<ADNPart> origami, bool p
   }
 }
 
-void DASBackToTheAtom::PopulateNucleotideWithAllAtoms(ADNPointer<ADNPart> origami, ADNPointer<ADNNucleotide> nt)
-{
-  ADNPointer<ADNNucleotide> nt_left;
-  ADNPointer<ADNNucleotide> nt_right;
-  DNABlocks nt_type = nt->getNucleotideType();
+void DASBackToTheAtom::PopulateNucleotideWithAllAtoms(ADNPointer<ADNPart> origami, ADNPointer<ADNNucleotide> nt, bool createFlag) {
 
-  // for DN_ we use DA_
-  nt_left = da_dt_.first;
-  if (nt_type == DNABlocks::DA) {
+    if (origami == nullptr) return;
+    if (nt == nullptr) return;
+
+    ADNPointer<ADNNucleotide> nt_left;
+    DNABlocks nt_type = nt->getNucleotideType();
+
+    // for DN_ we use DA_
     nt_left = da_dt_.first;
-  }
-  else if (nt_type == DNABlocks::DC) {
-    nt_left = dc_dg_.first;
-  }
-  else if (nt_type == DNABlocks::DG) {
-    nt_left = dg_dc_.first;
-  }
-  else if (nt_type == DNABlocks::DT) {
-    nt_left = dt_da_.first;
-  }
+    if (nt_type == DNABlocks::DA)       nt_left = da_dt_.first;
+    else if (nt_type == DNABlocks::DC)  nt_left = dc_dg_.first;
+    else if (nt_type == DNABlocks::DG)  nt_left = dg_dc_.first;
+    else if (nt_type == DNABlocks::DT)  nt_left = dt_da_.first;
 
-  auto atoms = nt_left->GetAtoms();
-  SB_FOR(ADNPointer<ADNAtom> atom, atoms) {
-    NucleotideGroup g = NucleotideGroup::SideChain;
-    if (atom->IsInADNBackbone()) g = NucleotideGroup::Backbone;
+    auto atoms = nt_left->GetAtoms();
+    SB_FOR(ADNPointer<ADNAtom> atom, atoms) {
 
-    ADNPointer<ADNAtom> newAtom = CopyAtom(atom);
-    origami->RegisterAtom(nt, g, newAtom);
-    newAtom->setVisibilityFlag(false);
-  }
+        NucleotideGroup g = NucleotideGroup::SideChain;
+        if (atom->IsInADNBackbone()) g = NucleotideGroup::Backbone;
+
+        ADNPointer<ADNAtom> newAtom = CopyAtom(atom);
+        origami->RegisterAtom(nt, g, newAtom, createFlag);
+        //newAtom->setVisibilityFlag(false);
+
+    }
+
 }
 
-void DASBackToTheAtom::GenerateAllAtomModel(ADNPointer<ADNPart> origami)
-{
-  auto nts = origami->GetNucleotides();
-  SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
-    auto atoms = nt->GetAtoms();
-    // delete previous atoms if they have been created
-    SB_FOR(ADNPointer<ADNAtom> a, atoms) {
-      // todo: check that the node is only deleted from datagraph but reference is not destroyed
-      origami->DeregisterAtom(a);
-    }
-    // populate nucleotides with the correct atoms
-    PopulateNucleotideWithAllAtoms(origami, nt);
-    // find atomic positions
-    FindAtomsPositions(nt);
-  }
+void DASBackToTheAtom::GenerateAllAtomModel(ADNPointer<ADNPart> origami, bool createFlag) {
 
-  CreateBonds(origami);
+    if (origami == nullptr) return;
+
+    auto nts = origami->GetNucleotides();
+    SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
+
+        if (nt == nullptr) continue;
+        auto atoms = nt->GetAtoms();
+        // delete previous atoms if they have been created
+        SB_FOR(ADNPointer<ADNAtom> a, atoms) {
+            // todo: check that the node is only deleted from datagraph but reference is not destroyed
+            if (a != nullptr) origami->DeregisterAtom(a);
+        }
+
+        // populate nucleotides with the correct atoms
+        PopulateNucleotideWithAllAtoms(origami, nt, createFlag);
+
+        // find atomic positions
+        FindAtomsPositions(nt);
+
+    }
+
+    CreateBonds(origami, createFlag);
+
 }
 
 std::tuple<SBPosition3, SBPosition3, SBPosition3> DASBackToTheAtom::CalculateCenters(ADNPointer<ADNNucleotide> nt) {
@@ -841,14 +888,16 @@ std::tuple<SBPosition3, SBPosition3, SBPosition3> DASBackToTheAtom::CalculateCen
 }
 
 SBPosition3 DASBackToTheAtom::UblasToSBPosition(ublas::vector<double> vec) {
-  // we assume vec is in picometers!
-  std::vector<double> pos = ADNVectorMath::CreateStdVector(vec);
-  SBPosition3 res = SBPosition3();
-  res[0] = SBQuantity::angstrom(pos[0] * 0.01);
-  res[1] = SBQuantity::angstrom(pos[1] * 0.01);
-  res[2] = SBQuantity::angstrom(pos[2] * 0.01);
 
-  return res;
+    // we assume vec is in picometers!
+    std::vector<double> pos = ADNVectorMath::CreateStdVector(vec);
+    SBPosition3 res = SBPosition3();
+    res[0] = SBQuantity::angstrom(pos[0] * 0.01);
+    res[1] = SBQuantity::angstrom(pos[1] * 0.01);
+    res[2] = SBQuantity::angstrom(pos[2] * 0.01);
+
+    return res;
+
 }
 
 ADNPointer<ADNAtom> DASBackToTheAtom::CopyAtom(ADNPointer<ADNAtom> atom) {
@@ -974,6 +1023,8 @@ int DASBackToTheAtom::SetAtomsPositions(CollectionMap<ADNAtom> atoms, ublas::mat
 }
 
 void DASBackToTheAtom::SetNucleotidesPostions(ADNPointer<ADNPart> part) {
+
+    if (part == nullptr) return;
 
     auto doubleStrands = part->GetDoubleStrands();
     SB_FOR(ADNPointer<ADNDoubleStrand> ds, doubleStrands)
@@ -1195,7 +1246,6 @@ void DASBackToTheAtom::LoadNtPairs() {
         nt_left->SetBackbonePosition(std::get<1>(nt_left_cms) - total_cms);
         nt_right->SetSidechainPosition(std::get<2>(nt_right_cms) - total_cms);
         nt_left->SetSidechainPosition(std::get<2>(nt_left_cms) - total_cms);
-
 
         if (it->left == std::make_pair(DNABlocks::DA, DNABlocks::DT)) da_dt_ = nt_pair;
         else if (it->left == std::make_pair(DNABlocks::DC, DNABlocks::DG)) dc_dg_ = nt_pair;

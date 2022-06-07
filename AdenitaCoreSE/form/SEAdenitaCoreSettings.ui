@@ -39,7 +39,7 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QComboBox" name="cmbScaffold">
+      <widget class="QComboBox" name="comboBoxScaffold">
        <item>
         <property name="text">
          <string>m13mp18</string>
@@ -65,7 +65,7 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLineEdit" name="lineCustomScaffold">
+      <widget class="QLineEdit" name="lineEditCustomScaffold">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -77,7 +77,7 @@
     </layout>
    </item>
    <item>
-    <widget class="QCheckBox" name="chkAutoScaffold">
+    <widget class="QCheckBox" name="checkBoxAutoScaffold">
      <property name="text">
       <string>Automatically set the scaffold sequence</string>
      </property>
@@ -87,21 +87,21 @@
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="chkOverlay">
+    <widget class="QCheckBox" name="checkBoxOverlay">
      <property name="text">
       <string>Show overlay</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="chkXODisplay">
+    <widget class="QCheckBox" name="checkBoxXODisplay">
      <property name="text">
       <string>Display possible crossovers</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="chkInterpolateDim">
+    <widget class="QCheckBox" name="checkBoxInterpolateDim">
      <property name="text">
       <string>Interpolate Dimensions</string>
      </property>
@@ -111,16 +111,26 @@
     </widget>
    </item>
    <item>
+    <widget class="QCheckBox" name="checkBoxGenerateAtomicDetails">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check to generate atomic model when creating DNA structures with Adenita.&lt;/p&gt;&lt;p&gt;Please note that when using this option the generation will be slower since it is necessary to generate all the atoms.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>Generate atomic model</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
-      <widget class="QRadioButton" name="rdbDaedalushMesh">
+      <widget class="QRadioButton" name="radioButtonDaedalushMesh">
        <property name="text">
         <string>Daedalus mesh model</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="rdbIterativeMesh">
+      <widget class="QRadioButton" name="radioButtonIterativeMesh">
        <property name="text">
         <string>Iterative Mesh Model</string>
        </property>
@@ -151,7 +161,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineNtthal">
+      <widget class="QLineEdit" name="lineEditNtthal">
        <property name="enabled">
         <bool>false</bool>
        </property>

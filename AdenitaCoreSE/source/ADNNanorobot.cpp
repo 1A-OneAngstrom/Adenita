@@ -1,4 +1,5 @@
 #include "ADNNanorobot.hpp"
+#include "ADNModel.hpp"
 
 ADNNanorobot::ADNNanorobot() {// : Nameable(), Positionable(), Orientable() {}
 }

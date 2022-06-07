@@ -2,6 +2,9 @@
 
 #include "ADNSaveAndLoad.hpp"
 
+#include "SBBackbone.hpp"
+#include "SBSideChain.hpp"
+
 #ifdef _WIN32
 #include <locale>
 #include <codecvt>

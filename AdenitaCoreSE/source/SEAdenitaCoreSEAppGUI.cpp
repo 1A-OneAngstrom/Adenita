@@ -949,6 +949,48 @@ void SEAdenitaCoreSEAppGUI::onTwisterEditor() {
 
 }
 
+void SEAdenitaCoreSEAppGUI::onGenerateAtomicModel() {
+
+	if (getApp()->GetNanorobot()->GetNumberOfNucleotides() == 0) return;
+
+	auto parts = getApp()->GetNanorobot()->GetParts();
+
+	if (parts.size()) {
+
+		bool addToAll = true;
+		unsigned int nSelectedParts = 0;
+		SB_FOR(ADNPointer<ADNPart> part, parts)
+			if (part->getSelectionFlag()) ++nSelectedParts;
+
+		addToAll = (nSelectedParts == 0);
+
+		if (addToAll && parts.size() > 1) {
+
+			if (!SAMSON::askUser(getName(), "The document contains multiple DNA origami parts. Would you like to generate atomic models for all of them?<br>"
+				"If you would like to generate atomic models only for some of them, click Cancel, select them in the document, and click <b>Generate</b> again."))
+				return;
+
+		}
+
+		DASBackToTheAtom btta = DASBackToTheAtom();
+
+		SAMSON::beginHolding("Add atomic model");
+
+		SB_FOR(ADNPointer<ADNPart> part, parts) {
+
+			if (!addToAll && !part->getSelectionFlag()) continue;
+
+			btta.SetNucleotidesPostions(part);
+			btta.GenerateAllAtomModel(part, true);
+
+		}
+
+		SAMSON::endHolding();
+
+	}
+
+}
+
 std::string SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(QString filename) {
 
 	FILE* fp = nullptr;
@@ -1530,11 +1572,21 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getCreatorsButtons() {
 		btnWireframeEditor->setAutoRaise(true);
 		creatorsButtons_.push_back(btnWireframeEditor);
 
+		QToolButton* btnGenerateAtomicModel = new QToolButton;
+		btnGenerateAtomicModel->setObjectName(QStringLiteral("btnGenerateAtomicModel"));
+		btnGenerateAtomicModel->setText("Generate\natomic model");
+		btnGenerateAtomicModel->setToolTip("Generate atomic model for the selected DNA origamis or for all DNA origamis in the document, if nothing is selected.");
+		btnGenerateAtomicModel->setIconSize(QSize(24, 24));
+		btnGenerateAtomicModel->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnGenerateAtomicModel->setAutoRaise(true);
+		creatorsButtons_.push_back(btnGenerateAtomicModel);
+
 		QObject::connect(btnCreateBasePair, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCreateBasePair, Qt::ConnectionType::UniqueConnection);
 		QObject::connect(btnDsDNACreatorEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCreateStrandEditor, Qt::ConnectionType::UniqueConnection);
 		QObject::connect(btnNanotubeCreator, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onNanotubeCreatorEditor, Qt::ConnectionType::UniqueConnection);
 		QObject::connect(btnLatticeCreatorEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onLatticeCreatorEditor, Qt::ConnectionType::UniqueConnection);
 		QObject::connect(btnWireframeEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onWireframeEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnGenerateAtomicModel, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onGenerateAtomicModel, Qt::ConnectionType::UniqueConnection);
 
 		//change icons
 		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
@@ -1558,6 +1610,10 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getCreatorsButtons() {
 		QIcon wireframeEditor;
 		wireframeEditor.addFile(std::string(iconsPath + "SEWireframeEditorIcon.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnWireframeEditor->setIcon(wireframeEditor);
+
+		QIcon generateAtomicModelIcon;
+		generateAtomicModelIcon.addFile(std::string(iconsPath + "GenerateAtomicModel.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnGenerateAtomicModel->setIcon(generateAtomicModelIcon);
 
 	}
 

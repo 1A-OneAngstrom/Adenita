@@ -1,5 +1,6 @@
-//#include "ADNBaseSegment.hpp"
-#include "ADNModel.hpp"
+#include "ADNBaseSegment.hpp"
+#include "ADNAtom.hpp"
+#include "ADNDoubleStrand.hpp"
 
 
 ADNBaseSegment::ADNBaseSegment(CellType cellType) : PositionableSB(), Orientable(), SBStructuralGroup() {

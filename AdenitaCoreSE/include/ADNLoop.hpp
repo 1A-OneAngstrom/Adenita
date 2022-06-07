@@ -2,10 +2,10 @@
 
 #include "SBStructuralGroup.hpp"
 
+#include "ADNNucleotide.hpp"
 #include "ADNMixins.hpp"
 
 class ADNBaseSegment;
-class ADNNucleotide;
 
 class ADNLoop : public SBStructuralGroup {
 

@@ -38,7 +38,7 @@ public:
 
     void SetPositionLoopNucleotides(ADNPointer<ADNBaseSegment> bs);
 
-    void GenerateAllAtomModel(ADNPointer<ADNPart> origami);
+    void GenerateAllAtomModel(ADNPointer<ADNPart> origami, bool createFlag = false);
 
     void CheckDistances(ADNPointer<ADNPart> part);
 
@@ -110,8 +110,8 @@ private:
     void PositionLoopNucleotides(ADNPointer<ADNLoop> loop, SBPosition3 bsPositionPrev, SBPosition3 bsPositionNext);
     void PositionLoopNucleotidesQBezier(ADNPointer<ADNLoop> loop, SBPosition3 bsPositionPrev, SBPosition3 bsPositionNext, SBVector3 bsPrevE3, SBVector3 bsNextE3);
 
-    void PopulateNucleotideWithAllAtoms(ADNPointer<ADNPart> origami, ADNPointer<ADNNucleotide> nt);
-    void CreateBonds(ADNPointer<ADNPart> origami);
+    void PopulateNucleotideWithAllAtoms(ADNPointer<ADNPart> origami, ADNPointer<ADNNucleotide> nt, bool createFlag = false);
+    void CreateBonds(ADNPointer<ADNPart> origami, bool createFlag = false);
     void FindAtomsPositions(ADNPointer<ADNNucleotide> nt);
 
     //! Untwist the nucleotide (remove the helix turn)
@@ -149,7 +149,7 @@ private:
     /**
      *
      */
-    ADNPointer<ADNAtom> CopyAtom(ADNPointer<ADNAtom> atom);
+    static ADNPointer<ADNAtom> CopyAtom(ADNPointer<ADNAtom> atom);
 
 };
 
