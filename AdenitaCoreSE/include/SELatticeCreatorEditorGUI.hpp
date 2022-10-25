@@ -1,9 +1,8 @@
 #pragma once
 
-
+#include "SBCHeapExport.hpp"
 #include "SBGWindowWidget.hpp" 
 #include "ui_SELatticeCreatorEditorGUI.h"
-
 
 
 class SELatticeCreatorEditor;

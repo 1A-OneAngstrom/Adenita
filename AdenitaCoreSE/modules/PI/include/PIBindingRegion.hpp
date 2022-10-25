@@ -12,10 +12,10 @@ class ADNPart;
 
 struct ThermParam {
 
-	double dS_;
-	double dH_;
-	double T_;
-	double dG_;
+	double dS_ = 0.0;
+	double dH_ = 0.0;
+	double T_ = 0.0;
+	double dG_ = 0.0;
 
 };
 
