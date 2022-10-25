@@ -2905,11 +2905,10 @@ ADNArray<float> SEAdenitaVisualModel::calcPropertyColor(int colorSchemeIdx, floa
 
 	}
 
-	auto numColors = colorScheme.GetNumElements();
+	const int numColors = static_cast<int>(colorScheme.GetNumElements());
 
-	int idx1;
-	int idx2;
-	float fractBetween = 0;
+	int idx1, idx2;
+	float fractBetween = 0.0f;
 
 	//Y = (X - A) / (B - A) * (D - C) + C
 	double mappedVal = ADNAuxiliary::mapRange(val, min, max, 0, 1);
