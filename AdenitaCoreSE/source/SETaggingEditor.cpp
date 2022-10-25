@@ -297,10 +297,10 @@ DNABlocks SETaggingEditor::getNucleotideType(QPoint numSteps) {
 		{DNABlocks::DI, 4}
 	};
 
-	int currIndex = indices[t];
+	const int currIndex = indices[t];
 	int newIndex = currIndex + numSteps.y();
 	// keep new index between 0 and 4
-	size_t numValues = values.size();
+	const int numValues = static_cast<int>(values.size());
 	if (newIndex < 0) {
 
 		int turns = abs(newIndex);

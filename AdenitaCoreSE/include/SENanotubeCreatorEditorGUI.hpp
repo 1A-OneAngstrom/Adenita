@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SBCHeapExport.hpp"
 #include "SBGWindowWidget.hpp" 
 #include "ui_SENanotubeCreatorEditorGUI.h"
 #include "SAMSON.hpp"
