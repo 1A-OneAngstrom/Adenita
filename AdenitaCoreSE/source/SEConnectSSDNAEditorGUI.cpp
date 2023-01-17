@@ -3,8 +3,8 @@
 
 SEConnectSSDNAEditorGUI::SEConnectSSDNAEditorGUI(SEConnectSSDNAEditor* editor) {
 
-	ui.setupUi( this );
 	this->editor = editor;
+	ui.setupUi( this );
 
 }
 
