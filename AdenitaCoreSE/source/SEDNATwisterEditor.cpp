@@ -361,7 +361,7 @@ void SEDNATwisterEditor::wheelEvent(QWheelEvent* event) {
 
 		updateForwardReverseState();
 
-		int angle = event->delta();
+		int angle = event->angleDelta().y();
 		sphereRadius = sphereRadius * pow(1.002, angle);
 
 		event->accept();

@@ -438,7 +438,7 @@ void SENanotubeCreatorEditor::mouseMoveEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
-	const bool hasMidButton = event->buttons() & Qt::MidButton;
+	const bool hasMiddleButton = event->buttons() & Qt::MiddleButton;
 	const bool hasLeftButton = event->buttons() & Qt::LeftButton;
 	const bool hasRightButton = event->buttons() & Qt::RightButton;
 
@@ -452,7 +452,7 @@ void SENanotubeCreatorEditor::mouseMoveEvent(QMouseEvent* event) {
 
 	if (isPressing && hasLeftButton) displayFlag = true;
 
-	if (!hasMidButton && !hasLeftButton && !hasRightButton) {
+	if (!hasMiddleButton && !hasLeftButton && !hasRightButton) {
 
 		event->accept();
 
@@ -474,7 +474,7 @@ void SENanotubeCreatorEditor::mouseMoveEvent(QMouseEvent* event) {
 
 		thirdPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
 
-		if (!hasMidButton && !hasRightButton)
+		if (!hasMiddleButton && !hasRightButton)
 			event->accept();
 
 	}
