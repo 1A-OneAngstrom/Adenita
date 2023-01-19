@@ -4,8 +4,8 @@
 
 SETaggingEditorGUI::SETaggingEditorGUI(SETaggingEditor* editor) {
 
-	ui.setupUi( this );
 	this->editor = editor;
+	ui.setupUi( this );
 
 }
 

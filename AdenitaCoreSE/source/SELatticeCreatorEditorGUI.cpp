@@ -4,8 +4,8 @@
 
 SELatticeCreatorEditorGUI::SELatticeCreatorEditorGUI(SELatticeCreatorEditor* editor) {
 
-	ui.setupUi( this );
 	this->editor = editor;
+	ui.setupUi( this );
 
 	ui.labelPatterns->setVisible(false);
 	ui.labelPatternsX->setVisible(false);

@@ -125,7 +125,7 @@ void ADNDisplayHelper::displayLengthText(SBPosition3 start, SBPosition3 end, std
         const double length = SBQuantity::nanometer((end - start).norm()).getValue();
 
         std::stringstream stream;
-        stream << fixed << std::setprecision(2) << length;
+        stream << std::fixed << std::setprecision(2) << length;
         std::string text = stream.str() + " nm";
 
     }

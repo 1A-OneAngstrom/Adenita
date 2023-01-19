@@ -5,8 +5,8 @@
 
 SEWireframeEditorGUI::SEWireframeEditorGUI(SEWireframeEditor* editor) {
 
-	ui.setupUi( this );
 	this->editor = editor;
+	ui.setupUi( this );
 
 }
 

@@ -4,8 +4,8 @@
 
 SENanotubeCreatorEditorGUI::SENanotubeCreatorEditorGUI(SENanotubeCreatorEditor* editor) {
 
-	ui.setupUi( this );
 	this->editor = editor;
+	ui.setupUi( this );
 
 }
 

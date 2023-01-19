@@ -4,8 +4,13 @@
 
 SEDNATwisterEditorGUI::SEDNATwisterEditorGUI(SEDNATwisterEditor* editor) {
 
-	ui.setupUi( this );
 	this->editor = editor;
+	ui.setupUi( this );
+
+	QObject::connect(ui.rdbUntwist, &QRadioButton::clicked, this, &SEDNATwisterEditorGUI::setUntwistTwist);
+	QObject::connect(ui.rdbInvisible, &QRadioButton::clicked, this, &SEDNATwisterEditorGUI::setInvisibleVisible);
+	QObject::connect(ui.btnResetUntwist, &QPushButton::clicked, this, &SEDNATwisterEditorGUI::resetUntwist);
+	QObject::connect(ui.btnResetInvisible, &QPushButton::clicked, this, &SEDNATwisterEditorGUI::resetInvisible);
 
 }
 
@@ -33,13 +38,13 @@ void SEDNATwisterEditorGUI::saveSettings( SBGSettings *settings ) {
 
 void SEDNATwisterEditorGUI::setUntwistTwist() {
 
-	getEditor()->setBendingType(SEDNATwisterEditor::BendingType::UNTWIST);
+	if (getEditor()) getEditor()->setBendingType(SEDNATwisterEditor::BendingType::UNTWIST);
 
 }
 
 void SEDNATwisterEditorGUI::setInvisibleVisible() {
 
-	getEditor()->setBendingType(SEDNATwisterEditor::BendingType::SPHEREVISIBILITY);
+	if (getEditor()) getEditor()->setBendingType(SEDNATwisterEditor::BendingType::SPHEREVISIBILITY);
 
 }
 

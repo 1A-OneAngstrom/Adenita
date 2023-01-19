@@ -4,8 +4,8 @@
 
 SEMergePartsEditorGUI::SEMergePartsEditorGUI(SEMergePartsEditor* editor) {
 
-	ui.setupUi( this );
 	this->editor = editor;
+	ui.setupUi( this );
 
 	connect(ui.comboBoxMergeComponent1, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboBoxMergeComponent1CurrentIndexChanged(int)));
 	connect(ui.comboBoxMergeComponent2, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboBoxMergeComponent2CurrentIndexChanged(int)));
