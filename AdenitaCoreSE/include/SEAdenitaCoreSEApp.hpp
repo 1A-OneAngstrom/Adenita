@@ -42,6 +42,8 @@ public :
 
 	/// \name App
 	//@{
+	
+	static SEAdenitaCoreSEApp*									adenitaApp;
 
 	static SEAdenitaCoreSEApp*									getAdenitaApp();														///< Returns a pointer to the app's instance
 
