@@ -6,6 +6,7 @@
 #include "PICrossovers.hpp"
 #include "DASAlgorithms.hpp"
 
+SEAdenitaCoreSEApp* SEAdenitaCoreSEApp::adenitaApp = nullptr;
 
 SEAdenitaCoreSEApp::SEAdenitaCoreSEApp() {
 
@@ -15,6 +16,8 @@ SEAdenitaCoreSEApp::SEAdenitaCoreSEApp() {
 	SEConfig& config = SEConfig::GetInstance();
 
 	SB_INFORMATION("Adenita started");
+
+	adenitaApp = this;
 
 }
 
@@ -29,23 +32,35 @@ SEAdenitaCoreSEAppGUI* SEAdenitaCoreSEApp::getGUI() const { return static_cast<S
 
 SEAdenitaCoreSEApp* SEAdenitaCoreSEApp::getAdenitaApp() {
 
-	SBApp* app = SAMSON::getApp(SBUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID));
+	//if (!adenitaApp) {
+	//
+	//	SBDApp* app = SAMSON::getApp(SBUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID));
+	//	SEAdenitaCoreSEApp::adenitaApp = static_cast<SEAdenitaCoreSEApp*>(app);
+	//
+	//}
 
-	if (!app) {
+	if (!SEAdenitaCoreSEApp::adenitaApp) {
 
 		// Adenita app is not initialized. Initializing...
 		SBAction* appAction = SAMSON::getAction(SBUUID("386506A7-DD8B-69DD-4599-F136C1B91610"));
 		if (appAction) {
 
 			appAction->trigger();
-			app = SAMSON::getApp(SBUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID));
-			if (app) if (app->getGUI()) app->getGUI()->hide();
+
+			if (!SEAdenitaCoreSEApp::adenitaApp) {
+
+				SBDApp* app = SAMSON::getApp(SBUUID("85DB7CE6-AE36-0CF1-7195-4A5DF69B1528"), SBUUID(SB_ELEMENT_UUID));
+				if (app) SEAdenitaCoreSEApp::adenitaApp = static_cast<SEAdenitaCoreSEApp*>(app);
+
+			}
+
+			if (SEAdenitaCoreSEApp::adenitaApp) if (SEAdenitaCoreSEApp::adenitaApp->getGUI()) SEAdenitaCoreSEApp::adenitaApp->getGUI()->hide();
 
 		}
 
 	}
 
-	if (!app) {
+	if (!SEAdenitaCoreSEApp::adenitaApp) {
 
 		SAMSON::informUser("Adenita Error", "Adenita is not initialized. Please start Adenita first by opening the Adenita app from the App menu.\n"
 			"Please report this issue to the developers.");
@@ -53,7 +68,7 @@ SEAdenitaCoreSEApp* SEAdenitaCoreSEApp::getAdenitaApp() {
 
 	}
 
-	return static_cast<SEAdenitaCoreSEApp*>(app);
+	return SEAdenitaCoreSEApp::adenitaApp;
 
 }
 
