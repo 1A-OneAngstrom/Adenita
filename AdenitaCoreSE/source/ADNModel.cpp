@@ -41,50 +41,18 @@ DNABlocks ADNModel::ResidueNameToType(char n) {
 
 }
 
-bool ADNModel::IsAtomInBackboneByName(std::string name) {
+bool ADNModel::IsAtomInBackboneByName(std::string_view name) {
 
-    return (std::find(backbone_names_.begin(), backbone_names_.end(), name) != backbone_names_.end());
+    return (std::find(ADNModel::backbone_names_.begin(), ADNModel::backbone_names_.end(), name) != ADNModel::backbone_names_.end());
 
 }
 
-SBElement::Type ADNModel::GetElementType(std::string atomName) {
-
-    std::map<std::string, SBElement::Type> atomType = {
-      { "P", SBElement::Phosphorus },
-      { "OP1", SBElement::Oxygen },
-      { "O1P", SBElement::Oxygen },
-      { "OP2", SBElement::Oxygen },
-      { "O2P", SBElement::Oxygen },
-      { "O5'", SBElement::Oxygen },
-      { "O4'", SBElement::Oxygen },
-      { "O3'", SBElement::Oxygen },
-      { "O6", SBElement::Oxygen },
-      { "O4", SBElement::Oxygen },
-      { "O2", SBElement::Oxygen },
-      { "C5'", SBElement::Carbon },
-      { "C4'", SBElement::Carbon },
-      { "C3'", SBElement::Carbon },
-      { "C2'", SBElement::Carbon },
-      { "C1'", SBElement::Carbon },
-      { "C8", SBElement::Carbon },
-      { "C7", SBElement::Carbon },
-      { "C6", SBElement::Carbon },
-      { "C5", SBElement::Carbon },
-      { "C4", SBElement::Carbon },
-      { "C2", SBElement::Carbon },
-      { "N9", SBElement::Nitrogen },
-      { "N7", SBElement::Nitrogen },
-      { "N6", SBElement::Nitrogen },
-      { "N4", SBElement::Nitrogen },
-      { "N3", SBElement::Nitrogen },
-      { "N2", SBElement::Nitrogen },
-      { "N1", SBElement::Nitrogen }
-    };
+SBElement::Type ADNModel::GetElementType(const std::string& atomName) {
 
     SBElement::Type t = SBElement::Type::Unknown;
-    if (atomType.find(atomName) != atomType.end()) {
-        t = atomType.at(atomName);
-    }
+
+    auto it = ADNModel::atomType.find(atomName);
+    if (it != ADNModel::atomType.end()) t = it->second;
 
     return t;
 

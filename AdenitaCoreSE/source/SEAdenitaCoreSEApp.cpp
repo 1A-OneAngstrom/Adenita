@@ -648,7 +648,7 @@ void SEAdenitaCoreSEApp::FixDesigns() {
 
 		//  auto at = nt->GetCenterAtom();
 		//  if (at == nullptr) at = new ADNAtom();
-		//  at->setElementType(SBElement::Meitnerium);
+		//  at->setElementType(SBElement::Unknown);//Meitnerium);
 		//  nt->SetCenterAtom(at);
 
 		//  nt->SetPosition(pos);
@@ -670,7 +670,7 @@ void SEAdenitaCoreSEApp::FixDesigns() {
 
 		//  auto at = bs->GetCenterAtom();
 		//  if (at == nullptr) at = new ADNAtom();
-		//  at->setElementType(SBElement::Meitnerium);
+		//  at->setElementType(SBElement::Unknown);//Meitnerium);
 		//  bs->SetCenterAtom(at);
 		//  part->RegisterAtom(bs, at, true);
 		//  // hiding atoms here cause when they are created is too slow
@@ -1024,7 +1024,7 @@ void SEAdenitaCoreSEApp::addPartToDocument(ADNPointer<ADNPart> part, bool positi
 	btta.PopulateWithMockAtoms(part, positionsData);
 	if (!positionsData) {
 
-		btta.SetNucleotidesPostions(part);
+		btta.SetNucleotidesPositions(part);
 		if (config.use_atomic_details) {
 
 			btta.GenerateAllAtomModel(part);

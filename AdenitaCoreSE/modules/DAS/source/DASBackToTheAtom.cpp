@@ -132,7 +132,7 @@ void DASBackToTheAtom::SetNucleotidePosition(ADNPointer<ADNBaseSegment> bs, bool
   new_basis = ublas::trans(new_basis);
   ublas::matrix<double> new_pos = ADNVectorMath::ApplyTransformation(new_basis, input);
   new_pos = ADNVectorMath::Translate(new_pos, t_vec);
-  // Apply transformation for non twisted postions
+  // Apply transformation for non twisted positions
   new_basisNoTwist = ublas::trans(new_basisNoTwist);
   ublas::matrix<double> new_posNoTwist = ADNVectorMath::ApplyTransformation(new_basisNoTwist, input);
   new_posNoTwist = ADNVectorMath::Translate(new_posNoTwist, t_vec);
@@ -445,7 +445,7 @@ void DASBackToTheAtom::UntwistNucleotidePosition(ADNPointer<ADNNucleotide> nt)
   ublas::row(input, 3) = ADNAuxiliary::SBPositionToUblas(nt_right->GetPosition());
   ublas::row(input, 4) = ADNAuxiliary::SBPositionToUblas(nt_right->GetBackbonePosition());
   ublas::row(input, 5) = ADNAuxiliary::SBPositionToUblas(nt_right->GetSidechainPosition());
-  // Apply transformation for non twisted postions
+  // Apply transformation for non twisted positions
   basisNoTwist = ublas::trans(basisNoTwist);
   ublas::matrix<double> posNoTwist = ADNVectorMath::ApplyTransformation(basisNoTwist, input);
   posNoTwist = ADNVectorMath::Translate(posNoTwist, t_vec);
@@ -759,7 +759,7 @@ void DASBackToTheAtom::PopulateWithMockAtoms(ADNPointer<ADNPart> origami, bool p
   auto bss = origami->GetBaseSegments();
   SB_FOR(ADNPointer<ADNBaseSegment> bs, bss) {
     auto at = bs->GetCenterAtom();
-    at->setElementType(SBElement::Meitnerium);
+    at->setElementType(SBElement::Unknown);// Meitnerium);
 
     origami->RegisterAtom(bs, at, createAtoms);
     // hiding atoms here cause when they are created is too slow
@@ -807,7 +807,7 @@ void DASBackToTheAtom::GenerateAllAtomModel(ADNPointer<ADNPart> origami, bool cr
         auto atoms = nt->GetAtoms();
         // delete previous atoms if they have been created
         SB_FOR(ADNPointer<ADNAtom> a, atoms) {
-            // todo: check that the node is only deleted from datagraph but reference is not destroyed
+            // todo: check that the node is only deleted from data graph but reference is not destroyed
             if (a != nullptr) origami->DeregisterAtom(a);
         }
 
@@ -1022,7 +1022,7 @@ int DASBackToTheAtom::SetAtomsPositions(CollectionMap<ADNAtom> atoms, ublas::mat
 
 }
 
-void DASBackToTheAtom::SetNucleotidesPostions(ADNPointer<ADNPart> part) {
+void DASBackToTheAtom::SetNucleotidesPositions(ADNPointer<ADNPart> part) {
 
     if (part == nullptr) return;
 
@@ -1145,7 +1145,7 @@ void DASBackToTheAtom::LoadNucleotides() {
         try {
 
 #ifdef _WIN32
-            // convert to a wide string (UTF-8) to take care of special charachers
+            // convert to a wide string (UTF-8) to take care of special characters
             if (!QFileInfo::exists(QString::fromStdWString(stringToWstring(nt_source))))
 #else
             if (!QFileInfo::exists(QString::fromStdString(nt_source)))
@@ -1205,7 +1205,7 @@ void DASBackToTheAtom::LoadNtPairs() {
         try {
 
 #ifdef _WIN32
-            // convert to a wide string (UTF-8) to take care of special charachers
+            // convert to a wide string (UTF-8) to take care of special characters
             if (!QFileInfo::exists(QString::fromStdWString(stringToWstring(nt_source))))
 #else
             if (!QFileInfo::exists(QString::fromStdString(nt_source)))
@@ -1259,7 +1259,7 @@ void DASBackToTheAtom::LoadNtPairs() {
 NtPair DASBackToTheAtom::ParseBasePairPDB(std::string source) {
 
 #ifdef _WIN32
-    // convert to a wide string (UTF-8) to take care of special charachers
+    // convert to a wide string (UTF-8) to take care of special characters
     std::ifstream file(stringToWstring(source).c_str(), std::ios::in);
 #else
     std::ifstream file(source.c_str(), std::ios::in);
@@ -1463,7 +1463,7 @@ ublas::matrix<double> DASBackToTheAtom::CalculateBaseSegmentBasis(ADNPointer<ADN
 ADNPointer<ADNNucleotide> DASBackToTheAtom::ParsePDB(std::string source) {
 
 #ifdef _WIN32
-    // convert to a wide string (UTF-8) to take care of special charachers
+    // convert to a wide string (UTF-8) to take care of special characters
     std::ifstream file(stringToWstring(source).c_str(), std::ios::in);
 #else
     std::ifstream file(source.c_str(), std::ios::in);

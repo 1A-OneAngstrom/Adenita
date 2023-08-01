@@ -33,7 +33,7 @@ public:
 	PIBindingRegion& operator=(const PIBindingRegion& other);
 
 	double getEntropy() const;
-	double getEntalpy() const;
+	double getEnthalpy() const;
 	double getGibbs() const;
 	double getTemp() const;
 

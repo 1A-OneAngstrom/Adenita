@@ -35,7 +35,7 @@ DASVertex::DASVertex(DASVertex* w) {
 /* Destructor for ANTEdge
 */
 DASEdge::~DASEdge() {
-  // Remove all polygons conected to the edge
+  // Remove all polygons connected to the edge
   DASPolygon* p1 = nullptr;
   if (halfEdge_->left_ != nullptr) p1 = halfEdge_->left_;
   DASPolygon* p2 = nullptr;

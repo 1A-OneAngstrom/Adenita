@@ -13,7 +13,7 @@ void DASCadnano::ParseJSON(std::string filename) {
     try {
 
 #ifdef _WIN32
-        // convert to a wide string (UTF-8) to take care of special charachers
+        // convert to a wide string (UTF-8) to take care of special characters
         std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
         fp = _wfopen(wfileName.c_str(), L"rb");
 #else

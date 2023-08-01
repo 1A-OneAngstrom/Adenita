@@ -38,7 +38,7 @@ void SEAdenitaCoreSettingsGUI::populateUi() {
 	ui.lineEditNtthal->setText(QString::fromStdString(c.ntthal));
 	ui.lineEditCustomScaffold->setText(QString::fromStdString(c.scaffCustomFilename));
 	ui.comboBoxScaffold->setCurrentIndex(c.scaffType);
-	ui.radioButtonDaedalushMesh->setChecked(!c.custom_mesh_model);
+	ui.radioButtonDaedalusMesh->setChecked(!c.custom_mesh_model);
 	ui.radioButtonIterativeMesh->setChecked(c.custom_mesh_model);
 
 }

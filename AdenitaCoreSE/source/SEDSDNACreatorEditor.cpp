@@ -130,7 +130,7 @@ ADNPointer<ADNPart> SEDSDNACreatorEditor::generateCircularStrand(bool mock) {
     
     }
 
-    if (numNucleotides > 6) {   // the smallets circle consists of 10 base pairs
+    if (numNucleotides > 6) {   // the smallest circle consists of 10 base pairs
 
         if (doubleStrandMode)
             part = DASCreator::CreateDSRing(radius, positionData.FirstPosition, positionData.FirstVector, mock);
