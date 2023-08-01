@@ -80,7 +80,7 @@ void SEAdenitaVisualModel::unserialize(SBCSerializer* serializer, const SBNodeIn
 
 }
 
-void SEAdenitaVisualModel::eraseImplementation() {
+void SEAdenitaVisualModel::onErase() {
 
 	// SAMSON Element generator pro tip: modify this function when you need to perform special tasks when your visual model is erased (e.g. disconnect from nodes you are connected to).
 	// Important: this function must be undoable (i.e. only call undoable functions or add an undo command to the undo stack)
@@ -576,7 +576,7 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 	auto singleStrands = nanorobot_->GetSingleStrands();
 	auto parts = nanorobot_->GetParts();
 
-	// check the correspondance of the number of single strands
+	// check the correspondence of the number of single strands
 
 	SBDocument* document = getDocument();
 	if (!document) document = SAMSON::getActiveDocument();
@@ -591,7 +591,7 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 
 	}
 
-	// check the correspondance of the number of nucleotides
+	// check the correspondence of the number of nucleotides
 
 	const int numberOfNucleotidesUsingSAMSON = document->countNodes((SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 	const int numberOfNucleotidesInNanorobot = nanorobot_->GetNumberOfNucleotides();
@@ -3008,7 +3008,7 @@ void SEAdenitaVisualModel::onDocumentEvent(SBDocumentEvent* documentEvent) {
 	if (!node) return;
 	if (node->getProxy()->getElementUUID() != SBUUID(SB_ELEMENT_UUID)) return;
 
-	// handle additiona and deletion of ADN nodes for updating the Adenita Visual Model
+	// handle addition and deletion of ADN nodes for updating the Adenita Visual Model
 
 	if (eventType == SBDocumentEvent::StructuralModelAdded || eventType == SBDocumentEvent::StructuralModelRemoved) {
 
@@ -3043,7 +3043,7 @@ void SEAdenitaVisualModel::onStructuralEvent(SBStructuralEvent* structuralEvent)
 
 	const std::string nodeClassName = node->getProxy()->getName();
 
-	// handle additiona and deletion of ADN nodes for updating the Adenita Visual Model
+	// handle addition and deletion of ADN nodes for updating the Adenita Visual Model
 
 	if (eventType == SBStructuralEvent::ChainAdded || eventType == SBStructuralEvent::ChainRemoved) {
 

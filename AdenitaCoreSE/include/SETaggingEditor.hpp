@@ -37,46 +37,44 @@ public :
 	/// \name Identity
 	//@{
 
-	virtual SBCContainerUUID									getUUID() const;														///< Returns the widget UUID
-	virtual QString												getName() const;														///< Returns the class name
-	virtual QString												getDescription() const;													///< Returns the menu item text
-	virtual QPixmap												getLogo() const;														///< Returns the pixmap logo
-	virtual int													getFormat() const;														///< Returns the format
-	virtual QKeySequence										getShortcut() const;													///< Returns the shorcut
-	virtual QString												getToolTip() const;														///< Returns the tool tip
+	virtual SBCContainerUUID									getUUID() const override;												///< Returns the widget UUID
+	virtual QString												getName() const override;												///< Returns the widget name (used as a title for the embedding window)
+	virtual QString												getDescription() const override;										///< Returns the menu item text
+	virtual QPixmap												getLogo() const override;												///< Returns the widget logo
+	virtual int													getFormat() const override;												///< Returns the widget format
+	virtual QKeySequence										getShortcut() const override;											///< Returns the shortcut
+	virtual QString												getToolTip() const override;											///< Returns the tool tip
 
 	//@}
 
 	///\name Settings
 	//@{
 
-	virtual void												loadSettings(SBGSettings* settings);									///< Loads \p settings
-	virtual void												saveSettings(SBGSettings* settings);									///< Saves \p settings
+	virtual void												loadSettings(SBGSettings* settings) override;							///< Load GUI settings
+	virtual void												saveSettings(SBGSettings* settings) override;							///< Save GUI settings
 
 	//@}
 
 	/// \name Editing
 	//@{
 
-	virtual void												beginEditing();															///< Called when editing is about to begin
-	virtual void												endEditing();															///< Called when editing is about to end
+	virtual void												beginEditing() override;												///< Called when editing is about to begin
+	virtual void												endEditing() override;													///< Called when editing is about to end
 
 	//@}
 
 	/// \name Actions
 	//@{
 
-	virtual void												getActions(SBVector<SBAction*>& actionVector);							///< Gets the editor's actions
+	virtual void												getContextMenuActions(SBVector<SBAction*>& actionVector) override;		///< Gets the editor's actions
 
 	//@}
 
 	/// \name Rendering
 	//@{
 
-	virtual void												display();																///< Displays the editor
-
-	virtual void												displayForShadow();														///< Displays the editor for shadow purposes
-	virtual void												displayInterface();														///< Displays the 2D interface in the viewport
+	virtual void												display() override;														///< Displays the editor
+	virtual void												displayForShadow() override;											///< Displays the editor for shadow purposes
 
 	//@}
 
