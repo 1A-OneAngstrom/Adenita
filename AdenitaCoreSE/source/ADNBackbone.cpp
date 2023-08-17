@@ -5,7 +5,7 @@
 ADNBackbone::ADNBackbone() : PositionableSB(), SBBackbone() {
 
     auto cA = GetCenterAtom();
-    cA->setElementType(SBElement::Einsteinium);
+    cA->setElementType(SBElement::Unknown); // Einsteinium);
 
 }
 

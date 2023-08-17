@@ -7,7 +7,7 @@
 ADNSidechain::ADNSidechain() : PositionableSB(), SBSideChain() {
 
     auto cA = GetCenterAtom();
-    cA->setElementType(SBElement::Fermium);
+    cA->setElementType(SBElement::Unknown);// Fermium);
 
 }
 

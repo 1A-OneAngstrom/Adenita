@@ -980,7 +980,7 @@ void SEAdenitaCoreSEAppGUI::onGenerateAtomicModel() {
 
 			if (!addToAll && !part->getSelectionFlag()) continue;
 
-			btta.SetNucleotidesPostions(part);
+			btta.SetNucleotidesPositions(part);
 			btta.GenerateAllAtomModel(part, true);
 
 		}
@@ -997,7 +997,7 @@ std::string SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(QString filename) {
 	try {
 
 #ifdef _WIN32
-		// convert to a wide string (UTF-8) to take care of special charachers
+		// convert to a wide string (UTF-8) to take care of special characters
 		std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename.toStdString());
 		fp = _wfopen(wfileName.c_str(), L"rb");
 #else
@@ -1255,7 +1255,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getMenuButtons() {
 		btnExport->setObjectName(QStringLiteral("btnExport"));
 		btnExport->setText("Export\n");
 		btnExport->setToolTip("<b>Export</b><br/><br/>"
-			"Export as CSV sequence file or in a format appropiate for oxDNA.");
+			"Export as CSV sequence file or in a format appropriate for oxDNA.");
 		btnExport->setIconSize(QSize(24, 24));
 		btnExport->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnExport->setAutoRaise(true);
@@ -1630,7 +1630,7 @@ std::vector<QPushButton*> SEAdenitaCoreSEAppGUI::getDebugButtons() {
 
 		auto btnDataGraph = new QPushButton(this);
 		btnDataGraph->setObjectName(QStringLiteral("btnDataGraph"));
-		btnDataGraph->setText("From Datagraph");
+		btnDataGraph->setText("From DataGraph");
 		debugButtons_.push_back(btnDataGraph);
 
 		auto btnTestNeighbors = new QPushButton(this);

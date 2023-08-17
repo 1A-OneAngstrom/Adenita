@@ -49,7 +49,7 @@ namespace ADNLoader {
 
     // generic functions
     //! Populates base segments and double strands from residues
-    void BuildTopScalesParemetrized(ADNPointer<ADNPart> part, SBQuantity::length maxCutOff, SBQuantity::length minCutOff, double maxAngle);
+    void BuildTopScalesParametrized(ADNPointer<ADNPart> part, SBQuantity::length maxCutOff, SBQuantity::length minCutOff, double maxAngle);
 
     template <typename T>
     struct Wrap {

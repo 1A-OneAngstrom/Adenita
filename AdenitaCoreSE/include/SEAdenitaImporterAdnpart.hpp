@@ -18,22 +18,22 @@ public :
 	//@{
 
 	SEAdenitaImporterAdnpart();																													///< Constructs an importer
-	virtual ~SEAdenitaImporterAdnpart();																											///< Destructs the importer
+	virtual ~SEAdenitaImporterAdnpart();																										///< Destructs the importer
 
 	//@}
 
 	/// \name Properties
 	//@{
 
-	virtual std::string											getFilter() const;														///< Returns the filter of the importer
-	virtual std::string											getExtension() const;													///< Returns the extension of the importer
+	virtual std::string											getFilter() const override;														///< Returns the filter of the importer
+	virtual std::string											getExtension() const override;													///< Returns the extension of the importer
 
 	//@}
 
 	/// \name Parsing
 	//@{
 
-	virtual bool												importFromFile(const std::string& fileName, const SBList<std::string>* parameters = 0, SBDDocumentFolder* preferredFolder = 0);			///< Imports data into SAMSON from a file
+	virtual bool												importFromFile(const std::string& fileName, const std::unordered_map<std::string, SBValue>* parameters = nullptr, SBDDocumentFolder* preferredFolder = nullptr) override;			///< Imports data into SAMSON from a file
 
 	//@}
 

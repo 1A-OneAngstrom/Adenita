@@ -23,7 +23,7 @@ SB_CLASS_BEGIN(PIBindingRegion);
 
     SB_ATTRIBUTE_READ_ONLY(unsigned int, PIBindingRegion, Size, "Number of nodes", "Properties");
     SB_ATTRIBUTE_READ_ONLY(double, PIBindingRegion, Entropy, "Entropy (cal/mol)", "Thermodynamic Parameters");
-    SB_ATTRIBUTE_READ_ONLY(double, PIBindingRegion, Entalpy, "Entalpy (cal/mol)", "Thermodynamic Parameters");
+    SB_ATTRIBUTE_READ_ONLY(double, PIBindingRegion, Enthalpy, "Enthalpy (cal/mol)", "Thermodynamic Parameters");
     SB_ATTRIBUTE_READ_ONLY(double, PIBindingRegion, Gibbs, "Gibbs Free Energy (cal/mol)", "Thermodynamic Parameters");
     SB_ATTRIBUTE_READ_ONLY(double, PIBindingRegion, Temp, "Melting Temperature (C)", "Thermodynamic Parameters");
 

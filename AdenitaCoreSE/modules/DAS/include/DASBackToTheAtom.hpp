@@ -34,7 +34,7 @@ public:
      * \param The double strand whose nucleotides need to be set.
      */
     void SetDoubleStrandPositions(ADNPointer<ADNDoubleStrand> ds);
-    void SetNucleotidesPostions(ADNPointer<ADNPart> part);
+    void SetNucleotidesPositions(ADNPointer<ADNPart> part);
 
     void SetPositionLoopNucleotides(ADNPointer<ADNBaseSegment> bs);
 
@@ -60,10 +60,10 @@ public:
     //! Sets the positions of a collection of nucleotides, meant to be called after modifications
     void SetPositionsForNewNucleotides(ADNPointer<ADNPart> part, CollectionMap<ADNNucleotide> nts, bool all_atoms = false);
 
-    //void SetAllAtomsPostions(ADNPointer<ADNPart> origami);
+    //void SetAllAtomsPositions(ADNPointer<ADNPart> origami);
     // for cadnano
-    /*void SetAllAtomsPostions2D(ADNPointer<ADNPart> origami);
-    void SetAllAtomsPostions1D(ADNPointer<ADNPart> origami);*/
+    /*void SetAllAtomsPositions2D(ADNPointer<ADNPart> origami);
+    void SetAllAtomsPositions1D(ADNPointer<ADNPart> origami);*/
 
     /**
      * Rotates a nucleotide along base-pair plane (defined by nt->e3_).

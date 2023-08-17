@@ -14,7 +14,7 @@ double PIBindingRegion::getEntropy() const {
     return thermParam_.dS_;
 }
 
-double PIBindingRegion::getEntalpy() const {
+double PIBindingRegion::getEnthalpy() const {
     return thermParam_.dH_;
 }
 

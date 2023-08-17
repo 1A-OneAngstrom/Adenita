@@ -138,8 +138,8 @@ void SEConnectSSDNAEditor::beginEditing() {
 
 	resetData();
 
-	previousSelectionFilter = SAMSON::getCurrentSelectionFilter();
-	SAMSON::setCurrentSelectionFilter("Any node");
+	previousSelectionFilter = SAMSON::getActiveSelectionFilterName();
+	SAMSON::setActiveSelectionFilterByName("Any node");
   
 }
 
@@ -152,8 +152,8 @@ void SEConnectSSDNAEditor::endEditing() {
 
 	SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
 
-	if (SAMSON::getCurrentSelectionFilter() == "Any node")
-		SAMSON::setCurrentSelectionFilter(previousSelectionFilter);
+	if (SAMSON::getActiveSelectionFilterName() == "Any node")
+		SAMSON::setActiveSelectionFilterByName(previousSelectionFilter);
 
 	SAMSON::unsetViewportCursor();
 
@@ -169,7 +169,7 @@ void SEConnectSSDNAEditor::resetData() {
 
 }
 
-void SEConnectSSDNAEditor::getActions(SBVector<SBAction*>& actionVector) {
+void SEConnectSSDNAEditor::getContextMenuActions(SBVector<SBAction*>& actionVector) {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function to show the user actions associated to your editor in context menus.
 	// Append actions to the actionVector if necessary.
@@ -207,14 +207,6 @@ void SEConnectSSDNAEditor::displayForShadow() {
 	// Implement this function if your editor displays things in viewports, so that your editor can cast shadows
 	// to other objects in SAMSON, for example thanks to the utility
 	// functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
-
-}
-
-void SEConnectSSDNAEditor::displayInterface() {
-
-	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop in order to display the editor 2D interface in viewports. 
-	// Implement this function if your editor displays a 2D user interface. For example, a rectangle selection editor would display a 2D rectangle in the active viewport. 
-	// You may use utility functions provided by SAMSON (e.g. displayLinesOrtho and displayTrianglesOrtho).
 
 }
 
@@ -280,18 +272,18 @@ void SEConnectSSDNAEditor::mouseReleaseEvent(QMouseEvent* event) {
     
 		if (highlightedNucleotides.size() == 1 && selectedStartNucleotide.isValid()) {
 
-			auto startNuclecotide = selectedStartNucleotide;
-			ADNPointer<ADNNucleotide> endNuclecotide = highlightedNucleotides[0];
-			ADNPointer<ADNPart> part1 = startNuclecotide->GetStrand()->GetPart();
-			ADNPointer<ADNPart> part2 = endNuclecotide->GetStrand()->GetPart();
+			auto startNucleotide = selectedStartNucleotide;
+			ADNPointer<ADNNucleotide> endNucleotide = highlightedNucleotides[0];
+			ADNPointer<ADNPart> part1 = startNucleotide->GetStrand()->GetPart();
+			ADNPointer<ADNPart> part2 = endNucleotide->GetStrand()->GetPart();
 
-			if (startNuclecotide->GetStrand() == endNuclecotide->GetStrand() && !startNuclecotide->isEndTypeNucleotide() && !endNuclecotide->isEndTypeNucleotide()) {
+			if (startNucleotide->GetStrand() == endNucleotide->GetStrand() && !startNucleotide->isEndTypeNucleotide() && !endNucleotide->isEndTypeNucleotide()) {
 
 				SAMSON::informUser("Adenita - Connect editor", "Cannot connect these two nucleotides.\nOne of the nucleotides should be the end nucleotide or both nucleotides should be from different strands.");
 
 			}
-			else if (startNuclecotide->getEndType() == endNuclecotide->getEndType() && 
-				(startNuclecotide->getEndType() == ADNNucleotide::EndType::ThreePrime || startNuclecotide->getEndType() == ADNNucleotide::EndType::FivePrime)) {
+			else if (startNucleotide->getEndType() == endNucleotide->getEndType() && 
+				(startNucleotide->getEndType() == ADNNucleotide::EndType::ThreePrime || startNucleotide->getEndType() == ADNNucleotide::EndType::FivePrime)) {
 
 				SAMSON::informUser("Adenita - Connect editor", "Cannot connect nucleotides of the same end type, i.e. 3' with 3' or 5' with 5'. One of the nucleotides should be the end nucleotide or both nucleotides should be from different strands.");
 
@@ -310,7 +302,7 @@ void SEConnectSSDNAEditor::mouseReleaseEvent(QMouseEvent* event) {
 					}
 					else {
 
-						auto dist = (endNuclecotide->GetBaseSegment()->GetPosition() - startNuclecotide->GetBaseSegment()->GetPosition()).norm();
+						auto dist = (endNucleotide->GetBaseSegment()->GetPosition() - startNucleotide->GetBaseSegment()->GetPosition()).norm();
 						const int length = round((dist / SBQuantity::nanometer(ADNConstants::BP_RISE)).getValue()) - 6;
 
 						for (int i = 0; i < length; ++i)
@@ -321,7 +313,7 @@ void SEConnectSSDNAEditor::mouseReleaseEvent(QMouseEvent* event) {
 				}
 
 				app->SetMod(true);
-				DASOperations::CreateCrossover(part1, part2, startNuclecotide, endNuclecotide, two, seq);
+				DASOperations::CreateCrossover(part1, part2, startNucleotide, endNucleotide, two, seq);
 				SEAdenitaCoreSEApp::resetVisualModel();
 				app->SetMod(false);
 

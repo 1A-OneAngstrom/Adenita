@@ -19,7 +19,7 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(std::string filename) {
     FILE* fp = nullptr;
     try {
 #ifdef _WIN32
-        // convert to a wide string (UTF-8) to take care of special charachers
+        // convert to a wide string (UTF-8) to take care of special characters
         std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
         fp = _wfopen(wfileName.c_str(), L"rb");
 #else
@@ -241,7 +241,7 @@ std::vector<ADNPointer<ADNPart>> ADNLoader::LoadPartsFromJson(std::string filena
     FILE* fp = nullptr;
     try {
 #ifdef _WIN32
-        // convert to a wide string (UTF-8) to take care of special charachers
+        // convert to a wide string (UTF-8) to take care of special characters
         std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
         fp = _wfopen(wfileName.c_str(), L"rb");
 #else
@@ -293,7 +293,7 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(std::string filename) {
   FILE* fp = nullptr;
   try {
 #ifdef _WIN32
-      // convert to a wide string (UTF-8) to take care of special charachers
+      // convert to a wide string (UTF-8) to take care of special characters
       std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
       fp = _wfopen(wfileName.c_str(), L"rb");
 #else
@@ -1104,7 +1104,7 @@ ADNPointer<ADNPart> ADNLoader::GenerateModelFromDatagraphParametrized(SBNode * s
 
   }
 
-  BuildTopScalesParemetrized(part, maxCutOff, minCutOff, maxAngle);
+  BuildTopScalesParametrized(part, maxCutOff, minCutOff, maxAngle);
 
   return part;
 }
@@ -1243,7 +1243,7 @@ std::pair<bool, ADNPointer<ADNPart>> ADNLoader::InputFromOxDNA(std::string topoF
 
     // parse topology file
 #ifdef _WIN32
-    // convert to a wide string (UTF-8) to take care of special charachers
+    // convert to a wide string (UTF-8) to take care of special characters
     std::ifstream topo(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(topoFile));
 #else
     std::ifstream topo(topoFile);
@@ -1314,7 +1314,7 @@ std::pair<bool, ADNPointer<ADNPart>> ADNLoader::InputFromOxDNA(std::string topoF
     if (!error) {
 
 #ifdef _WIN32
-      // convert to a wide string (UTF-8) to take care of special charachers
+      // convert to a wide string (UTF-8) to take care of special characters
       std::ifstream config(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(configFile));
 #else
       std::ifstream config(configFile);
@@ -1569,7 +1569,7 @@ void ADNLoader::OutputToCanDo(ADNPointer<ADNPart> part, std::string filename)
   }
 }
 
-void ADNLoader::BuildTopScalesParemetrized(ADNPointer<ADNPart> part, SBQuantity::length maxCutOff, SBQuantity::length minCutOff, double maxAngle)
+void ADNLoader::BuildTopScalesParametrized(ADNPointer<ADNPart> part, SBQuantity::length maxCutOff, SBQuantity::length minCutOff, double maxAngle)
 {
   auto neighbors = ADNNeighbors();
   neighbors.SetMaxCutOff(maxCutOff);

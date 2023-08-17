@@ -106,8 +106,8 @@ void SETaggingEditor::beginEditing() {
 	const QString iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/cursor_tagging.png");
 	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
 
-	previousSelectionFilter = SAMSON::getCurrentSelectionFilter();
-	SAMSON::setCurrentSelectionFilter("Residues");
+	previousSelectionFilter = SAMSON::getActiveSelectionFilterName();
+	SAMSON::setActiveSelectionFilterByName("Residues");
 
 }
 
@@ -118,14 +118,14 @@ void SETaggingEditor::endEditing() {
 
 	SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
 
-	if (SAMSON::getCurrentSelectionFilter() == "Residues")
-		SAMSON::setCurrentSelectionFilter(previousSelectionFilter);
+	if (SAMSON::getActiveSelectionFilterName() == "Residues")
+		SAMSON::setActiveSelectionFilterByName(previousSelectionFilter);
 
 	SAMSON::unsetViewportCursor();
 
 }
 
-void SETaggingEditor::getActions(SBVector<SBAction*>& actionVector) {
+void SETaggingEditor::getContextMenuActions(SBVector<SBAction*>& actionVector) {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function to show the user actions associated to your editor in context menus.
 	// Append actions to the actionVector if necessary.
@@ -155,14 +155,6 @@ void SETaggingEditor::displayForShadow() {
 	// Implement this function if your editor displays things in viewports, so that your editor can cast shadows
 	// to other objects in SAMSON, for example thanks to the utility
 	// functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
-
-}
-
-void SETaggingEditor::displayInterface() {
-
-	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop in order to display the editor 2D interface in viewports. 
-	// Implement this function if your editor displays a 2D user interface. For example, a rectangle selection editor would display a 2D rectangle in the active viewport. 
-	// You may use utility functions provided by SAMSON (e.g. displayLinesOrtho and displayTrianglesOrtho).
 
 }
 

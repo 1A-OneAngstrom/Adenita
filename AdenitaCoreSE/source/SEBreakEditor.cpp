@@ -104,8 +104,8 @@ void SEBreakEditor::beginEditing() {
 	const QString iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/break.png");
 	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
 
-	previousSelectionFilter = SAMSON::getCurrentSelectionFilter();
-	SAMSON::setCurrentSelectionFilter("Any node");
+	previousSelectionFilter = SAMSON::getActiveSelectionFilterName();
+	SAMSON::setActiveSelectionFilterByName("Any node");
 
 }
 
@@ -116,14 +116,14 @@ void SEBreakEditor::endEditing() {
 
 	SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
 
-	if (SAMSON::getCurrentSelectionFilter() == "Any node")
-		SAMSON::setCurrentSelectionFilter(previousSelectionFilter);
+	if (SAMSON::getActiveSelectionFilterName() == "Any node")
+		SAMSON::setActiveSelectionFilterByName(previousSelectionFilter);
 
 	SAMSON::unsetViewportCursor();
 
 }
 
-void SEBreakEditor::getActions(SBVector<SBAction*>& actionVector) {
+void SEBreakEditor::getContextMenuActions(SBVector<SBAction*>& actionVector) {
 
 	// SAMSON Element generator pro tip: SAMSON calls this function to show the user actions associated to your editor in context menus.
 	// Append actions to the actionVector if necessary.
@@ -147,15 +147,6 @@ void SEBreakEditor::displayForShadow() {
 
 }
 
-void SEBreakEditor::displayInterface() {
-
-	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop in order to display the editor 2D interface in viewports. 
-	// Implement this function if your editor displays a 2D user interface. For example, a rectangle selection editor would display a 2D rectangle in the active viewport. 
-	// You may use utility functions provided by SAMSON (e.g. displayLinesOrtho and displayTrianglesOrtho).
-  
-
-}
-
 void SEBreakEditor::mousePressEvent(QMouseEvent* event) {
 
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
@@ -170,7 +161,7 @@ void SEBreakEditor::mousePressEvent(QMouseEvent* event) {
 		// Skip the following cases:
 		// 1. the nucleotide is not in a single strand
 		// 2. the nucleotide is the only nucleotide in the single strand
-		// 3. the cnuleotide is the end nucleotide, or there is no next or previous nucleotide 
+		// 3. the nucleotide is the end nucleotide, or there is no next or previous nucleotide 
 
 		auto highlightedNucleotide = highlightedNucleotides[0];
 		auto singleStrand = highlightedNucleotide->GetStrand();

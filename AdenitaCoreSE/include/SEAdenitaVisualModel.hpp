@@ -33,17 +33,17 @@ public :
 	/// \name Serialization
 	//@{
 
-	virtual bool												isSerializable() const;													///< Returns true when the class is serializable
+	virtual bool												isSerializable() const override;										///< Returns true when the class is serializable
 
-	virtual void												serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const;		///< Serializes the node
-	virtual void												unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0));			///< Unserializes the node
+	virtual void												serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const override;		///< Serializes the node
+	virtual void												unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;			///< Unserializes the node
 
 	//@}
 
 	/// \name Topology
 	//@{
 
-	virtual	void												eraseImplementation();													///< Erases the visual model
+	virtual	void												onErase() override;														///< Erases the visual model
 
 	//@}
 
@@ -142,6 +142,8 @@ public :
 	void														setNotScaffold(bool c);
 	bool														getDefaultNotScaffold() const;
 
+	bool														getEnabledFlagForHighlightAttributes() const;
+
 	bool														getShowBasePairingFlag() const;
 	void														setShowBasePairingFlag(bool show);
 
@@ -160,13 +162,14 @@ public :
 	/// \name Display
 	//@{
 
-	virtual void												display();																///< Displays the visual model
-	virtual void												displayForShadow();														///< Displays the visual model for shadow purposes
-	virtual void												displayForSelection();													///< Displays the visual model for selection purposes
+	virtual void												display() override;														///< Displays the visual model
+	virtual void												displayForShadow() override;											///< Displays the visual model for shadow purposes
+	virtual void												displayForSelection() override;											///< Displays the visual model for selection purposes
 
 	virtual void												highlightNucleotides();
-	virtual void												expandBounds(SBIAPosition3& bounds) const;								///< Expands the bounds to make sure the visual model fits inside them
-	virtual void												collectAmbientOcclusion(const SBPosition3& boxOrigin, const SBPosition3& boxSize, unsigned int nCellsX, unsigned int nCellsY, unsigned int nCellsZ, float* ambientOcclusionData);		///< To collect ambient occlusion data
+
+	virtual void												expandBounds(SBIAPosition3& bounds) const override;						///< Expands the bounds to make sure the visual model fits inside them
+	virtual void												collectAmbientOcclusion(const SBPosition3& boxOrigin, const SBPosition3& boxSize, unsigned int nCellsX, unsigned int nCellsY, unsigned int nCellsZ, float* ambientOcclusionData) override;		///< To collect ambient occlusion data
 
 	//@}
 
@@ -340,7 +343,7 @@ private:
 	enum class ColorType {
 		REGULAR = 0,	///< default color map
 		MELTTEMP = 1,	///< melting temperatures color map
-		GIBBS = 2		///< gibbs free energy color map
+		GIBBS = 2		///< Gibbs free energy color map
 	};
 
 	ColorType													curColorType_ = ColorType::REGULAR;
