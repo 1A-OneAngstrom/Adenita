@@ -129,8 +129,8 @@ void SETwistHelixEditor::beginEditing() {
 
 	updateCursor();
 
-	previousSelectionFilter = SAMSON::getCurrentSelectionFilter();
-	SAMSON::setCurrentSelectionFilter("Any node");
+	previousSelectionFilter = SAMSON::getActiveSelectionFilterName();
+	SAMSON::setActiveSelectionFilterByName("Any node");
 
 }
 
@@ -141,8 +141,8 @@ void SETwistHelixEditor::endEditing() {
 
 	SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
 
-	if (SAMSON::getCurrentSelectionFilter() == "Any node")
-		SAMSON::setCurrentSelectionFilter(previousSelectionFilter);
+	if (SAMSON::getActiveSelectionFilterName() == "Any node")
+		SAMSON::setActiveSelectionFilterByName(previousSelectionFilter);
 
 	SAMSON::unsetViewportCursor();
 

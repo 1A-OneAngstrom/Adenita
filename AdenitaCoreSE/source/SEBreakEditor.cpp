@@ -104,8 +104,8 @@ void SEBreakEditor::beginEditing() {
 	const QString iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/break.png");
 	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
 
-	previousSelectionFilter = SAMSON::getCurrentSelectionFilter();
-	SAMSON::setCurrentSelectionFilter("Any node");
+	previousSelectionFilter = SAMSON::getActiveSelectionFilterName();
+	SAMSON::setActiveSelectionFilterByName("Any node");
 
 }
 
@@ -116,8 +116,8 @@ void SEBreakEditor::endEditing() {
 
 	SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
 
-	if (SAMSON::getCurrentSelectionFilter() == "Any node")
-		SAMSON::setCurrentSelectionFilter(previousSelectionFilter);
+	if (SAMSON::getActiveSelectionFilterName() == "Any node")
+		SAMSON::setActiveSelectionFilterByName(previousSelectionFilter);
 
 	SAMSON::unsetViewportCursor();
 

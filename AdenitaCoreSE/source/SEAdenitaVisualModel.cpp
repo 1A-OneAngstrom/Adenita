@@ -1924,7 +1924,11 @@ std::string SEAdenitaVisualModel::getPropertyColorSchemeItemText(const int index
 
 }
 
+bool		SEAdenitaVisualModel::getEnabledFlagForHighlightAttributes() const { return (highlightType_ == HighlightType::LENGTH); }
+
 void		SEAdenitaVisualModel::updateEnabledFlagForHighlightAttributes() {
+
+#if 0
 
 	// enable/disable attributes in the Inspector
 
@@ -1938,6 +1942,8 @@ void		SEAdenitaVisualModel::updateEnabledFlagForHighlightAttributes() {
 		if (classInterface->getAttribute("HighlightMaxLength")) classInterface->getAttribute("HighlightMaxLength")->setEnabled(enabled);
 
 	}
+
+#endif
 
 }
 

@@ -33,7 +33,7 @@ std::string SEAdenitaImporterAdnpart::getExtension() const {
 
 }
 
-bool SEAdenitaImporterAdnpart::importFromFile(const std::string& fileName, const SBList<std::string>* parameters, SBDDocumentFolder* preferredFolder) {
+bool SEAdenitaImporterAdnpart::importFromFile(const std::string& fileName, const std::unordered_map<std::string, SBValue>* parameters, SBDDocumentFolder* preferredFolder) {
 
 	SEAdenitaCoreSEApp* adenitaApp = SEAdenitaCoreSEApp::getAdenitaApp();
 

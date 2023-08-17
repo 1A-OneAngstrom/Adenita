@@ -33,7 +33,7 @@ public :
 	/// \name Parsing
 	//@{
 
-	virtual bool												importFromFile(const std::string& fileName, const SBList<std::string>* parameters = 0, SBDDocumentFolder* preferredFolder = 0) override;			///< Imports data into SAMSON from a file
+	virtual bool												importFromFile(const std::string& fileName, const std::unordered_map<std::string, SBValue>* parameters = nullptr, SBDDocumentFolder* preferredFolder = nullptr) override;			///< Imports data into SAMSON from a file
 
 	//@}
 

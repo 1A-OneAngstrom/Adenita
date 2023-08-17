@@ -142,6 +142,8 @@ public :
 	void														setNotScaffold(bool c);
 	bool														getDefaultNotScaffold() const;
 
+	bool														getEnabledFlagForHighlightAttributes() const;
+
 	bool														getShowBasePairingFlag() const;
 	void														setShowBasePairingFlag(bool show);
 
