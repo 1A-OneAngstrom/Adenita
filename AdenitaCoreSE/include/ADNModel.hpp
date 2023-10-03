@@ -27,16 +27,16 @@ const DNAPairsToString nt_pairs_names_ = boost::assign::list_of<DNAPairsToString
 /* Namespace with static functions */
 namespace ADNModel {
 
-	DNABlocks													GetComplementaryBase(DNABlocks base);
+    SB_EXPORT DNABlocks											GetComplementaryBase(DNABlocks base);
 
-	char														GetResidueName(DNABlocks t);
-	DNABlocks													ResidueNameToType(char n);
+	SB_EXPORT char												GetResidueName(DNABlocks t);
+	SB_EXPORT DNABlocks											ResidueNameToType(char n);
 
-	bool														IsAtomInBackboneByName(std::string_view name);
+    SB_EXPORT bool												IsAtomInBackboneByName(std::string_view name);
 
-	SBElement::Type												GetElementType(const std::string& atomName);
+    SB_EXPORT SBElement::Type									GetElementType(const std::string& atomName);
 
-	std::map<std::string, std::vector<std::string>>				GetNucleotideBonds(DNABlocks t);
+    SB_EXPORT std::map<std::string, std::vector<std::string>>	GetNucleotideBonds(DNABlocks t);
 
     const std::vector<std::string>                              backbone_names_ = std::vector<std::string>{ "P", "OP1", "OP2", "O5'", "C5'", "C4'",
     "O4'", "C3'", "O3'", "C2'", "C1'" };

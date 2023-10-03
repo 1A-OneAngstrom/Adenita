@@ -117,8 +117,8 @@ public:
 
     Identifiable& operator=(const Identifiable& other);
 
-    void SetId(int id);
-    int GetId() const;
+    void SetId(int id) noexcept;
+    int GetId() const noexcept;
 
 private:
 

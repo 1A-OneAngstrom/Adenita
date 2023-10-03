@@ -22,13 +22,13 @@ class DASPolygon;
 
 using EdgeBps = std::map<DASEdge*, int>;
 
-class DASHalfEdge {
+class SB_EXPORT DASHalfEdge {
 
 public:
 
 	DASHalfEdge() = default;
 	/**
-	 * Half-edges don't need custom destructor because in Halfedge
+	 * Half-edges don't need custom destructor because in Half-edge
 	 * representation they don't make sense by themselves
 	 */
 	~DASHalfEdge() = default;
@@ -48,7 +48,7 @@ public:
 
 };
 
-class DASVertex {
+class SB_EXPORT DASVertex {
 
 public:
 
@@ -77,7 +77,7 @@ public:
 
 };
 
-class DASEdge {
+class SB_EXPORT DASEdge {
 
 public:
 
@@ -92,7 +92,7 @@ public:
 
 };
 
-class DASPolygon {
+class SB_EXPORT DASPolygon {
 
 public:
 
@@ -156,8 +156,8 @@ public:
 	// static ANTPolygon* GetSharedFace(ANTVertex* v, ANTVertex* w);
 	static DASHalfEdge* GetHalfEdge(DASVertex* v, DASVertex* w);
 	void Scale(double scalingFactor);
-	void Center(SBPosition3 center);
-	SBPosition3 GetCenter();
+	void Center(const SBPosition3& center);
+	SBPosition3 GetCenter() const;
 
 protected:
 
@@ -175,7 +175,7 @@ private:
 	// Store original value for scaling
 	Vertices originalVertices_;
 	//store index list of faces
-	unsigned int* indices_;
+	unsigned int* indices_{ nullptr };
 
 };
 

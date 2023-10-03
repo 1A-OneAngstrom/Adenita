@@ -215,8 +215,8 @@ SB_CLASS_BEGIN(ADNSingleStrand);
   SB_INTERFACE_BEGIN;
 
     SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNSingleStrand, Name, "Name", "Adenita");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNSingleStrand, IsScaffold, "Is scaffold", "Adenita");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNSingleStrand, IsCircular, "Is circular", "Adenita");
+    SB_ATTRIBUTE_READ_WRITE(bool, ADNSingleStrand, ScaffoldFlag, "Is scaffold", "Adenita");
+    SB_ATTRIBUTE_READ_WRITE(bool, ADNSingleStrand, CircularFlag, "Is circular", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(int, ADNSingleStrand, NumberOfNucleotides, "Nucleotides", "Adenita");
     SB_ATTRIBUTE_READ_WRITE(std::string, ADNSingleStrand, Sequence, "Sequence", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(double, ADNSingleStrand, GCContent, "GC %", "Adenita");
@@ -406,7 +406,7 @@ SB_CLASS_BEGIN(ADNDoubleStrand);
     SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNDoubleStrand, Name, "Name", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(int, ADNDoubleStrand, Length, "Length", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(double, ADNDoubleStrand, InitialTwistAngle, "Helical twist offset", "Adenita");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNDoubleStrand, IsCircular, "Is Circular", "Adenita");
+    SB_ATTRIBUTE_READ_WRITE(bool, ADNDoubleStrand, CircularFlag, "Is circular", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNDoubleStrand, FirstBaseSegment, "First base segment", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNDoubleStrand, LastBaseSegment, "Last base segment", "Adenita");
 

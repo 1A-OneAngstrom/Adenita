@@ -131,20 +131,11 @@ void SEBreakEditor::getContextMenuActions(SBVector<SBAction*>& actionVector) {
 
 }
 
-void SEBreakEditor::display() {
+void SEBreakEditor::display(SBNode::RenderingPass renderingPass) {
 
 	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop. 
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
   
-}
-
-void SEBreakEditor::displayForShadow() {
-
-	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop in order to compute shadows. 
-	// Implement this function if your editor displays things in viewports, so that your editor can cast shadows
-	// to other objects in SAMSON, for example thanks to the utility
-	// functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
-
 }
 
 void SEBreakEditor::mousePressEvent(QMouseEvent* event) {

@@ -96,9 +96,9 @@ CollectionMap<ADNAtom> ADNSidechain::GetAtoms() const {
 
 ADNPointer<ADNNucleotide> ADNSidechain::GetNucleotide() const {
 
-    SBNode* parent = getParent();
-    if (parent) if (parent->getType() == SBNode::Residue) //if (parent->getProxy()->getName() == "ADNNucleotide")
-        return ADNPointer<ADNNucleotide>(static_cast<ADNNucleotide*>(getParent()));
+    if (SBNode* parent = getParent())
+        if (parent->getType() == SBNode::Residue) //if (parent->getProxy()->getName() == "ADNNucleotide")
+            return ADNPointer<ADNNucleotide>(static_cast<ADNNucleotide*>(getParent()));
 
     return nullptr;
 

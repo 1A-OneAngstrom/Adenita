@@ -59,7 +59,7 @@ ADNPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, DASPolyhedron &
 
   ADNPointer<ADNSingleStrand> scaff = new ADNSingleStrand();
   scaff->setName("Scaffold");
-  scaff->IsScaffold(true);
+  scaff->setScaffoldFlag(true);
   chains_.insert(std::make_pair(0, scaff));
 
   // Create undirected graph from figure

@@ -17,7 +17,7 @@ class SB_EXPORT SEDSDNACreatorEditor : public SBGEditor {
 	SB_CLASS
 	Q_OBJECT
 
-public :
+public:
 
 	/// \name Constructors and destructors
 	//@{

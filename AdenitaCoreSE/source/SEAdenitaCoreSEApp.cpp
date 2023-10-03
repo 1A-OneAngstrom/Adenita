@@ -258,8 +258,7 @@ void SEAdenitaCoreSEApp::requestVisualModelUpdate() {
 	}
 	else {
 
-		//SBProxy* visualModelProxy = SAMSON::getProxy("SEAdenitaVisualModel", SBUUID(SB_ELEMENT_UUID));
-		SEAdenitaVisualModel* newVisualModel = new SEAdenitaVisualModel();// visualModelProxy->createInstance();
+		SEAdenitaVisualModel* newVisualModel = new SEAdenitaVisualModel();
 		if (SAMSON::isHolding()) SAMSON::hold(newVisualModel);
 		newVisualModel->create();
 		SAMSON::getActiveDocument()->addChild(newVisualModel);
@@ -284,8 +283,7 @@ void SEAdenitaCoreSEApp::resetVisualModel() {
 	}
 	else {
 
-		//SBProxy* visualModelProxy = SAMSON::getProxy("SEAdenitaVisualModel", SBUUID(SB_ELEMENT_UUID));
-		SEAdenitaVisualModel* newVisualModel = new SEAdenitaVisualModel();// visualModelProxy->createInstance();
+		SEAdenitaVisualModel* newVisualModel = new SEAdenitaVisualModel();
 		if (SAMSON::isHolding()) SAMSON::hold(newVisualModel);
 		newVisualModel->create();
 		SAMSON::getActiveDocument()->addChild(newVisualModel);
@@ -540,7 +538,7 @@ void SEAdenitaCoreSEApp::TestNeighbors() {
 
 }
 
-void SEAdenitaCoreSEApp::ImportFromOxDNA(std::string topoFile, std::string configFile) {
+void SEAdenitaCoreSEApp::ImportFromOxDNA(const std::string& topoFile, const std::string& configFile) {
 
 	auto res = ADNLoader::InputFromOxDNA(topoFile, configFile);
 	if (!res.first) {
@@ -553,7 +551,7 @@ void SEAdenitaCoreSEApp::ImportFromOxDNA(std::string topoFile, std::string confi
 
 }
 
-void SEAdenitaCoreSEApp::FromDatagraph() {
+void SEAdenitaCoreSEApp::FromDataGraph(bool resetVisualModel) {
 
 	SBNodeIndexer nodeIndexer;
 	SAMSON::getActiveDocument()->getNodes(nodeIndexer, SBNode::StructuralModel);
@@ -562,14 +560,15 @@ void SEAdenitaCoreSEApp::FromDatagraph() {
 
 		if (node->isSelected()) {
 
-			ADNPointer<ADNPart> part = ADNLoader::GenerateModelFromDatagraph(node);
+			ADNPointer<ADNPart> part = ADNLoader::GenerateModelFromDataGraph(node);
 			addPartToDocument(part, true);
 
 		}
 
 	}
 
-	SEAdenitaCoreSEApp::resetVisualModel();
+	if (resetVisualModel)
+		SEAdenitaCoreSEApp::resetVisualModel();
 
 }
 
@@ -593,7 +592,7 @@ void SEAdenitaCoreSEApp::HighlightPosXOs() {
 
 }
 
-void SEAdenitaCoreSEApp::ExportToCanDo(QString filename) {
+void SEAdenitaCoreSEApp::ExportToCanDo(const QString& filename) {
 
 	SBNodeIndexer nodeIndexer;
 	SAMSON::getActiveDocument()->getNodes(nodeIndexer, SBNode::StructuralModel);
@@ -690,7 +689,7 @@ void SEAdenitaCoreSEApp::FixDesigns() {
 
 			ADNPointer<ADNSingleStrand> newSs = new ADNSingleStrand();
 			newSs->setName(ss->getName());
-			newSs->IsScaffold(ss->IsScaffold());
+			newSs->setScaffoldFlag(ss->IsScaffold());
 			if (SAMSON::isHolding()) SAMSON::hold(newSs());
 			newSs->create();
 			part->RegisterSingleStrand(newSs);
@@ -782,7 +781,7 @@ void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* structuralEvent) {
 
 #if 0
 	// is handled in the Adenita Visual Model
-	// handle additiona and deletion of ADN nodes for updating the Adenita Visual Model
+	// handle addition and deletion of ADN nodes for updating the Adenita Visual Model
 
 	if (eventType == SBStructuralEvent::ChainAdded || eventType == SBStructuralEvent::ChainRemoved) {
 
@@ -930,7 +929,7 @@ ADNNanorobot* SEAdenitaCoreSEApp::getNanorobot(SBDocument * document) {
 
 }
 
-std::string SEAdenitaCoreSEApp::readScaffoldFilename(std::string filename) {
+std::string SEAdenitaCoreSEApp::readScaffoldFilename(const std::string& filename) {
 
 	std::string seq = "";
 	if (filename.size() > 0) {

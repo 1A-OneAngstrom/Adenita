@@ -52,16 +52,16 @@ public:
 	SBNode*														getSingleStrand() const;
 
 	void														SetBaseSegment(ADNPointer<ADNBaseSegment> bs);
-	ADNPointer<ADNBaseSegment>									GetBaseSegment();
+	ADNPointer<ADNBaseSegment>									GetBaseSegment() const;
 	SBNode*														getBaseSegment() const;
 	std::string													getBaseSegmentTypeString() const;
 
-	ADNPointer<ADNDoubleStrand>                                 GetDoubleStrand();														///< Return the double strands to which the nucleotide belongs
+	ADNPointer<ADNDoubleStrand>                                 GetDoubleStrand() const;												///< Return the double strands to which the nucleotide belongs
 
 	std::string													getEndTypeString() const;
-	ADNNucleotide::EndType										getEndType();																///< Return if the nucleotide is 5', 3', neither or both
+	ADNNucleotide::EndType										getEndType() const;														///< Return if the nucleotide is 5', 3', neither or both
 	void														setEndType(ADNNucleotide::EndType type);
-	bool														isEndTypeNucleotide();
+	bool														isEndTypeNucleotide() const;
 
 	void														Init();
 	ADNPointer<ADNBackbone>										GetBackbone() const;
@@ -77,16 +77,16 @@ public:
 
 	void														AddAtom(NucleotideGroup g, ADNPointer<ADNAtom> a);
 	void														DeleteAtom(NucleotideGroup g, ADNPointer<ADNAtom> a);
-	CollectionMap<ADNAtom>										GetAtoms();
+	CollectionMap<ADNAtom>										GetAtoms() const;
 	int															getNumberOfAtoms() const;
-	CollectionMap<ADNAtom>										GetAtomsByName(std::string name);
+	CollectionMap<ADNAtom>										GetAtomsByName(const std::string& name) const;
 	void														HideCenterAtoms();														///< Hides center "mock" atom
-	ADNPointer<ADNAtom>											GetBackboneCenterAtom();
-	ADNPointer<ADNAtom>											GetSidechainCenterAtom();
+	ADNPointer<ADNAtom>											GetBackboneCenterAtom() const;
+	ADNPointer<ADNAtom>											GetSidechainCenterAtom() const;
 
 	// Local base is always the standard basis
-	ublas::matrix<double>										GetGlobalBasisTransformation();
-	bool														GlobalBaseIsSet();
+	ublas::matrix<double>										GetGlobalBasisTransformation() const;
+	bool														GlobalBaseIsSet() const;
 
 	//! check where in the base segment is the nucleotide located
 	bool														IsLeft();
@@ -95,14 +95,14 @@ public:
 	//! tagging
 	std::string													getTag() const;
 	void														setTag(std::string t);
-	bool														hasTag();
+	bool														hasTag() const;
 
 private:
 
 	ADNWeakPointer<ADNNucleotide>								pairNucleotide;
 	ADNWeakPointer<ADNBaseSegment>								baseSegment;  // base segment to which the nucleotide belongs to
 
-	ADNNucleotide::EndType										endType = ADNNucleotide::EndType::NotEnd;
+	ADNNucleotide::EndType										endType{ ADNNucleotide::EndType::NotEnd };
 
 	std::string													tag;
 

@@ -24,7 +24,7 @@ using Position3D = SBPosition3;
 
 namespace ADNAuxiliary {
 
-    using namespace ublas;
+    //using namespace ublas;
 
     //enum SelectionFlag {
     //    Unselected = 0,
@@ -97,38 +97,38 @@ namespace ADNAuxiliary {
         double boxSizeZ_ = 0.0;
     };
 
-    double mapRange(double input, double input_start, double input_end, double output_start, double output_end);
-    //char getBaseSymbol(SBNode* node);
-    char getBaseSymbol(std::string name);
-    char getBaseSymbol(size_t numAtoms); 
-    void getHeatMapColor(double val, double min, double max, int* color);
+    SB_EXPORT double mapRange(double input, double input_start, double input_end, double output_start, double output_end);
+    //SB_EXPORT char getBaseSymbol(SBNode* node);
+    SB_EXPORT char getBaseSymbol(std::string name);
+    SB_EXPORT char getBaseSymbol(size_t numAtoms); 
+    SB_EXPORT void getHeatMapColor(double val, double min, double max, int* color);
 
-    std::string UblasVectorToString(ublas::vector<double> vec);
-    std::string VectorToString(std::vector<int> vec);
-    std::string SBPositionToString(Position3D pos);
-    std::string SBVector3ToString(SBVector3 vec);
+    SB_EXPORT std::string UblasVectorToString(ublas::vector<double> vec);
+    SB_EXPORT std::string VectorToString(std::vector<int> vec);
+    SB_EXPORT std::string SBPositionToString(Position3D pos);
+    SB_EXPORT std::string SBVector3ToString(SBVector3 vec);
 
-    ublas::vector<double> StringToUblasVector(std::string vec);
-    Position3D StringToSBPosition(std::string vec);
-    SBVector3 StringToSBVector(std::string vec);
-    std::vector<int> StringToVector(std::string vec);
+    SB_EXPORT ublas::vector<double> StringToUblasVector(std::string vec);
+    SB_EXPORT Position3D StringToSBPosition(std::string vec);
+    SB_EXPORT SBVector3 StringToSBVector(std::string vec);
+    SB_EXPORT std::vector<int> StringToVector(std::string vec);
 
-    Position3D UblasVectorToSBPosition(ublas::vector<double> pos);
-    SBVector3 UblasVectorToSBVector(ublas::vector<double> pos);
-    ublas::vector<double> SBVectorToUblasVector(SBVector3 v);
-    ublas::vector<double> SBPositionToUblas(Position3D pos);
-    std::vector<double> SBPositionToVector(Position3D pos);
+    SB_EXPORT Position3D UblasVectorToSBPosition(ublas::vector<double> pos);
+    SB_EXPORT SBVector3 UblasVectorToSBVector(ublas::vector<double> pos);
+    SB_EXPORT ublas::vector<double> SBVectorToUblasVector(SBVector3 v);
+    SB_EXPORT ublas::vector<double> SBPositionToUblas(Position3D pos);
+    SB_EXPORT std::vector<double> SBPositionToVector(Position3D pos);
 
     /*! Converts a 3D std::vector<double> to SBPosition3
         (in nanometers)
     */
-    SBPosition3 VectorToSBPosition(std::vector<double> v);
+    SB_EXPORT SBPosition3 VectorToSBPosition(std::vector<double> v);
     /*! Converts a 3D std::vector<double> to SBVector3
     */
-    SBVector3 VectorToSBVector(std::vector<double> v);
+    SB_EXPORT SBVector3 VectorToSBVector(std::vector<double> v);
   
-    bool ValidateSequence(std::string seq);
+    SB_EXPORT bool ValidateSequence(std::string seq);
 
-    QString AdenitaCitation();
+    SB_EXPORT QString AdenitaCitation();
 
 };

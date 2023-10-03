@@ -16,7 +16,7 @@ class SB_EXPORT SEMergePartsEditor : public SBGEditor {
 	SB_CLASS
 	Q_OBJECT
 
-public :
+public:
 
 	/// \name Constructors and destructors
 	//@{

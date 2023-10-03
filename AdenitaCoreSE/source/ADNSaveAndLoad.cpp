@@ -76,7 +76,7 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value & val, double v
 
     ADNPointer<ADNSingleStrand> ss = ADNPointer<ADNSingleStrand>(new ADNSingleStrand());
     ss->setName(itr->value["chainName"].GetString());
-    ss->IsScaffold(itr->value["isScaffold"].GetBool());
+    ss->setScaffoldFlag(itr->value["isScaffold"].GetBool());
 
     const rapidjson::Value& val_nucleotides = itr->value["nucleotides"];
     for (rapidjson::Value::ConstMemberIterator itr2 = val_nucleotides.MemberBegin(); itr2 != val_nucleotides.MemberEnd(); ++itr2) {
@@ -341,7 +341,7 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(std::string filename) {
     part->RegisterSingleStrand(ss);
 
     ss->setName(itr->value["chainName"].GetString());
-    ss->IsScaffold(itr->value["isScaffold"].GetBool());
+    ss->setScaffoldFlag(itr->value["isScaffold"].GetBool());
 
     int fivePrimeId = itr->value["fivePrimeId"].GetInt();
     int threePrimeId = itr->value["fivePrimeId"].GetInt();
@@ -889,7 +889,7 @@ void ADNLoader::SaveNanorobotToJson(ADNNanorobot * nr, std::string filename) {
   file.close();
 }
 
-ADNPointer<ADNPart> ADNLoader::GenerateModelFromDatagraph(SBNode* n)
+ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraph(SBNode* n)
 {
   ADNPointer<ADNPart> part = new ADNPart();
 
@@ -1297,7 +1297,7 @@ std::pair<bool, ADNPointer<ADNPart>> ADNLoader::InputFromOxDNA(std::string topoF
 
             // if last nucleotide next is same as first close
 
-            // insert wraper
+            // insert wrapper
             NucleotideWrap w = NucleotideWrap();
             w.elem_ = nt;
             w.id_ = currNt;

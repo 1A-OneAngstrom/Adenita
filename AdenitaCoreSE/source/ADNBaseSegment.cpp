@@ -280,14 +280,14 @@ void ADNBaseSegment::RemoveNucleotide(ADNPointer<ADNNucleotide> nt) {
 
 }
 
-bool ADNBaseSegment::IsLeft(ADNPointer<ADNNucleotide> nt) {
+bool ADNBaseSegment::IsLeft(ADNPointer<ADNNucleotide> nt) const {
 
     if (cell_ != nullptr) return cell_->IsLeft(nt);
     else return false;
 
 }
 
-bool ADNBaseSegment::IsRight(ADNPointer<ADNNucleotide> nt) {
+bool ADNBaseSegment::IsRight(ADNPointer<ADNNucleotide> nt) const {
 
     if (cell_ != nullptr) return cell_->IsRight(nt);
     else return false;

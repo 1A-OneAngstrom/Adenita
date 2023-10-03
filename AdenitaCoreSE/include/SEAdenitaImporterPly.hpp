@@ -12,7 +12,7 @@ class SB_EXPORT SEAdenitaImporterPly : public SBIFileImporter {
 
 	SB_CLASS
 
-public :
+public:
 
 	/// \name Constructors and destructors
 	//@{

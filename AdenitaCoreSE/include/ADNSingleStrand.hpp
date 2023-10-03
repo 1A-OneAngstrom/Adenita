@@ -24,26 +24,24 @@ public:
     virtual void												serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const override;		///< Serializes the node
     virtual void												unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;			///< Unserializes the node
 
-    ADNPointer<ADNPart>                                         GetPart();                                                              ///< Returns a pointer to the part to which this single strand belongs
+    ADNPointer<ADNPart>                                         GetPart() const;                                                        ///< Returns a pointer to the part to which this single strand belongs
 
-    ADNPointer<ADNNucleotide>                                   GetFivePrime();                                                         ///< Returns the five prime nucleotide of the single strand
+    ADNPointer<ADNNucleotide>                                   GetFivePrime() const;                                                   ///< Returns the five prime nucleotide of the single strand
     SBNode*                                                     getFivePrime() const;                                                   ///< Returns the five prime nucleotide of the single strand
-    ADNPointer<ADNNucleotide>                                   GetThreePrime();                                                        ///< Returns the three prime nucleotide of the single strand
+    ADNPointer<ADNNucleotide>                                   GetThreePrime() const;                                                  ///< Returns the three prime nucleotide of the single strand
     SBNode*                                                     getThreePrime() const;                                                  ///< Returns the three prime nucleotide of the single strand
 
     // if using these functions, make sure nucleotides are properly added
     void                                                        SetFivePrime(ADNPointer<ADNNucleotide> nucleotide);
     void                                                        SetThreePrime(ADNPointer<ADNNucleotide> nucleotide);
 
-    void                                                        IsScaffold(bool b);
     bool                                                        IsScaffold() const;                                                     ///< Returns whether a single strand is a scaffold
-    bool                                                        getIsScaffold() const;
-    void                                                        setIsScaffold(bool b);
+    bool                                                        getScaffoldFlag() const;
+    void                                                        setScaffoldFlag(bool b);
 
-    void                                                        IsCircular(bool c);
     bool                                                        IsCircular() const;
-    bool                                                        getIsCircular() const;
-    void                                                        setIsCircular(bool b);
+    bool                                                        getCircularFlag() const;
+    void                                                        setCircularFlag(bool b);
 
     CollectionMap<ADNNucleotide>                                GetNucleotides() const;                                                 ///< Returns the nucleotides of the single strand
     int                                                         getNumberOfNucleotides() const;
@@ -67,11 +65,11 @@ public:
 
 private:
 
-    bool                                                        scaffoldFlag = false;
-    bool                                                        circularFlag = false;
+    bool                                                        scaffoldFlag{ false };
+    bool                                                        circularFlag{ false };
 
-    ADNPointer<ADNNucleotide>                                   fivePrimeNucleotide = nullptr;
-    ADNPointer<ADNNucleotide>                                   threePrimeNucleotide = nullptr;
+    ADNPointer<ADNNucleotide>                                   fivePrimeNucleotide{ nullptr };
+    ADNPointer<ADNNucleotide>                                   threePrimeNucleotide{ nullptr };
 
 };
 

@@ -552,7 +552,7 @@ DASVertex* DASPolyhedron::GetVertexById(int id) {
 }
 
 std::pair<DASEdge*, double> DASPolyhedron::MinimumEdgeLength() {
-  double min_length = 10000000000000;
+  double min_length = 1e13;
   DASEdge* min_edge;
   for (auto & edge : edges_) {
     double length = CalculateEdgeLength(edge);
@@ -565,7 +565,7 @@ std::pair<DASEdge*, double> DASPolyhedron::MinimumEdgeLength() {
 }
 
 std::pair<DASEdge*, double> DASPolyhedron::MaximumEdgeLength() {
-  double max_length = 0;
+  double max_length = 0.0;
   DASEdge* max_edge;
   for (auto & edge : edges_) {
     double length = CalculateEdgeLength(edge);
@@ -665,64 +665,57 @@ DASHalfEdge* DASPolyhedron::GetHalfEdge(DASVertex* v, DASVertex* w) {
   } while (he != begin);
 
   // v and w do not share an edge
-  std::exit(EXIT_FAILURE);
+  return nullptr;
+  //std::exit(EXIT_FAILURE);
 }
 
 void DASPolyhedron::Scale(double scalingFactor) {
   std::vector<std::vector<double>> sc;
-  std::vector<double> v1 = { double(scalingFactor), 0.0, 0.0 };
-  std::vector<double> v2 = { 0.0, double(scalingFactor), 0.0 };
-  std::vector<double> v3 = { 0.0, 0.0, double(scalingFactor) };
+  std::vector<double> v1 = { scalingFactor, 0.0, 0.0 };
+  std::vector<double> v2 = { 0.0, scalingFactor, 0.0 };
+  std::vector<double> v3 = { 0.0, 0.0, scalingFactor };
   sc.push_back(v1);
   sc.push_back(v2);
   sc.push_back(v3);
   
   ublas::matrix<double> scaleMatrix = ADNVectorMath::CreateBoostMatrix(sc);
-  for (auto & originalVertice : originalVertices_) {
-    std::vector<double> c = originalVertice.second->GetVectorCoordinates();
+  for (const auto & originalVertex : originalVertices_) {
+    std::vector<double> c = originalVertex.second->GetVectorCoordinates();
     ublas::vector<double> cB = ADNVectorMath::CreateBoostVector(c);
     ublas::vector<double> res = ublas::prod(scaleMatrix, cB);
     std::vector<double> r = ADNVectorMath::CreateStdVector(res);
-    DASVertex* w = vertices_.at(originalVertice.first);
-    SBPosition3 coords = SBPosition3();
-    coords[0] = SBQuantity::angstrom(r[0]);
-    coords[1] = SBQuantity::angstrom(r[1]);
-    coords[2] = SBQuantity::angstrom(r[2]);
+    DASVertex* w = vertices_.at(originalVertex.first);
+    const SBPosition3 coords = SBPosition3(SBQuantity::angstrom(r[0]), SBQuantity::angstrom(r[1]), SBQuantity::angstrom(r[2]));
     w->SetCoordinates(coords);
   }
 }
 
-void DASPolyhedron::Center(SBPosition3 center) {
+void DASPolyhedron::Center(const SBPosition3& center) {
   std::vector<std::vector<double>> sc;
-  for (auto & vertice : vertices_) {
-    std::vector<double> coords = vertice.second->GetVectorCoordinates();
+  for (const auto & vertex : vertices_) {
+    std::vector<double> coords = vertex.second->GetVectorCoordinates();
     sc.push_back(coords);
   }
   ublas::matrix<double> positions = ADNVectorMath::CreateBoostMatrix(sc);
   ublas::vector<double> cm = ADNVectorMath::CalculateCM(positions);
   std::vector<double> cm_std = ADNVectorMath::CreateStdVector(cm);
-  SBPosition3 cm_sb = SBPosition3();
-  cm_sb[0] = SBQuantity::angstrom(cm_std[0]);
-  cm_sb[1] = SBQuantity::angstrom(cm_std[1]);
-  cm_sb[2] = SBQuantity::angstrom(cm_std[2]);
-  SBPosition3 R = center - cm_sb;
-  for (auto & vertice : vertices_) {
-    SBPosition3 pos = vertice.second->GetSBPosition();
-    vertice.second->SetCoordinates(pos + R);
+  const SBPosition3 cm_sb = SBPosition3(SBQuantity::angstrom(cm_std[0]), SBQuantity::angstrom(cm_std[1]), SBQuantity::angstrom(cm_std[2]));
+  const SBPosition3 R = center - cm_sb;
+  for (auto & vertex : vertices_) {
+    SBPosition3 pos = vertex.second->GetSBPosition();
+    vertex.second->SetCoordinates(pos + R);
   }
-  for (auto & originalVertice : originalVertices_) {
-    SBPosition3 pos = originalVertice.second->GetSBPosition();
-    originalVertice.second->SetCoordinates(pos + R);
+  for (auto & originalVertex : originalVertices_) {
+    SBPosition3 pos = originalVertex.second->GetSBPosition();
+    originalVertex.second->SetCoordinates(pos + R);
   }
 }
 
-SBPosition3 DASPolyhedron::GetCenter()
-{
+SBPosition3 DASPolyhedron::GetCenter() const {
   SBPosition3 cm;
-  int numVertices = boost::numeric_cast<int>(vertices_.size());
-  for (auto v : vertices_) {
-    auto vertex = v.second;
-    cm += vertex->GetSBPosition();
+  const int numVertices = boost::numeric_cast<int>(vertices_.size());
+  for (const auto& vertex : vertices_) {
+    cm += vertex.second->GetSBPosition();
   }
   cm /= numVertices;
   return cm;

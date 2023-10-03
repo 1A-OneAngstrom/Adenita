@@ -40,7 +40,6 @@ std::string ADNCell::getCellTypeString() const {
 
 }
 
-
 void ADNBasePair::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber, const SBVersionNumber& classVersionNumber) const {
 
     ADNCell::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
@@ -54,8 +53,8 @@ void ADNBasePair::unserialize(SBCSerializer* serializer, const SBNodeIndexer& no
 
     ADNCell::unserialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
-    unsigned int lIdx = serializer->readUnsignedIntElement();
-    unsigned int rIdx = serializer->readUnsignedIntElement();
+    const unsigned int lIdx = serializer->readUnsignedIntElement();
+    const unsigned int rIdx = serializer->readUnsignedIntElement();
 
     SBNode* lNode = nodeIndexer.getNode(lIdx);
     SetLeftNucleotide(static_cast<ADNNucleotide*>(lNode));
@@ -65,7 +64,7 @@ void ADNBasePair::unserialize(SBCSerializer* serializer, const SBNodeIndexer& no
 
 }
 
-ADNPointer<ADNNucleotide> ADNBasePair::GetLeftNucleotide() {
+ADNPointer<ADNNucleotide> ADNBasePair::GetLeftNucleotide() const {
     return leftNucleotide;
 }
 
@@ -77,7 +76,7 @@ void ADNBasePair::SetLeftNucleotide(ADNPointer<ADNNucleotide> nt) {
     this->leftNucleotide = nt;
 }
 
-ADNPointer<ADNNucleotide> ADNBasePair::GetRightNucleotide() {
+ADNPointer<ADNNucleotide> ADNBasePair::GetRightNucleotide() const {
     return rightNucleotide;
 }
 
@@ -188,7 +187,7 @@ void ADNLoopPair::unserialize(SBCSerializer* serializer, const SBNodeIndexer& no
 
 }
 
-ADNPointer<ADNLoop> ADNLoopPair::GetLeftLoop() {
+ADNPointer<ADNLoop> ADNLoopPair::GetLeftLoop() const {
     return leftLoop;
 }
 
@@ -204,7 +203,7 @@ void ADNLoopPair::SetLeftLoop(ADNPointer<ADNLoop> lp) {
 
 }
 
-ADNPointer<ADNLoop> ADNLoopPair::GetRightLoop() {
+ADNPointer<ADNLoop> ADNLoopPair::GetRightLoop() const {
     return rightLoop;
 }
 

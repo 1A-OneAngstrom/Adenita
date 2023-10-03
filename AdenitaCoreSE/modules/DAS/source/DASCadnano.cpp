@@ -276,7 +276,7 @@ void DASCadnano::CreateScaffold(ADNPointer<ADNPart> part)
         //create the scaffold strand
         ADNPointer<ADNSingleStrand> scaff = new ADNSingleStrand();
         scaff->setName("Scaffold");
-        scaff->IsScaffold(true);
+        scaff->setScaffoldFlag(true);
         part->RegisterSingleStrand(scaff);
         AddSingleStrandToMap(scaff);
 
@@ -306,7 +306,7 @@ void DASCadnano::CreateStaples(ADNPointer<ADNPart> part)
         ADNPointer<ADNSingleStrand> staple = new ADNSingleStrand();
         staple->setName("Staple" + std::to_string(sid));
         ++sid;
-        staple->IsScaffold(false);
+        staple->setScaffoldFlag(false);
         part->RegisterSingleStrand(staple);
         AddSingleStrandToMap(staple);
 

@@ -16,7 +16,7 @@ class SB_EXPORT SENanotubeCreatorEditor : public SBGEditor {
 	SB_CLASS
 	Q_OBJECT
 
-public :
+public:
 
 	/// \name Constructors and destructors
 	//@{

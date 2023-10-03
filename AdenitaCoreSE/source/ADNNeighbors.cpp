@@ -1,15 +1,13 @@
 #include "ADNNeighbors.hpp"
 #include "ADNPart.hpp"
 
-ADNNeighbors::ADNNeighbors() {
-    minCutOff_ = SBQuantity::nanometer(0.0);
-}
+ADNNeighbors::ADNNeighbors() {}
 
-ADNNeighborNt* ADNNeighbors::GetPINucleotide(ADNPointer<ADNNucleotide> nt) {
+ADNNeighborNt* ADNNeighbors::GetPINucleotide(ADNPointer<ADNNucleotide> nt) const {
 
     ADNNeighborNt* piNt = nullptr;
 
-    for (auto& p : ntIndices_) {
+    for (const auto& p : ntIndices_) {
         piNt = p.second;
         if (piNt->GetNucleotide() == nt) break;
     }
@@ -18,15 +16,15 @@ ADNNeighborNt* ADNNeighbors::GetPINucleotide(ADNPointer<ADNNucleotide> nt) {
 
 }
 
-std::vector<ADNNeighborNt*> ADNNeighbors::GetNeighbors(ADNNeighborNt* nt) {
+std::vector<ADNNeighborNt*> ADNNeighbors::GetNeighbors(ADNNeighborNt* nt) const {
 
     std::vector<ADNNeighborNt*> neighbors;
 
     if (nt != nullptr) {
 
-        unsigned int idx = nt->GetId();
-        unsigned int pos = headList_[idx];
-        unsigned int sz = numNeighborsList_[idx];
+        const unsigned int idx = nt->GetId();
+        const unsigned int pos = headList_[idx];
+        const unsigned int sz = numNeighborsList_[idx];
 
         for (unsigned int i = 0; i < sz; ++i) {
             unsigned int neighborIdx = neighborList_[pos + i];
@@ -40,15 +38,15 @@ std::vector<ADNNeighborNt*> ADNNeighbors::GetNeighbors(ADNNeighborNt* nt) {
 
 }
 
-CollectionMap<ADNNucleotide> ADNNeighbors::GetNeighbors(ADNPointer<ADNNucleotide> nt) {
+CollectionMap<ADNNucleotide> ADNNeighbors::GetNeighbors(ADNPointer<ADNNucleotide> nt) const {
 
     ADNNeighborNt* piNt = GetPINucleotide(nt);
     // repeat code to avoid an extra loop
     CollectionMap<ADNNucleotide> neighbors;
 
-    unsigned int idx = piNt->GetId();
-    unsigned int pos = headList_[idx];
-    unsigned int sz = numNeighborsList_[idx];
+    const unsigned int idx = piNt->GetId();
+    const unsigned int pos = headList_[idx];
+    const unsigned int sz = numNeighborsList_[idx];
 
     for (unsigned int i = 0; i < sz; ++i) {
         unsigned int neighborIdx = neighborList_[pos + i];
@@ -130,7 +128,7 @@ void ADNNeighbors::InitializeNeighbors(ADNPointer<ADNPart> part) {
                 continue;
             }
 
-            SBPosition3 pos2 = nt2->GetPosition();
+            const SBPosition3 pos2 = nt2->GetPosition();
             auto dist = (pos2 - pos1).norm();
             if (dist < maxCutOff_ && dist > minCutOff_) {
                 // neighbors

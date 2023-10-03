@@ -237,7 +237,7 @@ namespace ADNVectorMath {
     // create identity matrix of "inverse"
     ublas::matrix<double> inverse = ublas::identity_matrix<double>(A.size1());
 
-    // backsubstitute to get the inverse
+    // back substitute to get the inverse
     lu_substitute(A, pm, inverse);
 
     return inverse;

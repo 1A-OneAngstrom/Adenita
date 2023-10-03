@@ -13,7 +13,7 @@ class SB_EXPORT SETaggingVisualModel : public SBMVisualModel {
 
 	SB_CLASS
 
-public :
+public:
 
 	/// \name Constructors and destructors
 	//@{

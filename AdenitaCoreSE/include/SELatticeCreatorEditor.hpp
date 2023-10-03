@@ -17,7 +17,7 @@ class SB_EXPORT SELatticeCreatorEditor : public SBGEditor {
 	SB_CLASS
 	Q_OBJECT
 
-public :
+public:
 
 	enum class ZLatticePattern {
 		ALLZ,

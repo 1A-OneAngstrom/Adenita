@@ -141,10 +141,10 @@ void DASOperations::CreateCrossover(ADNPointer<ADNPart> part1, ADNPointer<ADNPar
     else {
       if (joinStrand1 != nullptr) {
         auto ss = ADNBasicOperations::MergeSingleStrands(pair.firstPart, pair.firstPart, pair.first, joinStrand1);
-        ss->IsCircular(true);
+        ss->setCircularFlag(true);
       }
       else {
-        pair.first->IsCircular(true);
+        pair.first->setCircularFlag(true);
       }
     }
   }
@@ -164,10 +164,10 @@ void DASOperations::CreateCrossover(ADNPointer<ADNPart> part1, ADNPointer<ADNPar
       else {
         if (joinStrand2 != nullptr) {
           auto ss = ADNBasicOperations::MergeSingleStrands(compPair.firstPart, pair.firstPart, compPair.first, joinStrand1);
-          ss->IsCircular(true);
+          ss->setCircularFlag(true);
         }
         else {
-          compPair.first->IsCircular(true);
+          compPair.first->setCircularFlag(true);
         }
       }
     }

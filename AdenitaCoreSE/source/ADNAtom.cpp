@@ -41,6 +41,8 @@ SBNode* ADNAtom::getNucleotide() const {
 
 }
 
-bool ADNAtom::IsInADNBackbone() {
+bool ADNAtom::IsInADNBackbone() const {
+
 	return isFromNucleicAcidBackbone();
+
 }

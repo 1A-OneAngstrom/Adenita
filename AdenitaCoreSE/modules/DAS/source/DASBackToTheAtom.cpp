@@ -637,12 +637,16 @@ void DASBackToTheAtom::CreateBonds(ADNPointer<ADNPart> origami, bool createFlag)
             if (connections.find(atName) != connections.end()) {
 
                 auto conns = connections.at(at->getName());
-                for (std::string name : conns) {
+                for (const std::string& name : conns) {
 
                     auto lst = nt->GetAtomsByName(name);
                     if (lst.size() == 1) {
 
                         atC = *lst.begin();
+
+                        // ensure that the bond is not created twice
+                        if (at->getBondTo(atC())) continue;
+
                         SBPointer<SBBond> bond = new SBBond(at(), atC());
                         if (createFlag) {
 
@@ -671,6 +675,9 @@ void DASBackToTheAtom::CreateBonds(ADNPointer<ADNPart> origami, bool createFlag)
                 ADNPointer<ADNAtom> atP = *nt->GetAtomsByName("P").begin();
                 ADNPointer<ADNAtom> atO3p = *prevNt->GetAtomsByName("O3'").begin();
                 if (atP != nullptr && atO3p != nullptr) {
+
+                    // ensure that the bond is not created twice
+                    if (atP->getBondTo(atO3p())) continue;
 
                     SBPointer<SBBond> bond = new SBBond(atP(), atO3p());
                     if (createFlag) {
@@ -807,8 +814,10 @@ void DASBackToTheAtom::GenerateAllAtomModel(ADNPointer<ADNPart> origami, bool cr
         auto atoms = nt->GetAtoms();
         // delete previous atoms if they have been created
         SB_FOR(ADNPointer<ADNAtom> a, atoms) {
+
             // todo: check that the node is only deleted from data graph but reference is not destroyed
             if (a != nullptr) origami->DeregisterAtom(a);
+
         }
 
         // populate nucleotides with the correct atoms
@@ -819,36 +828,41 @@ void DASBackToTheAtom::GenerateAllAtomModel(ADNPointer<ADNPart> origami, bool cr
 
     }
 
-    CreateBonds(origami, createFlag);
+    if (createFlag)
+        origami->createCovalentBonds();
+    else
+        CreateBonds(origami, createFlag);
 
 }
 
 std::tuple<SBPosition3, SBPosition3, SBPosition3> DASBackToTheAtom::CalculateCenters(ADNPointer<ADNNucleotide> nt) {
-  SBPosition3 cm_bb = SBPosition3();
-  SBPosition3 cm_sc = SBPosition3();
-  SBPosition3 cm = SBPosition3();
-  ublas::matrix<double> positions_bb = ublas::matrix<double>(0, 3);
-  ublas::matrix<double> positions_sc = ublas::matrix<double>(0, 3);
-  ublas::matrix<double> positions = ublas::matrix<double>(0, 3);
-  auto ntAtoms = nt->GetAtoms();
-  SB_FOR(ADNPointer<ADNAtom> n, ntAtoms) {
-    ublas::vector<double> ac_blas = ADNAuxiliary::SBPositionToUblas(n->getPosition());
-    ADNVectorMath::AddRowToMatrix(positions, ac_blas);
-    if (n->IsInADNBackbone()) {
-      ADNVectorMath::AddRowToMatrix(positions_bb, ac_blas);
-    }
-    else {
-      ADNVectorMath::AddRowToMatrix(positions_sc, ac_blas);
-    }
-  }
 
-  ublas::vector<double> cm_bb_vec = ADNVectorMath::CalculateCM(positions_bb);
-  ublas::vector<double> cm_sc_vec = ADNVectorMath::CalculateCM(positions_sc);
-  ublas::vector<double> cm_vec = ADNVectorMath::CalculateCM(positions);
-  cm_bb = UblasToSBPosition(cm_bb_vec);
-  cm_sc = UblasToSBPosition(cm_sc_vec);
-  cm = UblasToSBPosition(cm_vec);
-  return std::make_tuple(cm, cm_bb, cm_sc);
+    SBPosition3 cm_bb = SBPosition3();
+    SBPosition3 cm_sc = SBPosition3();
+    SBPosition3 cm = SBPosition3();
+    ublas::matrix<double> positions_bb = ublas::matrix<double>(0, 3);
+    ublas::matrix<double> positions_sc = ublas::matrix<double>(0, 3);
+    ublas::matrix<double> positions = ublas::matrix<double>(0, 3);
+    auto ntAtoms = nt->GetAtoms();
+    SB_FOR(ADNPointer<ADNAtom> n, ntAtoms) {
+
+        ublas::vector<double> ac_blas = ADNAuxiliary::SBPositionToUblas(n->getPosition());
+        ADNVectorMath::AddRowToMatrix(positions, ac_blas);
+
+        if (n->IsInADNBackbone())
+            ADNVectorMath::AddRowToMatrix(positions_bb, ac_blas);
+        else
+            ADNVectorMath::AddRowToMatrix(positions_sc, ac_blas);
+
+    }
+
+    ublas::vector<double> cm_bb_vec = ADNVectorMath::CalculateCM(positions_bb);
+    ublas::vector<double> cm_sc_vec = ADNVectorMath::CalculateCM(positions_sc);
+    ublas::vector<double> cm_vec = ADNVectorMath::CalculateCM(positions);
+    cm_bb = UblasToSBPosition(cm_bb_vec);
+    cm_sc = UblasToSBPosition(cm_sc_vec);
+    cm = UblasToSBPosition(cm_vec);
+    return std::make_tuple(cm, cm_bb, cm_sc);
 }
 
 std::tuple<SBPosition3, SBPosition3, SBPosition3> DASBackToTheAtom::CalculateCentersOfMass(ADNPointer<ADNNucleotide> nt)

@@ -9,47 +9,49 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/filereadstream.h"
 
+#include "SBCHeapExport.hpp"
+
 
 namespace ADNLoader {
 
     // json
-    ADNPointer<ADNPart> LoadPartFromJson(std::string filename);
-    ADNPointer<ADNPart> LoadPartFromJson(rapidjson::Value& val, double versionValue);
-    std::vector<ADNPointer<ADNPart>> LoadPartsFromJson(std::string filename);
-    ADNPointer<ADNPart> LoadPartFromJsonLegacy(std::string filename);
-    void SavePartToJson(ADNPointer<ADNPart> p, std::string filename);
+    SB_EXPORT ADNPointer<ADNPart> LoadPartFromJson(std::string filename);
+    SB_EXPORT ADNPointer<ADNPart> LoadPartFromJson(rapidjson::Value& val, double versionValue);
+    SB_EXPORT std::vector<ADNPointer<ADNPart>> LoadPartsFromJson(std::string filename);
+    SB_EXPORT ADNPointer<ADNPart> LoadPartFromJsonLegacy(std::string filename);
+    SB_EXPORT void SavePartToJson(ADNPointer<ADNPart> p, std::string filename);
     //! Writes a part to a string buffer for rapidjson
-    void SavePartToJson(ADNPointer<ADNPart> p, rapidjson::Writer<rapidjson::StringBuffer>& s);
-    void SaveNanorobotToJson(ADNNanorobot* nr, std::string filename);
+    SB_EXPORT void SavePartToJson(ADNPointer<ADNPart> p, rapidjson::Writer<rapidjson::StringBuffer>& s);
+    SB_EXPORT void SaveNanorobotToJson(ADNNanorobot* nr, std::string filename);
 
     // pdb
-    ADNPointer<ADNPart> LoadPartFromPDB(std::string filename, int id = -1);
+    SB_EXPORT ADNPointer<ADNPart> LoadPartFromPDB(std::string filename, int id = -1);
 
     // samson
-    ADNPointer<ADNPart> GenerateModelFromDatagraph(SBNode* sn);
-    ADNPointer<ADNPart> GenerateModelFromDatagraphParametrized(SBNode* sn, SBQuantity::length maxCutOff, SBQuantity::length minCutOff, double maxAngle);
+    SB_EXPORT ADNPointer<ADNPart> GenerateModelFromDataGraph(SBNode* sn);
+    SB_EXPORT ADNPointer<ADNPart> GenerateModelFromDatagraphParametrized(SBNode* sn, SBQuantity::length maxCutOff, SBQuantity::length minCutOff, double maxAngle);
 
     // oxdna
-    void OutputToOxDNA(ADNPointer<ADNPart> part, std::string folder, ADNAuxiliary::OxDNAOptions options);
-    void OutputToOxDNA(CollectionMap<ADNPart> parts, std::string folder, ADNAuxiliary::OxDNAOptions options);
-    void SingleStrandsToOxDNA(CollectionMap<ADNSingleStrand> singleStrands, std::ofstream& outConf, std::ofstream& outTopo, ADNAuxiliary::OxDNAOptions options);
-    void SignOutputFile(std::ofstream& output);
-    std::pair<bool, ADNPointer<ADNPart>> InputFromOxDNA(std::string topoFile, std::string configFile);
+    SB_EXPORT void OutputToOxDNA(ADNPointer<ADNPart> part, std::string folder, ADNAuxiliary::OxDNAOptions options);
+    SB_EXPORT void OutputToOxDNA(CollectionMap<ADNPart> parts, std::string folder, ADNAuxiliary::OxDNAOptions options);
+    SB_EXPORT void SingleStrandsToOxDNA(CollectionMap<ADNSingleStrand> singleStrands, std::ofstream& outConf, std::ofstream& outTopo, ADNAuxiliary::OxDNAOptions options);
+    SB_EXPORT void SignOutputFile(std::ofstream& output);
+    SB_EXPORT std::pair<bool, ADNPointer<ADNPart>> InputFromOxDNA(std::string topoFile, std::string configFile);
 
     // CanDo
-    void OutputToCanDo(ADNPointer<ADNPart> part, std::string filename);
-    void OutputToCanDo(ADNNanorobot* nanorobot, std::string filename);
+    SB_EXPORT void OutputToCanDo(ADNPointer<ADNPart> part, std::string filename);
+    SB_EXPORT void OutputToCanDo(ADNNanorobot* nanorobot, std::string filename);
 
     // sequence list
-    void OutputToCSV(CollectionMap<ADNPart> parts, std::string fname, std::string folder);
+    SB_EXPORT void OutputToCSV(CollectionMap<ADNPart> parts, std::string fname, std::string folder);
 
     // generic functions
     //! Populates base segments and double strands from nucleotides and single strands
-    void BuildTopScales(ADNPointer<ADNPart> part);
+    SB_EXPORT void BuildTopScales(ADNPointer<ADNPart> part);
 
     // generic functions
     //! Populates base segments and double strands from residues
-    void BuildTopScalesParametrized(ADNPointer<ADNPart> part, SBQuantity::length maxCutOff, SBQuantity::length minCutOff, double maxAngle);
+    SB_EXPORT void BuildTopScalesParametrized(ADNPointer<ADNPart> part, SBQuantity::length maxCutOff, SBQuantity::length minCutOff, double maxAngle);
 
     template <typename T>
     struct Wrap {
@@ -61,7 +63,7 @@ namespace ADNLoader {
     using NucleotideWrap = Wrap<ADNNucleotide>;
 
     template <class T>
-    class ElementMap {
+    class SB_EXPORT ElementMap {
 
     public:
 

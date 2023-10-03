@@ -31,10 +31,9 @@ public:
 	int															GetLength() const;
 	int															getLength() const;
 
-	void														IsCircular(bool c);
 	bool														IsCircular() const;
-	bool														getIsCircular() const;
-	void														setIsCircular(bool b);
+	bool														getCircularFlag() const;
+	void														setCircularFlag(bool b);
 
 	CollectionMap<ADNBaseSegment>								GetBaseSegments() const;
 	ADNPointer<ADNBaseSegment>									GetNthBaseSegment(int n);  // return the base segment by position in the double strand
@@ -51,12 +50,12 @@ public:
 
 private:
 
-	bool														circularFlag = false;
+	bool														circularFlag{ false };
 
 	ADNPointer<ADNBaseSegment>									startBaseSegment = nullptr;
 	ADNPointer<ADNBaseSegment>									endBaseSegment = nullptr;
 
-	double														initialTwistAngle = 0.0;
+	double														initialTwistAngle{ 0.0 };
 
 };
 

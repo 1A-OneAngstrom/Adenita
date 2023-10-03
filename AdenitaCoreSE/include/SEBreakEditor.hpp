@@ -12,7 +12,7 @@ class SB_EXPORT SEBreakEditor : public SBGEditor {
 	SB_CLASS
 	Q_OBJECT
 
-public :
+public:
 
 	/// \name Constructors and destructors
 	//@{
@@ -61,8 +61,7 @@ public :
 	/// \name Rendering
 	//@{
 
-	virtual void												display() override;														///< Displays the editor
-	virtual void												displayForShadow() override;											///< Displays the editor for shadow purposes
+	virtual void												display(SBNode::RenderingPass renderingPass) override;					///< Display elements related to the editor
 
 	//@}
 

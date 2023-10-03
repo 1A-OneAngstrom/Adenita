@@ -119,11 +119,11 @@ Identifiable& Identifiable::operator=(const Identifiable& other) {
 
 }
 
-void Identifiable::SetId(int id) {
+void Identifiable::SetId(int id) noexcept {
     this->id_ = id;
 }
 
-int Identifiable::GetId() const {
+int Identifiable::GetId() const noexcept {
     return id_;
 }
 

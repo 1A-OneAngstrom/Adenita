@@ -711,7 +711,7 @@ void SEAdenitaCoreSEAppGUI::onOxDNAImport() {
 
 void SEAdenitaCoreSEAppGUI::onFromDatagraph() {
 
-	getApp()->FromDatagraph();
+	getApp()->FromDataGraph();
 
 }
 

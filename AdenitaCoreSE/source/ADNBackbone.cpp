@@ -94,9 +94,9 @@ CollectionMap<ADNAtom> ADNBackbone::GetAtoms() const {
 
 ADNPointer<ADNNucleotide> ADNBackbone::GetNucleotide() const {
 
-    SBNode* parent = getParent();
-    if (parent) if (parent->getType() == SBNode::Residue) //if (parent->getProxy()->getName() == "ADNNucleotide")
-        return ADNPointer<ADNNucleotide>(static_cast<ADNNucleotide*>(parent));
+    if (SBNode* parent = getParent())
+        if (parent->getType() == SBNode::Residue) //if (parent->getProxy()->getName() == "ADNNucleotide")
+            return ADNPointer<ADNNucleotide>(static_cast<ADNNucleotide*>(parent));
 
     return nullptr;
 

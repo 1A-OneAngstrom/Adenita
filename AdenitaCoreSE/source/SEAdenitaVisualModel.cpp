@@ -12,16 +12,17 @@
 #include "MSVColors.hpp"
 #include "MSVDisplayHelper.hpp"
 
-#include <QOpenGLFunctions_4_3_Core>
+//#include "SBGRenderOpenGLFunctions.hpp"
 
 #include <cmath>
 
 SEAdenitaVisualModel::SEAdenitaVisualModel() {
 
 	// SAMSON Element generator pro tip: this default constructor is called when unserializing the node, so it should perform all default initializations.
-	
-	init();
+
 	setName("Adenita Visual Model");
+
+	init();
 
 }
 
@@ -32,21 +33,21 @@ SEAdenitaVisualModel::SEAdenitaVisualModel(const SBNodeIndexer& nodeIndexer) {
 	// the center of mass of a group of atoms, you might want to connect to the atoms' base signals (e.g. to update the center of mass when an atom is erased) and
 	// the atoms' structural signals (e.g. to update the center of mass when an atom is moved).
 
+	setName("Adenita Visual Model");
+
 	SEAdenitaCoreSEApp* adenitaApp = SEAdenitaCoreSEApp::getAdenitaApp();
 	if (adenitaApp) {
 
-		adenitaApp->FromDatagraph();
+		adenitaApp->FromDataGraph(false);
 		init();
 
 	}
-
-	setName("Adenita Visual Model");
 
 }
 
 SEAdenitaVisualModel::~SEAdenitaVisualModel() {
 
-	ADNLogger::Log(std::string("Adenita Visual Model got destroyed"));
+	ADNLogger::Log(std::string("Adenita Visual Model has been destroyed"));
 
 }
 
@@ -1072,7 +1073,7 @@ void SEAdenitaVisualModel::prepare3D(double iv) {
 
 }
 
-void SEAdenitaVisualModel::emphasizeColors(ADNArray<float> & colors, std::vector<unsigned int> & indices, float r, float g, float b, float a) {
+void SEAdenitaVisualModel::emphasizeColors(ADNArray<float> & colors, const std::vector<unsigned int> & indices, float r, float g, float b, float a) {
 
 	for (int i = 0; i < indices.size(); i++) {
 
@@ -1094,7 +1095,7 @@ void SEAdenitaVisualModel::emphasizeColors(ADNArray<float> & colors, std::vector
 
 }
 
-void SEAdenitaVisualModel::replaceColors(ADNArray<float> & colors, std::vector<unsigned int> & indices, float * color) {
+void SEAdenitaVisualModel::replaceColors(ADNArray<float> & colors, const std::vector<unsigned int> & indices, float * color) {
 
 	for (int i = 0; i < indices.size(); i++) {
 
@@ -2087,7 +2088,7 @@ void SEAdenitaVisualModel::prepareSingleStrands() {
 	SEConfig& config = SEConfig::GetInstance();
 	auto parts = nanorobot_->GetParts();
   
-	MSVColors * curColors = colors_[curColorType_];
+	MSVColors* curColors = colors_[curColorType_];
 
 	SB_FOR(auto part, parts) {
 
@@ -2156,7 +2157,7 @@ void SEAdenitaVisualModel::prepareDoubleStrands() {
 
 	auto parts = nanorobot_->GetParts();
 
-	MSVColors * curColors = colors_[curColorType_];
+	MSVColors* curColors = colors_[curColorType_];
 	positionsDS_ = ADNArray<float>(3, nPositionsDS_);
 	radiiVDS_ = ADNArray<float>(nPositionsDS_);
 	flagsDS_ = ADNArray<unsigned int>(nPositionsDS_);
@@ -2231,6 +2232,7 @@ void SEAdenitaVisualModel::displayNucleotides(bool forSelection) {
 	if (forSelection) {
 
 		if (nCylindersNt_ > 0) {
+
 			SAMSON::displayCylindersSelection(
 				nCylindersNt_,
 				nPositionsNt_,
@@ -2239,6 +2241,7 @@ void SEAdenitaVisualModel::displayNucleotides(bool forSelection) {
 				radiiENt_.GetArray(),
 				capDataNt_.GetArray(),
 				nodeIndicesNt_.GetArray());
+
 		}
 
 		SAMSON::displaySpheresSelection(
@@ -2252,6 +2255,7 @@ void SEAdenitaVisualModel::displayNucleotides(bool forSelection) {
 	else {
 
 		if (nCylindersNt_ > 0) {
+
 			SAMSON::displayCylinders(
 				nCylindersNt_,
 				nPositionsNt_,
@@ -2261,6 +2265,7 @@ void SEAdenitaVisualModel::displayNucleotides(bool forSelection) {
 				capDataNt_.GetArray(),
 				colorsENt_.GetArray(),
 				flagsNt_.GetArray());
+
 		}
 
 		SAMSON::displaySpheres(
@@ -2279,6 +2284,7 @@ void SEAdenitaVisualModel::displaySingleStrands(bool forSelection) {
 	if (forSelection) {
 
 		if (nCylindersNt_ > 0) {
+
 			SAMSON::displayCylindersSelection(
 				nCylindersNt_,
 				nPositionsNt_,
@@ -2287,6 +2293,7 @@ void SEAdenitaVisualModel::displaySingleStrands(bool forSelection) {
 				radiiESS_.GetArray(),
 				capDataNt_.GetArray(),
 				nodeIndicesNt_.GetArray());
+
 		}
 
 		SAMSON::displaySpheresSelection(
@@ -2300,6 +2307,7 @@ void SEAdenitaVisualModel::displaySingleStrands(bool forSelection) {
 	else {
 
 		if (nCylindersNt_ > 0) {
+
 			SAMSON::displayCylinders(
 				nCylindersNt_,
 				nPositionsNt_,
@@ -2309,6 +2317,7 @@ void SEAdenitaVisualModel::displaySingleStrands(bool forSelection) {
 				capDataNt_.GetArray(),
 				colorsESS_.GetArray(),
 				flagsNt_.GetArray());
+
 		}
 
 		SAMSON::displaySpheres(
@@ -2325,20 +2334,24 @@ void SEAdenitaVisualModel::displaySingleStrands(bool forSelection) {
 void SEAdenitaVisualModel::displayDoubleStrands(bool forSelection) {
 
 	if (forSelection) {
+
 		SAMSON::displaySpheresSelection(
 			nPositionsDS_,
 			positionsDS_.GetArray(),
 			radiiVDS_.GetArray(),
 			nodeIndicesDS_.GetArray()
 		);
+
 	}
 	else {
+
 		SAMSON::displaySpheres(
 			nPositionsDS_,
 			positionsDS_.GetArray(),
 			radiiVDS_.GetArray(),
 			colorsVDS_.GetArray(),
 			flagsDS_.GetArray());
+
 	}
 
 }
@@ -2382,7 +2395,7 @@ void SEAdenitaVisualModel::displayBasePairConnections(bool onlySelected) {
 
 	//determine how many nucleotides have pairs 
 
-	SB_FOR(auto part, parts) {
+	SB_FOR(ADNPart* part, parts) {
 
 		if (part == nullptr) continue;
 
@@ -2395,6 +2408,8 @@ void SEAdenitaVisualModel::displayBasePairConnections(bool onlySelected) {
 			SB_FOR(ADNPointer<ADNNucleotide> nucleotide, nucleotides) {
 
 				if (nucleotide == nullptr) continue;
+				if (nucleotide->GetPair() == nullptr) continue;
+
 				// skip if at least one of the paired nucleotides is not visible
 				if (!nucleotide->isVisible() || !nucleotide->GetPair()->isVisible()) continue;
 
@@ -2423,7 +2438,7 @@ void SEAdenitaVisualModel::displayBasePairConnections(bool onlySelected) {
 
 	unsigned int j = 0;
 	std::vector<unsigned int> registerIndices;
-	for (auto &p : ntMap) {
+	for (const auto &p : ntMap) {
 
 		ADNPointer<ADNNucleotide> nt = p.first;
 		if (nt == nullptr) continue;
@@ -3086,7 +3101,7 @@ void SEAdenitaVisualModel::onStructuralEvent(SBStructuralEvent* structuralEvent)
 	//ADNLogger& logger = ADNLogger::GetLogger();
 	//logger.Log(QString("onStructuralEvent"));
 	//if (structuralEvent->getType() == SBStructuralEvent::MobilityFlagChanged) {
-	//  prepareArraysNoTranstion();
+	//  prepareArraysNoTransition();
 	//  //ADNLogger& logger = ADNLogger::GetLogger();
 	//  //logger.Log(QString("MobilityFlagChanged"));
 	//}
