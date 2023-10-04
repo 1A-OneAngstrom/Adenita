@@ -2,27 +2,27 @@
 #include <random>
 
 bool DASAlgorithms::CheckCrossoverBetweenNucleotides(ADNPointer<ADNNucleotide> ntFirst, ADNPointer<ADNNucleotide> ntSecond, double angle_threshold, double dist_threshold) {
-  bool crssv = false;
+	bool crssv = false;
 
-  // check directionality of strand
-  double z = ublas::inner_prod(ntFirst->GetE3(), ntSecond->GetE3());
-  if (z < 0.0 && ntFirst->GetStrand() != ntSecond->GetStrand()) {
-    // check distance
-    SBPosition3 dif = ntSecond->GetSidechainPosition() - ntFirst->GetSidechainPosition();
-    SBQuantity::length dist = dif.norm();
-    if (dist < SBQuantity::angstrom(dist_threshold)) {
-      // check if direction of nucleotides is correct
-      double t = ublas::inner_prod(ntFirst->GetE2(), ntSecond->GetE2());
-      // check that they are "in front" of each other
-      ublas::vector<double> df = ADNAuxiliary::SBPositionToUblas(dif);
-      double n = ublas::inner_prod(ntFirst->GetE1(), df);
-      if (n > 0 && t < 0.0 && abs(t) > cos(ADNVectorMath::DegToRad(angle_threshold))) {
-        crssv = true;
-      }
-    }
-  }
-        
-  return crssv;
+	// check directionality of strand
+	double z = ublas::inner_prod(ntFirst->GetE3(), ntSecond->GetE3());
+	if (z < 0.0 && ntFirst->GetStrand() != ntSecond->GetStrand()) {
+		// check distance
+		SBPosition3 dif = ntSecond->GetSidechainPosition() - ntFirst->GetSidechainPosition();
+		SBQuantity::length dist = dif.norm();
+		if (dist < SBQuantity::angstrom(dist_threshold)) {
+			// check if direction of nucleotides is correct
+			double t = ublas::inner_prod(ntFirst->GetE2(), ntSecond->GetE2());
+			// check that they are "in front" of each other
+			ublas::vector<double> df = ADNAuxiliary::SBPositionToUblas(dif);
+			double n = ublas::inner_prod(ntFirst->GetE1(), df);
+			if (n > 0 && t < 0.0 && abs(t) > cos(ADNVectorMath::DegToRad(angle_threshold))) {
+				crssv = true;
+			}
+		}
+	}
+
+	return crssv;
 }
 
 //std::vector<std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>>> DASAlgorithms::DetectPossibleCrossovers(ADNPointer<ADNPart> nanorobot, double angle_threshold, double dist_threshold) {
@@ -430,69 +430,69 @@ bool DASAlgorithms::CheckCrossoverBetweenNucleotides(ADNPointer<ADNNucleotide> n
 
 void DASCrossover::CreateCrossover(ADNPointer<ADNPart> part) {
 
-  ADNPointer<ADNSingleStrand> firstSingleStrandO = firstNt_->GetStrand();
-  ADNPointer<ADNSingleStrand> secondSingleStrandO = secondNt_->GetStrand();
+	ADNPointer<ADNSingleStrand> firstSingleStrandO = firstNt_->GetStrand();
+	ADNPointer<ADNSingleStrand> secondSingleStrandO = secondNt_->GetStrand();
 
-  if (firstSingleStrandO == secondSingleStrandO) return;
+	if (firstSingleStrandO == secondSingleStrandO) return;
 
-  //auto first_chain_idsO = ADNBasicOperations::BreakSingleStrand(firstNt_);
-  //auto second_chain_idsO = ADNBasicOperations::BreakSingleStrand(secondNt_->GetPrev());
-  //// todo: take into account that at crossover point there might already 
-  //// be two different strands. Workaround
-  //bool pair = true;
-  //if (second_chain_idsO.first == second_chain_idsO.second) pair = false;
+	//auto first_chain_idsO = ADNBasicOperations::BreakSingleStrand(firstNt_);
+	//auto second_chain_idsO = ADNBasicOperations::BreakSingleStrand(secondNt_->GetPrev());
+	//// todo: take into account that at crossover point there might already 
+	//// be two different strands. Workaround
+	//bool pair = true;
+	//if (second_chain_idsO.first == second_chain_idsO.second) pair = false;
 
-  //ADNPointer<ADNSingleStrand> mergedChainO = ADNBasicOperations::MergeSingleStrands(first_chain_idsO.first, second_chain_idsO.second);
-  //if (pair) ADNPointer<ADNSingleStrand> mergedChainPairO = ADNBasicOperations::MergeSingleStrands(second_chain_idsO.first, first_chain_idsO.second);
+	//ADNPointer<ADNSingleStrand> mergedChainO = ADNBasicOperations::MergeSingleStrands(first_chain_idsO.first, second_chain_idsO.second);
+	//if (pair) ADNPointer<ADNSingleStrand> mergedChainPairO = ADNBasicOperations::MergeSingleStrands(second_chain_idsO.first, first_chain_idsO.second);
 }
 
 bool DASCrossover::IsScaffoldCrossover() {
-  return (firstNt_->GetStrand()->IsScaffold()|| secondNt_->GetStrand()->IsScaffold());
+	return (firstNt_->GetStrand()->IsScaffold() || secondNt_->GetStrand()->IsScaffold());
 }
 
 std::string DASAlgorithms::GenerateSequence(double gcCont, int maxContGs, int sz)
 {
-  std::string seq = "";
+	std::string seq = "";
 
-  bool g = true;
+	bool g = true;
 
-  auto count = sz;
-  int numGs = 0;
+	auto count = sz;
+	int numGs = 0;
 
-  std::random_device rd;
-  std::mt19937 mt(rd());
-  std::uniform_real_distribution<double> dist(0.0, std::nextafter(1.0, std::numeric_limits<double>::max()));
-  std::uniform_int_distribution<int> coin(0, 1);
+	std::random_device rd;
+	std::mt19937 mt(rd());
+	std::uniform_real_distribution<double> dist(0.0, std::nextafter(1.0, std::numeric_limits<double>::max()));
+	std::uniform_int_distribution<int> coin(0, 1);
 
-  while (count > 0) {
-    double v = dist(mt);
-    int c = coin(mt);
+	while (count > 0) {
+		double v = dist(mt);
+		int c = coin(mt);
 
-    std::string base = "N";
-    if (v <= gcCont) {
-      // GC
-      if (c == 0 && g) {
-        base = "G";
-        ++numGs;
-      }
-      else {
-        base = "C";
-        numGs = 0;
-      }
-    }
-    else {
-      // AT
-      if (c == 0) base = "A";
-      else base = "T";
-      numGs = 0;
-    }
+		std::string base = "N";
+		if (v <= gcCont) {
+			// GC
+			if (c == 0 && g) {
+				base = "G";
+				++numGs;
+			}
+			else {
+				base = "C";
+				numGs = 0;
+			}
+		}
+		else {
+			// AT
+			if (c == 0) base = "A";
+			else base = "T";
+			numGs = 0;
+		}
 
-    seq += base;
-    if (maxContGs > 0 && numGs == maxContGs) g = false;
-    else g = true;
+		seq += base;
+		if (maxContGs > 0 && numGs == maxContGs) g = false;
+		else g = true;
 
-    --count;
-  }
-  
-  return seq;
+		--count;
+	}
+
+	return seq;
 }
