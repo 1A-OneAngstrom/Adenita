@@ -267,8 +267,8 @@ SB_CLASS_BEGIN(ADNBasePair);
   SB_INTERFACE_BEGIN;
 
     SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNBasePair, Name, "Name", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBasePair, Left, "Left", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBasePair, Right, "Right", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBasePair, LeftNucleotide, "Left", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBasePair, RightNucleotide, "Right", "Adenita");
 
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBasePair, ThisNode, "Itself", "Node");
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBasePair, Parent, "Parent", "Node");
@@ -314,8 +314,8 @@ SB_CLASS_BEGIN(ADNLoopPair);
   SB_INTERFACE_BEGIN;
 
     SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNLoopPair, Name, "Name", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNLoopPair, Left, "Left", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNLoopPair, Right, "Right", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNLoopPair, LeftLoop, "Left", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNLoopPair, RightLoop, "Right", "Adenita");
 
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNLoopPair, ThisNode, "Itself", "Node");
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNLoopPair, Parent, "Parent", "Node");

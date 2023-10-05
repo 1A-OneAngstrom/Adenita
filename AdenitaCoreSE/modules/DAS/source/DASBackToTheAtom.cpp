@@ -797,7 +797,6 @@ void DASBackToTheAtom::PopulateNucleotideWithAllAtoms(ADNPointer<ADNPart> origam
 
 		ADNPointer<ADNAtom> newAtom = CopyAtom(atom);
 		origami->RegisterAtom(nt, g, newAtom, createFlag);
-		//newAtom->setVisibilityFlag(false);
 
 	}
 
@@ -828,10 +827,36 @@ void DASBackToTheAtom::GenerateAllAtomModel(ADNPointer<ADNPart> origami, bool cr
 
 	}
 
-	if (createFlag)
+	// NB: In some origami, e.g. in wireframes, Adenita populates nucleotides with atoms in such a way that they are placed farther from each other than their covalent radii
+	// which means that we cannot use only SBStructuralModel::createCovalentBonds since it checks for covalent radii within some margin.
+	// So, we still use the original CreateBonds function from Adenita to create the bonds, while SBStructuralModel::createCovalentBonds is used to set their order and type.
+	// Example of issues: create a Tetrahedron using the Wireframe editor and Generate atomic model - this will lead to atoms, e.g. in vertices, placed quite strangely.
+
+	CreateBonds(origami, createFlag);
+
+	if (createFlag) {
+
+		// since for nucleotides of unknown/not-specified type Adenita sets their type to DI while populating them with atoms for DA
+		// we set types of such nucleotides to DA to create covalent bonds and then restore them back to DI
+
+		SBIndexer<ADNNucleotide*> nucleotidesDI;
+		SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
+
+			if (nt->getNucleotideType() == DNABlocks::DI) {
+
+				nucleotidesDI.push_back(nt());
+				nt->setNucleotideType(DNABlocks::DA);
+
+			}
+
+		}
+
 		origami->createCovalentBonds();
-	else
-		CreateBonds(origami, createFlag);
+
+		SB_FOR(ADNNucleotide* nt, nucleotidesDI)
+			nt->setNucleotideType(DNABlocks::DI);
+
+	}
 
 }
 

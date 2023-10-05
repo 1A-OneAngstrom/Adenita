@@ -190,7 +190,8 @@ void SETwistHelixEditor::mousePressEvent(QMouseEvent* event) {
 		SB_FOR(ADNPointer<ADNNucleotide> nt, highlightedNucleotides) {
 
 			ADNPointer<ADNDoubleStrand> ds = nt->GetDoubleStrand();
-			highlightedDoubleStrands.addReferenceTarget(ds());
+			if (ds.isValid())
+				highlightedDoubleStrands.addReferenceTarget(ds());
 
 		}
 

@@ -48,8 +48,6 @@ public:
 	virtual void												displayForShadow() override;											///< Displays the visual model for shadow purposes
 	virtual void												displayForSelection() override;											///< Displays the visual model for selection purposes
 
-	void														displayGoldSphere();
-
 	virtual void												expandBounds(SBIAPosition3& bounds) const override;						///< Expands the bounds to make sure the visual model fits inside them
 
 	virtual void												collectAmbientOcclusion(const SBPosition3& boxOrigin, const SBPosition3& boxSize, unsigned int nCellsX, unsigned int nCellsY, unsigned int nCellsZ, float* ambientOcclusionData) override;		///< To collect ambient occlusion data

@@ -131,11 +131,22 @@ void SEAdenitaCoreSEApp::LoadPartWithDaedalus(QString filename, int minEdgeSize)
 bool SEAdenitaCoreSEApp::importFromCadnano(const QString& filename, SBDDocumentFolder* preferredFolder) {
 
 	SAMSON::setStatusMessage(QString("Loading ") + filename);
+	SAMSON::showProgressBar("Loading cadnano file...", 0, 100);
+	SAMSON::setProgressBarValue(0);
+
 	DASCadnano cad = DASCadnano();
 
 	ADNPointer<ADNPart> part = cad.CreateCadnanoPart(filename.toStdString());
+	SAMSON::setProgressBarValue(50);
 
-	if (part == nullptr) return false;
+	if (part == nullptr) {
+
+		SAMSON::hideProgressBar();
+		SAMSON::setStatusMessage(QString("Could not load ") + filename);
+		SAMSON::informUser("Loading cadnano file...", "Sorry, could not load the cadnano file:\n" + filename);
+		return false;
+
+	}
   
 	QFileInfo fi(filename);
 	QString s = fi.baseName();
@@ -143,20 +154,29 @@ bool SEAdenitaCoreSEApp::importFromCadnano(const QString& filename, SBDDocumentF
 
 	SBFolder* folderWithModel = new SBFolder(s.toStdString());
 
-	//SAMSON::beginHolding("Add cadnano model");
+	//bool isAlreadyHolding = SAMSON::isHolding();
+	//if (!isAlreadyHolding) SAMSON::beginHolding("Load cadnano model");
+
 	if (SAMSON::isHolding()) SAMSON::hold(folderWithModel);
 	folderWithModel->create();
 	if (preferredFolder) preferredFolder->addChild(folderWithModel);
 	else SAMSON::getActiveDocument()->addChild(folderWithModel);
 
+	SAMSON::setProgressBarValue(80);
+
 	addPartToDocument(part, false, folderWithModel);
+
+	SAMSON::setProgressBarValue(90);
 
 	cad.CreateConformations(part);
 	addConformationToDocument(cad.Get3DConformation(), folderWithModel);
 	addConformationToDocument(cad.Get2DConformation(), folderWithModel);
 	addConformationToDocument(cad.Get1DConformation(), folderWithModel);
 
-	//SAMSON::endHolding();
+	//if (!isAlreadyHolding) SAMSON::endHolding();
+
+	SAMSON::setProgressBarValue(100);
+	SAMSON::hideProgressBar();
 
 	return true;
 
@@ -1039,15 +1059,16 @@ void SEAdenitaCoreSEApp::addPartToDocument(ADNPointer<ADNPart> part, bool positi
 	//events
 	ConnectStructuralSignalSlots(part);
 
-	//bool holding = SAMSON::isHolding();
-	//if (!holding) SAMSON::beginHolding("Add model");
+	//bool isAlreadyHolding = SAMSON::isHolding();
+	//if (!isAlreadyHolding) SAMSON::beginHolding("Add model");
+
 	if (SAMSON::isHolding()) SAMSON::hold(part());
 	part->create();
 	
 	if (preferredFolder) preferredFolder->addChild(part());
 	else SAMSON::getActiveDocument()->addChild(part());
 
-	//if (!holding) SAMSON::endHolding();
+	//if (!isAlreadyHolding) SAMSON::endHolding();
 
 }
 
@@ -1057,15 +1078,16 @@ void SEAdenitaCoreSEApp::addConformationToDocument(ADNPointer<ADNConformation> c
 
 	GetNanorobot()->RegisterConformation(conf);
 
-	//bool holding = SAMSON::isHolding();
-	//if (!holding) SAMSON::beginHolding("Add conformation");
+	//bool isAlreadyHolding = SAMSON::isHolding();
+	//if (!isAlreadyHolding) SAMSON::beginHolding("Add conformation");
+
 	if (SAMSON::isHolding()) SAMSON::hold(conf());
 	conf->create();
 
 	if (preferredFolder) preferredFolder->addChild(conf());
 	else SAMSON::getActiveDocument()->addChild(conf());
 
-	//if (!holding) SAMSON::endHolding();
+	//if (!isAlreadyHolding) SAMSON::endHolding();
 
 }
 

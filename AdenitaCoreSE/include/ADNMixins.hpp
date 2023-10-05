@@ -165,7 +165,7 @@ public:
     void AddElement(ADNPointer<T> elem, int id = -1);
     CollectionMap<T> GetCollection() const;
     void DeleteElement(int id);
-    int GetLastKey();
+    int GetLastKey() const;
     ADNPointer<T> GetElement(int id) const;
 
 private:
@@ -222,7 +222,7 @@ inline void Collection<T>::DeleteElement(int id) {
 }
 
 template<class T>
-inline int Collection<T>::GetLastKey() {
+inline int Collection<T>::GetLastKey() const {
 
     int id = -1;
     if (collection_.size() > 0) {

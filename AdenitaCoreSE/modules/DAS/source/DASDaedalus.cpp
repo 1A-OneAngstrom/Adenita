@@ -500,8 +500,8 @@ void DASDaedalus::CreateVertexStaples(ADNPointer<ADNPart> origami, DASPolyhedron
 
 	for (auto vit = vertices.begin(); vit != vertices.end(); ++vit) {
 		int degree = figure.GetVertexDegree(vit->second);
-		// number of 52nt staples => 2 pseudonodes
-		int a;
+		// number of 52nt staples => 2 pseudo-nodes
+		int a = 0;
 		if (degree % 3 == 0) {
 			a = 0;
 		}
@@ -511,7 +511,7 @@ void DASDaedalus::CreateVertexStaples(ADNPointer<ADNPart> origami, DASPolyhedron
 		else if (degree % 3 == 2) {
 			a = 1;
 		}
-		// number of 78nt staples => 3 pseudonodes
+		// number of 78nt staples => 3 pseudo-nodes
 		int b = (degree - 2 * a) / 3;
 
 		std::vector<DASHalfEdge*> edges;
@@ -592,7 +592,7 @@ void DASDaedalus::InitEdgeMap(ADNPointer<ADNPart> origami, DASPolyhedron& fig) {
 					bs->SetCell(cell());
 				}
 
-				// match first segment with corresponding halfedge
+				// match first segment with corresponding half-edge
 				if (i == 0) {
 					firstBasesHe_.insert(std::make_pair(he, bs));
 				}
@@ -771,7 +771,7 @@ void DASDaedalus::InitEdgeMap2(ADNPointer<ADNPart> origami, DASPolyhedron& fig)
 					bs->SetCell(cell());
 				}
 
-				// match first segment with corresponding halfedge
+				// match first segment with corresponding half-edge
 				if (i == 0) {
 					firstBasesHe_.insert(std::make_pair(he, bs));
 				}

@@ -87,10 +87,8 @@ std::string SEAdenitaCoreSEAppGUI::getScaffoldFilename() {
 
 void SEAdenitaCoreSEAppGUI::onLoadFile() {
 
-	bool ok;
-	QString filename;// = QFileDialog::getOpenFileName(this, tr("Open document: caDNAno, mesh (ply), Adenita document (adn, adnpart)"), QDir::currentPath(), tr("(Documents *.json *.ply *.adn *.adnpart)"));
-	ok = SAMSON::getFileNameFromUser(tr("Open document: caDNAno, mesh (ply, json), Adenita document (adn, adnpart, json)"), filename, workingDirectory, tr("(Documents *.json *.ply *.adn *.adnpart)"));
-	if (!ok) return;
+	QString filename;
+	if (!SAMSON::getFileNameFromUser(tr("Open document: caDNAno, mesh (ply, json), Adenita document (adn, adnpart, json)"), filename, workingDirectory, tr("(Documents *.json *.ply *.adn *.adnpart)"))) return;
 	if (filename.isEmpty()) return;
 
 	workingDirectory = QFileInfo(filename).absolutePath();	// get the absolute path to the filename
@@ -130,9 +128,7 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 	else if (filename.endsWith(".ply")) {
 
 		int i = 42;
-		//int i = QInputDialog::getInt(this, tr("Wireframe structure (Daedalus)"), tr("Minimum edge size (bp): "), 42, 31, 1050, 1, &ok);
-		ok = SAMSON::getIntegerFromUser(QString("Wireframe structure (Daedalus)"), i, 31, 1050, 1, QString("Minimum edge size: "), QString(" bp"));
-		if (ok) {
+		if (SAMSON::getIntegerFromUser(QString("Wireframe structure (Daedalus)"), i, 31, 1050, 1, QString("Minimum edge size: "), QString(" bp"))) {
 
 			div_t d = div(i, 10.5);
 			int minSize = floor(d.quot * 10.5);

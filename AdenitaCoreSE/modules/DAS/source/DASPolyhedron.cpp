@@ -106,8 +106,7 @@ DASPolygon& DASPolygon::operator=(const DASPolygon& other) {
 	return *this;
 }
 
-SBPosition3 DASPolygon::GetCenter()
-{
+SBPosition3 DASPolygon::GetCenter() {
 	SBPosition3 cm;
 	int c = 0;
 	DASHalfEdge* begin = halfEdge_;
@@ -198,8 +197,8 @@ DASPolyhedron& DASPolyhedron::operator=(const DASPolyhedron& p) {
 		Faces p_faces = p.GetFaces();
 		Vertices p_vertices = p.GetVertices();
 		std::map<int, SBPosition3> vertices;
-		for (auto& p_vertice : p_vertices) {
-			vertices.insert(std::make_pair(p_vertice.first, p_vertice.second->GetSBPosition()));
+		for (auto& p_vertex : p_vertices) {
+			vertices.insert(std::make_pair(p_vertex.first, p_vertex.second->GetSBPosition()));
 		}
 		std::map<int, std::vector<int>> faces;
 		int f_id = 0;
@@ -237,8 +236,7 @@ size_t DASPolyhedron::GetNumVertices() const {
 	return vertices_.size();
 }
 
-size_t DASPolyhedron::GetNumFaces() const
-{
+size_t DASPolyhedron::GetNumFaces() const {
 	return faces_.size();
 }
 
@@ -246,21 +244,19 @@ void DASPolyhedron::SetVertices(Vertices vertices, bool isOriginal = false) {
 	vertices_ = vertices;
 	if (isOriginal) {
 		// make a hard copy of vertices
-		for (auto& vertice : vertices) {
-			DASVertex* v = vertice.second;
+		for (auto& vertex : vertices) {
+			DASVertex* v = vertex.second;
 			auto* w = new DASVertex(v);
-			originalVertices_.insert(std::make_pair(vertice.first, w));
+			originalVertices_.insert(std::make_pair(vertex.first, w));
 		}
 	}
 }
 
-void DASPolyhedron::SetFaces(Faces faces)
-{
+void DASPolyhedron::SetFaces(Faces faces) {
 	faces_ = faces;
 }
 
-void DASPolyhedron::SetEdges(Edges edges)
-{
+void DASPolyhedron::SetEdges(Edges edges) {
 	edges_ = edges;
 }
 
@@ -285,8 +281,8 @@ void DASPolyhedron::BuildPolyhedron(std::map<int, SBPosition3> vertices, std::ma
 	}
 
 
-	for (auto& vertice : vertices) {
-		AddVertex(vertice.first, vertice.second);
+	for (auto& vertex : vertices) {
+		AddVertex(vertex.first, vertex.second);
 	}
 	// store original vertices for scaling and such
 	SetVertices(vertices_, true);
@@ -360,8 +356,8 @@ void DASPolyhedron::BuildPolyhedron(std::map<int, SBPosition3> vertices, std::ma
 	}
 }
 
-void DASPolyhedron::LoadFromPLYFile(std::string filename)
-{
+void DASPolyhedron::LoadFromPLYFile(const std::string& filename) {
+
 	//get file lines
 	std::vector<std::string> lines;
 	SBIFileReader::getFileLines(filename, lines);
@@ -430,9 +426,11 @@ void DASPolyhedron::LoadFromPLYFile(std::string filename)
 	}
 
 	BuildPolyhedron(vertices, faces);
+
 }
 
-int DASPolyhedron::FetchNumber(std::string st, std::string tok) {
+int DASPolyhedron::FetchNumber(const std::string& st, const std::string& tok) const {
+
 	int num = 0;
 	size_t tok_size = tok.length();
 	size_t pos = st.find(tok);
@@ -440,11 +438,14 @@ int DASPolyhedron::FetchNumber(std::string st, std::string tok) {
 		std::string n = st.substr(pos + tok_size);
 		num = atoi(n.c_str());
 	}
+
 	return num;
+
 }
 
 template <typename T>
 std::vector<T> PushToVector(std::vector<T> v, std::string s, std::string type, size_t i, size_t substring_length) {
+
 	std::string sub_s = s.substr(i, substring_length);
 	T elem;
 	if (type == "double") {
@@ -454,13 +455,14 @@ std::vector<T> PushToVector(std::vector<T> v, std::string s, std::string type, s
 		elem = atoi(sub_s.c_str());
 	}
 	v.push_back(elem);
+
 	return v;
+
 }
-
-
 
 template <typename T>
 std::vector<T> DASPolyhedron::SplitString(std::string s, std::string type, T dummy) {
+
 	// dummy is just a dummy variable to infer the type
 	boost::trim(s);
 	std::vector<T> v;
@@ -468,7 +470,9 @@ std::vector<T> DASPolyhedron::SplitString(std::string s, std::string type, T dum
 	size_t pos = s.find(delimiter);
 	size_t i = 0;
 	bool more = true;
+
 	while (more) {
+
 		v = PushToVector(v, s, type, i, pos - i);
 		i = ++pos;
 		pos = s.find(delimiter, pos);
@@ -477,24 +481,31 @@ std::vector<T> DASPolyhedron::SplitString(std::string s, std::string type, T dum
 			v = PushToVector(v, s, type, i, s.length());
 			more = false;
 		}
+
 	}
+
 	return v;
+
 }
 
 void DASPolyhedron::AddVertex(int id, SBPosition3 coords) {
+
 	auto* vertex = new DASVertex();
 	vertex->id_ = id;
 	vertex->SetCoordinates(coords);
 	vertex->halfEdge_ = nullptr;
 	vertices_.insert(std::make_pair(id, vertex));
+
 }
 
 void DASPolyhedron::AddFace(int id, std::vector<int> vertices) {
+
 	auto* face = new DASPolygon();
 	face->id_ = id;
 	auto* prev = new DASHalfEdge();
 	auto* first = new DASHalfEdge();
 	for (auto j = vertices.begin(); j != vertices.end(); ++j) {
+
 		DASVertex* vertex_i = GetVertexById(*j);
 		// Next vertex
 		auto k = std::next(j);
@@ -521,98 +532,157 @@ void DASPolyhedron::AddFace(int id, std::vector<int> vertices) {
 		auto* edge = new DASEdge();
 		bool new_edge = true;
 		for (auto& eit : edges_) {
+
 			if (eit->halfEdge_->source_ == vertex_i && eit->halfEdge_->next_->source_ == vertex_k) {
+
 				edge = eit;
 				he->pair_ = edge->halfEdge_;
 				new_edge = false;
 				break;
+
 			}
+
 			if (eit->halfEdge_->source_ == vertex_k && eit->halfEdge_->next_->source_ == vertex_i) {
+
 				edge = eit;
 				he->pair_ = edge->halfEdge_;
 				new_edge = false;
 				break;
+
 			}
+
 		}
+
 		if (new_edge) {
+
 			edge->halfEdge_ = he;
 			edges_.push_back(edge);
+
 		}
+
 		he->edge_ = edge;
+
 	}
+
 	// fix first half-edge
 	face->halfEdge_ = first;
 	first->prev_ = prev;
 	prev->next_ = first;
 	faces_.push_back(face);
+
 }
 
 DASVertex* DASPolyhedron::GetVertexById(int id) {
+
 	return vertices_.at(id);
+
 }
 
 std::pair<DASEdge*, double> DASPolyhedron::MinimumEdgeLength() {
+
 	double min_length = 1e13;
-	DASEdge* min_edge;
+	DASEdge* min_edge = nullptr;
+
 	for (auto& edge : edges_) {
+
 		double length = CalculateEdgeLength(edge);
 		if (length < min_length) {
+
 			min_length = length;
 			min_edge = edge;
+
 		}
+
 	}
+
 	return std::make_pair(min_edge, min_length);
+
 }
 
 std::pair<DASEdge*, double> DASPolyhedron::MaximumEdgeLength() {
+
 	double max_length = 0.0;
-	DASEdge* max_edge;
+	DASEdge* max_edge = nullptr;
+
 	for (auto& edge : edges_) {
+
 		double length = CalculateEdgeLength(edge);
 		if (length > max_length) {
+
 			max_length = length;
 			max_edge = edge;
+
 		}
+
 	}
+
 	return std::make_pair(max_edge, max_length);
+
 }
 
 double DASPolyhedron::CalculateEdgeLength(DASEdge* edge) {
+
+	if (edge == nullptr) return 0.0;
+	if (edge->halfEdge_ == nullptr) return 0.0;
+	if (edge->halfEdge_->source_ == nullptr) return 0.0;
+	if (edge->halfEdge_->pair_ == nullptr) return 0.0;
+	if (edge->halfEdge_->pair_->source_ == nullptr) return 0.0;
+
 	std::vector<double> s_c = edge->halfEdge_->source_->GetVectorCoordinates();
 	std::vector<double> t_c = edge->halfEdge_->pair_->source_->GetVectorCoordinates();
 	auto s = ADNVectorMath::CreateBoostVector(s_c);
 	auto t = ADNVectorMath::CreateBoostVector(t_c);
+
 	return ublas::norm_2(t - s);
+
 }
 
 DASEdge* DASPolyhedron::GetEdgeByVertices(DASVertex* source, DASVertex* target) {
+
+	if (!source) return nullptr;
+	if (!source->halfEdge_) return nullptr;
+
 	DASEdge* edge = new DASEdge();
 	DASHalfEdge* begin = source->halfEdge_;
 	DASHalfEdge* he = begin;
 	do {
+
 		if (he->pair_->source_ == target) {
 			edge = he->edge_;
 			break;
 		}
 		he = he->pair_->next_;
+
 	} while (he != begin);
+
 	return edge;
+
 }
 
-unsigned int* DASPolyhedron::GetIndices()
-{
+unsigned int* DASPolyhedron::GetIndices() const {
+
 	return indices_;
+
 }
 
 int DASPolyhedron::GetVertexDegree(DASVertex* v) {
+
+	if (!v) return 0;
+	if (!v->halfEdge_) return 0;
+
 	int degree = 0;
 	DASHalfEdge* begin = v->halfEdge_;
 	DASHalfEdge* he = begin;
+
 	do {
+
 		++degree;
 		he = he->pair_->next_;
+
 	} while (he != begin);
+
 	return degree;
+
 }
 
 Edges DASPolyhedron::GetEdges() const {
@@ -620,25 +690,39 @@ Edges DASPolyhedron::GetEdges() const {
 }
 
 bool DASPolyhedron::IsInFace(DASVertex* v, DASPolygon* f) {
+
+	if (!f || !v) return false;
+	if (!f->halfEdge_) return false;
+
 	bool is = false;
+
 	DASHalfEdge* begin = f->halfEdge_;
 	DASHalfEdge* he = begin;
+
 	do {
+
 		DASVertex* w = he->source_;
 		if (w->id_ == v->id_) {
 			is = true;
 		}
 		he = he->next_;
+
 	} while (he != begin);
+
 	return is;
+
 }
 
 DASHalfEdge* DASPolyhedron::GetHalfEdge(unsigned int id) {
+
 	DASHalfEdge* res = nullptr;
+
 	for (auto& vit : vertices_) {
+
 		DASHalfEdge* begin = vit.second->halfEdge_;
 		DASHalfEdge* he = begin;
 		do {
+
 			if (he->id_ == id) {
 				res = he;
 				break;
@@ -648,28 +732,37 @@ DASHalfEdge* DASPolyhedron::GetHalfEdge(unsigned int id) {
 				break;
 			}
 			he = he->pair_->next_;
+
 		} while (he != begin);
+
 	}
 
 	return res;
+
 }
 
 DASHalfEdge* DASPolyhedron::GetHalfEdge(DASVertex* v, DASVertex* w) {
+
 	DASHalfEdge* begin = v->halfEdge_;
 	DASHalfEdge* he = begin;
+
 	do {
+
 		if (he->pair_->source_ == w) {
 			return he;
 		}
 		he = he->pair_->next_;
+
 	} while (he != begin);
 
 	// v and w do not share an edge
 	return nullptr;
 	//std::exit(EXIT_FAILURE);
+
 }
 
 void DASPolyhedron::Scale(double scalingFactor) {
+
 	std::vector<std::vector<double>> sc;
 	std::vector<double> v1 = { scalingFactor, 0.0, 0.0 };
 	std::vector<double> v2 = { 0.0, scalingFactor, 0.0 };
@@ -680,6 +773,7 @@ void DASPolyhedron::Scale(double scalingFactor) {
 
 	ublas::matrix<double> scaleMatrix = ADNVectorMath::CreateBoostMatrix(sc);
 	for (const auto& originalVertex : originalVertices_) {
+
 		std::vector<double> c = originalVertex.second->GetVectorCoordinates();
 		ublas::vector<double> cB = ADNVectorMath::CreateBoostVector(c);
 		ublas::vector<double> res = ublas::prod(scaleMatrix, cB);
@@ -687,36 +781,54 @@ void DASPolyhedron::Scale(double scalingFactor) {
 		DASVertex* w = vertices_.at(originalVertex.first);
 		const SBPosition3 coords = SBPosition3(SBQuantity::angstrom(r[0]), SBQuantity::angstrom(r[1]), SBQuantity::angstrom(r[2]));
 		w->SetCoordinates(coords);
+
 	}
+
 }
 
 void DASPolyhedron::Center(const SBPosition3& center) {
+
 	std::vector<std::vector<double>> sc;
+
 	for (const auto& vertex : vertices_) {
+
 		std::vector<double> coords = vertex.second->GetVectorCoordinates();
 		sc.push_back(coords);
+
 	}
+
 	ublas::matrix<double> positions = ADNVectorMath::CreateBoostMatrix(sc);
 	ublas::vector<double> cm = ADNVectorMath::CalculateCM(positions);
 	std::vector<double> cm_std = ADNVectorMath::CreateStdVector(cm);
 	const SBPosition3 cm_sb = SBPosition3(SBQuantity::angstrom(cm_std[0]), SBQuantity::angstrom(cm_std[1]), SBQuantity::angstrom(cm_std[2]));
 	const SBPosition3 R = center - cm_sb;
+
 	for (auto& vertex : vertices_) {
+
 		SBPosition3 pos = vertex.second->GetSBPosition();
 		vertex.second->SetCoordinates(pos + R);
+
 	}
+
 	for (auto& originalVertex : originalVertices_) {
+
 		SBPosition3 pos = originalVertex.second->GetSBPosition();
 		originalVertex.second->SetCoordinates(pos + R);
+
 	}
+
 }
 
 SBPosition3 DASPolyhedron::GetCenter() const {
+
 	SBPosition3 cm;
 	const int numVertices = boost::numeric_cast<int>(vertices_.size());
-	for (const auto& vertex : vertices_) {
+
+	for (const auto& vertex : vertices_)
 		cm += vertex.second->GetSBPosition();
-	}
+
 	cm /= numVertices;
+
 	return cm;
+
 }

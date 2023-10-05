@@ -44,7 +44,7 @@ public:
 	DASEdge* edge_ = nullptr;
 
 	// we need an id_ for copying
-	unsigned int id_;
+	unsigned int id_{ 0 };
 
 };
 
@@ -65,7 +65,7 @@ public:
 
 	/* Members */
 	DASHalfEdge* halfEdge_ = nullptr;
-	int id_;
+	int id_{ 0 };
 	SBPosition3 position_;
 
 	/* Getters */
@@ -88,7 +88,7 @@ public:
 	DASEdge& operator=(const DASEdge& other);
 
 	DASHalfEdge* halfEdge_ = nullptr;
-	int id_;
+	int id_{ 0 };
 
 };
 
@@ -104,7 +104,7 @@ public:
 
 	SBPosition3 GetCenter();
 
-	int id_;
+	int id_{ 0 };
 	DASHalfEdge* halfEdge_ = nullptr;
 
 };
@@ -133,7 +133,7 @@ public:
 	Edges GetEdges() const;
 	DASVertex* GetVertexById(int id);
 	static DASEdge* GetEdgeByVertices(DASVertex* source, DASVertex* target);
-	unsigned int* GetIndices();
+	unsigned int* GetIndices() const;
 
 	/* Setters */
 	void SetVertices(Vertices vertices, bool isOriginal);
@@ -144,7 +144,7 @@ public:
 	size_t GetNumVertices() const;
 	size_t GetNumFaces() const;
 	void BuildPolyhedron(std::map<int, SBPosition3> vertices, std::map<int, std::vector<int>> faces);
-	void LoadFromPLYFile(std::string filename);
+	void LoadFromPLYFile(const std::string& filename);
 	void AddVertex(int id, SBPosition3 coords);
 	void AddFace(int id, std::vector<int> vertices);
 	std::pair<DASEdge*, double> MinimumEdgeLength();
@@ -161,21 +161,20 @@ public:
 
 protected:
 
-	int FetchNumber(std::string st, std::string tok);
+	int FetchNumber(const std::string& st, const std::string& tok) const;
 	template <typename T> std::vector<T> SplitString(std::string s, std::string type, T dummy);
 
 private:
 
-	// Map ids with Vertex objects
-	Vertices vertices_;
-	// Map ids with Face objects
-	Faces faces_;
-	// List with the edges
-	Edges edges_;
-	// Store original value for scaling
-	Vertices originalVertices_;
-	//store index list of faces
-	unsigned int* indices_{ nullptr };
+	Vertices vertices_;					///< Map ids with Vertex objects
+	
+	Faces faces_;						///< Map ids with Face objects
+	
+	Edges edges_;						///< List with the edges
+	
+	Vertices originalVertices_;			///< Store original value for scaling
+	
+	unsigned int* indices_{ nullptr };	///< store index list of faces
 
 };
 

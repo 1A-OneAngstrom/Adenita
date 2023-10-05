@@ -58,10 +58,10 @@ public:
 	CellType													GetCellType() const override { return CellType::BasePair; }
 
 	ADNPointer<ADNNucleotide>									GetLeftNucleotide() const;
-	SBNode*														getLeft() const;
+	SBNode*														getLeftNucleotide() const;
 	void														SetLeftNucleotide(ADNPointer<ADNNucleotide> nt);
 	ADNPointer<ADNNucleotide>									GetRightNucleotide() const;
-	SBNode*														getRight() const;
+	SBNode*														getRightNucleotide() const;
 	void														SetRightNucleotide(ADNPointer<ADNNucleotide> nt);
 	void														SetRemainingNucleotide(ADNPointer<ADNNucleotide> nt);
 	void														AddPair(ADNPointer<ADNNucleotide> left, ADNPointer<ADNNucleotide> right);
@@ -118,10 +118,10 @@ public:
 	CellType													GetCellType() const override { return CellType::LoopPair; }
 
 	ADNPointer<ADNLoop>											GetLeftLoop() const;
-	SBNode*														getLeft() const;
+	SBNode*														getLeftLoop() const;
 	void														SetLeftLoop(ADNPointer<ADNLoop> lp);
 	ADNPointer<ADNLoop>											GetRightLoop() const;
-	SBNode*														getRight() const;
+	SBNode*														getRightLoop() const;
 	void														SetRightLoop(ADNPointer<ADNLoop> lp);
 
 	void														RemoveNucleotide(ADNPointer<ADNNucleotide> nt) override;

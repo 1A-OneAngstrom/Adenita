@@ -69,12 +69,6 @@ void SETaggingVisualModel::display() {
 	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop. This is the main function of your visual model. 
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
 
-	displayGoldSphere();
-
-}
-
-void SETaggingVisualModel::displayGoldSphere() {
-
 	ADNDisplayHelper::displayGoldSphere(goldAtoms_);
 
 }

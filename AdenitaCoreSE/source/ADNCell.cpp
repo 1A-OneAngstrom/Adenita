@@ -68,7 +68,7 @@ ADNPointer<ADNNucleotide> ADNBasePair::GetLeftNucleotide() const {
     return leftNucleotide;
 }
 
-SBNode* ADNBasePair::getLeft() const {
+SBNode* ADNBasePair::getLeftNucleotide() const {
     return leftNucleotide();
 }
 
@@ -80,7 +80,7 @@ ADNPointer<ADNNucleotide> ADNBasePair::GetRightNucleotide() const {
     return rightNucleotide;
 }
 
-SBNode* ADNBasePair::getRight() const {
+SBNode* ADNBasePair::getRightNucleotide() const {
     return rightNucleotide();
 }
 
@@ -191,7 +191,7 @@ ADNPointer<ADNLoop> ADNLoopPair::GetLeftLoop() const {
     return leftLoop;
 }
 
-SBNode* ADNLoopPair::getLeft() const {
+SBNode* ADNLoopPair::getLeftLoop() const {
     return leftLoop();
 }
 
@@ -207,7 +207,7 @@ ADNPointer<ADNLoop> ADNLoopPair::GetRightLoop() const {
     return rightLoop;
 }
 
-SBNode* ADNLoopPair::getRight() const {
+SBNode* ADNLoopPair::getRightLoop() const {
     return rightLoop();
 }
 

@@ -111,7 +111,7 @@ public:
 private:
 
 	ADNPointer<ADNPart>											generateLattice(bool mock = false);
-	void														displayLattice();
+
 	void														sendPartToAdenita(ADNPointer<ADNPart> lattice);
 
 	LatticeType													latticeType = LatticeType::Honeycomb;

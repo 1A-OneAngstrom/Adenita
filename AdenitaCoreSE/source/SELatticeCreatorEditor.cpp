@@ -4,7 +4,7 @@
 
 #include "SAMSON.hpp"
 
-#include <QOpenGLFunctions_4_3_Core>
+#include "SBGRenderOpenGLFunctions.hpp"
 
 
 SELatticeCreatorEditor::SELatticeCreatorEditor() {
@@ -47,7 +47,7 @@ ADNPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*
 
 	ADNPointer<ADNPart> part = nullptr;
 
-	SBPosition3 currentPos = secondPosition - firstPosition;
+	const SBPosition3 currentPos = secondPosition - firstPosition;
 
 	SBPosition3 xPos = currentPos;
 	xPos[1].setValue(0);
@@ -60,7 +60,7 @@ ADNPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*
 
 	if (!heightSelected) {
 
-		SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+		const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
 		z = (currentPosition - firstPosition).norm();
 
 	}
@@ -131,12 +131,6 @@ ADNPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*
 	}
 
 	return part;
-
-}
-
-void SELatticeCreatorEditor::displayLattice() {
-
-	ADNDisplayHelper::displayPart(tempPart);
 
 }
 
@@ -294,7 +288,7 @@ void SELatticeCreatorEditor::display() {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		displayLattice();
+		ADNDisplayHelper::displayPart(tempPart);
 
 		glDisable(GL_BLEND);
 		glDisable(GL_DEPTH_TEST);

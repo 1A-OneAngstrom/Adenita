@@ -6,7 +6,7 @@
 
 #include "SAMSON.hpp"
 
-#include <QOpenGLFunctions_4_3_Core>
+#include "SBGRenderOpenGLFunctions.hpp"
 
 
 SENanotubeCreatorEditor::SENanotubeCreatorEditor() {
@@ -61,9 +61,9 @@ ADNPointer<ADNPart> SENanotubeCreatorEditor::generateNanotube(bool mock) {
 	ADNPointer<ADNPart> part = nullptr;
 
 	SBQuantity::length generateRadius = (thirdPosition - secondPosition).norm();
-	SBQuantity::length roundHeight = (secondPosition - firstPosition).norm();
+	const SBQuantity::length roundHeight = (secondPosition - firstPosition).norm();
 	auto numNucleotides = round((roundHeight / SBQuantity::nanometer(ADNConstants::BP_RISE)).getValue());
-	SBVector3 dir = (secondPosition - firstPosition).normalizedVersion();
+	const SBVector3 dir = (secondPosition - firstPosition).normalizedVersion();
 
 	if (predefinedFlag) {
 
@@ -107,10 +107,6 @@ ADNPointer<ADNPart> SENanotubeCreatorEditor::generateNanotube(bool mock) {
 
 	return part;
 
-}
-
-void SENanotubeCreatorEditor::displayNanotube() {
-	ADNDisplayHelper::displayPart(tempPart);
 }
 
 void SENanotubeCreatorEditor::sendPartToAdenita(ADNPointer<ADNPart> nanotube) {
@@ -293,7 +289,7 @@ void SENanotubeCreatorEditor::display() {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		displayNanotube();
+		ADNDisplayHelper::displayPart(tempPart);
 
 		glDisable(GL_BLEND);
 		glDisable(GL_DEPTH_TEST);
