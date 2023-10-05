@@ -9,620 +9,613 @@
 
 void DASCadnano::ParseJSON(std::string filename) {
 
-    FILE* fp = nullptr;
-    try {
+	FILE* fp = nullptr;
+	try {
 
 #ifdef _WIN32
-        // convert to a wide string (UTF-8) to take care of special characters
-        std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
-        fp = _wfopen(wfileName.c_str(), L"rb");
+		// convert to a wide string (UTF-8) to take care of special characters
+		std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
+		fp = _wfopen(wfileName.c_str(), L"rb");
 #else
-        fp = fopen(filename.c_str(), "rb");
+		fp = fopen(filename.c_str(), "rb");
 #endif
 
-    }
-    catch (...) {
+	}
+	catch (...) {
 
-        return;
+		return;
 
-    }
+	}
 
-    char readBuffer[65536];
-    rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    rapidjson::Document d;
-    d.ParseStream(is);
+	char readBuffer[65536];
+	rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+	rapidjson::Document d;
+	d.ParseStream(is);
 
-    // check for save version
-    double versionValue = 0.0;
-    if (rapidjson::Value* version = rapidjson::Pointer("/format").Get(d)) {
-        versionValue = version->GetDouble();
-    }
+	// check for save version
+	double versionValue = 0.0;
+	if (rapidjson::Value* version = rapidjson::Pointer("/format").Get(d)) {
+		versionValue = version->GetDouble();
+	}
 
-    if (versionValue < 3.0) {
-        ParseCadnanoLegacy(d);
-    }
-    else {
-        ParseCadnanoFormat3(d);
-    }
+	if (versionValue < 3.0) {
+		ParseCadnanoLegacy(d);
+	}
+	else {
+		ParseCadnanoFormat3(d);
+	}
 
-    fclose(fp);
+	fclose(fp);
 
 }
 
 void DASCadnano::ParseCadnanoFormat3(rapidjson::Document& d) {
 
-    ADNLogger::LogError(std::string("Cadnano format 3.0 not yet supported."));
+	ADNLogger::LogError(std::string("Cadnano format 3.0 not yet supported."));
 
 }
 
 void DASCadnano::ParseCadnanoLegacy(rapidjson::Document& d) {
 
-    json_.name_ = d["name"].GetString();
-    rapidjson::Value& vstrandsVal = d["vstrands"];
+	json_.name_ = d["name"].GetString();
+	rapidjson::Value& vstrandsVal = d["vstrands"];
 
-    int totalCount = -1;
-    for (unsigned int i = 0; i < vstrandsVal.Size(); i++) {
+	int totalCount = -1;
+	for (unsigned int i = 0; i < vstrandsVal.Size(); i++) {
 
-        rapidjson::Value& vstrandVal = vstrandsVal[i];
-        Vstrand vstrand;
+		rapidjson::Value& vstrandVal = vstrandsVal[i];
+		Vstrand vstrand;
 
-        vstrand.num_ = vstrandVal["num"].GetInt();
-        vstrand.col_ = vstrandVal["col"].GetInt();
-        vstrand.row_ = vstrandVal["row"].GetInt();
+		vstrand.num_ = vstrandVal["num"].GetInt();
+		vstrand.col_ = vstrandVal["col"].GetInt();
+		vstrand.row_ = vstrandVal["row"].GetInt();
 
-        rapidjson::Value& scafVals = vstrandVal["scaf"];
-        int count = 0;
-        for (unsigned int k = 0; k < scafVals.Size(); k++) {
-            rapidjson::Value& a = scafVals[k];
-            vec4 elem;
-            elem.n0 = a[0].GetInt();
-            elem.n1 = a[1].GetInt();
-            elem.n2 = a[2].GetInt();
-            elem.n3 = a[3].GetInt();
-            vstrand.scaf_.insert(std::make_pair(count, elem));
+		rapidjson::Value& scafVals = vstrandVal["scaf"];
+		int count = 0;
+		for (unsigned int k = 0; k < scafVals.Size(); k++) {
+			rapidjson::Value& a = scafVals[k];
+			vec4 elem;
+			elem.n0 = a[0].GetInt();
+			elem.n1 = a[1].GetInt();
+			elem.n2 = a[2].GetInt();
+			elem.n3 = a[3].GetInt();
+			vstrand.scaf_.insert(std::make_pair(count, elem));
 
-            //start point
-            if (elem.n0 == -1 && elem.n1 == -1 && elem.n2 != -1 && elem.n3 != -1) {
-                json_.scaffoldStartPositions_.push_back(std::make_pair(vstrand.num_, count));
-            }
+			//start point
+			if (elem.n0 == -1 && elem.n1 == -1 && elem.n2 != -1 && elem.n3 != -1) {
+				json_.scaffoldStartPositions_.push_back(std::make_pair(vstrand.num_, count));
+			}
 
-            ++count;
-        }
+			++count;
+		}
 
-        totalCount = count;  // all vhelix have the same count
-        vstrand.totalLength_ = totalCount;
+		totalCount = count;  // all vhelix have the same count
+		vstrand.totalLength_ = totalCount;
 
-        rapidjson::Value& stapVals = vstrandVal["stap"];
-        count = 0;
-        for (unsigned int k = 0; k < stapVals.Size(); k++) {
-            rapidjson::Value& a = stapVals[k];
-            vec4 elem;
-            elem.n0 = a[0].GetInt();
-            elem.n1 = a[1].GetInt();
-            elem.n2 = a[2].GetInt();
-            elem.n3 = a[3].GetInt();
-            vstrand.stap_.insert(std::make_pair(count, elem));
+		rapidjson::Value& stapVals = vstrandVal["stap"];
+		count = 0;
+		for (unsigned int k = 0; k < stapVals.Size(); k++) {
+			rapidjson::Value& a = stapVals[k];
+			vec4 elem;
+			elem.n0 = a[0].GetInt();
+			elem.n1 = a[1].GetInt();
+			elem.n2 = a[2].GetInt();
+			elem.n3 = a[3].GetInt();
+			vstrand.stap_.insert(std::make_pair(count, elem));
 
-            if (elem.n0 == -1 && elem.n1 == -1 && elem.n2 != -1 && elem.n3 != -1) {
-                vec2 stapleStart;
-                stapleStart.n0 = vstrand.num_;
-                stapleStart.n1 = count;
+			if (elem.n0 == -1 && elem.n1 == -1 && elem.n2 != -1 && elem.n3 != -1) {
+				vec2 stapleStart;
+				stapleStart.n0 = vstrand.num_;
+				stapleStart.n1 = count;
 
-                json_.stapleStarts_.push_back(stapleStart);
-            }
+				json_.stapleStarts_.push_back(stapleStart);
+			}
 
-            ++count;
-        }
+			++count;
+		}
 
-        const rapidjson::Value& loopVals = vstrandVal["loop"];
-        count = 0;
-        for (unsigned int k = 0; k < loopVals.Size(); k++) {
-            vstrand.loops_.insert(std::make_pair(count, loopVals[k].GetInt()));
-            ++count;
-        }
+		const rapidjson::Value& loopVals = vstrandVal["loop"];
+		count = 0;
+		for (unsigned int k = 0; k < loopVals.Size(); k++) {
+			vstrand.loops_.insert(std::make_pair(count, loopVals[k].GetInt()));
+			++count;
+		}
 
-        const rapidjson::Value& skipVals = vstrandVal["skip"];
-        count = 0;
-        for (unsigned int k = 0; k < skipVals.Size(); k++) {
-            vstrand.skips_.insert(std::make_pair(count, skipVals[k].GetInt()));
-            ++count;
-        }
+		const rapidjson::Value& skipVals = vstrandVal["skip"];
+		count = 0;
+		for (unsigned int k = 0; k < skipVals.Size(); k++) {
+			vstrand.skips_.insert(std::make_pair(count, skipVals[k].GetInt()));
+			++count;
+		}
 
-        // create tubes
-        bool start_tube = false;
-        int init_pos = -1;
-        int end_pos = -1;
-        for (int i = 0; i < vstrand.totalLength_; ++i) {
-            vec4 scaf_pos = vstrand.scaf_[i];
-            vec4 stap_pos = vstrand.stap_[i];
-            if (IsThereBase(scaf_pos) || IsThereBase(stap_pos)) {
-                if (!start_tube) {
-                    start_tube = true;
-                    init_pos = i;
-                    end_pos = -1;
-                }
-            }
-            else {
-                if (start_tube) {
-                    start_tube = false;
-                    end_pos = i - 1;
-                    VTube tube;
-                    tube.vStrandId_ = vstrand.num_;
-                    tube.initPos_ = init_pos;
-                    tube.endPos_ = end_pos;
-                    vGrid_.AddTube(tube);
-                    init_pos = -1;
-                }
-            }
-        }
+		// create tubes
+		bool start_tube = false;
+		int init_pos = -1;
+		int end_pos = -1;
+		for (int i = 0; i < vstrand.totalLength_; ++i) {
+			vec4 scaf_pos = vstrand.scaf_[i];
+			vec4 stap_pos = vstrand.stap_[i];
+			if (IsThereBase(scaf_pos) || IsThereBase(stap_pos)) {
+				if (!start_tube) {
+					start_tube = true;
+					init_pos = i;
+					end_pos = -1;
+				}
+			}
+			else {
+				if (start_tube) {
+					start_tube = false;
+					end_pos = i - 1;
+					VTube tube;
+					tube.vStrandId_ = vstrand.num_;
+					tube.initPos_ = init_pos;
+					tube.endPos_ = end_pos;
+					vGrid_.AddTube(tube);
+					init_pos = -1;
+				}
+			}
+		}
 
-        json_.vstrands_.insert(std::make_pair(vstrand.num_, vstrand));
-    }
+		json_.vstrands_.insert(std::make_pair(vstrand.num_, vstrand));
+	}
 
-    if (totalCount % 32 == 0) {
-        json_.lType_ = LatticeType::Square;
-    }
-    else if (totalCount % 21 == 0) {
-        json_.lType_ = LatticeType::Honeycomb;
-    }
-    else {
-        // error
-        if (totalCount == -1) {
-            ADNLogger::LogError(std::string("Adenita couldn't find a compatible lattice: design seems empty"));
-        }
-        else {
-            ADNLogger::LogError(std::string("Adenita couldn't find a compatible lattice: number of vHelix positions = " + totalCount));
-        }
-        return;
-    }
-    vGrid_.CreateLattice(json_.lType_);
+	if (totalCount % 32 == 0) {
+		json_.lType_ = LatticeType::Square;
+	}
+	else if (totalCount % 21 == 0) {
+		json_.lType_ = LatticeType::Honeycomb;
+	}
+	else {
+		// error
+		if (totalCount == -1) {
+			ADNLogger::LogError(std::string("Adenita couldn't find a compatible lattice: design seems empty"));
+		}
+		else {
+			ADNLogger::LogError(std::string("Adenita couldn't find a compatible lattice: number of vHelix positions = " + totalCount));
+		}
+		return;
+	}
+	vGrid_.CreateLattice(json_.lType_);
 }
 
 ADNPointer<ADNPart> DASCadnano::CreateCadnanoModel() {
 
-    ADNPointer<ADNPart> part = new ADNPart();
+	ADNPointer<ADNPart> part = new ADNPart();
 
-    CreateEdgeMap(part);
-    ADNLogger::LogDebug(std::string("Cadnano module > Double strands created"));
-    CreateScaffold(part);
-    if (json_.scaffoldStartPositions_.size() > 0) {
-        ADNLogger::LogDebug(std::string("Cadnano module > Scaffold(s) created"));
-    }
-    else {
-        ADNLogger::LogError(std::string("Adenita couldn't detect a scaffold. Circular scaffolds won't be detected"));
-    }
-    CreateStaples(part);
-    ADNLogger::LogDebug(std::string("Cadnano module > Staples created"));
+	CreateEdgeMap(part);
+	ADNLogger::LogDebug(std::string("Cadnano module > Double strands created"));
+	CreateScaffold(part);
+	if (json_.scaffoldStartPositions_.size() > 0) {
+		ADNLogger::LogDebug(std::string("Cadnano module > Scaffold(s) created"));
+	}
+	else {
+		ADNLogger::LogError(std::string("Adenita couldn't detect a scaffold. Circular scaffolds won't be detected"));
+	}
+	CreateStaples(part);
+	ADNLogger::LogDebug(std::string("Cadnano module > Staples created"));
 
-    return part;
+	return part;
 
 }
 
 void DASCadnano::CreateEdgeMap(ADNPointer<ADNPart> part) {
 
-    auto tubes = vGrid_.vDoubleStrands_;
-    for (auto& tube : tubes) {
+	auto tubes = vGrid_.vDoubleStrands_;
+	for (auto& tube : tubes) {
 
-        Vstrand* vs = &json_.vstrands_[tube.vStrandId_];
-        SBPosition3 initPos = vGrid_.GetGridCellPos3D(tube.initPos_, vs->row_, vs->col_);
-        SBPosition3 endPos = vGrid_.GetGridCellPos3D(tube.endPos_, vs->row_, vs->col_);
-        int length = tube.endPos_ - tube.initPos_ + 1;
-        SBVector3 dir = (endPos - initPos).normalizedVersion();
+		Vstrand* vs = &json_.vstrands_[tube.vStrandId_];
+		SBPosition3 initPos = vGrid_.GetGridCellPos3D(tube.initPos_, vs->row_, vs->col_);
+		SBPosition3 endPos = vGrid_.GetGridCellPos3D(tube.endPos_, vs->row_, vs->col_);
+		int length = tube.endPos_ - tube.initPos_ + 1;
+		SBVector3 dir = (endPos - initPos).normalizedVersion();
 
-        std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> positions;
-        if (cellBsMap_.find(vs) != cellBsMap_.end()) positions = cellBsMap_.at(vs);
+		std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> positions;
+		if (cellBsMap_.find(vs) != cellBsMap_.end()) positions = cellBsMap_.at(vs);
 
-        SEConfig& config = SEConfig::GetInstance();
+		SEConfig& config = SEConfig::GetInstance();
 
-        int bs_number = tube.initPos_;
-        // fix crossovers for square lattice
-        double initAng = 0.0;
-        if (json_.lType_ == LatticeType::Square) initAng = 7 * ADNConstants::BP_ROT;
+		int bs_number = tube.initPos_;
+		// fix crossovers for square lattice
+		double initAng = 0.0;
+		if (json_.lType_ == LatticeType::Square) initAng = 7 * ADNConstants::BP_ROT;
 
-        // every tube is a double strand
-        ADNPointer<ADNDoubleStrand> ds = new ADNDoubleStrand();
-        part->RegisterDoubleStrand(ds);
-        bool firstBs = true;
-        ds->SetInitialTwistAngle(initAng);
+		// every tube is a double strand
+		ADNPointer<ADNDoubleStrand> ds = new ADNDoubleStrand();
+		part->RegisterDoubleStrand(ds);
+		bool firstBs = true;
+		ds->SetInitialTwistAngle(initAng);
 
-        // position offset due to skip pairs
-        int posOffset = 0;
+		// position offset due to skip pairs
+		int posOffset = 0;
 
-        SBPosition3 fp = initPos;
-        for (int i = 0; i < length; ++i) {
-            // take into account the loops, we place for now base segments of loops in the same position as the previous base segment
-            int max_iter = vs->loops_[tube.initPos_ + i];
-            bool skip = vs->skips_[tube.initPos_ + i] == -1;
-            if (max_iter > 0) max_iter = 1;  // a loop is contained in a base segment
-            for (int k = 0; k <= max_iter; k++) {
-                int z = tube.initPos_ + i - posOffset;
-                fp = vGrid_.GetGridCellPos3D(z, vs->row_, vs->col_);
-                double factor = 1.0;
-                if ((vs->row_ + vs->col_) % 2 == 0) factor = -1.0;
+		SBPosition3 fp = initPos;
+		for (int i = 0; i < length; ++i) {
+			// take into account the loops, we place for now base segments of loops in the same position as the previous base segment
+			int max_iter = vs->loops_[tube.initPos_ + i];
+			bool skip = vs->skips_[tube.initPos_ + i] == -1;
+			if (max_iter > 0) max_iter = 1;  // a loop is contained in a base segment
+			for (int k = 0; k <= max_iter; k++) {
+				int z = tube.initPos_ + i - posOffset;
+				fp = vGrid_.GetGridCellPos3D(z, vs->row_, vs->col_);
+				double factor = 1.0;
+				if ((vs->row_ + vs->col_) % 2 == 0) factor = -1.0;
 
-                ADNPointer<ADNBaseSegment> bs = new ADNBaseSegment();
-                if (skip) {
-                    bs->SetCell(new ADNSkipPair());
-                    --bs_number;
-                    ++posOffset;
-                }
-                else if (k > 0) {
-                    bs->SetCell(new ADNLoopPair());
-                }
-                else {
-                    bs->SetCell(new ADNBasePair());
-                }
-                part->RegisterBaseSegmentEnd(ds, bs);
-                bs->SetNumber(bs_number);
-                bs->SetPosition(fp);
-                bs->SetE3(ADNAuxiliary::SBVectorToUblasVector(dir));
+				ADNPointer<ADNBaseSegment> bs = new ADNBaseSegment();
+				if (skip) {
+					bs->SetCell(new ADNSkipPair());
+					--bs_number;
+					++posOffset;
+				}
+				else if (k > 0) {
+					bs->SetCell(new ADNLoopPair());
+				}
+				else {
+					bs->SetCell(new ADNBasePair());
+				}
+				part->RegisterBaseSegmentEnd(ds, bs);
+				bs->SetNumber(bs_number);
+				bs->SetPosition(fp);
+				bs->SetE3(ADNAuxiliary::SBVectorToUblasVector(dir));
 
-                std::pair<int, int> key = std::make_pair(tube.initPos_ + i, k);
-                positions.insert(std::make_pair(key, bs));
-                ++bs_number;
-            }
-        }
-        cellBsMap_[vs] = positions;
-    }
+				std::pair<int, int> key = std::make_pair(tube.initPos_ + i, k);
+				positions.insert(std::make_pair(key, bs));
+				++bs_number;
+			}
+		}
+		cellBsMap_[vs] = positions;
+	}
 }
 
 void DASCadnano::CreateScaffold(ADNPointer<ADNPart> part)
 {
-    for (auto& p : json_.scaffoldStartPositions_) {
-        //look for stating point of scaffold in vstrand
-        int startVstrand = p.first;
-        int startVstrandPos = p.second;
+	for (auto& p : json_.scaffoldStartPositions_) {
+		//look for stating point of scaffold in vstrand
+		int startVstrand = p.first;
+		int startVstrandPos = p.second;
 
-        //create the scaffold strand
-        ADNPointer<ADNSingleStrand> scaff = new ADNSingleStrand();
-        scaff->setName("Scaffold");
-        scaff->IsScaffold(true);
-        part->RegisterSingleStrand(scaff);
-        AddSingleStrandToMap(scaff);
+		//create the scaffold strand
+		ADNPointer<ADNSingleStrand> scaff = new ADNSingleStrand();
+		scaff->setName("Scaffold");
+		scaff->setScaffoldFlag(true);
+		part->RegisterSingleStrand(scaff);
+		AddSingleStrandToMap(scaff);
 
-        //trace scaffold through vstrands
-        TraceSingleStrand(startVstrand, startVstrandPos, scaff, part);
-    }
+		//trace scaffold through vstrands
+		TraceSingleStrand(startVstrand, startVstrandPos, scaff, part);
+	}
 }
 
 void DASCadnano::CreateStaples(ADNPointer<ADNPart> part)
 {
-    //find number of staples and their starting points
-    std::vector<vec2> stapleStarts = json_.stapleStarts_;  //vstrand id and position on vstrand
-    std::string numStaplesString;
-    numStaplesString += "Cadnano module > Detected " + std::to_string(stapleStarts.size()) + " staples";
-    ADNLogger::LogDebug(numStaplesString);
+	//find number of staples and their starting points
+	std::vector<vec2> stapleStarts = json_.stapleStarts_;  //vstrand id and position on vstrand
+	std::string numStaplesString;
+	numStaplesString += "Cadnano module > Detected " + std::to_string(stapleStarts.size()) + " staples";
+	ADNLogger::LogDebug(numStaplesString);
 
-    auto& vstrands = json_.vstrands_;
-    int sid = 1; //because scaffold is chain 0
+	auto& vstrands = json_.vstrands_;
+	int sid = 1; //because scaffold is chain 0
 
-    for (vec2 curStapleStart : stapleStarts) {
-        int vStrandId = curStapleStart.n0;
-        int z = curStapleStart.n1;
-        vec4 curVstrandElem = vstrands[vStrandId].stap_[z];
+	for (vec2 curStapleStart : stapleStarts) {
+		int vStrandId = curStapleStart.n0;
+		int z = curStapleStart.n1;
+		vec4 curVstrandElem = vstrands[vStrandId].stap_[z];
 
-        std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> bs_positions = cellBsMap_.at(&vstrands[vStrandId]);
+		std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> bs_positions = cellBsMap_.at(&vstrands[vStrandId]);
 
-        ADNPointer<ADNSingleStrand> staple = new ADNSingleStrand();
-        staple->setName("Staple" + std::to_string(sid));
-        ++sid;
-        staple->IsScaffold(false);
-        part->RegisterSingleStrand(staple);
-        AddSingleStrandToMap(staple);
+		ADNPointer<ADNSingleStrand> staple = new ADNSingleStrand();
+		staple->setName("Staple" + std::to_string(sid));
+		++sid;
+		staple->setScaffoldFlag(false);
+		part->RegisterSingleStrand(staple);
+		AddSingleStrandToMap(staple);
 
-        TraceSingleStrand(vStrandId, z, staple, part, false);
-    }
+		TraceSingleStrand(vStrandId, z, staple, part, false);
+	}
 }
 
 void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNPart> part, bool scaf)
 {
-    //trace scaffold through vstrands
-    auto& vstrands = json_.vstrands_;
+	//trace scaffold through vstrands
+	auto& vstrands = json_.vstrands_;
 
-    int vStrandId = startVStrand;
-    int z = startVStrandPos;
-    vec4 curVstrandElem;
-    if (scaf) curVstrandElem = vstrands[startVStrand].scaf_[startVStrandPos];
-    else curVstrandElem = vstrands[startVStrand].stap_[startVStrandPos];
-    int count = 0;
-    while (true) {
+	int vStrandId = startVStrand;
+	int z = startVStrandPos;
+	vec4 curVstrandElem;
+	if (scaf) curVstrandElem = vstrands[startVStrand].scaf_[startVStrandPos];
+	else curVstrandElem = vstrands[startVStrand].stap_[startVStrandPos];
+	int count = 0;
+	while (true) {
 
-        std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> bs_positions = cellBsMap_.at(&json_.vstrands_[vStrandId]);
+		std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> bs_positions = cellBsMap_.at(&json_.vstrands_[vStrandId]);
 
-        if (vstrands[vStrandId].skips_[z] != -1) {
-            int max_iter = vstrands[vStrandId].loops_[z];
-            bool left = true;
-            Vstrand vs = vstrands[vStrandId];
-            if (scaf && vStrandId % 2 == 0) left = false;
-            else if (!scaf && vStrandId % 2 != 0) left = false;
+		if (vstrands[vStrandId].skips_[z] != -1) {
+			int max_iter = vstrands[vStrandId].loops_[z];
+			bool left = true;
+			Vstrand vs = vstrands[vStrandId];
+			if (scaf && vStrandId % 2 == 0) left = false;
+			else if (!scaf && vStrandId % 2 != 0) left = false;
 
-            for (int k = 0; k <= max_iter; k++) {
-                //add loop
-                ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
-                nt->Init();
-                part->RegisterNucleotideThreePrime(ss, nt);
-                ntPositions_.insert(std::make_pair(nt(), count));
-                ++count;
+			for (int k = 0; k <= max_iter; k++) {
+				//add loop
+				ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
+				nt->Init();
+				part->RegisterNucleotideThreePrime(ss, nt);
+				ntPositions_.insert(std::make_pair(nt(), count));
+				++count;
 
-                SBPosition3 pos3D = vGrid_.GetGridCellPos3D(z, vstrands[vStrandId].row_, vstrands[vStrandId].col_);
+				SBPosition3 pos3D = vGrid_.GetGridCellPos3D(z, vstrands[vStrandId].row_, vstrands[vStrandId].col_);
 
-                // fetch base segment
-                int p = 0;
-                if (k > 0) p = 1;
-                ADNPointer<ADNBaseSegment> bs = nullptr;
-                std::pair<int, int> key = std::make_pair(z, p);
-                if (bs_positions.find(key) != bs_positions.end()) {
-                    bs = bs_positions.at(key);
-                }
-                if (bs == nullptr) continue;
+				// fetch base segment
+				int p = 0;
+				if (k > 0) p = 1;
+				ADNPointer<ADNBaseSegment> bs = nullptr;
+				std::pair<int, int> key = std::make_pair(z, p);
+				if (bs_positions.find(key) != bs_positions.end()) {
+					bs = bs_positions.at(key);
+				}
+				if (bs == nullptr) continue;
 
-                if (k == 0) {
-                    // even for a loop nfirst base is always BasePair
-                    ADNPointer<ADNCell> c = bs->GetCell();
-                    if (c->GetCellType() == CellType::BasePair) {
-                        ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(c());
-                        if (left) bp->SetLeftNucleotide(nt);
-                        else bp->SetRightNucleotide(nt);
+				if (k == 0) {
+					// even for a loop nfirst base is always BasePair
+					ADNPointer<ADNCell> c = bs->GetCell();
+					if (c->GetCellType() == CellType::BasePair) {
+						ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(c());
+						if (left) bp->SetLeftNucleotide(nt);
+						else bp->SetRightNucleotide(nt);
 
-                        bp->PairNucleotides();
-                        nt->SetBaseSegment(bs);
-                    }
-                    else {
-                        std::string msg = "Expected BasePair but found another cell type";
-                        ADNLogger::LogDebug(msg);
-                    }
-                }
-                else {
-                    // We have a loop
-                    ADNPointer<ADNCell> c = bs->GetCell();
-                    if (c->GetCellType() == CellType::LoopPair) {
-                        ADNPointer<ADNLoopPair> lp = static_cast<ADNLoopPair*>(c());
-                        ADNPointer<ADNLoop> loop;
-                        if (left) loop = lp->GetLeftLoop();
-                        else loop = lp->GetRightLoop();
+						bp->PairNucleotides();
+						nt->SetBaseSegment(bs);
+					}
+					else {
+						std::string msg = "Expected BasePair but found another cell type";
+						ADNLogger::LogDebug(msg);
+					}
+				}
+				else {
+					// We have a loop
+					ADNPointer<ADNCell> c = bs->GetCell();
+					if (c->GetCellType() == CellType::LoopPair) {
+						ADNPointer<ADNLoopPair> lp = static_cast<ADNLoopPair*>(c());
+						ADNPointer<ADNLoop> loop;
+						if (left) loop = lp->GetLeftLoop();
+						else loop = lp->GetRightLoop();
 
-                        if (loop == nullptr) {
-                            // first time we need to create
-                            loop = new ADNLoop();
-                            if (left) {
-                                lp->SetLeftLoop(loop);
-                                loop->SetStart(nt);
-                            }
-                            else {
-                                lp->SetRightLoop(loop);
-                                loop->SetEnd(nt);
-                            }
-                        }
-                        loop->AddNucleotide(nt);
-                        if (left) loop->SetEnd(nt);
-                        else loop->SetStart(nt);
-                        nt->SetBaseSegment(bs);
-                    }
-                    else {
-                        std::string msg = "Expected LoopPair but found another cell type";
-                        ADNLogger::LogDebug(msg);
-                    }
-                }
+						if (loop == nullptr) {
+							// first time we need to create
+							loop = new ADNLoop();
+							if (left) {
+								lp->SetLeftLoop(loop);
+								loop->SetStart(nt);
+							}
+							else {
+								lp->SetRightLoop(loop);
+								loop->SetEnd(nt);
+							}
+						}
+						loop->AddNucleotide(nt);
+						if (left) loop->SetEnd(nt);
+						else loop->SetStart(nt);
+						nt->SetBaseSegment(bs);
+					}
+					else {
+						std::string msg = "Expected LoopPair but found another cell type";
+						ADNLogger::LogDebug(msg);
+					}
+				}
 
-                nt->SetPosition(pos3D);
-                nt->SetBackbonePosition(pos3D);
-                nt->SetSidechainPosition(pos3D);
-            }
-        }
+				nt->SetPosition(pos3D);
+				nt->SetBackbonePosition(pos3D);
+				nt->SetSidechainPosition(pos3D);
+			}
+		}
 
-        if (curVstrandElem.n0 != -1 && curVstrandElem.n1 != -1 && curVstrandElem.n2 == -1 && curVstrandElem.n3 == -1) {
-            break;
-        }
+		if (curVstrandElem.n0 != -1 && curVstrandElem.n1 != -1 && curVstrandElem.n2 == -1 && curVstrandElem.n3 == -1) {
+			break;
+		}
 
-        //find next scaf element
-        auto nextVstrand = json_.vstrands_[curVstrandElem.n2];
-        vec4 nextVstrandElem;
-        if (scaf) nextVstrandElem = nextVstrand.scaf_[curVstrandElem.n3];
-        else nextVstrandElem = nextVstrand.stap_[curVstrandElem.n3];
+		//find next scaf element
+		auto nextVstrand = json_.vstrands_[curVstrandElem.n2];
+		vec4 nextVstrandElem;
+		if (scaf) nextVstrandElem = nextVstrand.scaf_[curVstrandElem.n3];
+		else nextVstrandElem = nextVstrand.stap_[curVstrandElem.n3];
 
-        vStrandId = curVstrandElem.n2;
-        z = curVstrandElem.n3;
-        curVstrandElem = nextVstrandElem;
-    }
+		vStrandId = curVstrandElem.n2;
+		z = curVstrandElem.n3;
+		curVstrandElem = nextVstrandElem;
+	}
 }
 
 void DASCadnano::CreateConformations(ADNPointer<ADNPart> part) {
 
-    std::string name = part->getName();
-    SBNodeIndexer nodeIndexer;
-    part->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNAtom")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+	std::string name = part->getName();
+	SBNodeIndexer nodeIndexer;
+	part->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNAtom")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
-    conformation3D_ = new ADNConformation(name + " 3D", nodeIndexer);
-    conformation2D_ = new ADNConformation(name + " 2D", nodeIndexer);
-    conformation1D_ = new ADNConformation(name + " 1D", nodeIndexer);
+	conformation3D_ = new ADNConformation(name + " 3D", nodeIndexer);
+	conformation2D_ = new ADNConformation(name + " 2D", nodeIndexer);
+	conformation1D_ = new ADNConformation(name + " 1D", nodeIndexer);
 
-    SBPosition3 center3D;
-    SBPosition3 center2D;
-    SBPosition3 center1D;
-    int n1D = 0;
-    int n3D = 0;
-    // find out centers
-    for (auto it = cellBsMap_.begin(); it != cellBsMap_.end(); ++it) {
-        Vstrand* vs = it->first;
-        int vStrandId = vs->num_;
-        std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> values = it->second;
+	SBPosition3 center3D;
+	SBPosition3 center2D;
+	SBPosition3 center1D;
+	int n1D = 0;
+	int n3D = 0;
+	// find out centers
+	for (auto it = cellBsMap_.begin(); it != cellBsMap_.end(); ++it) {
+		Vstrand* vs = it->first;
+		int vStrandId = vs->num_;
+		std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> values = it->second;
 
-        for (auto jt = values.begin(); jt != values.end(); ++jt) {
-            std::pair<int, int> bsNumAndLoop = jt->first;
-            ADNPointer<ADNBaseSegment> bs = jt->second;
-            int z = bsNumAndLoop.first;
-            auto nts = bs->GetNucleotides();
-            SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
-                ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
-                SBPosition3 pos2D = vGrid_.GetGridCellPos2D(vStrandId, z, ss->IsScaffold());
-                SBPosition3 pos1D = vGrid_.GetGridCellPos1D(ssId_[ss()], ntPositions_[nt()]);
-                center3D += nt->GetPosition();
-                ++n3D;
-                center2D += pos2D;
-                if (!ss->IsScaffold()) {
-                    center1D += pos1D;
-                    ++n1D;  // remove scaffold in case it's too long
-                }
-            }
-        }
-    }
+		for (auto jt = values.begin(); jt != values.end(); ++jt) {
+			std::pair<int, int> bsNumAndLoop = jt->first;
+			ADNPointer<ADNBaseSegment> bs = jt->second;
+			int z = bsNumAndLoop.first;
+			auto nts = bs->GetNucleotides();
+			SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
+				ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
+				SBPosition3 pos2D = vGrid_.GetGridCellPos2D(vStrandId, z, ss->IsScaffold());
+				SBPosition3 pos1D = vGrid_.GetGridCellPos1D(ssId_[ss()], ntPositions_[nt()]);
+				center3D += nt->GetPosition();
+				++n3D;
+				center2D += pos2D;
+				if (!ss->IsScaffold()) {
+					center1D += pos1D;
+					++n1D;  // remove scaffold in case it's too long
+				}
+			}
+		}
+	}
 
-    center3D /= n3D;
-    center2D /= n3D;
-    center1D /= n1D;
+	center3D /= n3D;
+	center2D /= n3D;
+	center1D /= n1D;
 
-    // set positions
-    for (auto it = cellBsMap_.begin(); it != cellBsMap_.end(); ++it) {
+	// set positions
+	for (auto it = cellBsMap_.begin(); it != cellBsMap_.end(); ++it) {
 
-        Vstrand* vs = it->first;
-        int vStrandId = vs->num_;
-        std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> values = it->second;
+		Vstrand* vs = it->first;
+		int vStrandId = vs->num_;
+		std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> values = it->second;
 
-        for (auto jt = values.begin(); jt != values.end(); ++jt) {
+		for (auto jt = values.begin(); jt != values.end(); ++jt) {
 
-            std::pair<int, int> bsNumAndLoop = jt->first;
-            ADNPointer<ADNBaseSegment> bs = jt->second;
-            int z = bsNumAndLoop.first;
-            auto nts = bs->GetNucleotides();
-            SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
+			std::pair<int, int> bsNumAndLoop = jt->first;
+			ADNPointer<ADNBaseSegment> bs = jt->second;
+			int z = bsNumAndLoop.first;
+			auto nts = bs->GetNucleotides();
+			SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
 
-                ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
-                SBPosition3 pos2D = vGrid_.GetGridCellPos2D(vStrandId, z, ss->IsScaffold());
-                SBPosition3 pos1D = vGrid_.GetGridCellPos1D(ssId_[ss()], ntPositions_[nt()]);
-                pos2D = pos2D - center2D + center3D;
-                pos1D = pos1D - center1D + center3D;
+				ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
+				SBPosition3 pos2D = vGrid_.GetGridCellPos2D(vStrandId, z, ss->IsScaffold());
+				SBPosition3 pos1D = vGrid_.GetGridCellPos1D(ssId_[ss()], ntPositions_[nt()]);
+				pos2D = pos2D - center2D + center3D;
+				pos1D = pos1D - center1D + center3D;
 
-                if (nt->GetBackbone() != nullptr) {
+				if (nt->GetBackbone() != nullptr) {
 
-                    auto ats = nt->GetBackbone()->GetAtoms();
-                    SB_FOR(ADNPointer<ADNAtom> at, ats) {
-                        conformation2D_->setPosition(at(), pos2D);
-                        conformation1D_->setPosition(at(), pos1D);
-                    }
+					auto ats = nt->GetBackbone()->GetAtoms();
+					SB_FOR(ADNPointer<ADNAtom> at, ats) {
+						conformation2D_->setPosition(at(), pos2D);
+						conformation1D_->setPosition(at(), pos1D);
+					}
 
-                }
+				}
 
-                if (nt->GetSidechain() != nullptr) {
+				if (nt->GetSidechain() != nullptr) {
 
-                    auto ats = nt->GetSidechain()->GetAtoms();
-                    SB_FOR(ADNPointer<ADNAtom> at, ats) {
-                        conformation2D_->setPosition(at(), pos2D);
-                        conformation1D_->setPosition(at(), pos1D);
-                    }
+					auto ats = nt->GetSidechain()->GetAtoms();
+					SB_FOR(ADNPointer<ADNAtom> at, ats) {
+						conformation2D_->setPosition(at(), pos2D);
+						conformation1D_->setPosition(at(), pos1D);
+					}
 
-                }
+				}
 
-            }
+			}
 
-        }
+		}
 
-    }
+	}
 
 }
 
 ADNPointer<ADNConformation> DASCadnano::Get3DConformation() {
-    return conformation3D_;
+	return conformation3D_;
 }
 
 ADNPointer<ADNConformation> DASCadnano::Get2DConformation() {
-    return conformation2D_;
+	return conformation2D_;
 }
 
 ADNPointer<ADNConformation> DASCadnano::Get1DConformation() {
-    return conformation1D_;
+	return conformation1D_;
 }
 
 ADNPointer<ADNPart> DASCadnano::CreateCadnanoPart(std::string file) {
 
-    ParseJSON(file);
-    ADNLogger::LogDebug(std::string("Cadnano design parsed"));
-    if (vGrid_.vDoubleStrands_.size() == 0) {
+	ParseJSON(file);
+	ADNLogger::LogDebug(std::string("Cadnano design parsed"));
+	if (vGrid_.vDoubleStrands_.size() == 0) {
 
-        SB_ERROR("Adenita couldn't create Cadnano model");
-        return nullptr;
+		ADNLogger::LogError(std::string("Adenita couldn't create Cadnano model"));
+		return nullptr;
 
-    }
+	}
 
-    return CreateCadnanoModel();
+	return CreateCadnanoModel();
 
 }
 
 DNABlocks DASCadnano::GetComplementaryBase(DNABlocks type) {
-    return ADNModel::GetComplementaryBase(type);
+	return ADNModel::GetComplementaryBase(type);
 }
 
 bool DASCadnano::IsThereBase(vec4 data) {
-    bool base = false;
+	bool base = false;
 
-    if ((data.n0 != -1 && data.n1 != -1) || (data.n2 != -1 && data.n3 != -1)) base = true;
+	if ((data.n0 != -1 && data.n1 != -1) || (data.n2 != -1 && data.n3 != -1)) base = true;
 
-    return base;
+	return base;
 }
 
 void DASCadnano::AddSingleStrandToMap(ADNPointer<ADNSingleStrand> ss)
 {
-    int key = lastKey + 1;
-    ssId_.insert(std::make_pair(ss(), key));
-    lastKey = key;
+	int key = lastKey + 1;
+	ssId_.insert(std::make_pair(ss(), key));
+	lastKey = key;
 }
 
 void VGrid::CreateLattice(LatticeType lType)
 {
-    // in cadnano 2.0 square lattice is 50x50, honeycomb is 30 x 32
-    int maxRows = 55;
-    int maxCols = 55;
-    if (lType == LatticeType::Honeycomb) {
-        maxRows = 30;
-        maxCols = 32;
-    }
+	// in cadnano 2.0 square lattice is 50x50, honeycomb is 30 x 32
+	int maxRows = 55;
+	int maxCols = 55;
+	if (lType == LatticeType::Honeycomb) {
+		maxRows = 30;
+		maxCols = 32;
+	}
 
-    lattice_ = DASLattice(lType, dh_diameter_, maxRows, maxCols);
+	lattice_ = DASLattice(lType, dh_diameter_, maxRows, maxCols);
 }
 
 void VGrid::AddTube(VTube tube)
 {
-    vDoubleStrands_.push_back(tube);
+	vDoubleStrands_.push_back(tube);
 }
 
 SBPosition3 VGrid::GetGridCellPos3D(int z, unsigned int row, unsigned int column)
 {
-    auto zPos = z * ADNConstants::BP_RISE;
-    LatticeCell lc = lattice_.GetLatticeCell(row, column);
-    SBPosition3 pos = SBPosition3(SBQuantity::nanometer(zPos), SBQuantity::nanometer(lc.x_), SBQuantity::nanometer(lc.y_));
-    return pos;
+	auto zPos = z * ADNConstants::BP_RISE;
+	LatticeCell lc = lattice_.GetLatticeCell(row, column);
+	SBPosition3 pos = SBPosition3(SBQuantity::nanometer(zPos), SBQuantity::nanometer(lc.x_), SBQuantity::nanometer(lc.y_));
+	return pos;
 }
 
 SBPosition3 VGrid::GetGridCellPos2D(int vStrandId, int z, bool isScaffold)
 {
-    SBPosition3 pos;
-    double hPos = vStrandId * ADNConstants::DH_DIAMETER;
-    double zPos = z * ADNConstants::BP_RISE;
+	double hPos = vStrandId * ADNConstants::DH_DIAMETER;
+	double zPos = z * ADNConstants::BP_RISE;
 
-    if (vStrandId % 2 == 0) {
-        if (!isScaffold) hPos += ADNConstants::BP_CADNANO_DIST;
-    }
-    else {
-        if (isScaffold) hPos += ADNConstants::BP_CADNANO_DIST;
-    }
+	if (vStrandId % 2 == 0) {
+		if (!isScaffold) hPos += ADNConstants::BP_CADNANO_DIST;
+	}
+	else {
+		if (isScaffold) hPos += ADNConstants::BP_CADNANO_DIST;
+	}
 
-    pos[0] = SBQuantity::nanometer(zPos);
-    pos[1] = SBQuantity::nanometer(hPos);
-    pos[2] = SBQuantity::nanometer(0.0);
+	SBPosition3 pos(SBQuantity::nanometer(zPos), SBQuantity::nanometer(hPos), SBQuantity::nanometer(0.0));
 
-    return pos;
+	return pos;
 }
 
 SBPosition3 VGrid::GetGridCellPos1D(int ssId, int ntNum) {
 
-    SBPosition3 pos;
+	const double x = ssId * ADNConstants::DH_DIAMETER * 0.25;
+	const double y = -ntNum / 2.0;
 
-    double x = ssId * ADNConstants::DH_DIAMETER * 0.25f;
-    double y = -ntNum / 2.0f;
+	SBPosition3 pos(SBQuantity::nanometer(x), SBQuantity::nanometer(y), SBQuantity::nanometer(0.0));
 
-    pos[0] = SBQuantity::nanometer(x);
-    pos[1] = SBQuantity::nanometer(y);
-    pos[2] = SBQuantity::nanometer(0.0);
-
-    return pos;
+	return pos;
 
 }

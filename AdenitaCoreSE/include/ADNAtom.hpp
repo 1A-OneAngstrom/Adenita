@@ -21,7 +21,7 @@ public:
 
 	SBNode*														getNucleotide() const;
 
-	bool														IsInADNBackbone();
+	bool														IsInADNBackbone() const;
 
 };
 

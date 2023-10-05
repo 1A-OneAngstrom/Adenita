@@ -39,7 +39,7 @@ bool SEAdenitaImporterAdn::importFromFile(const std::string& fileName, const std
 
 	if (!adenitaApp) return false;
 
-	QString fn = QString::fromStdString(fileName);
+	const QString fn = QString::fromStdString(fileName);
 	if (!QFileInfo::exists(fn)) return false;
 
 	// load the parts in the Adenita App

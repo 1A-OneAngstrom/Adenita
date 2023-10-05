@@ -46,13 +46,13 @@ public:
 	std::string													getCellTypeString() const;
 
 	//! check if left or right in the base segment
-	bool														IsLeft(ADNPointer<ADNNucleotide> nt);
-	bool														IsRight(ADNPointer<ADNNucleotide> nt);
+	bool														IsLeft(ADNPointer<ADNNucleotide> nt) const;
+	bool														IsRight(ADNPointer<ADNNucleotide> nt) const;
 
 private:
 
-	ADNPointer<ADNCell>											cell_ = nullptr;
-	int															number_ = -1;  // number of the base in the double strand
+	ADNPointer<ADNCell>											cell_{ nullptr };
+	int															number_{ -1 };  // number of the base in the double strand
 
 };
 

@@ -70,7 +70,7 @@ void ADNNanorobot::DeregisterPart(ADNPointer<ADNPart> part) {
 #endif
 }
 
-int ADNNanorobot::GetNumberOfDoubleStrands() {
+int ADNNanorobot::GetNumberOfDoubleStrands() const {
 
     auto parts = GetParts();
     int count = 0;
@@ -82,7 +82,7 @@ int ADNNanorobot::GetNumberOfDoubleStrands() {
 
 }
 
-int ADNNanorobot::GetNumberOfBaseSegments() {
+int ADNNanorobot::GetNumberOfBaseSegments() const {
 
     auto parts = GetParts();
     int count = 0;
@@ -94,7 +94,7 @@ int ADNNanorobot::GetNumberOfBaseSegments() {
 
 }
 
-int ADNNanorobot::GetNumberOfSingleStrands() {
+int ADNNanorobot::GetNumberOfSingleStrands() const {
 
     auto parts = GetParts();
     int count = 0;
@@ -106,7 +106,7 @@ int ADNNanorobot::GetNumberOfSingleStrands() {
 
 }
 
-int ADNNanorobot::GetNumberOfNucleotides() {
+int ADNNanorobot::GetNumberOfNucleotides() const {
 
     auto parts = GetParts();
     int count = 0;
@@ -140,7 +140,7 @@ CollectionMap<ADNPart> ADNNanorobot::GetParts() const {
 
 }
 
-int ADNNanorobot::GetNumberOfParts() {
+int ADNNanorobot::GetNumberOfParts() const {
 
 #if ADENITA_NANOROBOT_REGISTER_PARTS
     return partsIndex_.size();
@@ -157,7 +157,7 @@ int ADNNanorobot::GetNumberOfParts() {
 
 }
 
-CollectionMap<ADNNucleotide> ADNNanorobot::GetSelectedNucleotides() {
+CollectionMap<ADNNucleotide> ADNNanorobot::GetSelectedNucleotides() const {
 
     CollectionMap<ADNNucleotide> nucleotideIndexer;
 
@@ -178,7 +178,7 @@ CollectionMap<ADNNucleotide> ADNNanorobot::GetSelectedNucleotides() {
 
 }
 
-CollectionMap<ADNPart> ADNNanorobot::GetSelectedParts() {
+CollectionMap<ADNPart> ADNNanorobot::GetSelectedParts() const {
 
     CollectionMap<ADNPart> partIndexer;
 
@@ -200,7 +200,7 @@ CollectionMap<ADNPart> ADNNanorobot::GetSelectedParts() {
 
 }
 
-CollectionMap<SBAtom> ADNNanorobot::GetHighlightedAtoms() {
+CollectionMap<SBAtom> ADNNanorobot::GetHighlightedAtoms() const {
 
     CollectionMap<SBAtom> atoms;
 
@@ -220,7 +220,7 @@ CollectionMap<SBAtom> ADNNanorobot::GetHighlightedAtoms() {
 
 }
 
-CollectionMap<ADNNucleotide> ADNNanorobot::GetHighlightedNucleotides() {
+CollectionMap<ADNNucleotide> ADNNanorobot::GetHighlightedNucleotides() const {
 
     CollectionMap<ADNNucleotide> nucleotideIndexer;
 
@@ -241,7 +241,7 @@ CollectionMap<ADNNucleotide> ADNNanorobot::GetHighlightedNucleotides() {
 
 }
 
-CollectionMap<ADNBaseSegment> ADNNanorobot::GetSelectedBaseSegmentsFromNucleotides() {
+CollectionMap<ADNBaseSegment> ADNNanorobot::GetSelectedBaseSegmentsFromNucleotides() const {
 
     CollectionMap<ADNBaseSegment> baseSegmentIndexer;
 
@@ -280,7 +280,7 @@ CollectionMap<ADNBaseSegment> ADNNanorobot::GetSelectedBaseSegmentsFromNucleotid
 
 }
 
-CollectionMap<ADNSingleStrand> ADNNanorobot::GetSelectedSingleStrands() {
+CollectionMap<ADNSingleStrand> ADNNanorobot::GetSelectedSingleStrands() const {
 
     CollectionMap<ADNSingleStrand> singleStrandIndexer;
 
@@ -301,7 +301,7 @@ CollectionMap<ADNSingleStrand> ADNNanorobot::GetSelectedSingleStrands() {
 
 }
 
-CollectionMap<ADNDoubleStrand> ADNNanorobot::GetSelectedDoubleStrands() {
+CollectionMap<ADNDoubleStrand> ADNNanorobot::GetSelectedDoubleStrands() const {
 
     CollectionMap<ADNDoubleStrand> doubleStrandIndexer;
 
@@ -322,7 +322,7 @@ CollectionMap<ADNDoubleStrand> ADNNanorobot::GetSelectedDoubleStrands() {
 
 }
 
-CollectionMap<ADNDoubleStrand> ADNNanorobot::GetHighlightedDoubleStrands() {
+CollectionMap<ADNDoubleStrand> ADNNanorobot::GetHighlightedDoubleStrands() const {
 
     CollectionMap<ADNDoubleStrand> doubleStrands;
 
@@ -343,7 +343,7 @@ CollectionMap<ADNDoubleStrand> ADNNanorobot::GetHighlightedDoubleStrands() {
 /*!
 \return A CollectionMap with all conformations
 */
-CollectionMap<ADNConformation> ADNNanorobot::GetConformations() {
+CollectionMap<ADNConformation> ADNNanorobot::GetConformations() const {
 
 #if ADENITA_NANOROBOT_REGISTER_CONFORMATIONS
     return conformationsIndex_;
@@ -395,7 +395,7 @@ CollectionMap<ADNConformation> ADNNanorobot::GetConformations(ADNPointer<ADNPart
 #endif
 
 /*!
-\param A ADNPart to whcih the conformation belongs to
+\param A ADNPart to which the conformation belongs to
 \param A ADNPointer to a ADNConformation
 */
 void ADNNanorobot::RegisterConformation(ADNPointer<ADNConformation> conformation) {
@@ -409,11 +409,11 @@ void ADNNanorobot::RegisterConformation(ADNPointer<ADNConformation> conformation
 \param a ADNPointer to the nucleotide
 \return The position of the backbone of the nucleotide in that conformation
 */
-SBPosition3 ADNNanorobot::GetNucleotideBackbonePosition(ADNConformation conformation, ADNPointer<ADNNucleotide> nucleotide) {
+SBPosition3 ADNNanorobot::GetNucleotideBackbonePosition(ADNPointer<ADNConformation> conformation, ADNPointer<ADNNucleotide> nucleotide) const {
 
     SBPosition3 pos;
     auto at = nucleotide->GetBackboneCenterAtom();
-    conformation.getPosition(at(), pos);
+    conformation->getPosition(at(), pos);
     return pos;
 
 }
@@ -423,16 +423,16 @@ SBPosition3 ADNNanorobot::GetNucleotideBackbonePosition(ADNConformation conforma
 \param a ADNPointer to the nucleotide
 \return The position of the side chain of the nucleotide in that conformation
 */
-SBPosition3 ADNNanorobot::GetNucleotideSidechainPosition(ADNConformation conformation, ADNPointer<ADNNucleotide> nucleotide) {
+SBPosition3 ADNNanorobot::GetNucleotideSideChainPosition(ADNPointer<ADNConformation> conformation, ADNPointer<ADNNucleotide> nucleotide) const {
 
     SBPosition3 pos;
     auto at = nucleotide->GetSidechainCenterAtom();
-    conformation.getPosition(at(), pos);
+    conformation->getPosition(at(), pos);
     return pos;
 
 }
 
-CollectionMap<ADNBaseSegment> ADNNanorobot::GetHighlightedBaseSegmentsFromNucleotides() {
+CollectionMap<ADNBaseSegment> ADNNanorobot::GetHighlightedBaseSegmentsFromNucleotides() const {
 
     CollectionMap<ADNBaseSegment> baseSegmentIndexer;
 
@@ -456,7 +456,7 @@ CollectionMap<ADNBaseSegment> ADNNanorobot::GetHighlightedBaseSegmentsFromNucleo
 
 }
 
-CollectionMap<ADNBaseSegment> ADNNanorobot::GetHighlightedBaseSegments() {
+CollectionMap<ADNBaseSegment> ADNNanorobot::GetHighlightedBaseSegments() const {
 
     CollectionMap<ADNBaseSegment> baseSegmentIndexer;
 
@@ -477,13 +477,13 @@ CollectionMap<ADNBaseSegment> ADNNanorobot::GetHighlightedBaseSegments() {
 
 }
 
-std::pair<SBPosition3, SBPosition3> ADNNanorobot::GetBoundingBox(CollectionMap<ADNPart> parts) {
+std::pair<SBPosition3, SBPosition3> ADNNanorobot::GetBoundingBox(CollectionMap<ADNPart> parts) const {
 
     auto maxVal = SBQuantity::picometer(std::numeric_limits<double>::max());
     auto minBox = SBPosition3(maxVal, maxVal, maxVal);
     auto maxBox = SBPosition3(-maxVal, -maxVal, -maxVal);
 
-    SB_FOR(ADNPointer<ADNPart> part, parts) {
+    SB_FOR(ADNPart* part, parts) if (part) {
 
         auto bbPart = part->GetBoundingBox();
         if (bbPart.first[0] < minBox[0]) minBox[0] = bbPart.first[0];

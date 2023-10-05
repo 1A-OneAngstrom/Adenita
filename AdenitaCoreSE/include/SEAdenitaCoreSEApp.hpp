@@ -23,7 +23,7 @@ class SB_EXPORT SEAdenitaCoreSEApp : public SBDApp {
 
   SB_CLASS
 
-public :
+public:
 
 	/// \name Constructors and destructors
 	//@{
@@ -95,11 +95,11 @@ public :
 	void														Kinetoplast(SBQuantity::length radius, SBPosition3 center, SBVector3 normal, int rows, int cols);
 	void														TwistDoubleHelix();
 	void														TestNeighbors();
-	void														ImportFromOxDNA(std::string topoFile, std::string configFile);
-	void														FromDatagraph();
+	void														ImportFromOxDNA(const std::string& topoFile, const std::string& configFile);
+	void														FromDataGraph(bool resetVisualModel = true);
 	void														HighlightXOs();
 	void														HighlightPosXOs();
-	void														ExportToCanDo(QString filename);
+	void														ExportToCanDo(const QString& filename);
 	void														FixDesigns();
 
 	virtual void												onDocumentEvent(SBDocumentEvent* documentEvent);						///< Handles document events
@@ -111,7 +111,7 @@ public :
 
 	ADNNanorobot*												getNanorobot(SBDocument* document);
 	ADNNanorobot*												GetNanorobot();
-	static std::string											readScaffoldFilename(std::string filename);
+	static std::string											readScaffoldFilename(const std::string& filename);
 
 	QStringList													getListOfPartNames();
 	std::string													getUniquePartName(const std::string& partName);

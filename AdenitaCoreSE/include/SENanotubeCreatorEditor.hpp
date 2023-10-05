@@ -16,7 +16,7 @@ class SB_EXPORT SENanotubeCreatorEditor : public SBGEditor {
 	SB_CLASS
 	Q_OBJECT
 
-public :
+public:
 
 	/// \name Constructors and destructors
 	//@{
@@ -102,7 +102,7 @@ public :
 private:
 
 	ADNPointer<ADNPart>											generateNanotube(bool mock = false);
-	void														displayNanotube();
+
 	void														sendPartToAdenita(ADNPointer<ADNPart> nanotube);
 	void														updateGUI(SBQuantity::length radius, int numBp, bool clear = false);
 

@@ -14,7 +14,7 @@ class SB_EXPORT SETaggingEditor : public SBGEditor {
 	SB_CLASS
 	Q_OBJECT
 
-public :
+public:
 
 	//enum class TaggingShape {
 	//  Sphere,

@@ -46,8 +46,7 @@ QPixmap SETaggingEditor::getLogo() const {
 
 }
 
-int SETaggingEditor::getFormat() const
-{
+int SETaggingEditor::getFormat() const {
 
 	// SAMSON Element generator pro tip: modify these default settings to configure the window
 	//

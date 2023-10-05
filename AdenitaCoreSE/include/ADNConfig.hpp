@@ -151,9 +151,9 @@ private:
 
 	void														loadConfig();
 	void														loadDebugConfig();
-	void														writeDoubleArray(rapidjson::Writer<rapidjson::StringBuffer> & writer, std::string key, double * arr, int length);
+	void														writeDoubleArray(rapidjson::Writer<rapidjson::StringBuffer> & writer, std::string key, double * arr, int length) const;
 	void														readDoubleArray(Val & val, double * arr, int length);
 	void														readFloatArray(Val& val, float* arr, int length);
-	void														writeDocumentToJson();
+	void														writeDocumentToJson() const;
 
 };

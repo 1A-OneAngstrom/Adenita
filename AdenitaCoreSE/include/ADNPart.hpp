@@ -43,7 +43,7 @@ public:
     void                                                        RegisterAtom(ADNPointer<ADNNucleotide> nt, NucleotideGroup g, ADNPointer<ADNAtom> at, bool create = false);
     void                                                        RegisterAtom(ADNPointer<ADNBaseSegment> bs, ADNPointer<ADNAtom> at, bool create = false);
 
-    unsigned int                                                GetBaseSegmentIndex(ADNPointer<ADNBaseSegment> bs);
+    unsigned int                                                GetBaseSegmentIndex(ADNPointer<ADNBaseSegment> bs) const;
 
     CollectionMap<ADNSingleStrand>                              GetSingleStrands() const;                                               ///< Return a pointer indexer of single strands of the ADNPart part
     CollectionMap<ADNDoubleStrand>                              GetDoubleStrands() const;                                               ///< Return a pointer indexer of double strands of the ADNPart part
@@ -69,10 +69,10 @@ public:
     void                                                        DeregisterBaseSegment(ADNPointer<ADNBaseSegment> bs, bool removeFromDs = true, bool removeFromIndex = true);
     void                                                        DeregisterAtom(ADNPointer<ADNAtom> atom, bool removeFromAtom = true);
 
-    bool                                                        isLoadedViaSAMSON();
+    bool                                                        isLoadedViaSAMSON() const noexcept;
     void                                                        setLoadedViaSAMSON(bool l);
 
-    std::pair<SBPosition3, SBPosition3>                         GetBoundingBox();
+    std::pair<SBPosition3, SBPosition3>                         GetBoundingBox() const;
     void                                                        ResetBoundingBox();
 
 protected:
@@ -92,12 +92,12 @@ private:
     CollectionMap<ADNDoubleStrand>                              doubleStrandsIndex_;
 #endif
 
-    bool                                                        loadedViaSAMSONFlag = false;
+    bool                                                        loadedViaSAMSONFlag{ false };
 
     // ids are just for naming
-    unsigned int                                                nucleotideId_ = 1;
-    unsigned int                                                singleStrandId_ = 1;
-    unsigned int                                                doubleStrandId_ = 1;
+    unsigned int                                                nucleotideId_{ 1 };
+    unsigned int                                                singleStrandId_{ 1 };
+    unsigned int                                                doubleStrandId_{ 1 };
 
     void                                                        SetBoundingBox(ADNPointer<ADNNucleotide> newNt);
     void                                                        SetBoundingBox(ADNPointer<ADNBaseSegment> newBs);

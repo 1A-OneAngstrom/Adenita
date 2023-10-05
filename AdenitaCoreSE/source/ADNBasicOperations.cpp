@@ -49,7 +49,7 @@ ADNPointer<ADNSingleStrand> ADNBasicOperations::MergeSingleStrands(ADNPointer<AD
     }
 
     if (first_strand->IsScaffold() || second_strand->IsScaffold())
-        ss->IsScaffold(true);
+        ss->setScaffoldFlag(true);
 
     auto firstSize = first_strand->getNumberOfNucleotides();
     auto secondSize = second_strand->getNumberOfNucleotides();
@@ -282,9 +282,9 @@ std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOper
         auto sizeF = ssFP->getNumberOfNucleotides();
         auto sizeT = ssTP->getNumberOfNucleotides();
         if (sizeF > sizeT)
-            ssFP->IsScaffold(true);
+            ssFP->setScaffoldFlag(true);
         else
-            ssTP->IsScaffold(true);
+            ssTP->setScaffoldFlag(true);
 
     }
 

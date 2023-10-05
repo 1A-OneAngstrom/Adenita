@@ -69,7 +69,7 @@ bool SEAdenitaImporterJson::importFromFile(const std::string& fileName, const st
 	}
 	else {
 
-		SAMSON::informUser("Adenita", "Unknown json format. Current supported formats include Cadnano and legacy Adenita parts.");
+		SAMSON::informUser("Adenita", "Unknown json format.<br><br>Current supported formats include Cadnano and legacy Adenita parts.");
 		return false;
 
 	}

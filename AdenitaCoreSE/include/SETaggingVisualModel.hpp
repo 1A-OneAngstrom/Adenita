@@ -13,7 +13,7 @@ class SB_EXPORT SETaggingVisualModel : public SBMVisualModel {
 
 	SB_CLASS
 
-public :
+public:
 
 	/// \name Constructors and destructors
 	//@{
@@ -47,8 +47,6 @@ public :
 	virtual void												display() override;														///< Displays the visual model
 	virtual void												displayForShadow() override;											///< Displays the visual model for shadow purposes
 	virtual void												displayForSelection() override;											///< Displays the visual model for selection purposes
-
-	void														displayGoldSphere();
 
 	virtual void												expandBounds(SBIAPosition3& bounds) const override;						///< Expands the bounds to make sure the visual model fits inside them
 

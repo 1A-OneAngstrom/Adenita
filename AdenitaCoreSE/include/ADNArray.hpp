@@ -87,8 +87,9 @@ public:
   }
 
   T* GetArray() const { return array_; }
-  size_t GetDim() const { return dim_; }
-  size_t GetNumElements() const { return num_elements_; }
+  size_t GetDim() const noexcept { return dim_; }
+  size_t GetNumElements() const noexcept { return num_elements_; }
+
   /**
   * Returns a row as a 1-dim ANTArray
   * \return A 1-dim ANTArray with number of elements equal to this dim_
@@ -100,6 +101,7 @@ public:
     }
     return arr;
   }
+
   /**
   * Sets a row equal to the values contained in arr.
   * \param the row we want to set.
@@ -115,6 +117,7 @@ public:
       }
     }
   }
+
   /**
   * Concatenates two ANTArrays and returns one
   */
@@ -139,11 +142,13 @@ public:
   }
 
 private:
+
   T* array_ = nullptr;
-  size_t dim_;
-  size_t num_elements_;
+  size_t dim_{ 0 };
+  size_t num_elements_{ 0 };
   static int ERROR_OUT_OF_BOUNDS;
   static int ERROR_DIMENSION_MISMATCH;
+
 };
 
 template<typename T>

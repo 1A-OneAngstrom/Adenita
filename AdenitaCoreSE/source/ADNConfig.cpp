@@ -537,7 +537,7 @@ void SEConfig::updateConfig() {
 
 }
 
-void SEConfig::writeDoubleArray(rapidjson::Writer<rapidjson::StringBuffer> & writer, std::string key, double * arr, int length) {
+void SEConfig::writeDoubleArray(rapidjson::Writer<rapidjson::StringBuffer> & writer, std::string key, double * arr, int length) const {
 
     writer.Key(key.c_str());
 
@@ -560,7 +560,7 @@ void SEConfig::readFloatArray(Val& val, float* arr, int length) {
 
 }
 
-void SEConfig::writeDocumentToJson() {
+void SEConfig::writeDocumentToJson() const {
 
     FILE* fp = fopen(DEFAULT_CONFIGPATH.c_str(), "wb"); // non-Windows use "w"
     char writeBuffer[65536];

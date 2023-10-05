@@ -17,7 +17,7 @@ class SB_EXPORT SELatticeCreatorEditor : public SBGEditor {
 	SB_CLASS
 	Q_OBJECT
 
-public :
+public:
 
 	enum class ZLatticePattern {
 		ALLZ,
@@ -111,7 +111,7 @@ public :
 private:
 
 	ADNPointer<ADNPart>											generateLattice(bool mock = false);
-	void														displayLattice();
+
 	void														sendPartToAdenita(ADNPointer<ADNPart> lattice);
 
 	LatticeType													latticeType = LatticeType::Honeycomb;

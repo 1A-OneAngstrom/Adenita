@@ -39,16 +39,13 @@ bool SEAdenitaImporterPly::importFromFile(const std::string& fileName, const std
 
 	if (!adenitaApp) return false;
 
-	QString fn = QString::fromStdString(fileName);
+	const QString fn = QString::fromStdString(fileName);
 	if (!QFileInfo::exists(fn)) return false;
 
 	// load in the Adenita App
 
 	int i = 42;
-	bool ok;
-	//int i = QInputDialog::getInt(this, tr("Wireframe structure (Daedalus)"), tr("Minimum edge size (bp): "), 42, 31, 1050, 1, &ok);
-	ok = SAMSON::getIntegerFromUser(QString("Wireframe structure (Daedalus)"), i, 31, 1050, 1, QString("Minimum edge size: "), QString(" bp"));
-	if (ok) {
+	if (SAMSON::getIntegerFromUser(QString("Wireframe structure (Daedalus)"), i, 31, 1050, 1, QString("Minimum edge size: "), QString(" bp"))) {
 
 		div_t d = div(i, 10.5);
 		int minSize = floor(d.quot * 10.5);

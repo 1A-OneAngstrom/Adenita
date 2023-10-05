@@ -131,11 +131,22 @@ void SEAdenitaCoreSEApp::LoadPartWithDaedalus(QString filename, int minEdgeSize)
 bool SEAdenitaCoreSEApp::importFromCadnano(const QString& filename, SBDDocumentFolder* preferredFolder) {
 
 	SAMSON::setStatusMessage(QString("Loading ") + filename);
+	SAMSON::showProgressBar("Loading cadnano file...", 0, 100);
+	SAMSON::setProgressBarValue(0);
+
 	DASCadnano cad = DASCadnano();
 
 	ADNPointer<ADNPart> part = cad.CreateCadnanoPart(filename.toStdString());
+	SAMSON::setProgressBarValue(50);
 
-	if (part == nullptr) return false;
+	if (part == nullptr) {
+
+		SAMSON::hideProgressBar();
+		SAMSON::setStatusMessage(QString("Could not load ") + filename);
+		SAMSON::informUser("Loading cadnano file...", "Sorry, could not load the cadnano file:\n" + filename);
+		return false;
+
+	}
   
 	QFileInfo fi(filename);
 	QString s = fi.baseName();
@@ -143,20 +154,29 @@ bool SEAdenitaCoreSEApp::importFromCadnano(const QString& filename, SBDDocumentF
 
 	SBFolder* folderWithModel = new SBFolder(s.toStdString());
 
-	//SAMSON::beginHolding("Add cadnano model");
+	//bool isAlreadyHolding = SAMSON::isHolding();
+	//if (!isAlreadyHolding) SAMSON::beginHolding("Load cadnano model");
+
 	if (SAMSON::isHolding()) SAMSON::hold(folderWithModel);
 	folderWithModel->create();
 	if (preferredFolder) preferredFolder->addChild(folderWithModel);
 	else SAMSON::getActiveDocument()->addChild(folderWithModel);
 
+	SAMSON::setProgressBarValue(80);
+
 	addPartToDocument(part, false, folderWithModel);
+
+	SAMSON::setProgressBarValue(90);
 
 	cad.CreateConformations(part);
 	addConformationToDocument(cad.Get3DConformation(), folderWithModel);
 	addConformationToDocument(cad.Get2DConformation(), folderWithModel);
 	addConformationToDocument(cad.Get1DConformation(), folderWithModel);
 
-	//SAMSON::endHolding();
+	//if (!isAlreadyHolding) SAMSON::endHolding();
+
+	SAMSON::setProgressBarValue(100);
+	SAMSON::hideProgressBar();
 
 	return true;
 
@@ -258,8 +278,7 @@ void SEAdenitaCoreSEApp::requestVisualModelUpdate() {
 	}
 	else {
 
-		//SBProxy* visualModelProxy = SAMSON::getProxy("SEAdenitaVisualModel", SBUUID(SB_ELEMENT_UUID));
-		SEAdenitaVisualModel* newVisualModel = new SEAdenitaVisualModel();// visualModelProxy->createInstance();
+		SEAdenitaVisualModel* newVisualModel = new SEAdenitaVisualModel();
 		if (SAMSON::isHolding()) SAMSON::hold(newVisualModel);
 		newVisualModel->create();
 		SAMSON::getActiveDocument()->addChild(newVisualModel);
@@ -284,8 +303,7 @@ void SEAdenitaCoreSEApp::resetVisualModel() {
 	}
 	else {
 
-		//SBProxy* visualModelProxy = SAMSON::getProxy("SEAdenitaVisualModel", SBUUID(SB_ELEMENT_UUID));
-		SEAdenitaVisualModel* newVisualModel = new SEAdenitaVisualModel();// visualModelProxy->createInstance();
+		SEAdenitaVisualModel* newVisualModel = new SEAdenitaVisualModel();
 		if (SAMSON::isHolding()) SAMSON::hold(newVisualModel);
 		newVisualModel->create();
 		SAMSON::getActiveDocument()->addChild(newVisualModel);
@@ -540,7 +558,7 @@ void SEAdenitaCoreSEApp::TestNeighbors() {
 
 }
 
-void SEAdenitaCoreSEApp::ImportFromOxDNA(std::string topoFile, std::string configFile) {
+void SEAdenitaCoreSEApp::ImportFromOxDNA(const std::string& topoFile, const std::string& configFile) {
 
 	auto res = ADNLoader::InputFromOxDNA(topoFile, configFile);
 	if (!res.first) {
@@ -553,7 +571,7 @@ void SEAdenitaCoreSEApp::ImportFromOxDNA(std::string topoFile, std::string confi
 
 }
 
-void SEAdenitaCoreSEApp::FromDatagraph() {
+void SEAdenitaCoreSEApp::FromDataGraph(bool resetVisualModel) {
 
 	SBNodeIndexer nodeIndexer;
 	SAMSON::getActiveDocument()->getNodes(nodeIndexer, SBNode::StructuralModel);
@@ -562,14 +580,15 @@ void SEAdenitaCoreSEApp::FromDatagraph() {
 
 		if (node->isSelected()) {
 
-			ADNPointer<ADNPart> part = ADNLoader::GenerateModelFromDatagraph(node);
+			ADNPointer<ADNPart> part = ADNLoader::GenerateModelFromDataGraph(node);
 			addPartToDocument(part, true);
 
 		}
 
 	}
 
-	SEAdenitaCoreSEApp::resetVisualModel();
+	if (resetVisualModel)
+		SEAdenitaCoreSEApp::resetVisualModel();
 
 }
 
@@ -593,7 +612,7 @@ void SEAdenitaCoreSEApp::HighlightPosXOs() {
 
 }
 
-void SEAdenitaCoreSEApp::ExportToCanDo(QString filename) {
+void SEAdenitaCoreSEApp::ExportToCanDo(const QString& filename) {
 
 	SBNodeIndexer nodeIndexer;
 	SAMSON::getActiveDocument()->getNodes(nodeIndexer, SBNode::StructuralModel);
@@ -690,7 +709,7 @@ void SEAdenitaCoreSEApp::FixDesigns() {
 
 			ADNPointer<ADNSingleStrand> newSs = new ADNSingleStrand();
 			newSs->setName(ss->getName());
-			newSs->IsScaffold(ss->IsScaffold());
+			newSs->setScaffoldFlag(ss->IsScaffold());
 			if (SAMSON::isHolding()) SAMSON::hold(newSs());
 			newSs->create();
 			part->RegisterSingleStrand(newSs);
@@ -782,7 +801,7 @@ void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* structuralEvent) {
 
 #if 0
 	// is handled in the Adenita Visual Model
-	// handle additiona and deletion of ADN nodes for updating the Adenita Visual Model
+	// handle addition and deletion of ADN nodes for updating the Adenita Visual Model
 
 	if (eventType == SBStructuralEvent::ChainAdded || eventType == SBStructuralEvent::ChainRemoved) {
 
@@ -930,7 +949,7 @@ ADNNanorobot* SEAdenitaCoreSEApp::getNanorobot(SBDocument * document) {
 
 }
 
-std::string SEAdenitaCoreSEApp::readScaffoldFilename(std::string filename) {
+std::string SEAdenitaCoreSEApp::readScaffoldFilename(const std::string& filename) {
 
 	std::string seq = "";
 	if (filename.size() > 0) {
@@ -1040,15 +1059,16 @@ void SEAdenitaCoreSEApp::addPartToDocument(ADNPointer<ADNPart> part, bool positi
 	//events
 	ConnectStructuralSignalSlots(part);
 
-	//bool holding = SAMSON::isHolding();
-	//if (!holding) SAMSON::beginHolding("Add model");
+	//bool isAlreadyHolding = SAMSON::isHolding();
+	//if (!isAlreadyHolding) SAMSON::beginHolding("Add model");
+
 	if (SAMSON::isHolding()) SAMSON::hold(part());
 	part->create();
 	
 	if (preferredFolder) preferredFolder->addChild(part());
 	else SAMSON::getActiveDocument()->addChild(part());
 
-	//if (!holding) SAMSON::endHolding();
+	//if (!isAlreadyHolding) SAMSON::endHolding();
 
 }
 
@@ -1058,15 +1078,16 @@ void SEAdenitaCoreSEApp::addConformationToDocument(ADNPointer<ADNConformation> c
 
 	GetNanorobot()->RegisterConformation(conf);
 
-	//bool holding = SAMSON::isHolding();
-	//if (!holding) SAMSON::beginHolding("Add conformation");
+	//bool isAlreadyHolding = SAMSON::isHolding();
+	//if (!isAlreadyHolding) SAMSON::beginHolding("Add conformation");
+
 	if (SAMSON::isHolding()) SAMSON::hold(conf());
 	conf->create();
 
 	if (preferredFolder) preferredFolder->addChild(conf());
 	else SAMSON::getActiveDocument()->addChild(conf());
 
-	//if (!holding) SAMSON::endHolding();
+	//if (!isAlreadyHolding) SAMSON::endHolding();
 
 }
 

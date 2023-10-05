@@ -20,7 +20,7 @@ class SB_EXPORT SEConnectSSDNAEditor : public SBGEditor {
 	SB_CLASS
 	Q_OBJECT
 
-public :
+public:
 
 	enum class ConnectionMode {
 		Single,

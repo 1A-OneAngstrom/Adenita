@@ -275,7 +275,7 @@ void ADNNucleotide::DeleteAtom(NucleotideGroup g, ADNPointer<ADNAtom> a) {
 
 }
 
-CollectionMap<ADNAtom> ADNNucleotide::GetAtoms() {
+CollectionMap<ADNAtom> ADNNucleotide::GetAtoms() const {
 
     CollectionMap<ADNAtom> atoms;
 
@@ -320,7 +320,7 @@ void ADNNucleotide::HideCenterAtoms() {
 
 }
 
-ADNPointer<ADNAtom> ADNNucleotide::GetBackboneCenterAtom() {
+ADNPointer<ADNAtom> ADNNucleotide::GetBackboneCenterAtom() const {
 
     auto bb = GetBackbone();
     if (bb != nullptr) return bb->GetCenterAtom();
@@ -328,7 +328,7 @@ ADNPointer<ADNAtom> ADNNucleotide::GetBackboneCenterAtom() {
 
 }
 
-ADNPointer<ADNAtom> ADNNucleotide::GetSidechainCenterAtom() {
+ADNPointer<ADNAtom> ADNNucleotide::GetSidechainCenterAtom() const {
 
     auto sc = GetSidechain();
     if (sc != nullptr) return sc->GetCenterAtom();
@@ -336,7 +336,7 @@ ADNPointer<ADNAtom> ADNNucleotide::GetSidechainCenterAtom() {
 
 }
 
-CollectionMap<ADNAtom> ADNNucleotide::GetAtomsByName(std::string name) {
+CollectionMap<ADNAtom> ADNNucleotide::GetAtomsByName(const std::string& name) const {
 
     CollectionMap<ADNAtom> res;
     /*SBNodeIndexer atoms;
@@ -359,7 +359,7 @@ CollectionMap<ADNAtom> ADNNucleotide::GetAtomsByName(std::string name) {
 
 }
 
-ublas::matrix<double> ADNNucleotide::GetGlobalBasisTransformation() {
+ublas::matrix<double> ADNNucleotide::GetGlobalBasisTransformation() const {
 
     ublas::matrix<double> transf(3, 3, 0.0);
     ublas::column(transf, 0) = GetE1();
@@ -369,7 +369,7 @@ ublas::matrix<double> ADNNucleotide::GetGlobalBasisTransformation() {
 
 }
 
-ADNPointer<ADNBaseSegment> ADNNucleotide::GetBaseSegment() {
+ADNPointer<ADNBaseSegment> ADNNucleotide::GetBaseSegment() const {
     return baseSegment;
 }
 
@@ -386,7 +386,7 @@ std::string ADNNucleotide::getBaseSegmentTypeString() const {
 
 }
 
-ADNPointer<ADNDoubleStrand> ADNNucleotide::GetDoubleStrand() {
+ADNPointer<ADNDoubleStrand> ADNNucleotide::GetDoubleStrand() const {
 
     auto baseSegment = GetBaseSegment();
     if (baseSegment != nullptr)
@@ -429,7 +429,7 @@ private:
 
 };
 
-ADNNucleotide::EndType ADNNucleotide::getEndType() {
+ADNNucleotide::EndType ADNNucleotide::getEndType() const {
     return endType;
 }
 
@@ -441,7 +441,7 @@ void ADNNucleotide::setEndType(ADNNucleotide::EndType type) {
 
 }
 
-bool ADNNucleotide::isEndTypeNucleotide() {
+bool ADNNucleotide::isEndTypeNucleotide() const {
     return (endType != EndType::NotEnd);
 }
 
@@ -528,7 +528,7 @@ Position3D ADNNucleotide::GetPosition() const {
 
 }
 
-bool ADNNucleotide::GlobalBaseIsSet() {
+bool ADNNucleotide::GlobalBaseIsSet() const {
 
     bool set = false;
 
@@ -593,7 +593,7 @@ void ADNNucleotide::setTag(std::string t) {
 
 }
 
-bool ADNNucleotide::hasTag() {
+bool ADNNucleotide::hasTag() const {
 
     return !tag.empty();
 

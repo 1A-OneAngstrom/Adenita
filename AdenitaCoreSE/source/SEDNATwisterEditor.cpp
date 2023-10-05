@@ -5,7 +5,8 @@
 
 #include "SAMSON.hpp"
 
-#include <QOpenGLFunctions_4_3_Core>
+#include "SBGRenderOpenGLFunctions.hpp"
+
 
 SEDNATwisterEditor::SEDNATwisterEditor() {
 
@@ -213,7 +214,7 @@ void SEDNATwisterEditor::display() {
 	updateEditorText();
 
 	const SBPosition3 textOffset = SBPosition3(SBQuantity::angstrom(0.0), SBQuantity::angstrom(sphereRadius), SBQuantity::angstrom(0.0));
-	SBPosition3 textPosition = spherePosition - textOffset;
+	const SBPosition3 textPosition = spherePosition - textOffset;
 
 	positionData[0] = spherePosition[0].getValue();
 	positionData[1] = spherePosition[1].getValue();

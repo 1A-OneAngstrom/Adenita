@@ -41,7 +41,7 @@ void ADNDoubleStrand::unserialize(SBCSerializer* serializer, const SBNodeIndexer
 
     SBStructuralGroup::unserialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
-    IsCircular(serializer->readBoolElement());
+    setCircularFlag(serializer->readBoolElement());
     SetInitialTwistAngle(serializer->readDoubleElement());
 
     unsigned int sIdx = serializer->readUnsignedIntElement();
@@ -83,20 +83,16 @@ int ADNDoubleStrand::getLength() const {
     return GetLength();
 }
 
-void ADNDoubleStrand::IsCircular(bool c) {
-    this->circularFlag = c;
-}
-
 bool ADNDoubleStrand::IsCircular() const {
     return circularFlag;
 }
 
-bool ADNDoubleStrand::getIsCircular() const {
-    return IsCircular();
+bool ADNDoubleStrand::getCircularFlag() const {
+    return circularFlag;
 }
 
-void ADNDoubleStrand::setIsCircular(bool b) {
-    IsCircular(b);
+void ADNDoubleStrand::setCircularFlag(bool b) {
+    this->circularFlag = b;
 }
 
 CollectionMap<ADNBaseSegment> ADNDoubleStrand::GetBaseSegments() const {

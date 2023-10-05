@@ -16,7 +16,7 @@ class SB_EXPORT SEDNATwisterEditor : public SBGEditor {
 	SB_CLASS
 	Q_OBJECT
 
-public :
+public:
 
 	enum class BendingType {
 		UNTWIST,

@@ -19,7 +19,7 @@ class SB_EXPORT SEAdenitaVisualModel : public SBMVisualModel {
 
 	SB_CLASS
 
-public :
+public:
 
 	/// \name Constructors and destructors
 	//@{
@@ -232,8 +232,8 @@ private:
 	void														prepare2Dto3D(double iv);
 	void														prepare3D(double iv);
 
-	void														emphasizeColors(ADNArray<float> & colors, std::vector<unsigned int> & indices, float r, float g, float b, float a);
-	void														replaceColors(ADNArray<float> & colors, std::vector<unsigned int> & indices, float * color);
+	static void													emphasizeColors(ADNArray<float> & colors, const std::vector<unsigned int> & indices, float r, float g, float b, float a);
+	static void													replaceColors(ADNArray<float> & colors, const std::vector<unsigned int> & indices, float * color);
 
 	// general display properties 
 

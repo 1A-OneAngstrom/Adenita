@@ -451,7 +451,7 @@ void ADNPart::DeregisterAtom(ADNPointer<ADNAtom> atom, bool removeFromAtom) {
 
 }
 
-bool ADNPart::isLoadedViaSAMSON() {
+bool ADNPart::isLoadedViaSAMSON() const noexcept {
     return loadedViaSAMSONFlag;
 }
 
@@ -459,7 +459,7 @@ void ADNPart::setLoadedViaSAMSON(bool l) {
     loadedViaSAMSONFlag = l;
 }
 
-std::pair<SBPosition3, SBPosition3> ADNPart::GetBoundingBox() {
+std::pair<SBPosition3, SBPosition3> ADNPart::GetBoundingBox() const {
     return std::pair<SBPosition3, SBPosition3>(minBox_, maxBox_);
 }
 
@@ -645,7 +645,7 @@ void ADNPart::RegisterBaseSegmentEnd(ADNPointer<ADNDoubleStrand> ds, ADNPointer<
 
 }
 
-unsigned int ADNPart::GetBaseSegmentIndex(ADNPointer<ADNBaseSegment> bs) {
+unsigned int ADNPart::GetBaseSegmentIndex(ADNPointer<ADNBaseSegment> bs) const {
 
     return baseSegmentsIndex_.getIndex(bs());
 

@@ -5,7 +5,7 @@
 
 #include "SAMSON.hpp"
 
-#include <QOpenGLFunctions_4_3_Core>
+#include "SBGRenderOpenGLFunctions.hpp"
 
 
 SEDSDNACreatorEditor::SEDSDNACreatorEditor() {

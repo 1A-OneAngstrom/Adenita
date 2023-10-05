@@ -61,7 +61,7 @@ struct Vstrand {
 struct CadnanoJSONFile {
 	std::string name_;
 	std::map<int, Vstrand> vstrands_;  // key is vStrand num
-	LatticeType lType_;
+	LatticeType lType_{ LatticeType::Unknown };
 	std::vector<std::pair<int, int>> scaffoldStartPositions_;  // first is vhelix num, second is position  within it
 	std::vector<vec2> stapleStarts_;  // list of staple starts
 };
@@ -94,7 +94,7 @@ private:
 	CadnanoJSONFile json_;
 	VGrid vGrid_;
 	std::map<Vstrand*, std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>>> cellBsMap_;
-	//! To speed up calculation of 1D conformation we keep track to relative position of nt whithin the single strand
+	//! To speed up calculation of 1D conformation we keep track to relative position of nt within the single strand
 	std::map<ADNNucleotide*, int> ntPositions_;
 	std::map<ADNSingleStrand*, int> ssId_;
 	int lastKey = -1;

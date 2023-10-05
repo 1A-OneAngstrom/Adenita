@@ -12,16 +12,17 @@
 #include "MSVColors.hpp"
 #include "MSVDisplayHelper.hpp"
 
-#include <QOpenGLFunctions_4_3_Core>
+//#include "SBGRenderOpenGLFunctions.hpp"
 
 #include <cmath>
 
 SEAdenitaVisualModel::SEAdenitaVisualModel() {
 
 	// SAMSON Element generator pro tip: this default constructor is called when unserializing the node, so it should perform all default initializations.
-	
-	init();
+
 	setName("Adenita Visual Model");
+
+	init();
 
 }
 
@@ -32,32 +33,32 @@ SEAdenitaVisualModel::SEAdenitaVisualModel(const SBNodeIndexer& nodeIndexer) {
 	// the center of mass of a group of atoms, you might want to connect to the atoms' base signals (e.g. to update the center of mass when an atom is erased) and
 	// the atoms' structural signals (e.g. to update the center of mass when an atom is moved).
 
+	setName("Adenita Visual Model");
+
 	SEAdenitaCoreSEApp* adenitaApp = SEAdenitaCoreSEApp::getAdenitaApp();
 	if (adenitaApp) {
 
-		adenitaApp->FromDatagraph();
+		adenitaApp->FromDataGraph(false);
 		init();
 
 	}
-
-	setName("Adenita Visual Model");
 
 }
 
 SEAdenitaVisualModel::~SEAdenitaVisualModel() {
 
-	ADNLogger::Log(std::string("Adenita Visual Model got destroyed"));
+	ADNLogger::Log(std::string("Adenita Visual Model has been destroyed"));
 
 }
 
- bool SEAdenitaVisualModel::isSerializable() const {
+bool SEAdenitaVisualModel::isSerializable() const {
 
 	// SAMSON Element generator pro tip: serialization is used in SAMSON to e.g. save documents, copy nodes, etc. 
 	// Please refer to the SDK documentation for more information.
 	// Modify the line below to "return true;" if you want this visual model be serializable (hence copyable, savable, etc.)
 
 	return false;
-	
+
 }
 
 void SEAdenitaVisualModel::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber, const SBVersionNumber& classVersionNumber) const {
@@ -73,7 +74,7 @@ void SEAdenitaVisualModel::serialize(SBCSerializer* serializer, const SBNodeInde
 void SEAdenitaVisualModel::unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber, const SBVersionNumber& classVersionNumber) {
 
 	SBMVisualModel::unserialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
-	
+
 	// SAMSON Element generator pro tip: serialization is used in SAMSON to e.g. save documents, copy nodes, etc. 
 	// Please refer to the SDK documentation for more information.
 	// Complete this function to unserialize your visual model.
@@ -90,7 +91,7 @@ void SEAdenitaVisualModel::onErase() {
 float		SEAdenitaVisualModel::getScale() const { return scale_; }
 void		SEAdenitaVisualModel::setScale(float scale) {
 
-	if      (hasScaleRange() && scale < getMinimumScale()) this->scale_ = getMinimumScale();
+	if (hasScaleRange() && scale < getMinimumScale()) this->scale_ = getMinimumScale();
 	else if (hasScaleRange() && scale > getMaximumScale()) this->scale_ = getMaximumScale();
 	else this->scale_ = scale;
 
@@ -131,13 +132,13 @@ std::string	SEAdenitaVisualModel::getScaleSuffix() const { return ""; }
 
 int			SEAdenitaVisualModel::getDiscreteScaleCount() const { return 6; }
 int			SEAdenitaVisualModel::getDiscreteScaleCurrentIndex() const {
-	
+
 	int discreteScale = static_cast<int>(std::ceil(scale_));
 	if (discreteScale > 5) discreteScale = 5;
 	return discreteScale;
 
 }
-void		SEAdenitaVisualModel::setDiscreteScaleCurrentIndex(const int index) { setScale(static_cast<float>(index));  }
+void		SEAdenitaVisualModel::setDiscreteScaleCurrentIndex(const int index) { setScale(static_cast<float>(index)); }
 std::string	SEAdenitaVisualModel::getDiscreteScaleItemText(const int index) const {
 
 	if (index >= 0 && index <= 5) {
@@ -159,7 +160,7 @@ std::string	SEAdenitaVisualModel::getDiscreteScaleItemText(const int index) cons
 float		SEAdenitaVisualModel::getDimension() const { return dim_; }
 void		SEAdenitaVisualModel::setDimension(float dimension) {
 
-	if      (hasDimensionRange() && dimension < getMinimumDimension()) this->dim_ = getMinimumDimension();
+	if (hasDimensionRange() && dimension < getMinimumDimension()) this->dim_ = getMinimumDimension();
 	else if (hasDimensionRange() && dimension > getMaximumDimension()) this->dim_ = getMaximumDimension();
 	else this->dim_ = dimension;
 
@@ -169,8 +170,8 @@ void		SEAdenitaVisualModel::setDimension(float dimension) {
 
 	const float interpolated = 1.0f - (floor(this->dim_ + 1.0f) - this->dim_);
 
-	if      (dim_ <  2.0f) prepare1Dto2D(interpolated);
-	else if (dim_ <  3.0f) prepare2Dto3D(interpolated);
+	if (dim_ < 2.0f) prepare1Dto2D(interpolated);
+	else if (dim_ < 3.0f) prepare2Dto3D(interpolated);
 	else if (dim_ >= 3.0f) prepare3D(interpolated);
 
 	SAMSON::requestViewportUpdate();
@@ -193,7 +194,7 @@ int			SEAdenitaVisualModel::getDiscreteDimensionCurrentIndex() const {
 }
 void		SEAdenitaVisualModel::setDiscreteDimensionCurrentIndex(const int index) { setDimension(static_cast<float>(index + 1)); }
 std::string SEAdenitaVisualModel::getDiscreteDimensionItemText(const int index) const {
-	
+
 	if (index == 0) return "1D";
 	if (index == 1) return "2D";
 	if (index == 2) return "3D";
@@ -267,7 +268,7 @@ void			SEAdenitaVisualModel::setVisibility(double layer) {
 					colorsE_(index, 3) = 1.0f;
 
 				}
-        
+
 			}
 
 		}
@@ -279,7 +280,7 @@ void			SEAdenitaVisualModel::setVisibility(double layer) {
 }
 
 void SEAdenitaVisualModel::init() {
-	
+
 	SEAdenitaCoreSEApp* adenitaApp = SEAdenitaCoreSEApp::getAdenitaApp();
 	if (!adenitaApp) return;
 
@@ -348,7 +349,7 @@ void SEAdenitaVisualModel::initAtoms(bool createIndex /*= true*/) {
 	colorsEAtom_ = ADNArray<float>(4, nPositions);
 	flagsAtom_ = ADNArray<unsigned int>(nPositions);
 	nodeIndicesAtom_ = ADNArray<unsigned int>(nPositions);
-  
+
 	if (createIndex) indicesAtom_ = getAtomIndices();
 
 }
@@ -374,7 +375,7 @@ void SEAdenitaVisualModel::update() {
 
 	SB_FOR(auto part, parts) part->connectBaseSignalToSlot(this, SB_SLOT(&SEAdenitaVisualModel::onBaseEvent));
 
-	SB_FOR(auto part, parts) 
+	SB_FOR(auto part, parts)
 		if (!part->structuralSignalIsConnectedToSlot(this, SB_SLOT(&SEAdenitaVisualModel::onStructuralEvent)))
 			part->connectStructuralSignalToSlot(this, SB_SLOT(&SEAdenitaVisualModel::onStructuralEvent));
 
@@ -465,7 +466,7 @@ void SEAdenitaVisualModel::initNucleotidesAndSingleStrands(bool createIndex /* =
 	colorsESS_ = ADNArray<float>(4, nPositions);
 	radiiVSS_ = ADNArray<float>(nPositions);
 	radiiESS_ = ADNArray<float>(nPositions);
-  
+
 	positionsNt2D_ = ADNArray<float>(3, nPositions);
 	positionsNt1D_ = ADNArray<float>(3, nPositions);
 
@@ -524,7 +525,7 @@ void SEAdenitaVisualModel::initDisplayIndices() {
 
 					//associate atom to nt index
 					atomNtIndexMap_.insert(std::make_pair(indexAtom, indexNt));
-          
+
 					++indexAtom;
 
 				}
@@ -564,7 +565,7 @@ void SEAdenitaVisualModel::initDoubleStrands(bool createIndex /*= true*/) {
 ADNArray<unsigned int> SEAdenitaVisualModel::getAtomIndices() {
 
 	ADNArray<unsigned int> indices = ADNArray<unsigned int>(0);
-  
+
 	return indices;
 
 }
@@ -586,7 +587,7 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 	SB_FOR(auto part, parts) numberOfSingleStrandsInAllParts += part->GetSingleStrands().size();
 	if (singleStrands.size() != numberOfSingleStrandsInAllParts || numberOfSingleStrandsUsingSAMSON != numberOfSingleStrandsInAllParts) {
 
-		std::cerr << "ERROR: The number of single strands in nanorobot does not correspond to their number in the data graph. " << 
+		std::cerr << "ERROR: The number of single strands in nanorobot does not correspond to their number in the data graph. " <<
 			"The total number in nanorobot is " << singleStrands.size() << " (the number in parts in nanorobot it is " << numberOfSingleStrandsInAllParts << ") and using SAMSON it is " << numberOfSingleStrandsUsingSAMSON << std::endl;
 
 	}
@@ -673,10 +674,10 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getBaseSegmentIndices() {
 	//auto parts = nanorobot_->GetParts();
 
 	const unsigned int nDs = bsMap_.size();
-  
+
 	const unsigned int nPositions = nanorobot_->GetNumberOfBaseSegments();
 	const unsigned int nCylinders = boost::numeric_cast<unsigned int>(nPositions - nDs);
- 
+
 	ADNArray<unsigned int> indices = ADNArray<unsigned int>(nCylinders * 2);
 
 	return indices;
@@ -723,9 +724,9 @@ void SEAdenitaVisualModel::prepareDimensions() {
 	const QString conf2Name = QString::fromStdString(conformations[2]->getName());
 	if (conf1Name.endsWith(" 1D")) conf1D = conformations[1];
 	else if (conf1Name.endsWith(" 2D")) conf2D = conformations[1];
-	
+
 	if (conformations.size() > 2) {
-		
+
 		if (conf2Name.endsWith(" 1D")) conf1D = conformations[2];
 		else if (conf2Name.endsWith(" 2D")) conf2D = conformations[2];
 
@@ -828,7 +829,7 @@ void SEAdenitaVisualModel::displayTransition(bool forSelection) {
 			positions_.GetArray(),
 			radiiV_.GetArray(),
 			nodeIndices_.GetArray()
-			);
+		);
 
 	}
 	else {
@@ -862,7 +863,7 @@ void SEAdenitaVisualModel::displayTransition(bool forSelection) {
 }
 
 void SEAdenitaVisualModel::prepareSticksToBalls(double iv) {
-  
+
 }
 
 void SEAdenitaVisualModel::prepareBallsToNucleotides(double iv) {
@@ -935,7 +936,7 @@ void SEAdenitaVisualModel::prepareNucleotidesToSingleStrands(double iv) {
 	flags_ = flagsNt_;
 	nodeIndices_ = nodeIndicesNt_;
 	indices_ = indicesNt_;
-  
+
 	for (auto it = ntMap_.begin(); it != ntMap_.end(); it++) {
 
 		auto index = it->second;
@@ -1057,7 +1058,7 @@ void SEAdenitaVisualModel::prepare2Dto3D(double iv) {
 		if (index >= positions_.GetNumElements()) continue;
 		if (index >= positionsNt_.GetNumElements()) continue;
 		if (index >= positionsNt2D_.GetNumElements()) continue;
-    
+
 		positions_(index, 0) = positionsNt2D_(index, 0) + iv * (positionsNt_(index, 0) - positionsNt2D_(index, 0));
 		positions_(index, 1) = positionsNt2D_(index, 1) + iv * (positionsNt_(index, 1) - positionsNt2D_(index, 1));
 		positions_(index, 2) = positionsNt2D_(index, 2) + iv * (positionsNt_(index, 2) - positionsNt2D_(index, 2));
@@ -1072,7 +1073,7 @@ void SEAdenitaVisualModel::prepare3D(double iv) {
 
 }
 
-void SEAdenitaVisualModel::emphasizeColors(ADNArray<float> & colors, std::vector<unsigned int> & indices, float r, float g, float b, float a) {
+void SEAdenitaVisualModel::emphasizeColors(ADNArray<float>& colors, const std::vector<unsigned int>& indices, float r, float g, float b, float a) {
 
 	for (int i = 0; i < indices.size(); i++) {
 
@@ -1094,7 +1095,7 @@ void SEAdenitaVisualModel::emphasizeColors(ADNArray<float> & colors, std::vector
 
 }
 
-void SEAdenitaVisualModel::replaceColors(ADNArray<float> & colors, std::vector<unsigned int> & indices, float * color) {
+void SEAdenitaVisualModel::replaceColors(ADNArray<float>& colors, const std::vector<unsigned int>& indices, float* color) {
 
 	for (int i = 0; i < indices.size(); i++) {
 
@@ -1106,13 +1107,13 @@ void SEAdenitaVisualModel::replaceColors(ADNArray<float> & colors, std::vector<u
 		colors(index, 1) = color[1];
 		colors(index, 2) = color[2];
 		colors(index, 3) = color[3];
-    
+
 	}
 
 }
 
 void SEAdenitaVisualModel::changeHighlightFlag() {
-	
+
 	if (!nanorobot_) return;
 
 	isHighlightFlagChangeRequested = false;
@@ -1176,7 +1177,7 @@ void SEAdenitaVisualModel::orderVisibility() {
 	unsigned int order = 1;
 
 	SEConfig& config = SEConfig::GetInstance();
-  
+
 	auto parts = nanorobot_->GetParts();
 
 	std::vector<std::pair<ADNNucleotide*, float>> nucleotidesSorted;
@@ -1190,7 +1191,7 @@ void SEAdenitaVisualModel::orderVisibility() {
 			auto scaffolds = part->GetScaffolds();
 
 			if (scaffolds.empty()) return;
-        
+
 			SB_FOR(ADNPointer<ADNSingleStrand> ss, scaffolds) {
 
 				auto nucleotides = ss->GetNucleotides();
@@ -1199,7 +1200,7 @@ void SEAdenitaVisualModel::orderVisibility() {
 					auto pair = nt->GetPair();
 					nucleotidesSorted.push_back(std::make_pair(nt(), float(nt->getNodeIndex())));
 					if (pair != nullptr)
-					nucleotidesSorted.push_back(std::make_pair(pair(), float(nt->getNodeIndex()))); //the staple nucleotide should get the same order as the scaffold nucleotide
+						nucleotidesSorted.push_back(std::make_pair(pair(), float(nt->getNodeIndex()))); //the staple nucleotide should get the same order as the scaffold nucleotide
 
 				}
 
@@ -1232,7 +1233,7 @@ void SEAdenitaVisualModel::orderVisibility() {
 				singleStrandsSorted.push_back(std::make_pair(ss(), boost::numeric_cast<float>(minIdx)));
 
 			}
-      
+
 		}
 
 	}
@@ -1319,7 +1320,7 @@ void		SEAdenitaVisualModel::setSingleStrandColorsCurrentIndex(const int index) {
 	auto regularColors = colors_[ColorType::REGULAR];
 
 	if (index == 0) {
-		
+
 		regularColors->SetStandardSingleStrandColorScheme();
 
 	}
@@ -1354,7 +1355,7 @@ void		SEAdenitaVisualModel::setSingleStrandColorsCurrentIndex(const int index) {
 
 		pastel12(5, 0) = 253.0f / 255.0f;
 		pastel12(5, 1) = 180.0f / 255.0f;
-		pastel12(5, 2) =  98.0f / 255.0f;
+		pastel12(5, 2) = 98.0f / 255.0f;
 		pastel12(5, 3) = 1.0f;
 
 		pastel12(6, 0) = 179.0f / 255.0f;
@@ -1399,14 +1400,14 @@ void		SEAdenitaVisualModel::setSingleStrandColorsCurrentIndex(const int index) {
 		dark8(0, 2) = 102.0f / 255.0f;
 		dark8(0, 3) = 1.0f;
 
-		dark8(1, 0) =  27.0f / 255.0f;
+		dark8(1, 0) = 27.0f / 255.0f;
 		dark8(1, 1) = 158.0f / 255.0f;
 		dark8(1, 2) = 119.0f / 255.0f;
 		dark8(1, 3) = 1.0f;
 
 		dark8(2, 0) = 217.0f / 255.0f;
-		dark8(2, 1) =  95.0f / 255.0f;
-		dark8(2, 2) =   2.0f / 255.0f;
+		dark8(2, 1) = 95.0f / 255.0f;
+		dark8(2, 2) = 2.0f / 255.0f;
 		dark8(2, 3) = 1.0f;
 
 		dark8(3, 0) = 117.0f / 255.0f;
@@ -1415,25 +1416,25 @@ void		SEAdenitaVisualModel::setSingleStrandColorsCurrentIndex(const int index) {
 		dark8(3, 3) = 1.0f;
 
 		dark8(4, 0) = 231.0f / 255.0f;
-		dark8(4, 1) =  41.0f / 255.0f;
+		dark8(4, 1) = 41.0f / 255.0f;
 		dark8(4, 2) = 138.0f / 255.0f;
 		dark8(4, 3) = 1.0f;
 
 		dark8(5, 0) = 102.0f / 255.0f;
 		dark8(5, 1) = 166.0f / 255.0f;
-		dark8(5, 2) =  30.0f / 255.0f;
+		dark8(5, 2) = 30.0f / 255.0f;
 		dark8(5, 3) = 1.0f;
 
 		dark8(6, 0) = 230.0f / 255.0f;
 		dark8(6, 1) = 171.0f / 255.0f;
-		dark8(6, 2) =   2.0f / 255.0f;
+		dark8(6, 2) = 2.0f / 255.0f;
 		dark8(6, 3) = 1.0f;
 
 		dark8(7, 0) = 166.0f / 255.0f;
 		dark8(7, 1) = 118.0f / 255.0f;
-		dark8(7, 2) =  29.0f / 255.0f;
+		dark8(7, 2) = 29.0f / 255.0f;
 		dark8(7, 3) = 1.0f;
-    
+
 		regularColors->SetSingleStrandColorScheme(dark8);
 
 	}
@@ -1476,9 +1477,9 @@ void		SEAdenitaVisualModel::setSingleStrandColorsCurrentIndex(const int index) {
 		pastel8(6, 2) = 204.0f / 255.0f;
 		pastel8(6, 3) = 1.0f;
 
-		pastel8(7, 0) = 204.0f / 255.0f; 
-		pastel8(7, 1) = 204.0f / 255.0f; 
-		pastel8(7, 2) = 204.0f / 255.0f; 
+		pastel8(7, 0) = 204.0f / 255.0f;
+		pastel8(7, 1) = 204.0f / 255.0f;
+		pastel8(7, 2) = 204.0f / 255.0f;
 		pastel8(7, 3) = 1.0f;
 
 		regularColors->SetSingleStrandColorScheme(pastel8);
@@ -1508,7 +1509,7 @@ void		SEAdenitaVisualModel::setNucleotideColorsCurrentIndex(const int index) {
 	auto regularColors = colors_[ColorType::REGULAR];
 
 	if (index == 0) {
-	
+
 		regularColors->SetStandardNucleotideColorScheme();
 
 	}
@@ -1516,14 +1517,14 @@ void		SEAdenitaVisualModel::setNucleotideColorsCurrentIndex(const int index) {
 
 		ADNArray<float> dark4 = ADNArray<float>(4, 4);
 
-		dark4(0, 0) =  27.0f / 255.0f;  
+		dark4(0, 0) = 27.0f / 255.0f;
 		dark4(0, 1) = 158.0f / 255.0f;
 		dark4(0, 2) = 119.0f / 255.0f;
 		dark4(0, 3) = 1.0f;
 
 		dark4(1, 0) = 217.0f / 255.0f;
-		dark4(1, 1) =  95.0f / 255.0f;
-		dark4(1, 2) =   2.0f / 255.0f;
+		dark4(1, 1) = 95.0f / 255.0f;
+		dark4(1, 2) = 2.0f / 255.0f;
 		dark4(1, 3) = 1.0f;
 
 		dark4(2, 0) = 117.0f / 255.0f;
@@ -1532,7 +1533,7 @@ void		SEAdenitaVisualModel::setNucleotideColorsCurrentIndex(const int index) {
 		dark4(2, 3) = 1.0f;
 
 		dark4(3, 0) = 231.0f / 255.0f;
-		dark4(3, 1) =  41.0f / 255.0f;
+		dark4(3, 1) = 41.0f / 255.0f;
 		dark4(3, 2) = 138.0f / 255.0f;
 		dark4(3, 3) = 1.0f;
 
@@ -1542,13 +1543,13 @@ void		SEAdenitaVisualModel::setNucleotideColorsCurrentIndex(const int index) {
 	else if (index == 2) {
 
 		ADNArray<float> pastel4 = ADNArray<float>(4, 4);
-    
-		pastel4(0, 0) = 166.0f / 255.0f; 
+
+		pastel4(0, 0) = 166.0f / 255.0f;
 		pastel4(0, 1) = 206.0f / 255.0f;
 		pastel4(0, 2) = 227.0f / 255.0f;
 		pastel4(0, 3) = 1.0f;
 
-		pastel4(1, 0) =  31.0f / 255.0f;
+		pastel4(1, 0) = 31.0f / 255.0f;
 		pastel4(1, 1) = 120.0f / 255.0f;
 		pastel4(1, 2) = 180.0f / 255.0f;
 		pastel4(1, 3) = 1.0f;
@@ -1558,9 +1559,9 @@ void		SEAdenitaVisualModel::setNucleotideColorsCurrentIndex(const int index) {
 		pastel4(2, 2) = 138.0f / 255.0f;
 		pastel4(2, 3) = 1.0f;
 
-		pastel4(3, 0) =  51.0f / 255.0f;
+		pastel4(3, 0) = 51.0f / 255.0f;
 		pastel4(3, 1) = 160.0f / 255.0f;
-		pastel4(3, 2) =  44.0f / 255.0f;
+		pastel4(3, 2) = 44.0f / 255.0f;
 		pastel4(3, 3) = 1.0f;
 
 		regularColors->SetNucleotideColorScheme(pastel4);
@@ -1570,9 +1571,9 @@ void		SEAdenitaVisualModel::setNucleotideColorsCurrentIndex(const int index) {
 
 		ADNArray<float> pastel2 = ADNArray<float>(4, 4);
 
-		pastel2(0, 0) = 127.0f / 255.0f; 
-		pastel2(0, 1) = 201.0f / 255.0f; 
-		pastel2(0, 2) = 127.0f / 255.0f; 
+		pastel2(0, 0) = 127.0f / 255.0f;
+		pastel2(0, 1) = 201.0f / 255.0f;
+		pastel2(0, 2) = 127.0f / 255.0f;
 		pastel2(0, 3) = 1.0f;
 
 		pastel2(1, 0) = 253.0f / 255.0f;
@@ -1618,7 +1619,7 @@ void		SEAdenitaVisualModel::setDoubleStrandColorsCurrentIndex(const int index) {
 	auto regularColors = colors_[ColorType::REGULAR];
 
 	if (index == 0) {
-	
+
 		regularColors->SetStandardDoubleStrandColorScheme();
 
 	}
@@ -1670,14 +1671,14 @@ void		SEAdenitaVisualModel::setDoubleStrandColorsCurrentIndex(const int index) {
 
 		ADNArray<float> pastel6 = ADNArray<float>(4, 6);
 
-		pastel6(0, 0) = 251.0f / 255.0f; 
-		pastel6(0, 1) = 180.0f / 255.0f; 
-		pastel6(0, 2) = 174.0f / 255.0f; 
+		pastel6(0, 0) = 251.0f / 255.0f;
+		pastel6(0, 1) = 180.0f / 255.0f;
+		pastel6(0, 2) = 174.0f / 255.0f;
 		pastel6(0, 3) = 1.0f;
 
-		pastel6(1, 0) = 179.0f / 255.0f; 
-		pastel6(1, 1) = 205.0f / 255.0f; 
-		pastel6(1, 2) = 227.0f / 255.0f; 
+		pastel6(1, 0) = 179.0f / 255.0f;
+		pastel6(1, 1) = 205.0f / 255.0f;
+		pastel6(1, 2) = 227.0f / 255.0f;
 		pastel6(1, 3) = 1.0f;
 
 		pastel6(2, 0) = 204.0f / 255.0f;
@@ -1690,14 +1691,14 @@ void		SEAdenitaVisualModel::setDoubleStrandColorsCurrentIndex(const int index) {
 		pastel6(3, 2) = 228.0f / 255.0f;
 		pastel6(3, 3) = 1.0f;
 
-		pastel6(4, 0) = 254.0f / 255.0f; 
-		pastel6(4, 1) = 217.0f / 255.0f; 
-		pastel6(4, 2) = 166.0f / 255.0f; 
+		pastel6(4, 0) = 254.0f / 255.0f;
+		pastel6(4, 1) = 217.0f / 255.0f;
+		pastel6(4, 2) = 166.0f / 255.0f;
 		pastel6(4, 3) = 1.0f;
 
-		pastel6(5, 0) = 255.0f / 255.0f; 
-		pastel6(5, 1) = 255.0f / 255.0f; 
-		pastel6(5, 2) = 204.0f / 255.0f; 
+		pastel6(5, 0) = 255.0f / 255.0f;
+		pastel6(5, 1) = 255.0f / 255.0f;
+		pastel6(5, 2) = 204.0f / 255.0f;
 		pastel6(5, 3) = 1.0f;
 
 		regularColors->SetDoubleStrandColorScheme(pastel6);
@@ -1734,7 +1735,7 @@ void		SEAdenitaVisualModel::setDoubleStrandColorsCurrentIndex(const int index) {
 
 		pastel12(5, 0) = 253.0f / 255.0f;
 		pastel12(5, 1) = 180.0f / 255.0f;
-		pastel12(5, 2) =  98.0f / 255.0f;
+		pastel12(5, 2) = 98.0f / 255.0f;
 		pastel12(5, 3) = 1.0f;
 
 		pastel12(6, 0) = 179.0f / 255.0f;
@@ -1998,7 +1999,7 @@ void SEAdenitaVisualModel::display() {
 	}
 
 	displayTransition(false);
-  
+
 }
 
 
@@ -2008,7 +2009,7 @@ void SEAdenitaVisualModel::prepareNucleotides() {
 
 	auto parts = nanorobot_->GetParts();
 
-	MSVColors * curColors = colors_[curColorType_];
+	MSVColors* curColors = colors_[curColorType_];
 
 	SB_FOR(auto part, parts) {
 
@@ -2051,7 +2052,7 @@ void SEAdenitaVisualModel::prepareNucleotides() {
 						radiiVNt_(index) = radiiVNt_(index) * 0.7f;
 
 				}
-        
+
 				//strand direction
 				if (nt->getEndType() == ADNNucleotide::EndType::ThreePrime) {
 					radiiENt_(index) = config.nucleotide_E_radius;
@@ -2086,8 +2087,8 @@ void SEAdenitaVisualModel::prepareSingleStrands() {
 
 	SEConfig& config = SEConfig::GetInstance();
 	auto parts = nanorobot_->GetParts();
-  
-	MSVColors * curColors = colors_[curColorType_];
+
+	MSVColors* curColors = colors_[curColorType_];
 
 	SB_FOR(auto part, parts) {
 
@@ -2156,13 +2157,13 @@ void SEAdenitaVisualModel::prepareDoubleStrands() {
 
 	auto parts = nanorobot_->GetParts();
 
-	MSVColors * curColors = colors_[curColorType_];
+	MSVColors* curColors = colors_[curColorType_];
 	positionsDS_ = ADNArray<float>(3, nPositionsDS_);
 	radiiVDS_ = ADNArray<float>(nPositionsDS_);
 	flagsDS_ = ADNArray<unsigned int>(nPositionsDS_);
 	colorsVDS_ = ADNArray<float>(4, nPositionsDS_);
 	nodeIndicesDS_ = ADNArray<unsigned int>(nPositionsDS_);
-  
+
 	SB_FOR(auto part, parts) {
 
 		if (part == nullptr) continue;
@@ -2231,6 +2232,7 @@ void SEAdenitaVisualModel::displayNucleotides(bool forSelection) {
 	if (forSelection) {
 
 		if (nCylindersNt_ > 0) {
+
 			SAMSON::displayCylindersSelection(
 				nCylindersNt_,
 				nPositionsNt_,
@@ -2239,6 +2241,7 @@ void SEAdenitaVisualModel::displayNucleotides(bool forSelection) {
 				radiiENt_.GetArray(),
 				capDataNt_.GetArray(),
 				nodeIndicesNt_.GetArray());
+
 		}
 
 		SAMSON::displaySpheresSelection(
@@ -2252,6 +2255,7 @@ void SEAdenitaVisualModel::displayNucleotides(bool forSelection) {
 	else {
 
 		if (nCylindersNt_ > 0) {
+
 			SAMSON::displayCylinders(
 				nCylindersNt_,
 				nPositionsNt_,
@@ -2261,6 +2265,7 @@ void SEAdenitaVisualModel::displayNucleotides(bool forSelection) {
 				capDataNt_.GetArray(),
 				colorsENt_.GetArray(),
 				flagsNt_.GetArray());
+
 		}
 
 		SAMSON::displaySpheres(
@@ -2279,6 +2284,7 @@ void SEAdenitaVisualModel::displaySingleStrands(bool forSelection) {
 	if (forSelection) {
 
 		if (nCylindersNt_ > 0) {
+
 			SAMSON::displayCylindersSelection(
 				nCylindersNt_,
 				nPositionsNt_,
@@ -2287,6 +2293,7 @@ void SEAdenitaVisualModel::displaySingleStrands(bool forSelection) {
 				radiiESS_.GetArray(),
 				capDataNt_.GetArray(),
 				nodeIndicesNt_.GetArray());
+
 		}
 
 		SAMSON::displaySpheresSelection(
@@ -2300,6 +2307,7 @@ void SEAdenitaVisualModel::displaySingleStrands(bool forSelection) {
 	else {
 
 		if (nCylindersNt_ > 0) {
+
 			SAMSON::displayCylinders(
 				nCylindersNt_,
 				nPositionsNt_,
@@ -2309,6 +2317,7 @@ void SEAdenitaVisualModel::displaySingleStrands(bool forSelection) {
 				capDataNt_.GetArray(),
 				colorsESS_.GetArray(),
 				flagsNt_.GetArray());
+
 		}
 
 		SAMSON::displaySpheres(
@@ -2325,20 +2334,24 @@ void SEAdenitaVisualModel::displaySingleStrands(bool forSelection) {
 void SEAdenitaVisualModel::displayDoubleStrands(bool forSelection) {
 
 	if (forSelection) {
+
 		SAMSON::displaySpheresSelection(
 			nPositionsDS_,
 			positionsDS_.GetArray(),
 			radiiVDS_.GetArray(),
 			nodeIndicesDS_.GetArray()
 		);
+
 	}
 	else {
+
 		SAMSON::displaySpheres(
 			nPositionsDS_,
 			positionsDS_.GetArray(),
 			radiiVDS_.GetArray(),
 			colorsVDS_.GetArray(),
 			flagsDS_.GetArray());
+
 	}
 
 }
@@ -2382,7 +2395,7 @@ void SEAdenitaVisualModel::displayBasePairConnections(bool onlySelected) {
 
 	//determine how many nucleotides have pairs 
 
-	SB_FOR(auto part, parts) {
+	SB_FOR(ADNPart * part, parts) {
 
 		if (part == nullptr) continue;
 
@@ -2395,6 +2408,8 @@ void SEAdenitaVisualModel::displayBasePairConnections(bool onlySelected) {
 			SB_FOR(ADNPointer<ADNNucleotide> nucleotide, nucleotides) {
 
 				if (nucleotide == nullptr) continue;
+				if (nucleotide->GetPair() == nullptr) continue;
+
 				// skip if at least one of the paired nucleotides is not visible
 				if (!nucleotide->isVisible() || !nucleotide->GetPair()->isVisible()) continue;
 
@@ -2423,16 +2438,16 @@ void SEAdenitaVisualModel::displayBasePairConnections(bool onlySelected) {
 
 	unsigned int j = 0;
 	std::vector<unsigned int> registerIndices;
-	for (auto &p : ntMap) {
+	for (const auto& p : ntMap) {
 
 		ADNPointer<ADNNucleotide> nt = p.first;
 		if (nt == nullptr) continue;
 		ADNPointer<ADNNucleotide> nucleotidePair = nt->GetPair();
 		if (nucleotidePair == nullptr) continue;
 		unsigned int index = p.second;
-    
+
 		const SBPosition3 pos = nt->GetBackbonePosition();
-   
+
 		positions(index, 0) = static_cast<float>(pos[0].getValue());
 		positions(index, 1) = static_cast<float>(pos[1].getValue());
 		positions(index, 2) = static_cast<float>(pos[2].getValue());
@@ -2448,7 +2463,7 @@ void SEAdenitaVisualModel::displayBasePairConnections(bool onlySelected) {
 			indices(2 * j) = index;
 			indices(2 * j + 1) = ntMap[nucleotidePair()];
 			registerIndices.push_back(index);
-      
+
 			++j;
 
 		}
@@ -2470,7 +2485,7 @@ void SEAdenitaVisualModel::displayBasePairConnections(bool onlySelected) {
 		caps.GetArray(),
 		colors.GetArray(),
 		flags.GetArray()
-		);
+	);
 
 }
 
@@ -2520,26 +2535,26 @@ void SEAdenitaVisualModel::displayCircularDNAConnection() {
 				int startIdx = ntMap_[startNt()];
 				int endIdx = ntMap_[endNt()];
 
-				float * startPos = new float[3];
+				float* startPos = new float[3];
 				startPos[0] = positions_(startIdx, 0);
 				startPos[1] = positions_(startIdx, 1);
 				startPos[2] = positions_(startIdx, 2);
-        
-				float * endPos = new float[3];
+
+				float* endPos = new float[3];
 				endPos[0] = positions_(endIdx, 0);
 				endPos[1] = positions_(endIdx, 1);
 				endPos[2] = positions_(endIdx, 2);
 
-				float * color = new float[4];
+				float* color = new float[4];
 				color[0] = colorsE_(endIdx, 0);
 				color[1] = colorsE_(endIdx, 1);
 				color[2] = colorsE_(endIdx, 2);
 				color[3] = colorsE_(endIdx, 3);
-        
+
 				auto radius = radiiE_(startIdx);
 
 				ADNDisplayHelper::displayDirectedCylinder(startPos, endPos, color, radius);
-        
+
 				delete[] startPos;
 				delete[] endPos;
 				delete[] color;
@@ -2638,7 +2653,7 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 
 	prepareDiscreteScalesDim();
 
-	float * colorHighlight = new float[4];
+	float* colorHighlight = new float[4];
 	colorHighlight[0] = 0.2f;
 	colorHighlight[1] = 0.8f;
 	colorHighlight[2] = 0.2f;
@@ -2651,7 +2666,7 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 	std::vector<unsigned int> bsContext;
 
 	if (highlightType_ == HighlightType::NONE) {
-    
+
 	}
 	else if (highlightType_ == HighlightType::CROSSOVERS) {
 
@@ -2906,7 +2921,7 @@ ADNArray<float> SEAdenitaVisualModel::calcPropertyColor(int colorSchemeIdx, floa
 		color(1) = colorScheme(0, 1);
 		color(2) = colorScheme(0, 2);
 		color(3) = colorScheme(0, 3);
-		
+
 		return color;
 
 	}
@@ -2946,7 +2961,7 @@ ADNArray<float> SEAdenitaVisualModel::calcPropertyColor(int colorSchemeIdx, floa
 
 bool SEAdenitaVisualModel::getShowBasePairingFlag() const { return showBasePairing_; }
 void SEAdenitaVisualModel::setShowBasePairingFlag(bool show) {
-	
+
 	if (this->showBasePairing_ == show) return;
 
 	this->showBasePairing_ = show;
@@ -3032,9 +3047,9 @@ void SEAdenitaVisualModel::onDocumentEvent(SBDocumentEvent* documentEvent) {
 }
 
 void SEAdenitaVisualModel::onStructuralEvent(SBStructuralEvent* structuralEvent) {
-	
+
 	// SAMSON Element generator pro tip: implement this function if you need to handle structural events (e.g. when a structural node for which you provide a visual representation is updated)
-	
+
 	const SBStructuralEvent::Type eventType = structuralEvent->getType();
 	if (eventType == SBStructuralEvent::AtomPositionChanged) {
 
@@ -3086,7 +3101,7 @@ void SEAdenitaVisualModel::onStructuralEvent(SBStructuralEvent* structuralEvent)
 	//ADNLogger& logger = ADNLogger::GetLogger();
 	//logger.Log(QString("onStructuralEvent"));
 	//if (structuralEvent->getType() == SBStructuralEvent::MobilityFlagChanged) {
-	//  prepareArraysNoTranstion();
+	//  prepareArraysNoTransition();
 	//  //ADNLogger& logger = ADNLogger::GetLogger();
 	//  //logger.Log(QString("MobilityFlagChanged"));
 	//}

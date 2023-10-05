@@ -39,8 +39,8 @@ void ADNSingleStrand::unserialize(SBCSerializer* serializer, const SBNodeIndexer
     bool isCircular = serializer->readBoolElement();
     unsigned int fPrimeIdx = serializer->readUnsignedIntElement();
     unsigned int tPrimeIdx = serializer->readUnsignedIntElement();
-    IsScaffold(isScaffold);
-    IsCircular(isCircular);
+    setScaffoldFlag(isScaffold);
+    setCircularFlag(isCircular);
     SBNode* fPrime = nodeIndexer.getNode(fPrimeIdx);
     ADNPointer<ADNNucleotide> fp = static_cast<ADNNucleotide*>(fPrime);
     SBNode* tPrime = nodeIndexer.getNode(tPrimeIdx);
@@ -50,7 +50,7 @@ void ADNSingleStrand::unserialize(SBCSerializer* serializer, const SBNodeIndexer
 
 }
 
-ADNPointer<ADNPart> ADNSingleStrand::GetPart() {
+ADNPointer<ADNPart> ADNSingleStrand::GetPart() const {
 
     // the ADNPart is a structural model
     SBNode* model = getModel();
@@ -60,7 +60,7 @@ ADNPointer<ADNPart> ADNSingleStrand::GetPart() {
 
 }
 
-ADNPointer<ADNNucleotide> ADNSingleStrand::GetFivePrime() {
+ADNPointer<ADNNucleotide> ADNSingleStrand::GetFivePrime() const {
     return fivePrimeNucleotide;
 }
 
@@ -68,7 +68,7 @@ SBNode* ADNSingleStrand::getFivePrime() const {
     return fivePrimeNucleotide();
 }
 
-ADNPointer<ADNNucleotide> ADNSingleStrand::GetThreePrime() {
+ADNPointer<ADNNucleotide> ADNSingleStrand::GetThreePrime() const {
     return threePrimeNucleotide;
 }
 
@@ -84,36 +84,28 @@ void ADNSingleStrand::SetThreePrime(ADNPointer<ADNNucleotide> nucleotide) {
     this->threePrimeNucleotide = nucleotide;
 }
 
-void ADNSingleStrand::IsScaffold(bool b) {
-    this->scaffoldFlag = b;
-}
-
 bool ADNSingleStrand::IsScaffold() const {
     return scaffoldFlag;
 }
 
-bool ADNSingleStrand::getIsScaffold() const {
-    return IsScaffold();
+bool ADNSingleStrand::getScaffoldFlag() const {
+    return scaffoldFlag;
 }
 
-void ADNSingleStrand::setIsScaffold(bool b) {
-    IsScaffold(b);
-}
-
-void ADNSingleStrand::IsCircular(bool c) {
-    this->circularFlag = c;
+void ADNSingleStrand::setScaffoldFlag(bool b) {
+    this->scaffoldFlag = b;
 }
 
 bool ADNSingleStrand::IsCircular() const {
     return circularFlag;
 }
 
-bool ADNSingleStrand::getIsCircular() const {
-    return IsCircular();
+bool ADNSingleStrand::getCircularFlag() const {
+    return circularFlag;
 }
 
-void ADNSingleStrand::setIsCircular(bool b) {
-    IsCircular(b);
+void ADNSingleStrand::setCircularFlag(bool b) {
+    this->circularFlag = b;
 }
 
 int ADNSingleStrand::getNumberOfNucleotides() const {
