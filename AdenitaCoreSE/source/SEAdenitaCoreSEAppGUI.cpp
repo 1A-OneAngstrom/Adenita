@@ -256,14 +256,13 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 			selectedParts = nr->GetParts();
 
 		}
-		const auto boundingBox = nr->GetBoundingBox(selectedParts);
 
 		QString eType = exportType->currentText();
 
 		if (eType == "Sequence list") {
 
 			// export sequences
-			QString filename;// = QFileDialog::getSaveFileName(this, tr("Sequence List"), QDir::currentPath(), tr("Sequence List (*.csv)"));
+			QString filename;
 			if (SBGWindowDialog::getSaveFileNameFromUser(tr("Sequence List"), filename, workingDirectory, tr("Sequence List (*.csv)"))) {
 
 				QFileInfo fileInfo(filename);
@@ -277,12 +276,13 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 		}
 		else if (eType == "oxDNA") {
 
-			const auto bbSize = boundingBox.second - boundingBox.first;
+			const auto boundingBox = nr->GetBoundingBox(selectedParts);
+			const auto boundingBoxSize = boundingBox.diameter();
 
 			ADNAuxiliary::OxDNAOptions options;
-			const double sysX = bbSize[0].getValue() * 0.001;  // nm
-			const double sysY = bbSize[1].getValue() * 0.001;  // nm
-			const double sysZ = bbSize[2].getValue() * 0.001;  // nm
+			const double sysX = SBQuantity::nm(boundingBoxSize[0]).getValue();  // nm
+			const double sysY = SBQuantity::nm(boundingBoxSize[1]).getValue();  // nm
+			const double sysZ = SBQuantity::nm(boundingBoxSize[2]).getValue();  // nm
 
 			const double refVal = std::max(std::max(sysX, sysY), sysZ);
 
@@ -290,7 +290,7 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 			QDialog* dialogOxDNA = new QDialog();
 			QFormLayout *oxDNALayout = new QFormLayout;
 			QLabel* info = new QLabel;
-			info->setText("System size (nm): " + QString::number(sysX, 'g',2) + " x " + QString::number(sysY, 'g', 2) + " x " + QString::number(sysZ, 'g', 2));
+			info->setText("System size (nm): " + QString::number(sysX, 'g', 2) + " x " + QString::number(sysY, 'g', 2) + " x " + QString::number(sysZ, 'g', 2));
 			QDoubleSpinBox* boxX = new QDoubleSpinBox();
 			boxX->setRange(0.0, 99999.9);
 			boxX->setValue(refVal * 3);

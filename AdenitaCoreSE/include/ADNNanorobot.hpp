@@ -52,7 +52,7 @@ public:
     SBPosition3                                                 GetNucleotideBackbonePosition(ADNPointer<ADNConformation> conformation, ADNPointer<ADNNucleotide> nucleotide) const;  ///< Return the position of the backbone of the nucleotide \p nucleotide in the conformation \p conformation
     SBPosition3                                                 GetNucleotideSideChainPosition(ADNPointer<ADNConformation> conformation, ADNPointer<ADNNucleotide> nucleotide) const; ///< Return the position of the side chain of the nucleotide \p nucleotide in the conformation \p conformation
 
-    std::pair<SBPosition3, SBPosition3>                         GetBoundingBox(CollectionMap<ADNPart> parts) const;                     ///< bounding box
+    SBIAPosition3                                               GetBoundingBox(CollectionMap<ADNPart> parts) const;                     ///< bounding box
 
 private:
 

@@ -460,8 +460,8 @@ void ADNPart::setLoadedViaSAMSON(bool l) {
     loadedViaSAMSONFlag = l;
 }
 
-std::pair<SBPosition3, SBPosition3> ADNPart::GetBoundingBox() const {
-    return std::pair<SBPosition3, SBPosition3>(minBox_, maxBox_);
+const SBIAPosition3& ADNPart::GetBoundingBox() const {
+    return boundingBox;
 }
 
 void ADNPart::ResetBoundingBox() {
@@ -478,13 +478,7 @@ void ADNPart::SetBoundingBox(ADNPointer<ADNNucleotide> newNt) {
     if (newNt == nullptr) return;
 
     const SBPosition3 pos = newNt->GetBackbonePosition();
-    //boundingBox.bound(pos);
-    if (pos[0] < minBox_[0]) minBox_[0] = pos[0];
-    if (pos[1] < minBox_[1]) minBox_[1] = pos[1];
-    if (pos[2] < minBox_[2]) minBox_[2] = pos[2];
-    if (pos[0] > maxBox_[0]) maxBox_[0] = pos[0];
-    if (pos[1] > maxBox_[1]) maxBox_[1] = pos[1];
-    if (pos[2] > maxBox_[2]) maxBox_[2] = pos[2];
+    boundingBox.bound(pos);
 
 }
 
@@ -493,22 +487,14 @@ void ADNPart::SetBoundingBox(ADNPointer<ADNBaseSegment> newBs) {
     if (newBs == nullptr) return;
 
     const SBPosition3 pos = newBs->GetPosition();
-    //boundingBox.bound(pos);
-    if (pos[0] < minBox_[0]) minBox_[0] = pos[0];
-    if (pos[1] < minBox_[1]) minBox_[1] = pos[1];
-    if (pos[2] < minBox_[2]) minBox_[2] = pos[2];
-    if (pos[0] > maxBox_[0]) maxBox_[0] = pos[0];
-    if (pos[1] > maxBox_[1]) maxBox_[1] = pos[1];
-    if (pos[2] > maxBox_[2]) maxBox_[2] = pos[2];
+    boundingBox.bound(pos);
 
 }
 
 void ADNPart::InitBoundingBox() {
 
     const SBQuantity::picometer maxVal = SBQuantity::picometer(std::numeric_limits<double>::max());
-    minBox_ = SBPosition3(maxVal, maxVal, maxVal);
-    maxBox_ = SBPosition3(-maxVal, -maxVal, -maxVal);
-    //boundingBox = SBIAPosition3(maxVal, -maxVal, maxVal, -maxVal, maxVal, -maxVal);
+    boundingBox = SBIAPosition3(maxVal, -maxVal, maxVal, -maxVal, maxVal, -maxVal);
 
 }
 
