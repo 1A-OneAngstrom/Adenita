@@ -93,7 +93,7 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 
 	workingDirectory = QFileInfo(filename).absolutePath();	// get the absolute path to the filename
 
-	if (filename.endsWith(".json")) {
+	if (filename.endsWith(".json", Qt::CaseInsensitive)) {
 
 		// either cadnano or old Adenita format
 		std::string format = SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(filename);
@@ -125,7 +125,7 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 		}
 
 	}
-	else if (filename.endsWith(".ply")) {
+	else if (filename.endsWith(".ply", Qt::CaseInsensitive)) {
 
 		int i = 42;
 		if (SAMSON::getIntegerFromUser(QString("Wireframe structure (Daedalus)"), i, 31, 1050, 1, QString("Minimum edge size: "), QString(" bp"))) {
@@ -138,7 +138,7 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 		else return;
 
 	}
-	else if (filename.endsWith(".adnpart")) {
+	else if (filename.endsWith(".adnpart", Qt::CaseInsensitive)) {
 
 		if (!getApp()->loadPart(filename)) {
 
@@ -148,7 +148,7 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 		}
 
 	}
-	else if (filename.endsWith(".adn")) {
+	else if (filename.endsWith(".adn", Qt::CaseInsensitive)) {
 
 		getApp()->loadParts(filename);
 
@@ -239,7 +239,6 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 		auto val = typeSelection->currentIndex();
 
 		CollectionMap<ADNPart> selectedParts;
-		std::pair<SBPosition3, SBPosition3> boundingBox;
 
 		if (val == sel_idx) {
 
@@ -257,7 +256,7 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 			selectedParts = nr->GetParts();
 
 		}
-		boundingBox = nr->GetBoundingBox(selectedParts);
+		const auto boundingBox = nr->GetBoundingBox(selectedParts);
 
 		QString eType = exportType->currentText();
 
@@ -278,15 +277,14 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 		}
 		else if (eType == "oxDNA") {
 
-			auto bbSize = boundingBox.second - boundingBox.first;
+			const auto bbSize = boundingBox.second - boundingBox.first;
 
 			ADNAuxiliary::OxDNAOptions options;
 			const double sysX = bbSize[0].getValue() * 0.001;  // nm
 			const double sysY = bbSize[1].getValue() * 0.001;  // nm
 			const double sysZ = bbSize[2].getValue() * 0.001;  // nm
 
-			double refVal = std::max(sysX, sysY);
-			refVal = std::max(refVal, sysZ);
+			const double refVal = std::max(std::max(sysX, sysY), sysZ);
 
 			// oxDNA dialog
 			QDialog* dialogOxDNA = new QDialog();

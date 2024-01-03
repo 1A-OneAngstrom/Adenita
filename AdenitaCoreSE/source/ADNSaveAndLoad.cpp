@@ -58,8 +58,18 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(const std::string& filename) {
 
 }
 
-ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value& val, double versionValue)
-{
+static void print_json_value(const rapidjson::Value& value) {
+
+	rapidjson::StringBuffer buffer;
+	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+	value.Accept(writer);
+
+	std::cout << buffer.GetString() << std::endl;
+
+}
+
+ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value& val, double versionValue) {
+
 	ADNPointer<ADNPart> part = new ADNPart();
 
 	rapidjson::Value& d = val;
@@ -99,6 +109,7 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value& val, double ve
 			nexts.insert(std::make_pair(std::stoi(itr2->name.GetString()), itr2->value["next"].GetInt()));
 			prevs.insert(std::make_pair(std::stoi(itr2->name.GetString()), itr2->value["prev"].GetInt()));
 			pairs.insert(std::make_pair(std::stoi(itr2->name.GetString()), itr2->value["pair"].GetInt()));
+
 		}
 
 		int f_id = itr->value["fivePrimeId"].GetInt();
@@ -106,14 +117,17 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value& val, double ve
 		ADNPointer<ADNNucleotide> nt = nts.Get(f_id).second;
 		int currId = f_id;
 		do {
+
 			// pairing is done when parsing base segments
 			int nextId = nexts.at(currId);
 			nt = nts.Get(currId).second;
 			part->RegisterNucleotideThreePrime(ss, nt);
 			currId = nextId;
+
 		} while (currId != -1);
 
 		part->RegisterSingleStrand(ss);
+
 	}
 
 	ElementMap<ADNBaseSegment> bss;
@@ -121,11 +135,13 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value& val, double ve
 	std::map<int, int> prevsBs;
 	rapidjson::Value& doubleStrands = d["doubleStrands"];
 	for (rapidjson::Value::ConstMemberIterator itr = doubleStrands.MemberBegin(); itr != doubleStrands.MemberEnd(); ++itr) {
+
 		ADNPointer<ADNDoubleStrand> ds = ADNPointer<ADNDoubleStrand>(new ADNDoubleStrand());
 		ds->SetInitialTwistAngle(itr->value["initialTwistAngle"].GetDouble());
 
 		const rapidjson::Value& bases = itr->value["bases"];
 		for (rapidjson::Value::ConstMemberIterator itr2 = bases.MemberBegin(); itr2 != bases.MemberEnd(); ++itr2) {
+
 			ADNPointer<ADNBaseSegment> bs = ADNPointer<ADNBaseSegment>(new ADNBaseSegment());
 			bs->SetPosition(ADNAuxiliary::StringToSBPosition(itr2->value["position"].GetString()));
 			bs->SetE1(ADNAuxiliary::StringToUblasVector(itr2->value["e1"].GetString()));
@@ -135,103 +151,163 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value& val, double ve
 
 			// Load cells
 			const rapidjson::Value& c = itr2->value["cell"];
-			CellType typ = CellType(c["type"].GetInt());
-			if (typ == CellType::BasePair) {
+			CellType type = CellType(c["type"].GetInt());
+			if (type == CellType::BasePair) {
+
 				ADNPointer<ADNBasePair> bp_cell = new ADNBasePair();
 				const rapidjson::Value& left = c["left"];
 				const rapidjson::Value& right = c["right"];
-				int nt_id_left = left.GetInt();
-				int nt_id_right = right.GetInt();
+				const int nt_id_left = left.GetInt();
+				const int nt_id_right = right.GetInt();
+
 				ADNPointer<ADNNucleotide> ntLeft = nullptr;
 				if (nt_id_left > -1) {
+
 					ntLeft = nts.Get(nt_id_left).second;
-					ntLeft->SetBaseSegment(bs);
+					if (ntLeft != nullptr)
+						ntLeft->SetBaseSegment(bs);
+
 				}
+
 				ADNPointer<ADNNucleotide> ntRight = nullptr;
 				if (nt_id_right > -1) {
+
 					ntRight = nts.Get(nt_id_right).second;
-					ntRight->SetBaseSegment(bs);
+					if (ntRight != nullptr)
+						ntRight->SetBaseSegment(bs);
+
 				}
+
+				//if (!ntLeft.isValid()) {
+				//
+				//	const std::string msg = "[Adenita] Loading adn part: the left nucleotide (id=" + std::to_string(nt_id_left) + ") is NULL for right nucleotide id=" + std::to_string(nt_id_right) + ".";
+				//	std::cerr << msg << std::endl;
+				//	print_json_value(c);
+				//
+				//}
+				//if (!ntRight.isValid()) {
+				//
+				//	const std::string msg = "[Adenita] Loading adn part: the right nucleotide (id=" + std::to_string(nt_id_right) + ") is NULL for left nucleotide id=" + std::to_string(nt_id_left) + ".";
+				//	std::cerr << msg << std::endl;
+				//	print_json_value(c);
+				//
+				//}
+
 				bp_cell->AddPair(ntLeft, ntRight);
 				bs->SetCell(bp_cell());
+
 			}
-			else if (typ == CellType::SkipPair) {
+			else if (type == CellType::SkipPair) {
+
 				ADNPointer<ADNSkipPair> sk_cell = new ADNSkipPair();
 				bs->SetCell(sk_cell());
+
 			}
-			else if (typ == CellType::LoopPair) {
+			else if (type == CellType::LoopPair) {
+
 				ADNPointer<ADNLoopPair> lp_cell = new ADNLoopPair();
 
 				const rapidjson::Value& left = c["leftLoop"];
 				const rapidjson::Value& right = c["rightLoop"];
 
 				if (left.HasMember("startNt")) {
+
 					ADNPointer<ADNLoop> leftLoop = ADNPointer<ADNLoop>(new ADNLoop());
 					lp_cell->SetLeftLoop(leftLoop);
 
-					int startNtId = left["startNt"].GetInt();
-					int endNtId = left["endNt"].GetInt();
+					const int startNtId = left["startNt"].GetInt();
+					const int endNtId = left["endNt"].GetInt();
 
 					ADNPointer<ADNNucleotide> startNt = nts.Get(startNtId).second;
 					ADNPointer<ADNNucleotide> lastNt = nts.Get(endNtId).second;
-					ADNPointer<ADNSingleStrand> ss = startNt->GetStrand();
-					leftLoop->SetStart(startNt);
-					leftLoop->SetEnd(lastNt);
+					if (startNt != nullptr) {
 
-					std::string nucleotides = left["nucleotides"].GetString();
-					std::vector<int> ntVec = ADNAuxiliary::StringToVector(nucleotides);
-					for (auto& i : ntVec) {
-						ADNPointer<ADNNucleotide> nt = nts.Get(i).second;
-						leftLoop->AddNucleotide(nt);
-						nt->SetBaseSegment(bs);
+						ADNPointer<ADNSingleStrand> ss = startNt->GetStrand();
+						leftLoop->SetStart(startNt);
+						leftLoop->SetEnd(lastNt);
+
+						std::string nucleotides = left["nucleotides"].GetString();
+						std::vector<int> ntVec = ADNAuxiliary::StringToVector(nucleotides);
+						for (const auto& i : ntVec) {
+
+							ADNPointer<ADNNucleotide> nt = nts.Get(i).second;
+							if (nt != nullptr) {
+
+								leftLoop->AddNucleotide(nt);
+								nt->SetBaseSegment(bs);
+
+							}
+
+						}
+
 					}
+
 				}
 
 				if (right.HasMember("startNt")) {
+
 					ADNPointer<ADNLoop> rightLoop = ADNPointer<ADNLoop>(new ADNLoop());
 					lp_cell->SetRightLoop(rightLoop);
 
-					int startNtId = right["startNt"].GetInt();
-					int endNtId = right["endNt"].GetInt();
+					const int startNtId = right["startNt"].GetInt();
+					const int endNtId = right["endNt"].GetInt();
 
 					ADNPointer<ADNNucleotide> startNt = nts.Get(startNtId).second;
 					ADNPointer<ADNNucleotide> lastNt = nts.Get(endNtId).second;
-					ADNPointer<ADNSingleStrand> ss = startNt->GetStrand();
-					rightLoop->SetStart(startNt);
-					rightLoop->SetEnd(lastNt);
+					if (startNt != nullptr) {
 
-					std::string nucleotides = right["nucleotides"].GetString();
-					std::vector<int> ntVec = ADNAuxiliary::StringToVector(nucleotides);
-					for (auto& i : ntVec) {
-						ADNPointer<ADNNucleotide> nt = nts.Get(i).second;
-						rightLoop->AddNucleotide(nt);
-						nt->SetBaseSegment(bs);
+						ADNPointer<ADNSingleStrand> ss = startNt->GetStrand();
+						rightLoop->SetStart(startNt);
+						rightLoop->SetEnd(lastNt);
+
+						std::string nucleotides = right["nucleotides"].GetString();
+						std::vector<int> ntVec = ADNAuxiliary::StringToVector(nucleotides);
+						for (const auto& i : ntVec) {
+
+							ADNPointer<ADNNucleotide> nt = nts.Get(i).second;
+							if (nt != nullptr) {
+
+								rightLoop->AddNucleotide(nt);
+								nt->SetBaseSegment(bs);
+
+							}
+
+						}
+
 					}
+
 				}
 
 				bs->SetCell(lp_cell());
+
 			}
 
 			bss.Store(bs, std::stoi(itr2->name.GetString()));
 			nextsBs.insert(std::make_pair(std::stoi(itr2->name.GetString()), itr2->value["next"].GetInt()));
 			prevsBs.insert(std::make_pair(std::stoi(itr2->name.GetString()), itr2->value["previous"].GetInt()));
+
 		}
+
 		int bsStartId = itr->value["firstBaseSegment"].GetInt();
 		int bsEndId = itr->value["lastBaseSegment"].GetInt();
 
 		ADNPointer<ADNBaseSegment> bs = bss.Get(bsStartId).second;
 		int currId = bsStartId;
 		do {
-			int nextId = nextsBs.at(currId);
+
+			const int nextId = nextsBs.at(currId);
 			bs = bss.Get(currId).second;
 			part->RegisterBaseSegmentEnd(ds, bs);
 			currId = nextId;
+
 		} while (currId != -1);
 
 		part->RegisterDoubleStrand(ds);
+
 	}
 
 	return part;
+
 }
 
 std::vector<ADNPointer<ADNPart>> ADNLoader::LoadPartsFromJson(std::string filename) {
@@ -316,14 +392,18 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filenam
 	// check for save version
 	double versionValue = 0.0;
 	if (rapidjson::Value* version = rapidjson::Pointer("/version").Get(d)) {
+
 		versionValue = version->GetDouble();
+
 	}
 	else {
+
 		fclose(fp);
 		std::string msg = "Format is too old and can't be loaded with the current Adenita version";
 		ADNLogger::LogError(msg);
 
 		return part;
+
 	}
 
 	std::string name = d["name"].GetString();
@@ -336,6 +416,7 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filenam
 	std::map<std::pair<int, int>, ADNPointer<ADNNucleotide>> origNucleotideId;
 
 	for (rapidjson::Value::ConstMemberIterator itr = strands.MemberBegin(); itr != strands.MemberEnd(); ++itr) {
+
 		int strandId = itr->value["id"].GetInt();
 		ADNPointer<ADNSingleStrand> ss = ADNPointer<ADNSingleStrand>(new ADNSingleStrand());
 		part->RegisterSingleStrand(ss);
@@ -348,6 +429,7 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filenam
 
 		const rapidjson::Value& val_nucleotides = itr->value["nucleotides"];
 		for (rapidjson::Value::ConstMemberIterator itr2 = val_nucleotides.MemberBegin(); itr2 != val_nucleotides.MemberEnd(); ++itr2) {
+
 			ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
 			nt->Init();
 			part->RegisterNucleotideThreePrime(ss, nt);
@@ -367,19 +449,27 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filenam
 			int nucleotideId = itr2->value["id"].GetInt();
 
 			if (nucleotideId == fivePrimeId) {
+
 				nt->setEndType(ADNNucleotide::EndType::FivePrime);
 				ss->SetFivePrime(nt);
+
 			}
 			if (nucleotideId == threePrimeId) {
+
 				nt->setEndType(ADNNucleotide::EndType::ThreePrime);
 				ss->SetThreePrime(nt);
+
 			}
 
 			std::pair<int, int> key = std::make_pair(strandId, nucleotideId);
 			origNucleotideId.insert(std::make_pair(key, nt));
+
 		}
+
 		origSingleStrandId.insert(std::make_pair(strandId, ss));
+
 	}
+
 	// pair nucleotides
 	for (rapidjson::Value::ConstMemberIterator itr = strands.MemberBegin(); itr != strands.MemberEnd(); ++itr) {
 
@@ -387,6 +477,7 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filenam
 		const rapidjson::Value& val_nucleotides = itr->value["nucleotides"];
 
 		for (rapidjson::Value::ConstMemberIterator itr2 = val_nucleotides.MemberBegin(); itr2 != val_nucleotides.MemberEnd(); ++itr2) {
+
 			int curr_id = itr2->value["id"].GetInt();
 			int next_id = itr2->value["next"].GetInt();
 			int prev_id = itr2->value["prev"].GetInt();
@@ -415,14 +506,18 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filenam
 			if (origNucleotideId.find(keyPrev) != origNucleotideId.end()) {
 				prevNt = origNucleotideId.at(keyPrev);
 			}
+
 			nt->SetPair(pairNt);
+
 		}
+
 	}
 
 	rapidjson::Value& doubleStrands = d["doubleStrands"];
 	std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> origBssId;
 	std::map<int, ADNPointer<ADNDoubleStrand>> origDoubleStrandId;
 	for (rapidjson::Value::ConstMemberIterator itr = doubleStrands.MemberBegin(); itr != doubleStrands.MemberEnd(); ++itr) {
+
 		ADNPointer<ADNDoubleStrand> ds = ADNPointer<ADNDoubleStrand>(new ADNDoubleStrand());
 		part->RegisterDoubleStrand(ds);
 
@@ -434,35 +529,42 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filenam
 
 		ADNPointer<ADNBaseSegment> startBs = nullptr;
 		for (int i = 0; i < size; ++i) {
+
 			ADNPointer<ADNBaseSegment> bs = new ADNBaseSegment();
 			part->RegisterBaseSegmentEnd(ds, bs);
 			if (i == 0) {
 				startBs = bs;
 			}
+
 		}
+
 		std::pair<int, int> bsKey = std::make_pair(dsId, bsStartId);
 		origBssId.insert(std::make_pair(bsKey, startBs));
 		origDoubleStrandId.insert(std::make_pair(dsId, ds));
+
 	}
 
 	rapidjson::Value& joints = d["joints"];
 	std::map<int, ublas::vector<double>> jointPositions;
 	for (rapidjson::Value::ConstMemberIterator itr = joints.MemberBegin(); itr != joints.MemberEnd(); ++itr) {
+
 		int jId = itr->value["id"].GetInt();
 		ublas::vector<double> pos = ADNAuxiliary::StringToUblasVector(itr->value["position"].GetString());
 		jointPositions.insert(std::make_pair(jId, pos));
+
 	}
 
 	rapidjson::Value& bases = d["bases"];
 	for (rapidjson::Value::ConstMemberIterator itr = bases.MemberBegin(); itr != bases.MemberEnd(); ++itr) {
-		int doubleStrandId = itr->value["double_strand"].GetInt();
-		auto ds = origDoubleStrandId.at(doubleStrandId);
 
-		int sourceId = itr->value["source"].GetInt();
-		int targetId = itr->value["target"].GetInt();
-		auto sourcePos = jointPositions.at(sourceId);
-		auto targetPos = jointPositions.at(targetId);
-		int number = itr->value["number"].GetInt();
+		const int doubleStrandId = itr->value["double_strand"].GetInt();
+		const auto& ds = origDoubleStrandId.at(doubleStrandId);
+
+		const int sourceId = itr->value["source"].GetInt();
+		const int targetId = itr->value["target"].GetInt();
+		const auto& sourcePos = jointPositions.at(sourceId);
+		const auto& targetPos = jointPositions.at(targetId);
+		const int number = itr->value["number"].GetInt();
 
 		ADNPointer<ADNBaseSegment> bs = ds->GetNthBaseSegment(number);
 
@@ -473,10 +575,12 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filenam
 		bs->SetPosition(ADNAuxiliary::UblasVectorToSBPosition(sourcePos + targetPos) * 0.5);
 
 		if (versionValue > 0.1) {
+
 			// Load cells
 			const rapidjson::Value& c = itr->value["cell"];
-			CellType typ = CellType(c["type"].GetInt());
-			if (typ == CellType::BasePair) {
+			CellType type = CellType(c["type"].GetInt());
+			if (type == CellType::BasePair) {
+
 				ADNPointer<ADNBasePair> bp_cell = ADNPointer<ADNBasePair>(new ADNBasePair());
 
 				const rapidjson::Value& left = c["left"];
@@ -490,25 +594,32 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filenam
 				std::pair<int, int> rightKey = std::make_pair(ss_id_right, nt_id_right);
 
 				if (origNucleotideId.find(leftKey) != origNucleotideId.end()) {
-					auto nt = origNucleotideId.at(leftKey);
+
+					const auto& nt = origNucleotideId.at(leftKey);
 					bp_cell->SetLeftNucleotide(nt);
 					nt->SetBaseSegment(bs);
+
 				}
 				if (origNucleotideId.find(rightKey) != origNucleotideId.end()) {
-					auto nt = origNucleotideId.at(rightKey);
+
+					const auto& nt = origNucleotideId.at(rightKey);
 					bp_cell->SetRightNucleotide(nt);
 					nt->SetBaseSegment(bs);
+
 				}
 
 				bs->SetCell(bp_cell());
+
 			}
-			else if (typ == CellType::LoopPair) {
+			else if (type == CellType::LoopPair) {
+
 				ADNPointer<ADNLoopPair> lp_cell = ADNPointer<ADNLoopPair>(new ADNLoopPair());
 
 				const rapidjson::Value& left = c["left_loop"];
 				const rapidjson::Value& right = c["right_loop"];
 
 				if (left.HasMember("id")) {
+
 					auto leftLoop = ADNPointer<ADNLoop>(new ADNLoop());
 
 					const rapidjson::Value& startNt = left["start_nt"];
@@ -537,20 +648,26 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filenam
 
 					const rapidjson::Value& nucleotides = left["nucleotides_list"];
 					for (rapidjson::Value::ConstMemberIterator itr = nucleotides.MemberBegin(); itr != nucleotides.MemberEnd(); ++itr) {
+
 						int nt_id = itr->value["nt_id"].GetInt();
 						int ss_id = itr->value["strand_id"].GetInt();
 						std::pair<int, int> ntKey = std::make_pair(ss_id, nt_id);
 						if (origNucleotideId.find(ntKey) != origNucleotideId.end()) {
-							auto nt = origNucleotideId.at(ntKey);
+
+							const auto& nt = origNucleotideId.at(ntKey);
 							leftLoop->AddNucleotide(nt);
 							nt->SetBaseSegment(bs);
+
 						}
+
 					}
 
 					lp_cell->SetLeftLoop(leftLoop);
+
 				}
 
 				if (right.HasMember("id")) {
+
 					auto rightLoop = ADNPointer<ADNLoop>(new ADNLoop());
 
 					const rapidjson::Value& startNt = right["start_nt"];
@@ -579,48 +696,63 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filenam
 
 					const rapidjson::Value& nucleotides = right["nucleotides_list"];
 					for (rapidjson::Value::ConstMemberIterator itr = nucleotides.MemberBegin(); itr != nucleotides.MemberEnd(); ++itr) {
+
 						int nt_id = itr->value["nt_id"].GetInt();
 						int ss_id = itr->value["strand_id"].GetInt();
 						std::pair<int, int> ntKey = std::make_pair(ss_id, nt_id);
 						if (origNucleotideId.find(ntKey) != origNucleotideId.end()) {
-							auto nt = origNucleotideId.at(ntKey);
+
+							const auto& nt = origNucleotideId.at(ntKey);
 							rightLoop->AddNucleotide(nt);
 							nt->SetBaseSegment(bs);
+
 						}
+
 					}
 
 					lp_cell->SetRightLoop(rightLoop);
+
 				}
 
 				bs->SetCell(lp_cell());
+
 			}
+
 		}
 		else {
+
 			// base segment stores the nt as double strand
 			ADNPointer<ADNBasePair> bp_cell = ADNPointer<ADNBasePair>(new ADNBasePair());
 			const rapidjson::Value& val_nt = itr->value["nt"];
 			int ss_id = val_nt["strandId"].GetInt();
 			int nt_id = val_nt["ntId"].GetInt();
 			std::pair<int, int> ntKey = std::make_pair(ss_id, nt_id);
+
 			if (origNucleotideId.find(ntKey) != origNucleotideId.end()) {
-				auto nt = origNucleotideId.at(ntKey);
+
+				const auto& nt = origNucleotideId.at(ntKey);
 				auto ntPair = nt->GetPair();
 				bp_cell->SetLeftNucleotide(nt);
 				bp_cell->SetRightNucleotide(ntPair);
 				nt->SetBaseSegment(bs);
 				if (ntPair != nullptr) ntPair->SetBaseSegment(bs);
+
 			}
+
 			bs->SetCell(bp_cell());
+
 		}
+
 	}
 
 	fclose(fp);
 
 	return part;
+
 }
 
-void ADNLoader::SavePartToJson(ADNPointer<ADNPart> p, rapidjson::Writer<rapidjson::StringBuffer>& writer)
-{
+void ADNLoader::SavePartToJson(ADNPointer<ADNPart> p, rapidjson::Writer<rapidjson::StringBuffer>& writer) {
+
 	writer.Key("name");
 	writer.String(p->getName().c_str());
 
@@ -632,6 +764,7 @@ void ADNLoader::SavePartToJson(ADNPointer<ADNPart> p, rapidjson::Writer<rapidjso
 	ElementMap<ADNBaseSegment> bssMap;
 
 	SB_FOR(SBStructuralNode * p, doubleStrands) {
+
 		ADNPointer<ADNDoubleStrand> ds = static_cast<ADNDoubleStrand*>(p);
 
 		std::string key = std::to_string(ds->getNodeIndex());
@@ -651,6 +784,7 @@ void ADNLoader::SavePartToJson(ADNPointer<ADNPart> p, rapidjson::Writer<rapidjso
 		writer.Key("bases");
 		writer.StartObject();
 		SB_FOR(SBStructuralNode * pair, bases) {
+
 			ADNPointer<ADNBaseSegment> bs = static_cast<ADNBaseSegment*>(pair);
 
 			std::string key = std::to_string(bssMap.GetIndex(bs));
@@ -691,6 +825,7 @@ void ADNLoader::SavePartToJson(ADNPointer<ADNPart> p, rapidjson::Writer<rapidjso
 
 			ADNPointer<ADNCell> cell = bs->GetCell();
 			if (type == CellType::BasePair) {
+
 				ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(cell());
 
 				int idLeft = -1;
@@ -702,8 +837,10 @@ void ADNLoader::SavePartToJson(ADNPointer<ADNPart> p, rapidjson::Writer<rapidjso
 				if (bp->GetRightNucleotide() != nullptr) idRight = ntsMap.GetIndex(bp->GetRightNucleotide());
 				writer.Key("right");
 				writer.Int(idRight);
+
 			}
 			else if (type == CellType::LoopPair) {
+
 				ADNPointer<ADNLoopPair> lp = static_cast<ADNLoopPair*>(cell());
 
 				ADNPointer<ADNLoop> left = lp->GetLeftLoop();
@@ -711,6 +848,7 @@ void ADNLoader::SavePartToJson(ADNPointer<ADNPart> p, rapidjson::Writer<rapidjso
 				writer.StartObject();
 
 				if (left != nullptr) {
+
 					int startNtId = -1;
 					if (left->GetStart() != nullptr) startNtId = ntsMap.GetIndex(left->GetStart());
 					writer.Key("startNt");
@@ -725,11 +863,15 @@ void ADNLoader::SavePartToJson(ADNPointer<ADNPart> p, rapidjson::Writer<rapidjso
 					std::vector<int> ntList;
 					writer.Key("nucleotides");
 					SB_FOR(SBStructuralNode * n, nts) {
+
 						ADNPointer<ADNNucleotide> nt = static_cast<ADNNucleotide*>(n);
 						ntList.push_back(ntsMap.GetIndex(nt));
+
 					}
+
 					std::string str = ADNAuxiliary::VectorToString(ntList);
 					writer.String(str.c_str());
+
 				}
 
 				writer.EndObject();  // end left loop
@@ -739,6 +881,7 @@ void ADNLoader::SavePartToJson(ADNPointer<ADNPart> p, rapidjson::Writer<rapidjso
 				writer.StartObject();
 
 				if (right != nullptr) {
+
 					int startNtId = -1;
 					if (right->GetStart() != nullptr) startNtId = ntsMap.GetIndex(right->GetStart());
 					writer.Key("startNt");
@@ -753,22 +896,31 @@ void ADNLoader::SavePartToJson(ADNPointer<ADNPart> p, rapidjson::Writer<rapidjso
 					std::vector<int> ntList;
 					writer.Key("nucleotides");
 					SB_FOR(SBStructuralNode * n, nts) {
+
 						ADNPointer<ADNNucleotide> nt = static_cast<ADNNucleotide*>(n);
 						ntList.push_back(ntsMap.GetIndex(nt));
+
 					}
+
 					std::string strRight = ADNAuxiliary::VectorToString(ntList);
 					writer.String(strRight.c_str());
+
 				}
+
 				writer.EndObject();  // end right loop
+
 			}
 
 			writer.EndObject();  // end cell
 
 			writer.EndObject();  // end base segment
+
 		}
+
 		writer.EndObject();  // end bases
 
 		writer.EndObject();  // end of ds
+
 	}
 	writer.EndObject();  // end of double strands
 
@@ -776,6 +928,7 @@ void ADNLoader::SavePartToJson(ADNPointer<ADNPart> p, rapidjson::Writer<rapidjso
 	writer.Key("singleStrands");
 	writer.StartObject();
 	SB_FOR(SBStructuralNode * p, singleStrands) {
+
 		ADNPointer<ADNSingleStrand> ss = static_cast<ADNSingleStrand*>(p);
 
 		std::string key = std::to_string(ss->getNodeIndex());
@@ -798,6 +951,7 @@ void ADNLoader::SavePartToJson(ADNPointer<ADNPart> p, rapidjson::Writer<rapidjso
 		writer.Key("nucleotides");
 		writer.StartObject();
 		SB_FOR(SBStructuralNode * pair, nucleotides) {
+
 			ADNPointer<ADNNucleotide> nt = static_cast<ADNNucleotide*>(pair);
 
 			std::string key = std::to_string(ntsMap.GetIndex(nt));
@@ -846,12 +1000,17 @@ void ADNLoader::SavePartToJson(ADNPointer<ADNPart> p, rapidjson::Writer<rapidjso
 			writer.String(nt->getTag().c_str());
 
 			writer.EndObject();  // end nt
+
 		}
+
 		writer.EndObject();  // end nucleotides
 
 		writer.EndObject();  // end ss
+
 	}
+
 	writer.EndObject();
+
 }
 
 void ADNLoader::SaveNanorobotToJson(ADNNanorobot* nr, const std::string& filename) {
@@ -867,10 +1026,12 @@ void ADNLoader::SaveNanorobotToJson(ADNNanorobot* nr, const std::string& filenam
 	writer.Key("parts");
 	writer.StartObject();
 	SB_FOR(ADNPointer<ADNPart> p, parts) {
+
 		writer.Key(p->getName().c_str());
 		writer.StartObject();
 		SavePartToJson(p, writer);
 		writer.EndObject();  // end part
+
 	}
 
 	writer.EndObject();  // end parts
@@ -887,10 +1048,11 @@ void ADNLoader::SaveNanorobotToJson(ADNNanorobot* nr, const std::string& filenam
 	out << s.GetString();
 
 	file.close();
+
 }
 
-ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraph(SBNode* n)
-{
+ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraph(SBNode* n) {
+
 	ADNPointer<ADNPart> part = new ADNPart();
 
 	SBNodeIndexer nodes;
@@ -1360,8 +1522,8 @@ std::pair<bool, ADNPointer<ADNPart>> ADNLoader::InputFromOxDNA(const std::string
 						e1[2] = e1z;
 						ublas::vector<double> e3 = ADNVectorMath::CrossProduct(e1, e2);
 
-						auto w = oxDNAIndices.at(lineCount - 3);
-						auto nt = w.elem_;
+						const auto& w = oxDNAIndices.at(lineCount - 3);
+						const auto& nt = w.elem_;
 						nt->SetPosition(pos);
 						nt->SetE2(e2);
 						nt->SetE1(e1);
@@ -1396,10 +1558,10 @@ std::pair<bool, ADNPointer<ADNPart>> ADNLoader::InputFromOxDNA(const std::string
 
 }
 
-void ADNLoader::OutputToCanDo(ADNNanorobot* nanorobot, const std::string& filename)
-{
+void ADNLoader::OutputToCanDo(ADNNanorobot* nanorobot, const std::string& filename) {
+
 	std::ofstream file(filename);
-	std::string header = "\"CanDo (.cndo) file format version 1.0, Keyao Pan, Laboratory for Computational Biology "
+	const std::string header = "\"CanDo (.cndo) file format version 1.0, Keyao Pan, Laboratory for Computational Biology "
 		"and Biophysics, Massachusetts Institute of Technology, November 2015\"";
 	file << header << std::endl;
 
@@ -1408,16 +1570,21 @@ void ADNLoader::OutputToCanDo(ADNNanorobot* nanorobot, const std::string& filena
 	auto singleStrands = nanorobot->GetSingleStrands();
 	int ntId = 1;
 	SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
+
 		auto nt = ss->GetFivePrime();
 		while (nt != nullptr) {
+
 			nucleotidesId.insert(std::make_pair(nt(), ntId));
 			++ntId;
+
 		}
+
 	}
 
 	std::string line = "dnaTop,id,up,down,across,seq";
 	file << line << std::endl;
-	for (auto& p : nucleotidesId) {
+	for (const auto& p : nucleotidesId) {
+
 		int idx = p.second;
 		ADNNucleotide* nt = p.first;
 		ADNNucleotide* prevNt = nt->GetPrev(true)();
@@ -1432,6 +1599,7 @@ void ADNLoader::OutputToCanDo(ADNNanorobot* nanorobot, const std::string& filena
 
 		std::string line = std::to_string(idx) + "," + std::to_string(prevIdx) + "," + std::to_string(nextIdx) + "," + std::to_string(pairIdx) + nt->getNucleotideTypeString();
 		file << line << std::endl;
+
 	}
 	file << line << std::endl;
 
@@ -1444,8 +1612,10 @@ void ADNLoader::OutputToCanDo(ADNNanorobot* nanorobot, const std::string& filena
 	std::vector<std::string> basePairs;
 	int bsId = 1;
 	SB_FOR(ADNPointer<ADNPart> part, parts) {
+
 		auto baseSegments = part->GetBaseSegments();
 		SB_FOR(ADNPointer<ADNBaseSegment> bs, baseSegments) {
+
 			auto pos = bs->GetPosition();
 			std::string line = std::to_string(bsId) + "," + std::to_string(pos[0].getValue() / 1000) + "," + std::to_string(pos[1].getValue() / 1000) + "," + std::to_string(pos[2].getValue() / 1000);
 			file << line << std::endl;
@@ -1460,34 +1630,40 @@ void ADNLoader::OutputToCanDo(ADNNanorobot* nanorobot, const std::string& filena
 
 			auto cell = bs->GetCell();
 			if (bs->GetCellType() == CellType::BasePair) {
+
 				ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(cell());
 				int id1 = nucleotidesId[bp->GetLeftNucleotide()()];
 				int id2 = nucleotidesId[bp->GetRightNucleotide()()];
 				std::string s = std::to_string(bsId) + "," + std::to_string(id1) + "," + std::to_string(id2);
 				file << s << std::endl;
+
 			}
+
 			++bsId;
+
 		}
+
 	}
 	file << std::endl;
 
 	line = "triad,\"e1(1)\",\"e1(2)\",\"e1(3)\",\"e2(1)\",\"e2(2)\",\"e2(3)\",\"e3(1)\",\"e3(2)\",\"e3(3)\"";
 	file << line << std::endl;
-	for (auto s : triads) {
+	for (const auto& s : triads) {
 		file << s << std::endl;
 	}
 
 	line = "id_nt,id1,id2";
 	file << line << std::endl;
-	for (auto bp : basePairs) {
+	for (const auto& bp : basePairs) {
 		file << bp << std::endl;
 	}
+
 }
 
-void ADNLoader::OutputToCanDo(ADNPointer<ADNPart> part, const std::string& filename)
-{
+void ADNLoader::OutputToCanDo(ADNPointer<ADNPart> part, const std::string& filename) {
+
 	std::ofstream file(filename);
-	std::string header = "\"CanDo (.cndo) file format version 1.0, Keyao Pan, Laboratory for Computational Biology "
+	const std::string header = "\"CanDo (.cndo) file format version 1.0, Keyao Pan, Laboratory for Computational Biology "
 		"and Biophysics, Massachusetts Institute of Technology, November 2015\"";
 	file << header << std::endl;
 
@@ -1496,17 +1672,22 @@ void ADNLoader::OutputToCanDo(ADNPointer<ADNPart> part, const std::string& filen
 	auto singleStrands = part->GetSingleStrands();
 	int ntId = 1;
 	SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
+
 		auto nt = ss->GetFivePrime();
 		while (nt != nullptr) {
+
 			nucleotidesId.insert(std::make_pair(nt(), ntId));
 			++ntId;
 			nt = nt->GetNext();
+
 		}
+
 	}
 
 	std::string line = "dnaTop,id,up,down,across,seq";
 	file << line << std::endl;
-	for (auto& p : nucleotidesId) {
+	for (const auto& p : nucleotidesId) {
+
 		int idx = p.second;
 		ADNNucleotide* nt = p.first;
 		ADNNucleotide* prevNt = nt->GetPrev(true)();
@@ -1521,6 +1702,7 @@ void ADNLoader::OutputToCanDo(ADNPointer<ADNPart> part, const std::string& filen
 
 		std::string line = std::to_string(idx) + "," + std::to_string(prevIdx) + "," + std::to_string(nextIdx) + "," + std::to_string(pairIdx) + nt->getNucleotideTypeString();
 		file << line << std::endl;
+
 	}
 	file << line << std::endl;
 
@@ -1531,6 +1713,7 @@ void ADNLoader::OutputToCanDo(ADNPointer<ADNPart> part, const std::string& filen
 	std::vector<std::string> basePairs;
 	int bsId = 1;
 	SB_FOR(ADNPointer<ADNBaseSegment> bs, baseSegments) {
+
 		auto pos = bs->GetPosition();
 		std::string line = std::to_string(bsId) + "," + std::to_string(pos[0].getValue() / 1000) + "," + std::to_string(pos[1].getValue() / 1000) + "," + std::to_string(pos[2].getValue() / 1000);
 		file << line << std::endl;
@@ -1546,27 +1729,32 @@ void ADNLoader::OutputToCanDo(ADNPointer<ADNPart> part, const std::string& filen
 
 		auto cell = bs->GetCell();
 		if (bs->GetCellType() == CellType::BasePair) {
+
 			ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(cell());
 			int id1 = nucleotidesId[bp->GetLeftNucleotide()()];
 			int id2 = nucleotidesId[bp->GetRightNucleotide()()];
 			std::string s = std::to_string(bsId) + "," + std::to_string(id1) + "," + std::to_string(id2);
 			file << s << std::endl;
+
 		}
+
 		++bsId;
+
 	}
 	file << std::endl;
 
 	line = "triad,\"e1(1)\",\"e1(2)\",\"e1(3)\",\"e2(1)\",\"e2(2)\",\"e2(3)\",\"e3(1)\",\"e3(2)\",\"e3(3)\"";
 	file << line << std::endl;
-	for (auto s : triads) {
+	for (const auto& s : triads) {
 		file << s << std::endl;
 	}
 
 	line = "id_nt,id1,id2";
 	file << line << std::endl;
-	for (auto bp : basePairs) {
+	for (const auto& bp : basePairs) {
 		file << bp << std::endl;
 	}
+
 }
 
 void ADNLoader::BuildTopScalesParametrized(ADNPointer<ADNPart> part, const SBQuantity::length& maxCutOff, const SBQuantity::length& minCutOff, double maxAngle)

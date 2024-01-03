@@ -68,34 +68,48 @@ namespace ADNLoader {
 	public:
 
 		std::pair<bool, ADNPointer<T>> Get(int idx) const {
+
 			ADNPointer<T> nt = nullptr;
 			bool success = false;
 			if (ids_.find(idx) != ids_.end()) {
+
 				nt = ids_.at(idx).elem_;
 				success = true;
+
 			}
 			return std::make_pair(success, nt);
+
 		};
 
 		int GetIndex(ADNPointer<T> nt, int sId = -1) {
+
 			int idx = -1;
 			if (pointers_.find(nt()) != pointers_.end()) {
+
 				Wrap<T> w = pointers_.at(nt());
 				idx = w.id_;
+
 			}
 			else {
+
 				idx = Insert(nt, sId);
+
 			}
+
 			return idx;
+
 		};
 
 		int Store(ADNPointer<T> elem, int id = -1, int sId = -1) {
+
 			return Insert(elem, sId, id);
+
 		}
 
 	private:
 
 		int Insert(ADNPointer<T> nt, int sId, int id = -1) {
+
 			auto key = GetNextKey();
 			if (id != -1) key = id;
 			Wrap<T> w;
@@ -105,12 +119,15 @@ namespace ADNLoader {
 			ids_[key] = w;
 			pointers_.insert(std::make_pair(nt(), w));
 			return key;
+
 		};
 
 		int GetNextKey() const {
+
 			int lkey = 0;
 			if (!ids_.empty()) lkey = ids_.rbegin()->first + 1;
 			return lkey;
+
 		};
 
 		std::map<int, Wrap<T>> ids_;

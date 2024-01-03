@@ -10,6 +10,7 @@
 ADNNucleotide::ADNNucleotide(const ADNNucleotide& other) : PositionableSB(other), SBResidue(other), Orientable(other) {
 
     *this = other;
+    pairNucleotide = nullptr;
 
 }
 

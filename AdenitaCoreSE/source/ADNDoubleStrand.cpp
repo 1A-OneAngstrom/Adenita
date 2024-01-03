@@ -44,8 +44,8 @@ void ADNDoubleStrand::unserialize(SBCSerializer* serializer, const SBNodeIndexer
     setCircularFlag(serializer->readBoolElement());
     SetInitialTwistAngle(serializer->readDoubleElement());
 
-    unsigned int sIdx = serializer->readUnsignedIntElement();
-    unsigned int eIdx = serializer->readUnsignedIntElement();
+    const unsigned int sIdx = serializer->readUnsignedIntElement();
+    const unsigned int eIdx = serializer->readUnsignedIntElement();
     SBNode* sNode = nodeIndexer.getNode(sIdx);
     SBNode* eNode = nodeIndexer.getNode(eIdx);
     if (sNode) startBaseSegment = static_cast<ADNBaseSegment*>(sNode);
@@ -53,7 +53,7 @@ void ADNDoubleStrand::unserialize(SBCSerializer* serializer, const SBNodeIndexer
 
 }
 
-ADNPointer<ADNPart> ADNDoubleStrand::GetPart() {
+ADNPointer<ADNPart> ADNDoubleStrand::GetPart() const {
 
     // the ADNPart is a structural model
     SBNode* model = getModel();
@@ -122,7 +122,7 @@ CollectionMap<ADNBaseSegment> ADNDoubleStrand::GetBaseSegments() const {
 
 }
 
-ADNPointer<ADNBaseSegment> ADNDoubleStrand::GetNthBaseSegment(int n) {
+ADNPointer<ADNBaseSegment> ADNDoubleStrand::GetNthBaseSegment(int n) const {
 
     ADNPointer<ADNBaseSegment> bs = startBaseSegment;
 

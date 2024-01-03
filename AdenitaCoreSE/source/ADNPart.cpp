@@ -97,6 +97,7 @@ void ADNPart::serialize(SBCSerializer * serializer, const SBNodeIndexer & nodeIn
     }
     serializer->writeEndElement();
     //end double strands
+
 }
 
 void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & nodeIndexer, const SBVersionNumber & sdkVersionNumber, const SBVersionNumber & classVersionNumber) {
@@ -184,7 +185,7 @@ void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & node
 
 }
 
-CollectionMap<ADNBaseSegment> ADNPart::GetBaseSegments(CellType celltype) const {
+CollectionMap<ADNBaseSegment> ADNPart::GetBaseSegments(CellType cellType) const {
 
 #if 0//ADENITA_ADNPART_REGISTER_BASESEGMENTS
     auto baseSegmentIndexer = baseSegmentsIndex_;
@@ -198,7 +199,7 @@ CollectionMap<ADNBaseSegment> ADNPart::GetBaseSegments(CellType celltype) const 
 #endif
 
     CollectionMap<ADNBaseSegment> bsList;
-    if (celltype == CellType::ALL) {
+    if (cellType == CellType::ALL) {
 
         bsList = baseSegmentIndexer;
 
@@ -207,7 +208,7 @@ CollectionMap<ADNBaseSegment> ADNPart::GetBaseSegments(CellType celltype) const 
 
         SB_FOR(ADNPointer<ADNBaseSegment> bs, baseSegmentIndexer) {
 
-            if (bs->GetCellType() == celltype)
+            if (bs->GetCellType() == cellType)
                 bsList.addReferenceTarget(bs());
 
         }

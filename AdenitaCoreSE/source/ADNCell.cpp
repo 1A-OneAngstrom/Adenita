@@ -16,21 +16,13 @@ void ADNCell::unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIn
 
 std::string ADNCell::getCellTypeString(CellType type) {
 
-    std::string typeStr = "Unknown";
-    if (type == CellType::BasePair) {
-        typeStr = "Base Pair";
+    switch (type) {
+    case CellType::BasePair: return "Base Pair";
+    case CellType::LoopPair: return "Loop Pair";
+    case CellType::SkipPair: return "Skip Pair";
+    case CellType::ALL: return "All";
+    default: return "Unknown";
     }
-    else if (type == CellType::LoopPair) {
-        typeStr = "Loop Pair";
-    }
-    else if (type == CellType::SkipPair) {
-        typeStr = "Skip Pair";
-    }
-    else if (type == CellType::ALL) {
-        typeStr = "All";
-    }
-
-    return typeStr;
 
 }
 
@@ -96,6 +88,7 @@ void ADNBasePair::SetRemainingNucleotide(ADNPointer<ADNNucleotide> nt) {
     else if (leftNucleotide == nullptr && rightNucleotide != nullptr) {
         SetLeftNucleotide(nt);
     }
+
     PairNucleotides();
 
 }
@@ -105,7 +98,7 @@ void ADNBasePair::AddPair(ADNPointer<ADNNucleotide> left, ADNPointer<ADNNucleoti
     SetLeftNucleotide(left);
     SetRightNucleotide(right);
     if (left != nullptr) left->SetPair(right);
-    if (rightNucleotide != nullptr) right->SetPair(left);
+    if (right != nullptr) right->SetPair(left);
 
 }
 
@@ -122,12 +115,10 @@ void ADNBasePair::PairNucleotides() {
 
 void ADNBasePair::RemoveNucleotide(ADNPointer<ADNNucleotide> nt) {
 
-    if (leftNucleotide == nt) {
+    if (leftNucleotide == nt)
         leftNucleotide = nullptr;
-    }
-    else if (rightNucleotide == nt) {
+    else if (rightNucleotide == nt)
         rightNucleotide = nullptr;
-    }
 
 }
 
@@ -152,7 +143,6 @@ bool ADNBasePair::IsRight(ADNPointer<ADNNucleotide> nt) const {
 
 }
 
-
 void ADNSkipPair::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber, const SBVersionNumber& classVersionNumber) const {
     ADNCell::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 }
@@ -163,7 +153,6 @@ void ADNSkipPair::unserialize(SBCSerializer* serializer, const SBNodeIndexer& no
 
 void ADNSkipPair::RemoveNucleotide(ADNPointer<ADNNucleotide> nt) {
 }
-
 
 void ADNLoopPair::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber, const SBVersionNumber& classVersionNumber) const {
 
@@ -221,12 +210,11 @@ void ADNLoopPair::SetRightLoop(ADNPointer<ADNLoop> lp) {
 
 void ADNLoopPair::RemoveNucleotide(ADNPointer<ADNNucleotide> nt) {
 
-    if (leftLoop != nullptr) {
+    if (leftLoop != nullptr)
         leftLoop->RemoveNucleotide(nt);
-    }
-    if (rightLoop != nullptr) {
+
+    if (rightLoop != nullptr)
         rightLoop->RemoveNucleotide(nt);
-    }
 
 }
 
