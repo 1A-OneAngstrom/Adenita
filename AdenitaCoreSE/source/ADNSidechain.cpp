@@ -45,13 +45,13 @@ void ADNSidechain::unserialize(SBCSerializer* serializer, const SBNodeIndexer& n
 
 }
 
-bool ADNSidechain::AddAtom(ADNPointer<ADNAtom> atom) {
+bool ADNSidechain::addAtom(ADNPointer<ADNAtom> atom) {
 
     return addChild(atom());
 
 }
 
-bool ADNSidechain::DeleteAtom(ADNPointer<ADNAtom> atom) {
+bool ADNSidechain::deleteAtom(ADNPointer<ADNAtom> atom) {
 
     return removeChild(atom());
 

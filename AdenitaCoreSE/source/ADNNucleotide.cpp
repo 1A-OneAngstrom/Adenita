@@ -242,35 +242,35 @@ void ADNNucleotide::SetBaseSegment(ADNPointer<ADNBaseSegment> bs) {
 
 }
 
-void ADNNucleotide::AddAtom(NucleotideGroup g, ADNPointer<ADNAtom> a) {
+void ADNNucleotide::addAtom(NucleotideGroup g, ADNPointer<ADNAtom> a) {
 
     if (g == SBNode::Type::Backbone) {
 
         ADNPointer<ADNBackbone> bb = GetBackbone();
-        if (bb != nullptr) bb->AddAtom(a);
+        if (bb != nullptr) bb->addAtom(a);
 
     }
     else if (g == SBNode::Type::SideChain) {
 
         ADNPointer<ADNSidechain> sc = GetSidechain();
-        if (sc != nullptr) sc->AddAtom(a);
+        if (sc != nullptr) sc->addAtom(a);
 
     }
 
 }
 
-void ADNNucleotide::DeleteAtom(NucleotideGroup g, ADNPointer<ADNAtom> a) {
+void ADNNucleotide::deleteAtom(NucleotideGroup g, ADNPointer<ADNAtom> a) {
 
     if (g == SBNode::Type::Backbone) {
 
         ADNPointer<ADNBackbone> bb = GetBackbone();
-        if (bb != nullptr) bb->DeleteAtom(a);
+        if (bb != nullptr) bb->deleteAtom(a);
 
     }
     else if (g == SBNode::Type::SideChain) {
 
         ADNPointer<ADNSidechain> sc = GetSidechain();
-        if (sc != nullptr) sc->DeleteAtom(a);
+        if (sc != nullptr) sc->deleteAtom(a);
 
     }
 

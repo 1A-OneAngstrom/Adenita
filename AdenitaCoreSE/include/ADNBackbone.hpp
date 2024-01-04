@@ -21,8 +21,8 @@ public:
 	virtual void												serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const override;		///< Serializes the node
 	virtual void												unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;			///< Unserializes the node
 
-	bool														AddAtom(ADNPointer<ADNAtom> atom);
-	bool														DeleteAtom(ADNPointer<ADNAtom> atom);
+	bool														addAtom(ADNPointer<ADNAtom> atom);
+	bool														deleteAtom(ADNPointer<ADNAtom> atom);
 	CollectionMap<ADNAtom>										GetAtoms() const;
 	int															getNumberOfAtoms() const;
 

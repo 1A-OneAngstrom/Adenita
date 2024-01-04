@@ -43,13 +43,13 @@ void ADNBackbone::unserialize(SBCSerializer* serializer, const SBNodeIndexer& no
 
 }
 
-bool ADNBackbone::AddAtom(ADNPointer<ADNAtom> atom) {
+bool ADNBackbone::addAtom(ADNPointer<ADNAtom> atom) {
 
     return addChild(atom());
 
 }
 
-bool ADNBackbone::DeleteAtom(ADNPointer<ADNAtom> atom) {
+bool ADNBackbone::deleteAtom(ADNPointer<ADNAtom> atom) {
 
     return removeChild(atom());
 

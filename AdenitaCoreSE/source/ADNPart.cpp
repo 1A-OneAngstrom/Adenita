@@ -597,7 +597,7 @@ void ADNPart::RegisterAtom(ADNPointer<ADNNucleotide> nt, NucleotideGroup g, ADNP
     if (nt.isValid()) {
 
         if (at->getNucleotide() != nt())
-            nt->AddAtom(g, at);
+            nt->addAtom(g, at);
 
     }
 
