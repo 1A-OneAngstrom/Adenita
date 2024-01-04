@@ -1,5 +1,5 @@
 #include "ADNPart.hpp"
-//#include "SEAdenitaVisualModel.hpp"
+#include "SEAdenitaCoreSEApp.hpp"
 
 ADNPart::ADNPart() : SBStructuralModel() {
     
@@ -150,7 +150,7 @@ void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & node
     serializer->readEndElement();
 
     // base segments
-    unsigned int numBaseSegments = serializer->readUnsignedIntElement();
+    const unsigned int numBaseSegments = serializer->readUnsignedIntElement();
     serializer->readStartElement();
     for (unsigned int i = 0; i < numBaseSegments; ++i) {
 
@@ -165,7 +165,7 @@ void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & node
     serializer->readEndElement();
 
     // double strands
-    unsigned int numDoubleStrands = serializer->readUnsignedIntElement();
+    const unsigned int numDoubleStrands = serializer->readUnsignedIntElement();
     serializer->readStartElement();
     for (unsigned int i = 0; i < numDoubleStrands; ++i) {
 
@@ -181,7 +181,14 @@ void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & node
 
     setLoadedViaSAMSON(true);
 
-    //SEAdenitaVisualModel::requestVisualModelUpdate();
+    // does not fully work: the VM is created but is not visible - needs a request for update after all the nodes were created
+    //if (this->getParent()) {
+    //
+    //    SEAdenitaCoreSEApp::resetVisualModel(this->getParent());
+    //    SAMSON::requestViewportUpdate();
+    //    SAMSON::getActiveCamera()->center();
+    //
+    //}
 
 }
 

@@ -278,10 +278,7 @@ void SEAdenitaCoreSEApp::requestVisualModelUpdate() {
 	}
 	else {
 
-		SEAdenitaVisualModel* newVisualModel = new SEAdenitaVisualModel();
-		if (SAMSON::isHolding()) SAMSON::hold(newVisualModel);
-		newVisualModel->create();
-		SAMSON::getActiveDocument()->addChild(newVisualModel);
+		SEAdenitaCoreSEApp::addVisualModel(SAMSON::getActiveDocument());
 
 		ADNLogger::LogDebug(std::string("Adding visual model"));
 
@@ -291,9 +288,15 @@ void SEAdenitaCoreSEApp::requestVisualModelUpdate() {
 
 void SEAdenitaCoreSEApp::resetVisualModel() {
 
-	//create visual model per nanorobot
+	SEAdenitaCoreSEApp::resetVisualModel(SAMSON::getActiveDocument());
 
-	SEAdenitaVisualModel* adenitaVisualModel = SEAdenitaCoreSEApp::getVisualModel();
+}
+
+void SEAdenitaCoreSEApp::resetVisualModel(SBNode* parent) {
+
+	// create visual model per nanorobot
+
+	SEAdenitaVisualModel* adenitaVisualModel = SEAdenitaCoreSEApp::getVisualModel(parent);
 
 	if (adenitaVisualModel) {
 
@@ -303,10 +306,7 @@ void SEAdenitaCoreSEApp::resetVisualModel() {
 	}
 	else {
 
-		SEAdenitaVisualModel* newVisualModel = new SEAdenitaVisualModel();
-		if (SAMSON::isHolding()) SAMSON::hold(newVisualModel);
-		newVisualModel->create();
-		SAMSON::getActiveDocument()->addChild(newVisualModel);
+		bool ret = SEAdenitaCoreSEApp::addVisualModel(parent);
 
 	}
 
@@ -314,19 +314,47 @@ void SEAdenitaCoreSEApp::resetVisualModel() {
 
 }
 
+bool SEAdenitaCoreSEApp::addVisualModel(SBNode* parent) {
+
+	if (parent) {
+
+		SEAdenitaVisualModel* newVisualModel = new SEAdenitaVisualModel();
+		
+		if (SAMSON::isHolding())
+			SAMSON::hold(newVisualModel);
+
+		if (parent->isCreated())
+			newVisualModel->create();
+		
+		bool ret = parent->addChild(newVisualModel);
+		return ret;
+
+	}
+
+	return false;
+
+}
+
 SEAdenitaVisualModel* SEAdenitaCoreSEApp::getVisualModel() {
 
+	return SEAdenitaCoreSEApp::getVisualModel(SAMSON::getActiveDocument());
+
+}
+
+SEAdenitaVisualModel* SEAdenitaCoreSEApp::getVisualModel(SBNode* parent) {
+
+	if (!parent) return nullptr;
+
 	SBNodeIndexer nodeIndexer;
-	SAMSON::getActiveDocument()->getNodes(nodeIndexer, SBNode::VisualModel);
+	parent->getNodes(nodeIndexer, SBNode::VisualModel);
   
-	SBVisualModel* visualModel = nullptr;
 	SEAdenitaVisualModel* adenitaVisualModel = nullptr;
 
 	SB_FOR(SBNode* node, nodeIndexer) {
 
 		if (node->getType() == SBNode::VisualModel) {
 
-			visualModel = static_cast<SBVisualModel*>(node);
+			SBVisualModel* visualModel = static_cast<SBVisualModel*>(node);
 			
 			if (visualModel->getProxy()->getName() == "SEAdenitaVisualModel" && visualModel->getProxy()->getElementUUID() == SBUUID(SB_ELEMENT_UUID)) {
 

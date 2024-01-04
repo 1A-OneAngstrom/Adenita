@@ -75,8 +75,6 @@ public:
     const SBIAPosition3&                                        GetBoundingBox() const;
     void                                                        ResetBoundingBox();
 
-protected:
-
 private:
 
     // inside these pointers ids are unique
