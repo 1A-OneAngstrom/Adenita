@@ -5,6 +5,8 @@
 #include "SBDocumentEvent.hpp"
 #include "SBStructuralEvent.hpp"
 
+#include "SBGRenderOpenGLFunctions.hpp"
+
 #include "ADNArray.hpp"
 #include "ADNMixins.hpp"
 #include "ADNPart.hpp"
@@ -162,9 +164,7 @@ public:
 	/// \name Display
 	//@{
 
-	virtual void												display() override;														///< Displays the visual model
-	virtual void												displayForShadow() override;											///< Displays the visual model for shadow purposes
-	virtual void												displayForSelection() override;											///< Displays the visual model for selection purposes
+	virtual void												display(SBNode::RenderingPass renderingPass) override;					///< Displays the visual model
 
 	virtual void												highlightNucleotides();
 
@@ -201,9 +201,9 @@ private:
 
 	void														setupPropertyColors();
 	ADNArray<float>												calcPropertyColor(int colorSchemeIdx, float min, float max, float val);
-	void														displayBasePairConnections(bool onlySelected);
-	void														displayForDebugging();
-	void														displayCircularDNAConnection();
+	void														displayBasePairConnections(SBNode::RenderingPass renderingPass, bool onlySelected);
+	void														displayForDebugging(SBNode::RenderingPass renderingPass);
+	void														displayCircularDNAConnection(SBNode::RenderingPass renderingPass);
 	void														displayTags();
 
 	void														prepareAtoms();
@@ -220,7 +220,7 @@ private:
 
 	void														prepareDimensions();
 
-	void														displayTransition(bool forSelection); 
+	void														displayTransition(SBNode::RenderingPass renderingPass);
 
 	void														prepareSticksToBalls(double iv);
 	void														prepareBallsToNucleotides(double iv);
@@ -247,6 +247,8 @@ private:
 	ADNNanorobot*												nanorobot_{ nullptr };
 
 	bool														isUpdateRequested = true;
+	
+	static SB_OPENGL_FUNCTIONS*									gl;
 
 	/// \name Transitional scale
 	//@{

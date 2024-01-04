@@ -3,10 +3,10 @@
 #include "ADNPart.hpp"
 #include "DASPolyhedron.hpp"
 
-void ADNDisplayHelper::displayLine(SBPosition3 start, SBPosition3 end, std::string text) {
+void ADNDisplayHelper::displayLine(const SBPosition3& start, const SBPosition3& end, const std::string& text) {
 
-    unsigned int nLines = 1;
-    unsigned int nPositions = 2;
+    const unsigned int nLines = 1;
+    const unsigned int nPositions = 2;
     unsigned int* indexData = new unsigned int[2 * nLines];
     float* positionData = new float[3 * nPositions];
     unsigned int* capData = new unsigned int[2 * nLines];
@@ -43,19 +43,19 @@ void ADNDisplayHelper::displayLine(SBPosition3 start, SBPosition3 end, std::stri
     displayLengthText(start, end, text);
 
     delete[] indexData;
+    delete[] positionData;
     delete[] capData;
     delete[] colorData;
     delete[] flagData;
-    delete[] positionData;
 
 }
 
-void ADNDisplayHelper::displayCylinder(SBPosition3 start, SBPosition3 end, std::string text /*= ""*/) {
+void ADNDisplayHelper::displayCylinder(const SBPosition3& start, const SBPosition3& end, const std::string& text /*= ""*/) {
 
-    SEConfig& config = SEConfig::GetInstance();
+    const SEConfig& config = SEConfig::GetInstance();
 
-    unsigned int nCylinders = 1;
-    unsigned int nPositions = 2 * nCylinders;
+    const unsigned int nCylinders = 1;
+    const unsigned int nPositions = 2 * nCylinders;
     unsigned int* indexData = new unsigned int[2 * nCylinders];
     float* positionData = new float[3 * nPositions];
     float* radiusData = new float[2 * nCylinders];
@@ -95,11 +95,11 @@ void ADNDisplayHelper::displayCylinder(SBPosition3 start, SBPosition3 end, std::
     SAMSON::displayCylinders(nCylinders, nPositions, indexData, positionData, radiusData, capData, colorData, flagData);
 
     delete[] indexData;
+    delete[] positionData;
     delete[] radiusData;
     delete[] capData;
     delete[] colorData;
     delete[] flagData;
-    delete[] positionData;
 
 
 }
@@ -117,7 +117,7 @@ void ADNDisplayHelper::displayLine(ublas::vector<double> center, ublas::vector<d
 
 }
 
-void ADNDisplayHelper::displayLengthText(SBPosition3 start, SBPosition3 end, std::string text) {
+void ADNDisplayHelper::displayLengthText(const SBPosition3& start, const SBPosition3& end, std::string text) {
 
     const SBPosition3 center = 0.5 * (start + end);
     if (text == "") {
@@ -126,7 +126,7 @@ void ADNDisplayHelper::displayLengthText(SBPosition3 start, SBPosition3 end, std
 
         std::stringstream stream;
         stream << std::fixed << std::setprecision(2) << length;
-        std::string text = stream.str() + " nm";
+        text = stream.str() + " nm";
 
     }
 
@@ -137,10 +137,10 @@ void ADNDisplayHelper::displayLengthText(SBPosition3 start, SBPosition3 end, std
 
 }
 
-void ADNDisplayHelper::displayDirectedCylinder(SBPosition3 start, SBPosition3 end) {
+void ADNDisplayHelper::displayDirectedCylinder(const SBPosition3& start, const SBPosition3& end) {
 
-    unsigned int nCylinders = 1;
-    unsigned int nPositions = 2 * nCylinders;
+    const unsigned int nCylinders = 1;
+    const unsigned int nPositions = 2 * nCylinders;
     unsigned int* indexData = new unsigned int[2 * nCylinders];
     float* positionData = new float[3 * nPositions];
     float* radiusData = new float[2 * nCylinders];
@@ -180,18 +180,18 @@ void ADNDisplayHelper::displayDirectedCylinder(SBPosition3 start, SBPosition3 en
     SAMSON::displayCylinders(nCylinders, nPositions, indexData, positionData, radiusData, capData, colorData, flagData);
 
     delete[] indexData;
+    delete[] positionData;
     delete[] radiusData;
     delete[] capData;
     delete[] colorData;
     delete[] flagData;
-    delete[] positionData;
 
 }
 
 void ADNDisplayHelper::displayDirectedCylinder(float* start, float* end, float* color, int radius) {
 
-    unsigned int nCylinders = 1;
-    unsigned int nPositions = 2 * nCylinders;
+    const unsigned int nCylinders = 1;
+    const unsigned int nPositions = 2 * nCylinders;
     unsigned int* indexData = new unsigned int[2 * nCylinders];
     float* positionData = new float[3 * nPositions];
     float* radiusData = new float[2 * nCylinders];
@@ -231,6 +231,7 @@ void ADNDisplayHelper::displayDirectedCylinder(float* start, float* end, float* 
     SAMSON::displayCylinders(nCylinders, nPositions, indexData, positionData, radiusData, capData, colorData, flagData);
 
     delete[] indexData;
+    delete[] positionData;
     delete[] radiusData;
     delete[] capData;
     delete[] colorData;
@@ -238,7 +239,7 @@ void ADNDisplayHelper::displayDirectedCylinder(float* start, float* end, float* 
 
 }
 
-void ADNDisplayHelper::displayDirectedCylinder(SBPosition3 start, SBPosition3 end, float* color, int radius) {
+void ADNDisplayHelper::displayDirectedCylinder(const SBPosition3& start, const SBPosition3& end, float* color, int radius) {
 
     float* fStart = new float[3];
     float* fEnd = new float[3];
@@ -258,7 +259,7 @@ void ADNDisplayHelper::displayDirectedCylinder(SBPosition3 start, SBPosition3 en
 
 }
 
-void ADNDisplayHelper::displayPlane(SBVector3 vec, SBPosition3 shift) {
+void ADNDisplayHelper::displayPlane(/*const SBVector3& vec, const SBPosition3& shift*/) {
 
     //unsigned int nTriangles = 2;
     //unsigned int nVertices = 4;
@@ -345,8 +346,8 @@ void ADNDisplayHelper::displayPlane(SBVector3 vec, SBPosition3 shift) {
     //  flagData
     //  );
 
-    unsigned int nTriangles = 20;
-    unsigned int nVertices = 12;
+    const unsigned int nTriangles = 20;
+    const unsigned int nVertices = 12;
 
     unsigned int indexData[] = {
       2, 1, 0,
@@ -442,8 +443,11 @@ void ADNDisplayHelper::displayPlane(SBVector3 vec, SBPosition3 shift) {
         flagData
     );
 
-}
+    delete[] colorData;
+    delete[] flagData;
+    delete[] normalData;
 
+}
 
 //void ADNDisplayHelper::displayTriangleMesh(ANTPolyhedron * p)
 //{
@@ -575,16 +579,16 @@ void ADNDisplayHelper::displayPlane(SBVector3 vec, SBPosition3 shift) {
 //    flagData.GetArray());
 //}
 
-void ADNDisplayHelper::displayOrthoPlane(SBVector3 vec, SBPosition3 shift) {
+void ADNDisplayHelper::displayOrthoPlane(const SBVector3& vec, const SBPosition3& shift) {
 
-    unsigned int nTriangles = 4;
-    unsigned int nVertices = 7;
+    const unsigned int nTriangles = 4;
+    const unsigned int nVertices = 7;
 
     unsigned int indexData[] = {
-      0,1,2,
-      2,3,0,
-      2,4,5,
-      5,6,2
+      0, 1, 2,
+      2, 3, 0,
+      2, 4, 5,
+      5, 6, 2
     };
 
     float vertexPositions[] = {
@@ -592,20 +596,22 @@ void ADNDisplayHelper::displayOrthoPlane(SBVector3 vec, SBPosition3 shift) {
       0, 200,
       100, 200,
       100, 0,
-      100,200,
-      200,200,
-      200,100
+      100, 200,
+      200, 200,
+      200, 100
     };
 
     unsigned int flagData[] = { 0,0,0,0,0,0,0 };
 
-    float* colorData = new float[4 * nVertices];
+    float* colorData = new float[4 * nVertices]();
 
     for (unsigned int i = 0; i < 4 * nVertices; i++) {
+
         colorData[i] = 1.0f;
         if (i % 3) colorData[i] = 0.0f;
 
         ++i;
+
     }
 
     /*
@@ -653,10 +659,12 @@ void ADNDisplayHelper::displayOrthoPlane(SBVector3 vec, SBPosition3 shift) {
         flagData
     );
 
+    delete[] colorData;
+
 }
 
 
-void ADNDisplayHelper::displaySphere(SBPosition3 pos, float radius, ADNArray<float> color) {
+void ADNDisplayHelper::displaySphere(const SBPosition3& pos, float radius, ADNArray<float> color) {
 
     ADNArray<float> positions = ADNArray<float>(3);
     ADNArray<float> radiiV = ADNArray<float>(1);
@@ -683,48 +691,52 @@ void ADNDisplayHelper::displayBasePairConnection(ADNPointer<ADNNucleotide> nt) {
 
     auto pair = nt->GetPair();
 
-    if (pair != nullptr) {
+    if (pair == nullptr) return;
 
-        float* color = new float[4];
-        color[0] = 0.5f;
-        color[1] = 0.5f;
-        color[2] = 0.5f;
-        color[3] = 1.0f;
+    static float basePairConnectionColor[] = { 0.5f, 0.5f, 0.5f, 1.0f };
 
-        displayDirectedCylinder(nt->GetBackbonePosition(), pair->GetBackbonePosition(), color, 100);
+    //if (!basePairConnectionColor) {
+    //
+    //    basePairConnectionColor = new float[4];
+    //    basePairConnectionColor[0] = 0.5f;
+    //    basePairConnectionColor[1] = 0.5f;
+    //    basePairConnectionColor[2] = 0.5f;
+    //    basePairConnectionColor[3] = 1.0f;
+    //
+    //}
 
-    }
+    displayDirectedCylinder(nt->GetBackbonePosition(), pair->GetBackbonePosition(), basePairConnectionColor, 100);
 
 }
 
-void ADNDisplayHelper::displayBaseVectors(ADNPointer<ADNNucleotide> nt, SBPosition3 pos) {
+void ADNDisplayHelper::displayBaseVectors(ADNPointer<ADNNucleotide> nt, const SBPosition3& pos) {
 
     SBVector3 e1 = SBVector3(nt->GetE1()[0], nt->GetE1()[1], nt->GetE1()[2]);
     SBVector3 e2 = SBVector3(nt->GetE2()[0], nt->GetE2()[1], nt->GetE2()[2]);
     SBVector3 e3 = SBVector3(nt->GetE3()[0], nt->GetE3()[1], nt->GetE3()[2]);
 
-    float e1_c[] = { 0, 0, 1, 1 };
-    float e2_c[] = { 1, 0, 0, 1 };
-    float e3_c[] = { 0, 1, 0, 1 };
+    static float e1_color[] = { 0.0f, 0.0f, 1.0f, 1.0f };
+    static float e2_color[] = { 1.0f, 0.0f, 0.0f, 1.0f };
+    static float e3_color[] = { 0.0f, 1.0f, 0.0f, 1.0f };
 
-    displayVector(e1, pos, e1_c, 700);
-    displayVector(e2, pos, e2_c, 700);
-    displayVector(e3, pos, e3_c, 700);
+    displayVector(e1, pos, e1_color, 700);
+    displayVector(e2, pos, e2_color, 700);
+    displayVector(e3, pos, e3_color, 700);
 
 }
 
-void ADNDisplayHelper::displayText(SBPosition3 pos, std::string text /*= ""*/) {
+void ADNDisplayHelper::displayText(const SBPosition3& pos, const std::string& text /*= ""*/) {
 
-    float color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    static float textColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
     SAMSON::displayText(text, pos,
         SAMSON::getViewportFont(),
         //QFont(QString("Helvetica"), 40),
-        color);
+        textColor);
 
 }
 
-void ADNDisplayHelper::displayTextBottomLeft(std::string text /*= ""*/) {
+void ADNDisplayHelper::displayTextBottomLeft(const std::string& text /*= ""*/) {
 
     SBPosition3 pos = SBPosition3(SBQuantity::nanometer(0), SBQuantity::nanometer(10), SBQuantity::nanometer(0));
     displayText(pos, text);
@@ -733,8 +745,8 @@ void ADNDisplayHelper::displayTextBottomLeft(std::string text /*= ""*/) {
 
 void ADNDisplayHelper::displayTriangleMesh(DASPolyhedron* p) {
 
-    unsigned int nTriangles = boost::numeric_cast<unsigned int>(p->GetNumFaces());
-    unsigned int nVertices = boost::numeric_cast<unsigned int>(p->GetNumVertices());
+    const unsigned int nTriangles = boost::numeric_cast<unsigned int>(p->GetNumFaces());
+    const unsigned int nVertices = boost::numeric_cast<unsigned int>(p->GetNumVertices());
     float* vertexPositions = new float[3 * nVertices];
     float* colorData = new float[4 * nVertices];
     unsigned int* flagData = new unsigned int[nVertices];
@@ -794,14 +806,20 @@ void ADNDisplayHelper::displayTriangleMesh(DASPolyhedron* p) {
         flagData
     );
 
+    delete[] vertexPositions;
+    delete[] colorData;
+    delete[] flagData;
+    delete[] normalData;
+    delete[] indexData;
+
 }
 
 void ADNDisplayHelper::displayPart(ADNPointer<ADNPart> part, float basePairRadius, float opaqueness) {
 
-    SEConfig& config = SEConfig::GetInstance();
+    const SEConfig& config = SEConfig::GetInstance();
 
     auto doubleStrands = part->GetDoubleStrands();
-    unsigned int nPositions = part->GetNumberOfBaseSegments();
+    const unsigned int nPositions = part->GetNumberOfBaseSegments();
 
     ADNArray<float> positions = ADNArray<float>(3, nPositions);
     ADNArray<float> radiiV = ADNArray<float>(nPositions);
@@ -812,9 +830,11 @@ void ADNDisplayHelper::displayPart(ADNPointer<ADNPart> part, float basePairRadiu
     unsigned int index = 0;
 
     SB_FOR(auto doubleStrand, doubleStrands) {
+
         auto baseSegments = doubleStrand->GetBaseSegments();
 
         SB_FOR(auto baseSegment, baseSegments) {
+
             auto cell = baseSegment->GetCell();
 
             radiiV(index) = basePairRadius;
@@ -829,19 +849,24 @@ void ADNDisplayHelper::displayPart(ADNPointer<ADNPart> part, float basePairRadiu
                 colorsV(index, 1) = config.double_strand_color[1];
                 colorsV(index, 2) = config.double_strand_color[2];
                 colorsV(index, 3) = opaqueness;
+
             }
             else if (cell->GetCellType() == CellType::SkipPair) {
+
                 colorsV(index, 0) = 0.0f;
                 colorsV(index, 1) = 0.0f;
                 colorsV(index, 2) = 0.3f;
                 colorsV(index, 3) = opaqueness;
+
             }
             else if (cell->GetCellType() == CellType::LoopPair) {
+
                 radiiV(index) = config.base_pair_radius * 1.2f;
                 colorsV(index, 0) = 0.0f;
                 colorsV(index, 1) = config.double_strand_color[1];
                 colorsV(index, 2) = config.double_strand_color[2];
                 colorsV(index, 3) = opaqueness;
+
             }
 
             flags(index) = baseSegment->getInheritedFlags();
@@ -861,7 +886,7 @@ void ADNDisplayHelper::displayPart(ADNPointer<ADNPart> part, float basePairRadiu
 
 }
 
-void ADNDisplayHelper::displayVector(SBVector3 vec, SBPosition3 shift) {
+void ADNDisplayHelper::displayVector(SBVector3 vec, const SBPosition3& shift) {
 
     int length = 1000;
     vec *= length;
@@ -878,7 +903,7 @@ void ADNDisplayHelper::displayVector(SBVector3 vec, SBPosition3 shift) {
 
 }
 
-void ADNDisplayHelper::displayVector(SBVector3 vec, SBPosition3 shift, float* color, int length) {
+void ADNDisplayHelper::displayVector(SBVector3 vec, const SBPosition3& shift, float* color, int length) {
 
     vec *= length;
 
@@ -894,7 +919,7 @@ void ADNDisplayHelper::displayVector(SBVector3 vec, SBPosition3 shift, float* co
 
 }
 
-void ADNDisplayHelper::displayArrow(SBVector3 vec, SBPosition3 start) {
+void ADNDisplayHelper::displayArrow(SBVector3 vec, const SBPosition3& start) {
 
     SBVector3 shaft = vec * 0.75;
     int length = 1000;
@@ -909,8 +934,8 @@ void ADNDisplayHelper::displayArrow(SBVector3 vec, SBPosition3 start) {
     );
     end += start;
 
-    unsigned int nCylinders = 2;
-    unsigned int nPositions = 2 * nCylinders;
+    const unsigned int nCylinders = 2;
+    const unsigned int nPositions = 2 * nCylinders;
     unsigned int* indexData = new unsigned int[2 * nCylinders];
     float* positionData = new float[3 * nPositions];
     float* radiusData = new float[2 * nCylinders];
@@ -972,6 +997,7 @@ void ADNDisplayHelper::displayArrow(SBVector3 vec, SBPosition3 start) {
     SAMSON::displayCylinders(nCylinders, nPositions, indexData, positionData, radiusData, capData, colorData, flagData);
 
     delete[] indexData;
+    delete[] positionData;
     delete[] radiusData;
     delete[] capData;
     delete[] colorData;
@@ -979,14 +1005,14 @@ void ADNDisplayHelper::displayArrow(SBVector3 vec, SBPosition3 start) {
 
 }
 
-void ADNDisplayHelper::displayArrow(SBPosition3 start, SBPosition3 end, unsigned int nodeIndex, float* color, bool selectable) {
+void ADNDisplayHelper::displayArrow(const SBPosition3& start, const SBPosition3& end, unsigned int nodeIndex, float* color, bool selectable) {
 
     SBPosition3 shaft = end - start;
     shaft *= 0.55f;
     shaft += start;
 
-    unsigned int nCylinders = 2;
-    unsigned int nPositions = 2 * nCylinders;
+    const unsigned int nCylinders = 2;
+    const unsigned int nPositions = 2 * nCylinders;
     unsigned int* indexData = new unsigned int[nPositions];
     float* positionData = new float[3 * nPositions];
     float* radiusData = new float[nPositions];
@@ -1028,7 +1054,6 @@ void ADNDisplayHelper::displayArrow(SBPosition3 start, SBPosition3 end, unsigned
     /*nodeIndexData[2] = nodeIndex;
     nodeIndexData[3] = nodeIndex;*/
 
-
     colorData[0] = color[0];
     colorData[1] = color[1];
     colorData[2] = color[2];
@@ -1059,33 +1084,34 @@ void ADNDisplayHelper::displayArrow(SBPosition3 start, SBPosition3 end, unsigned
     }
 
     delete[] indexData;
+    delete[] positionData;
     delete[] radiusData;
     delete[] capData;
     delete[] colorData;
     delete[] flagData;
+    delete[] nodeIndexData;
 
 }
 
-void ADNDisplayHelper::displayGoldSphere(SBNodeIndexer goldAtoms) {
+void ADNDisplayHelper::displayGoldSphere(const SBNodeIndexer& goldAtoms) {
 
-    unsigned int nPositions = goldAtoms.size();
+    const unsigned int nPositions = goldAtoms.size();
 
     float* positionData = new float[3 * nPositions];
     float* radiusData = new float[nPositions];
     float* colorData = new float[4 * nPositions];
     unsigned int* flagData = new unsigned int[nPositions];
 
-
     for (unsigned int i = 0; i < nPositions; i++) {
 
         SBAtom* currentAtom = static_cast<SBAtom*>(goldAtoms.getNode(i));
         SBNodeMaterial* material = currentAtom->getMaterial();
 
-        SBPosition3 position = currentAtom->getPosition();
+        const SBPosition3 position = currentAtom->getPosition();
 
-        positionData[3 * i + 0] = (float)position.v[0].getValue();
-        positionData[3 * i + 1] = (float)position.v[1].getValue();
-        positionData[3 * i + 2] = (float)position.v[2].getValue();
+        positionData[3 * i + 0] = static_cast<float>(position.v[0].getValue());
+        positionData[3 * i + 1] = static_cast<float>(position.v[1].getValue());
+        positionData[3 * i + 2] = static_cast<float>(position.v[2].getValue());
 
         radiusData[i] = 100.0f;
 

@@ -12,15 +12,21 @@
 #include "MSVColors.hpp"
 #include "MSVDisplayHelper.hpp"
 
+#include <QOpenGLShaderProgram>
+
 //#include "SBGRenderOpenGLFunctions.hpp"
 
 #include <cmath>
+
+SB_OPENGL_FUNCTIONS* SEAdenitaVisualModel::gl = nullptr;
 
 SEAdenitaVisualModel::SEAdenitaVisualModel() {
 
 	// SAMSON Element generator pro tip: this default constructor is called when unserializing the node, so it should perform all default initializations.
 
 	setName("Adenita Visual Model");
+
+	if (!gl) gl = SAMSON::getOpenGLFunctions();
 
 	init();
 
@@ -34,6 +40,8 @@ SEAdenitaVisualModel::SEAdenitaVisualModel(const SBNodeIndexer& nodeIndexer) {
 	// the atoms' structural signals (e.g. to update the center of mass when an atom is moved).
 
 	setName("Adenita Visual Model");
+
+	if (!gl) gl = SAMSON::getOpenGLFunctions();
 
 	SEAdenitaCoreSEApp* adenitaApp = SEAdenitaCoreSEApp::getAdenitaApp();
 	if (adenitaApp) {
@@ -216,7 +224,7 @@ void			SEAdenitaVisualModel::setVisibility(double layer) {
 	if (!nanorobot_) return;
 
 	auto parts = nanorobot_->GetParts();
-	SEConfig& config = SEConfig::GetInstance();
+	const SEConfig& config = SEConfig::GetInstance();
 
 	SB_FOR(auto part, parts) {
 
@@ -288,7 +296,7 @@ void SEAdenitaVisualModel::init() {
 	if (document) nanorobot_ = adenitaApp->getNanorobot(document);
 	else nanorobot_ = adenitaApp->GetNanorobot();
 
-	SEConfig& config = SEConfig::GetInstance();
+	const SEConfig& config = SEConfig::GetInstance();
 
 	MSVColors* regularColors = new MSVColors();
 	MSVColors* meltTempColors = new MSVColors();
@@ -802,7 +810,7 @@ void SEAdenitaVisualModel::prepareDimensions() {
 
 }
 
-void SEAdenitaVisualModel::displayTransition(bool forSelection) {
+void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass) {
 
 	ADNArray<unsigned int> capData = ADNArray<unsigned int>(nodeIndices_.GetNumElements());
 	if (nCylinders_ > 0) {
@@ -812,8 +820,12 @@ void SEAdenitaVisualModel::displayTransition(bool forSelection) {
 
 	}
 
-	if (forSelection) {
+	const float inheritedOpacity = getInheritedOpacity();
+
+	if (renderingPass == SBNode::RenderingPass::SelectableGeometry) {
+
 		if (nCylinders_ > 0) {
+
 			SAMSON::displayCylindersSelection(
 				nCylinders_,
 				nPositions_,
@@ -822,6 +834,7 @@ void SEAdenitaVisualModel::displayTransition(bool forSelection) {
 				radiiE_.GetArray(),
 				capData.GetArray(),
 				nodeIndices_.GetArray());
+
 		}
 
 		SAMSON::displaySpheresSelection(
@@ -832,9 +845,10 @@ void SEAdenitaVisualModel::displayTransition(bool forSelection) {
 		);
 
 	}
-	else {
+	else if ((renderingPass == SBNode::RenderingPass::OpaqueGeometry) && (inheritedOpacity == 1.0f)) {
 
 		if (nCylinders_ > 0) {
+
 			SAMSON::displayCylinders(
 				nCylinders_,
 				nPositions_,
@@ -843,7 +857,9 @@ void SEAdenitaVisualModel::displayTransition(bool forSelection) {
 				radiiE_.GetArray(),
 				capData.GetArray(),
 				colorsE_.GetArray(),
-				flags_.GetArray());
+				flags_.GetArray(),
+				false, false, 1.0f);
+
 		}
 
 		SAMSON::displaySpheres(
@@ -851,12 +867,113 @@ void SEAdenitaVisualModel::displayTransition(bool forSelection) {
 			positions_.GetArray(),
 			radiiV_.GetArray(),
 			colorsV_.GetArray(),
-			flags_.GetArray());
+			flags_.GetArray(),
+			false, false, 1.0f);
 
-		displayCircularDNAConnection();
-		if (showBasePairing_) displayBasePairConnections(false);
+		displayCircularDNAConnection(renderingPass);
+		if (showBasePairing_) displayBasePairConnections(renderingPass, false);
+		//if (highlightType_ == HighlightType::TAGGED) displayTags();
+		displayForDebugging(renderingPass);
+
+	}
+	else if ((renderingPass == SBNode::RenderingPass::TransparentGeometry) && (inheritedOpacity != 1.0f)) {
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_DEPTH_TEST);
+
+		gl->glColorMask(false, false, false, false);
+
+		if (nCylinders_ > 0) {
+
+			SAMSON::displayCylinders(
+				nCylinders_,
+				nPositions_,
+				indices_.GetArray(),
+				positions_.GetArray(),
+				radiiE_.GetArray(),
+				capData.GetArray(),
+				colorsE_.GetArray(),
+				flags_.GetArray(),
+				false, true, inheritedOpacity);
+
+		}
+
+		SAMSON::displaySpheres(
+			nPositions_,
+			positions_.GetArray(),
+			radiiV_.GetArray(),
+			colorsV_.GetArray(),
+			flags_.GetArray(),
+			false, true, inheritedOpacity);
+
+		gl->glColorMask(true, true, true, true);
+
+		if (nCylinders_ > 0) {
+
+			SAMSON::displayCylinders(
+				nCylinders_,
+				nPositions_,
+				indices_.GetArray(),
+				positions_.GetArray(),
+				radiiE_.GetArray(),
+				capData.GetArray(),
+				colorsE_.GetArray(),
+				flags_.GetArray(),
+				false, true, inheritedOpacity);
+
+		}
+
+		SAMSON::displaySpheres(
+			nPositions_,
+			positions_.GetArray(),
+			radiiV_.GetArray(),
+			colorsV_.GetArray(),
+			flags_.GetArray(),
+			false, true, inheritedOpacity);
+
+		glDisable(GL_BLEND);
+
+		displayCircularDNAConnection(renderingPass);
+		if (showBasePairing_) displayBasePairConnections(renderingPass, false);
+		//if (highlightType_ == HighlightType::TAGGED) displayTags();
+		displayForDebugging(renderingPass);
+
+	}
+	else if (renderingPass == SBNode::RenderingPass::ShadowingGeometry) {
+
+		if (nCylinders_ > 0) {
+
+			SAMSON::displayCylinders(
+				nCylinders_,
+				nPositions_,
+				indices_.GetArray(),
+				positions_.GetArray(),
+				radiiE_.GetArray(),
+				capData.GetArray(),
+				colorsE_.GetArray(),
+				flags_.GetArray(),
+				true);
+
+		}
+
+		SAMSON::displaySpheres(
+			nPositions_,
+			positions_.GetArray(),
+			radiiV_.GetArray(),
+			colorsV_.GetArray(),
+			flags_.GetArray(),
+			true);
+
+		displayCircularDNAConnection(renderingPass);
+		if (showBasePairing_) displayBasePairConnections(renderingPass, false);
+		//if (highlightType_ == HighlightType::TAGGED) displayTags();
+		displayForDebugging(renderingPass);
+
+	}
+	else if (renderingPass == SBNode::RenderingPass::Text) {
+
 		if (highlightType_ == HighlightType::TAGGED) displayTags();
-		displayForDebugging();
 
 	}
 
@@ -891,8 +1008,8 @@ void SEAdenitaVisualModel::prepareBallsToNucleotides(double iv) {
 
 	for (auto it = atomMap_.begin(); it != atomMap_.end(); it++) {
 
-		auto indexAtom = it->second;
-		auto indexNt = atomNtIndexMap_[indexAtom];
+		const auto indexAtom = it->second;
+		const auto indexNt = atomNtIndexMap_[indexAtom];
 
 		if (indexAtom >= nPositions_) continue;
 		if (indexAtom >= positionsAtom_.GetNumElements()) continue;
@@ -939,7 +1056,7 @@ void SEAdenitaVisualModel::prepareNucleotidesToSingleStrands(double iv) {
 
 	for (auto it = ntMap_.begin(); it != ntMap_.end(); it++) {
 
-		auto index = it->second;
+		const auto index = it->second;
 
 		if (index >= nPositions_) continue;
 		if (index >= radiiENt_.GetNumElements()) continue;
@@ -986,8 +1103,8 @@ void SEAdenitaVisualModel::prepareSingleStrandsToDoubleStrands(double iv) {
 	for (auto it = ntMap_.begin(); it != ntMap_.end(); it++) {
 
 		auto nt = it->first;
-		auto indexSS = it->second;
-		auto indexDS = ntBsIndexMap_[indexSS];
+		const auto indexSS = it->second;
+		const auto indexDS = ntBsIndexMap_[indexSS];
 
 		if (nt == nullptr) continue;
 		if (indexSS >= nPositions_) continue;
@@ -1032,7 +1149,7 @@ void SEAdenitaVisualModel::prepare1Dto2D(double iv) {
 	for (auto it = ntMap_.begin(); it != ntMap_.end(); it++) {
 
 		auto nt = it->first;
-		auto index = it->second;
+		const auto index = it->second;
 
 		if (nt == nullptr) continue;
 		if (index >= positions_.GetNumElements()) continue;
@@ -1052,7 +1169,7 @@ void SEAdenitaVisualModel::prepare2Dto3D(double iv) {
 	for (auto it = ntMap_.begin(); it != ntMap_.end(); it++) {
 
 		auto nt = it->first;
-		auto index = it->second;
+		const auto index = it->second;
 
 		if (nt == nullptr) continue;
 		if (index >= positions_.GetNumElements()) continue;
@@ -1077,7 +1194,7 @@ void SEAdenitaVisualModel::emphasizeColors(ADNArray<float>& colors, const std::v
 
 	for (int i = 0; i < indices.size(); i++) {
 
-		auto index = indices[i];
+		const auto index = indices[i];
 
 		if (index >= colors.GetNumElements()) continue;
 
@@ -1099,7 +1216,7 @@ void SEAdenitaVisualModel::replaceColors(ADNArray<float>& colors, const std::vec
 
 	for (int i = 0; i < indices.size(); i++) {
 
-		auto index = indices[i];
+		const auto index = indices[i];
 
 		if (index >= colors.GetNumElements()) continue;
 
@@ -1125,7 +1242,7 @@ void SEAdenitaVisualModel::changeHighlightFlag() {
 		for (auto it = atomMap_.begin(); it != atomMap_.end(); it++) {
 
 			auto a = it->first;
-			auto index = it->second;
+			const auto index = it->second;
 
 			if (a == nullptr) continue;
 			if (index >= flagsAtom_.GetNumElements()) continue;
@@ -1140,7 +1257,7 @@ void SEAdenitaVisualModel::changeHighlightFlag() {
 		for (auto it = ntMap_.begin(); it != ntMap_.end(); it++) {
 
 			auto nt = it->first;
-			auto index = it->second;
+			const auto index = it->second;
 
 			if (nt == nullptr) continue;
 			if (index >= flagsNt_.GetNumElements()) continue;
@@ -1155,7 +1272,7 @@ void SEAdenitaVisualModel::changeHighlightFlag() {
 		for (auto it = bsMap_.begin(); it != bsMap_.end(); it++) {
 
 			auto bs = it->first;
-			auto index = it->second;
+			const auto index = it->second;
 
 			if (bs == nullptr) continue;
 			if (index >= flagsDS_.GetNumElements()) continue;
@@ -1176,7 +1293,7 @@ void SEAdenitaVisualModel::orderVisibility() {
 
 	unsigned int order = 1;
 
-	SEConfig& config = SEConfig::GetInstance();
+	const SEConfig& config = SEConfig::GetInstance();
 
 	auto parts = nanorobot_->GetParts();
 
@@ -1859,7 +1976,7 @@ void SEAdenitaVisualModel::changePropertyColors(const int propertyIdx, const int
 		auto meltingTempColors = colors_.at(ColorType::MELTTEMP);
 		auto gibbsColors = colors_.at(ColorType::GIBBS);
 
-		SEConfig& config = SEConfig::GetInstance();
+		const SEConfig& config = SEConfig::GetInstance();
 
 		auto p = PIPrimer3::GetInstance();
 
@@ -1977,31 +2094,38 @@ std::string SEAdenitaVisualModel::getHighlightItemText(const int index) const {
 
 }
 
-void SEAdenitaVisualModel::display() {
+void SEAdenitaVisualModel::display(SBNode::RenderingPass renderingPass) {
 
 	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop. This is the main function of your visual model. 
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
 
-	if (!nanorobot_) return;
+	if (renderingPass == SBNode::RenderingPass::Setup) {
 
-	if (isUpdateRequested) update();
-	if (isHighlightFlagChangeRequested) changeHighlightFlag();
+		if (!nanorobot_) return;
 
-	//ADNLogger& logger = ADNLogger::GetLogger();
+		if (isUpdateRequested) update();
+		if (isHighlightFlagChangeRequested) changeHighlightFlag();
 
-	SBEditor* activeEditor = SAMSON::getActiveEditor();
-	/*logger.Log(activeEditor->getName());*/
-	if (isPrepareDiscreteScalesDimRequested || activeEditor->getName() == "SEERotation" || activeEditor->getName() == "SEETranslation") {
+		//ADNLogger& logger = ADNLogger::GetLogger();
 
-		prepareDiscreteScalesDim();
-		setScale(scale_);
+		SBEditor* activeEditor = SAMSON::getActiveEditor();
+		//logger.Log(activeEditor->getName());
+		if (isPrepareDiscreteScalesDimRequested || activeEditor->getName() == "SEERotation" || activeEditor->getName() == "SEETranslation") {
+
+			prepareDiscreteScalesDim();
+			setScale(scale_);
+
+		}
+
+	}
+	else if (renderingPass == SBNode::RenderingPass::OpaqueGeometry || renderingPass == SBNode::RenderingPass::TransparentGeometry ||
+		renderingPass == SBNode::RenderingPass::ShadowingGeometry || renderingPass == SBNode::RenderingPass::SelectableGeometry) {
+
+		displayTransition(renderingPass);
 
 	}
 
-	displayTransition(false);
-
 }
-
 
 void SEAdenitaVisualModel::prepareNucleotides() {
 
@@ -2356,36 +2480,27 @@ void SEAdenitaVisualModel::displayDoubleStrands(bool forSelection) {
 
 }
 
-void SEAdenitaVisualModel::displayForShadow() {
+//void SEAdenitaVisualModel::displayForShadow() {
+//
+//	display();
+//
+//}
+//
+//void SEAdenitaVisualModel::displayForSelection() {
+//
+//	if (isUpdateRequested) update();
+//
+//	displayTransition(true);
+//
+//}
 
-	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop in order to compute shadows. 
-	// Implement this function so that your visual model can cast shadows to other objects in SAMSON, for example thanks to the utility
-	// functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
-
-	display();
-
-}
-
-void SEAdenitaVisualModel::displayForSelection() {
-
-	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop in order to perform object picking.
-	// Instead of rendering colors, your visual model is expected to write the index of a data graph node (obtained with getIndex()).
-	// Implement this function so that your visual model can be selected (if you render its own index) or can be used to select other objects (if you render 
-	// the other objects' indices), for example thanks to the utility functions provided by SAMSON (e.g. displaySpheresSelection, displayTrianglesSelection, etc.)
-
-	if (isUpdateRequested) update();
-
-	displayTransition(true);
-
-}
-
-void SEAdenitaVisualModel::displayBasePairConnections(bool onlySelected) {
+void SEAdenitaVisualModel::displayBasePairConnections(SBNode::RenderingPass renderingPass, bool onlySelected) {
 
 	if (!nanorobot_) return;
 
 	if (scale_ < static_cast<float>(Scale::NUCLEOTIDES) && scale_ > static_cast<float>(Scale::SINGLE_STRANDS)) return;
 
-	SEConfig& config = SEConfig::GetInstance();
+	const SEConfig& config = SEConfig::GetInstance();
 
 	auto baseColors = colors_.at(ColorType::REGULAR);
 	auto parts = nanorobot_->GetParts();
@@ -2476,43 +2591,108 @@ void SEAdenitaVisualModel::displayBasePairConnections(bool onlySelected) {
 
 	}
 
-	SAMSON::displayCylinders(
-		nCylinders,
-		nPositions,
-		indices.GetArray(),
-		positions.GetArray(),
-		radii.GetArray(),
-		caps.GetArray(),
-		colors.GetArray(),
-		flags.GetArray()
-	);
+	const float inheritedOpacity = getInheritedOpacity();
+
+	if ((renderingPass == SBNode::RenderingPass::OpaqueGeometry) && (inheritedOpacity == 1.0f)) {
+
+		SAMSON::displayCylinders(
+			nCylinders,
+			nPositions,
+			indices.GetArray(),
+			positions.GetArray(),
+			radii.GetArray(),
+			caps.GetArray(),
+			colors.GetArray(),
+			flags.GetArray(),
+			false, false, 1.0f
+		);
+
+	}
+	else if ((renderingPass == SBNode::RenderingPass::TransparentGeometry) && (inheritedOpacity != 1.0f)) {
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_DEPTH_TEST);
+
+		gl->glColorMask(false, false, false, false);
+
+		SAMSON::displayCylinders(
+			nCylinders,
+			nPositions,
+			indices.GetArray(),
+			positions.GetArray(),
+			radii.GetArray(),
+			caps.GetArray(),
+			colors.GetArray(),
+			flags.GetArray(),
+			false, true, inheritedOpacity
+		);
+
+		gl->glColorMask(true, true, true, true);
+
+		SAMSON::displayCylinders(
+			nCylinders,
+			nPositions,
+			indices.GetArray(),
+			positions.GetArray(),
+			radii.GetArray(),
+			caps.GetArray(),
+			colors.GetArray(),
+			flags.GetArray(),
+			false, true, inheritedOpacity
+		);
+
+		glDisable(GL_BLEND);
+
+	}
+	else if (renderingPass == SBNode::RenderingPass::ShadowingGeometry) {
+
+		SAMSON::displayCylinders(
+			nCylinders,
+			nPositions,
+			indices.GetArray(),
+			positions.GetArray(),
+			radii.GetArray(),
+			caps.GetArray(),
+			colors.GetArray(),
+			flags.GetArray(),
+			true
+		);
+
+	}
 
 }
 
-void SEAdenitaVisualModel::displayForDebugging() {
+void SEAdenitaVisualModel::displayForDebugging(SBNode::RenderingPass renderingPass) {
 
 	return;
 
-	SEConfig& config = SEConfig::GetInstance();
+	const SEConfig& config = SEConfig::GetInstance();
 
 	if (config.debugOptions.display_nucleotide_basis) {
+
 		SB_FOR(auto pair, ntMap_) {
+
 			ADNPointer<ADNNucleotide> nt = pair.first;
 			unsigned int idx = pair.second;
 			if (nt->isSelected()) {
+
 				SBPosition3 currPos = SBPosition3(SBQuantity::picometer(positionsNt_(idx, 0)),
 					SBQuantity::picometer(positionsNt_(idx, 1)), SBQuantity::picometer(positionsNt_(idx, 2)));
 				ADNDisplayHelper::displayBaseVectors(nt, currPos);
+
 			}
+
 		}
+
 	}
-	if (config.debugOptions.display_base_pairing) {
-		displayBasePairConnections(true);
-	}
+
+	if (config.debugOptions.display_base_pairing)
+		displayBasePairConnections(renderingPass, true);
 
 }
 
-void SEAdenitaVisualModel::displayCircularDNAConnection() {
+void SEAdenitaVisualModel::displayCircularDNAConnection(SBNode::RenderingPass renderingPass) {
 
 	if (!nanorobot_) return;
 
@@ -2528,7 +2708,7 @@ void SEAdenitaVisualModel::displayCircularDNAConnection() {
 
 			if (ss->IsCircular()) {
 
-				SEConfig& config = SEConfig::GetInstance();
+				const SEConfig& config = SEConfig::GetInstance();
 
 				auto startNt = ss->GetFivePrime();
 				auto endNt = ss->GetThreePrime();
@@ -2594,7 +2774,7 @@ void SEAdenitaVisualModel::prepareAtoms() {
 
 	if (!nanorobot_) return;
 
-	SEConfig& config = SEConfig::GetInstance();
+	const SEConfig& config = SEConfig::GetInstance();
 	MSVColors* curColors = colors_[curColorType_];
 
 	auto parts = nanorobot_->GetParts();

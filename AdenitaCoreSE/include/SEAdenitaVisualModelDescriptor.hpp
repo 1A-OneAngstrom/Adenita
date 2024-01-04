@@ -22,6 +22,17 @@ SB_CLASS_BEGIN(SEAdenitaVisualModel);
 	SB_FACTORY_END;
 
 	SB_INTERFACE_BEGIN;
+	
+		SB_ATTRIBUTE_READ_WRITE(const std::string&, SEAdenitaVisualModel, Name, "Name", "Identity");
+
+		SB_ATTRIBUTE_READ_ONLY(bool, SEAdenitaVisualModel, Selected, "Selected", "Node");
+		SB_ATTRIBUTE_READ_ONLY(bool, SEAdenitaVisualModel, Visible, "Visible", "Node");
+		SB_ATTRIBUTE_READ_WRITE(bool, SEAdenitaVisualModel, SelectionFlag, "Selection flag", "Node");
+		SB_ATTRIBUTE_READ_WRITE(bool, SEAdenitaVisualModel, VisibilityFlag, "Visibility flag", "Node");
+		SB_ATTRIBUTE_READ_ONLY(SBNode*, SEAdenitaVisualModel, Parent, "Parent", "Node");
+		SB_ATTRIBUTE_READ_ONLY(SBNode*, SEAdenitaVisualModel, ThisNode, "Itself", "Node");
+		SB_ATTRIBUTE_READ_ONLY(SBNode*, SEAdenitaVisualModel, NextNode, "Next", "Node");
+		SB_ATTRIBUTE_READ_ONLY(SBNode*, SEAdenitaVisualModel, PreviousNode, "Previous", "Node");
 
 		SB_ATTRIBUTE_READ_WRITE_RESET_RANGE(float, SEAdenitaVisualModel, Scale, "Scale", "Properties");
 		SB_ATTRIBUTE_READ_WRITE_LIST(SEAdenitaVisualModel, DiscreteScale, "Scale (discrete)", "Properties");
@@ -75,7 +86,8 @@ SB_CLASS_BEGIN(SEAdenitaVisualModel);
 
 		SB_ATTRIBUTE_READ_WRITE(bool, SEAdenitaVisualModel, ShowBasePairingFlag, "Show base pairing", "Properties");
 
-		SB_ATTRIBUTE_PUSH_BUTTON(SEAdenitaVisualModel, "Update", "Update", "Properties", update);
+		SB_ATTRIBUTE_PUSH_BUTTON(SEAdenitaVisualModel, "Update", "Update", "Display", update);
+		SB_ATTRIBUTE_READ_WRITE_RESET_RANGE_SLIDER(unsigned int, SEAdenitaVisualModel, Transparency, "Transparency", "Display");
 
 	SB_INTERFACE_END;
 
