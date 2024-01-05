@@ -355,6 +355,7 @@ void SEAdenitaVisualModel::initAtoms(bool createIndex /*= true*/) {
 	radiiEAtom_ = ADNArray<float>(nPositions);
 	colorsVAtom_ = ADNArray<float>(4, nPositions);
 	colorsEAtom_ = ADNArray<float>(4, nPositions);
+	capDataAtom_ = ADNArray<unsigned int>(nPositions);
 	flagsAtom_ = ADNArray<unsigned int>(nPositions);
 	nodeIndicesAtom_ = ADNArray<unsigned int>(nPositions);
 
@@ -814,13 +815,13 @@ void SEAdenitaVisualModel::prepareDimensions() {
 
 void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass) {
 
-	ADNArray<unsigned int> capData = ADNArray<unsigned int>(nodeIndices_.GetNumElements());
-	if (nCylinders_ > 0) {
-
-		for (int i = 0; i < capData.GetNumElements(); ++i)
-			capData(i) = 1;
-
-	}
+	//ADNArray<unsigned int> capData = ADNArray<unsigned int>(nodeIndices_.GetNumElements());
+	//if (nCylinders_ > 0) {
+	//
+	//	for (int i = 0; i < capData.GetNumElements(); ++i)
+	//		capData(i) = 1;
+	//
+	//}
 
 	const float inheritedOpacity = getInheritedOpacity();
 
@@ -834,7 +835,7 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 				indices_.GetArray(),
 				positions_.GetArray(),
 				radiiE_.GetArray(),
-				capData.GetArray(),
+				capData_.GetArray(),
 				nodeIndices_.GetArray());
 
 		}
@@ -857,7 +858,7 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 				indices_.GetArray(),
 				positions_.GetArray(),
 				radiiE_.GetArray(),
-				capData.GetArray(),
+				capData_.GetArray(),
 				colorsE_.GetArray(),
 				flags_.GetArray(),
 				false, false, 1.0f);
@@ -894,7 +895,7 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 				indices_.GetArray(),
 				positions_.GetArray(),
 				radiiE_.GetArray(),
-				capData.GetArray(),
+				capData_.GetArray(),
 				colorsE_.GetArray(),
 				flags_.GetArray(),
 				false, true, inheritedOpacity);
@@ -919,7 +920,7 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 				indices_.GetArray(),
 				positions_.GetArray(),
 				radiiE_.GetArray(),
-				capData.GetArray(),
+				capData_.GetArray(),
 				colorsE_.GetArray(),
 				flags_.GetArray(),
 				false, true, inheritedOpacity);
@@ -952,7 +953,7 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 				indices_.GetArray(),
 				positions_.GetArray(),
 				radiiE_.GetArray(),
-				capData.GetArray(),
+				capData_.GetArray(),
 				colorsE_.GetArray(),
 				flags_.GetArray(),
 				true);
@@ -1002,6 +1003,7 @@ void SEAdenitaVisualModel::prepareBallsToNucleotides(double iv) {
 	//positions_ = positionsAtom_;
 	//radiiV_ = radiiVAtom_;
 	//radiiE_ = radiiEAtom_;
+	capData_ = capDataAtom_;
 	flags_ = flagsAtom_;
 	nodeIndices_ = nodeIndicesAtom_;
 	//indices_ = indicesAtom_;
@@ -1052,6 +1054,7 @@ void SEAdenitaVisualModel::prepareNucleotidesToSingleStrands(double iv) {
 
 	positions_ = positionsNt_;
 	radiiV_ = radiiVNt_;
+	capData_ = capDataNt_;
 	flags_ = flagsNt_;
 	nodeIndices_ = nodeIndicesNt_;
 	indices_ = indicesNt_;
@@ -1095,6 +1098,7 @@ void SEAdenitaVisualModel::prepareSingleStrandsToDoubleStrands(double iv) {
 	//positions_ = positionsNt_;
 	//radiiV_ = radiiVSS_;
 	//radiie_ = radiiESS_;
+	capData_ = capDataNt_;
 	flags_ = flagsNt_;
 	nodeIndices_ = nodeIndicesNt_;
 	indices_ = indicesNt_;
@@ -2809,6 +2813,7 @@ void SEAdenitaVisualModel::prepareAtoms() {
 
 					nodeIndicesAtom_(index) = a->getNodeIndex();
 					flagsAtom_(index) = a->getInheritedFlags();
+					capDataAtom_(index) = 1;
 
 					radiiVAtom_(index) = a->getVanDerWaalsRadius().getValue();
 
