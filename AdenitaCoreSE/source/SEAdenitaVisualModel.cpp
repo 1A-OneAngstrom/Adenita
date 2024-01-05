@@ -28,6 +28,11 @@ SEAdenitaVisualModel::SEAdenitaVisualModel() {
 
 	if (!gl) gl = SAMSON::getOpenGLFunctions();
 
+	sphereArray = new SBSphereArray(0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	getSphereArrayIndexer().addReferenceTarget(sphereArray());
+	cylinderArray = new SBCylinderArray(0, 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	getCylinderArrayIndexer().addReferenceTarget(cylinderArray());
+
 	init();
 
 }
@@ -43,6 +48,11 @@ SEAdenitaVisualModel::SEAdenitaVisualModel(const SBNodeIndexer& nodeIndexer) {
 
 	if (!gl) gl = SAMSON::getOpenGLFunctions();
 
+	sphereArray = new SBSphereArray(0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	getSphereArrayIndexer().addReferenceTarget(sphereArray());
+	cylinderArray = new SBCylinderArray(0, 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	getCylinderArrayIndexer().addReferenceTarget(cylinderArray());
+
 	SEAdenitaCoreSEApp* adenitaApp = SEAdenitaCoreSEApp::getAdenitaApp();
 	if (adenitaApp) {
 
@@ -54,6 +64,37 @@ SEAdenitaVisualModel::SEAdenitaVisualModel(const SBNodeIndexer& nodeIndexer) {
 }
 
 SEAdenitaVisualModel::~SEAdenitaVisualModel() {
+
+	// set to nullptr such that the data is not deleted in the base visual model via sphereArray and cylinderArray
+
+	if (sphereArray.isValid()) {
+	
+		sphereArray->setNumberOfSpheres(0);
+		sphereArray->setPositionData(nullptr);
+		sphereArray->setRadiusData(nullptr);
+		sphereArray->setColorData(nullptr);
+		sphereArray->setMaterialData(nullptr);
+		sphereArray->setNodeData(nullptr);
+		sphereArray->setFlagData(nullptr);
+		sphereArray->setNodeIndexData(nullptr);
+	
+	}
+	
+	if (cylinderArray.isValid()) {
+	
+		cylinderArray->setNumberOfCylinders(0);
+		cylinderArray->setNumberOfPositions(0);
+		cylinderArray->setPositionData(nullptr);
+		cylinderArray->setIndexData(nullptr);
+		cylinderArray->setColorData(nullptr);
+		cylinderArray->setMaterialData(nullptr);
+		cylinderArray->setNodeData(nullptr);
+		cylinderArray->setRadiusData(nullptr);
+		cylinderArray->setCapData(nullptr);
+		cylinderArray->setFlagData(nullptr);
+		cylinderArray->setNodeIndexData(nullptr);
+	
+	}
 
 	ADNLogger::Log(std::string("Adenita Visual Model has been destroyed"));
 
@@ -99,6 +140,8 @@ void SEAdenitaVisualModel::onErase() {
 float		SEAdenitaVisualModel::getScale() const { return scale_; }
 void		SEAdenitaVisualModel::setScale(float scale) {
 
+	//if (this->scale_ == scale) return;
+
 	if (hasScaleRange() && scale < getMinimumScale()) this->scale_ = getMinimumScale();
 	else if (hasScaleRange() && scale > getMaximumScale()) this->scale_ = getMaximumScale();
 	else this->scale_ = scale;
@@ -128,7 +171,8 @@ void		SEAdenitaVisualModel::setScale(float scale) {
 		prepareDoubleStrandsToObjects(interpolated);
 	}
 
-	SAMSON::requestViewportUpdate();
+	changed();
+	//SAMSON::requestViewportUpdate();
 
 }
 bool		SEAdenitaVisualModel::hasScaleRange() const { return true; }
@@ -168,6 +212,8 @@ std::string	SEAdenitaVisualModel::getDiscreteScaleItemText(const int index) cons
 float		SEAdenitaVisualModel::getDimension() const { return dim_; }
 void		SEAdenitaVisualModel::setDimension(float dimension) {
 
+	//if (this->dim_ == dimension) return;
+
 	if (hasDimensionRange() && dimension < getMinimumDimension()) this->dim_ = getMinimumDimension();
 	else if (hasDimensionRange() && dimension > getMaximumDimension()) this->dim_ = getMaximumDimension();
 	else this->dim_ = dimension;
@@ -182,7 +228,8 @@ void		SEAdenitaVisualModel::setDimension(float dimension) {
 	else if (dim_ < 3.0f) prepare2Dto3D(interpolated);
 	else if (dim_ >= 3.0f) prepare3D(interpolated);
 
-	SAMSON::requestViewportUpdate();
+	changed();
+	//SAMSON::requestViewportUpdate();
 
 }
 bool		SEAdenitaVisualModel::hasDimensionRange() const { return true; }
@@ -283,7 +330,8 @@ void			SEAdenitaVisualModel::setVisibility(double layer) {
 
 	}
 
-	SAMSON::requestViewportUpdate();
+	changed();
+	//SAMSON::requestViewportUpdate();
 
 }
 
@@ -359,6 +407,9 @@ void SEAdenitaVisualModel::initAtoms(bool createIndex /*= true*/) {
 	flagsAtom_ = ADNArray<unsigned int>(nPositions);
 	nodeIndicesAtom_ = ADNArray<unsigned int>(nPositions);
 
+	materialDataAtom_ = ADNArray<SBNodeMaterial*>(nPositions);
+	nodeDataAtom_ = ADNArray<SBNode*>(nPositions);
+
 	if (createIndex) indicesAtom_ = getAtomIndices();
 
 }
@@ -418,7 +469,8 @@ void			SEAdenitaVisualModel::setHighlightMinLength(unsigned int min) {
 	this->highlightMinLen_ = min;
 	setHighlight(HighlightType::LENGTH);
 
-	SAMSON::requestViewportUpdate();
+	changed();
+	//SAMSON::requestViewportUpdate();
 
 }
 
@@ -428,7 +480,8 @@ void			SEAdenitaVisualModel::setHighlightMaxLength(unsigned int max) {
 	this->highlightMaxLen_ = max;
 	setHighlight(HighlightType::LENGTH);
 
-	SAMSON::requestViewportUpdate();
+	changed();
+	//SAMSON::requestViewportUpdate();
 
 }
 
@@ -438,7 +491,8 @@ void SEAdenitaVisualModel::setNotWithinRange(bool c) {
 	this->notWithin_ = c;
 	setHighlight(HighlightType::LENGTH);
 
-	SAMSON::requestViewportUpdate();
+	changed();
+	//SAMSON::requestViewportUpdate();
 
 }
 bool SEAdenitaVisualModel::getDefaultNotWithinRange() const { return false; }
@@ -449,7 +503,8 @@ void SEAdenitaVisualModel::setNotScaffold(bool c) {
 	this->notScaffold_ = c;
 	setHighlight(HighlightType::LENGTH);
 
-	SAMSON::requestViewportUpdate();
+	changed();
+	//SAMSON::requestViewportUpdate();
 
 }
 bool SEAdenitaVisualModel::getDefaultNotScaffold() const { return true; }
@@ -472,6 +527,9 @@ void SEAdenitaVisualModel::initNucleotidesAndSingleStrands(bool createIndex /* =
 	capDataNt_ = ADNArray<unsigned int>(nPositions);
 	flagsNt_ = ADNArray<unsigned int>(nPositions);
 	nodeIndicesNt_ = ADNArray<unsigned int>(nPositions);
+
+	materialDataNt_ = ADNArray<SBNodeMaterial*>(nPositions);
+	nodeDataNt_ = ADNArray<SBNode*>(nPositions);
 
 	colorsVSS_ = ADNArray<float>(4, nPositions);
 	colorsESS_ = ADNArray<float>(4, nPositions);
@@ -567,6 +625,9 @@ void SEAdenitaVisualModel::initDoubleStrands(bool createIndex /*= true*/) {
 	colorsVDS_ = ADNArray<float>(4, nPositions);
 	flagsDS_ = ADNArray<unsigned int>(nPositions);
 	nodeIndicesDS_ = ADNArray<unsigned int>(nPositions);
+
+	materialDataDS_ = ADNArray<SBNodeMaterial*>(nPositions);
+	nodeDataDS_ = ADNArray<SBNode*>(nPositions);
 
 	if (createIndex) {
 	}
@@ -1006,6 +1067,8 @@ void SEAdenitaVisualModel::prepareBallsToNucleotides(double iv) {
 	capData_ = capDataAtom_;
 	flags_ = flagsAtom_;
 	nodeIndices_ = nodeIndicesAtom_;
+	materialData_ = materialDataAtom_;
+	nodeData_ = nodeDataAtom_;
 	//indices_ = indicesAtom_;
 	//colorsV_ = colorsVAtom_;
 	//colorsE_ = colorsEAtom_;
@@ -1058,6 +1121,8 @@ void SEAdenitaVisualModel::prepareNucleotidesToSingleStrands(double iv) {
 	flags_ = flagsNt_;
 	nodeIndices_ = nodeIndicesNt_;
 	indices_ = indicesNt_;
+	materialData_ = materialDataNt_;
+	nodeData_ = nodeDataNt_;
 
 	for (auto it = ntMap_.begin(); it != ntMap_.end(); it++) {
 
@@ -1102,6 +1167,8 @@ void SEAdenitaVisualModel::prepareSingleStrandsToDoubleStrands(double iv) {
 	flags_ = flagsNt_;
 	nodeIndices_ = nodeIndicesNt_;
 	indices_ = indicesNt_;
+	materialData_ = materialDataNt_;
+	nodeData_ = nodeDataNt_;
 	//colorsV_ = colorsVNt_;
 	colorsE_ = colorsESS_;
 
@@ -1146,6 +1213,8 @@ void SEAdenitaVisualModel::prepareDoubleStrandsToObjects(double iv) {
 	flags_ = flagsDS_;
 	nodeIndices_ = nodeIndicesDS_;
 	colorsV_ = colorsVDS_;
+	materialData_ = materialDataDS_;
+	nodeData_ = nodeDataDS_;
 
 }
 
@@ -1613,6 +1682,8 @@ void		SEAdenitaVisualModel::setSingleStrandColorsCurrentIndex(const int index) {
 	prepareDiscreteScalesDim();
 	setScale(scale_);// , false);
 
+	changed();
+
 }
 
 int			SEAdenitaVisualModel::getNucleotideColorsCount() const { return 4; }
@@ -1721,6 +1792,8 @@ void		SEAdenitaVisualModel::setNucleotideColorsCurrentIndex(const int index) {
 
 	prepareDiscreteScalesDim();
 	setScale(scale_);// , false);
+
+	changed();
 
 }
 
@@ -1899,6 +1972,8 @@ void		SEAdenitaVisualModel::setDoubleStrandColorsCurrentIndex(const int index) {
 	prepareDiscreteScalesDim();
 	setScale(scale_);// , false);
 
+	changed();
+
 }
 
 void SEAdenitaVisualModel::setupPropertyColors() {
@@ -2021,7 +2096,8 @@ void SEAdenitaVisualModel::changePropertyColors(const int propertyIdx, const int
 
 	}
 
-	SAMSON::requestViewportUpdate();
+	changed();
+	//SAMSON::requestViewportUpdate();
 
 }
 
@@ -2080,7 +2156,9 @@ void		SEAdenitaVisualModel::setHighlight(const HighlightType highlightType) {
 
 	highlightNucleotides();
 	setScale(scale_);
-	SAMSON::requestViewportUpdate();
+
+	changed();
+	//SAMSON::requestViewportUpdate();
 
 }
 int			SEAdenitaVisualModel::getHighlightCount() const { return 7; }
@@ -2133,6 +2211,35 @@ void SEAdenitaVisualModel::display(SBNode::RenderingPass renderingPass) {
 	else if (renderingPass == SBNode::RenderingPass::OpaqueGeometry || renderingPass == SBNode::RenderingPass::TransparentGeometry ||
 		renderingPass == SBNode::RenderingPass::ShadowingGeometry || renderingPass == SBNode::RenderingPass::SelectableGeometry) {
 
+		if (cylinderArray.isValid()) {
+
+			cylinderArray->setNumberOfCylinders(nCylinders_);
+			cylinderArray->setNumberOfPositions(nPositions_);
+			cylinderArray->setPositionData(positions_.GetArray());
+			cylinderArray->setIndexData(indices_.GetArray());
+			cylinderArray->setColorData(colorsE_.GetArray());
+			cylinderArray->setMaterialData(materialData_.GetArray());
+			cylinderArray->setNodeData(nodeData_.GetArray());
+			cylinderArray->setRadiusData(radiiE_.GetArray());
+			cylinderArray->setCapData(capData_.GetArray());
+			cylinderArray->setFlagData(flags_.GetArray());
+			cylinderArray->setNodeIndexData(nodeIndices_.GetArray());
+
+		}
+
+		if (sphereArray.isValid()) {
+
+			sphereArray->setNumberOfSpheres(nPositions_);
+			sphereArray->setPositionData(positions_.GetArray());
+			sphereArray->setRadiusData(radiiV_.GetArray());
+			sphereArray->setColorData(colorsV_.GetArray());
+			sphereArray->setMaterialData(materialData_.GetArray());
+			sphereArray->setNodeData(nodeData_.GetArray());
+			sphereArray->setFlagData(flags_.GetArray());
+			sphereArray->setNodeIndexData(nodeIndices_.GetArray());
+
+		}
+
 		displayTransition(renderingPass);
 
 	}
@@ -2141,11 +2248,13 @@ void SEAdenitaVisualModel::display(SBNode::RenderingPass renderingPass) {
 
 void SEAdenitaVisualModel::prepareNucleotides() {
 
-	SEConfig& config = SEConfig::GetInstance();
+	const SEConfig& config = SEConfig::GetInstance();
 
 	auto parts = nanorobot_->GetParts();
 
 	MSVColors* curColors = colors_[curColorType_];
+
+	SBNodeMaterial* material = getMaterial();
 
 	SB_FOR(auto part, parts) {
 
@@ -2175,6 +2284,9 @@ void SEAdenitaVisualModel::prepareNucleotides() {
 				nodeIndicesNt_(index) = nt->getNodeIndex();
 				flagsNt_(index) = nt->getInheritedFlags();
 				capDataNt_(index) = 1;
+
+				materialDataNt_(index) = material;
+				nodeDataNt_(index) = nt();
 
 				auto baseColor = curColors->GetColor(nt);
 				colorsVNt_.SetRow(index, baseColor);
@@ -2221,7 +2333,7 @@ void SEAdenitaVisualModel::prepareNucleotides() {
 
 void SEAdenitaVisualModel::prepareSingleStrands() {
 
-	SEConfig& config = SEConfig::GetInstance();
+	const SEConfig& config = SEConfig::GetInstance();
 	auto parts = nanorobot_->GetParts();
 
 	MSVColors* curColors = colors_[curColorType_];
@@ -2289,7 +2401,7 @@ void SEAdenitaVisualModel::prepareSingleStrands() {
 
 void SEAdenitaVisualModel::prepareDoubleStrands() {
 
-	SEConfig& config = SEConfig::GetInstance();
+	const SEConfig& config = SEConfig::GetInstance();
 
 	auto parts = nanorobot_->GetParts();
 
@@ -2299,6 +2411,10 @@ void SEAdenitaVisualModel::prepareDoubleStrands() {
 	flagsDS_ = ADNArray<unsigned int>(nPositionsDS_);
 	colorsVDS_ = ADNArray<float>(4, nPositionsDS_);
 	nodeIndicesDS_ = ADNArray<unsigned int>(nPositionsDS_);
+
+	materialDataDS_ = ADNArray<SBNodeMaterial*>(nPositionsDS_);
+	nodeDataDS_ = ADNArray<SBNode*>(nPositionsDS_);
+	SBNodeMaterial* material = getMaterial();
 
 	SB_FOR(auto part, parts) {
 
@@ -2344,6 +2460,9 @@ void SEAdenitaVisualModel::prepareDoubleStrands() {
 				flagsDS_(index) = baseSegment->getInheritedFlags();
 
 				nodeIndicesDS_(index) = baseSegment->getNodeIndex();
+
+				materialDataDS_(index) = material;
+				nodeDataDS_(index) = baseSegment;
 
 				if (!doubleStrand->isVisible()) {
 					colorsVDS_(index, 3) = 0.0f;
@@ -2491,20 +2610,6 @@ void SEAdenitaVisualModel::displayDoubleStrands(bool forSelection) {
 	}
 
 }
-
-//void SEAdenitaVisualModel::displayForShadow() {
-//
-//	display();
-//
-//}
-//
-//void SEAdenitaVisualModel::displayForSelection() {
-//
-//	if (isUpdateRequested) update();
-//
-//	displayTransition(true);
-//
-//}
 
 void SEAdenitaVisualModel::displayBasePairConnections(SBNode::RenderingPass renderingPass, bool onlySelected) {
 
@@ -2791,6 +2896,8 @@ void SEAdenitaVisualModel::prepareAtoms() {
 
 	auto parts = nanorobot_->GetParts();
 
+	SBNodeMaterial* material = getMaterial();
+
 	SB_FOR(auto part, parts) {
 
 		auto singleStrands = part->GetSingleStrands();
@@ -2814,6 +2921,9 @@ void SEAdenitaVisualModel::prepareAtoms() {
 					nodeIndicesAtom_(index) = a->getNodeIndex();
 					flagsAtom_(index) = a->getInheritedFlags();
 					capDataAtom_(index) = 1;
+
+					materialDataAtom_(index) = material;
+					nodeDataAtom_(index) = a();
 
 					radiiVAtom_(index) = a->getVanDerWaalsRadius().getValue();
 
@@ -3159,7 +3269,8 @@ void SEAdenitaVisualModel::setShowBasePairingFlag(bool show) {
 
 	this->showBasePairing_ = show;
 
-	SAMSON::requestViewportUpdate();
+	changed();
+	//SAMSON::requestViewportUpdate();
 
 }
 

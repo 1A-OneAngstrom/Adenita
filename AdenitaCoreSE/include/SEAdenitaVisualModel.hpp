@@ -250,6 +250,14 @@ private:
 	
 	static SB_OPENGL_FUNCTIONS*									gl;
 
+	/// \name Path-tracing
+	//@{
+
+	SBPointer<SBSphereArray>									sphereArray{ nullptr };
+	SBPointer<SBCylinderArray>									cylinderArray{ nullptr };
+
+	//@}
+
 	/// \name Transitional scale
 	//@{
 
@@ -264,6 +272,9 @@ private:
 	ADNArray<unsigned int>										nodeIndices_;
 	ADNArray<unsigned int>										indices_;
 	ADNArray<unsigned int>										capData_;
+	
+	ADNArray<SBNodeMaterial*>									materialData_;
+	ADNArray<SBNode*>											nodeData_;
 
 	//@}
 
@@ -282,6 +293,9 @@ private:
 	ADNArray<unsigned int>										nodeIndicesAtom_;
 	ADNArray<unsigned int>										indicesAtom_;
 
+	ADNArray<SBNodeMaterial*>									materialDataAtom_;
+	ADNArray<SBNode*>											nodeDataAtom_;
+
 	//@}
 
 	/// \name Nucleotide scale
@@ -298,6 +312,9 @@ private:
 	ADNArray<unsigned int>										flagsNt_;
 	ADNArray<unsigned int>										nodeIndicesNt_;
 	ADNArray<unsigned int>										indicesNt_;
+
+	ADNArray<SBNodeMaterial*>									materialDataNt_;
+	ADNArray<SBNode*>											nodeDataNt_;
 
 	//@}
 
@@ -321,6 +338,9 @@ private:
 	ADNArray<float>												radiiVDS_;
 	ADNArray<unsigned int>										flagsDS_;
 	ADNArray<unsigned int>										nodeIndicesDS_;
+
+	ADNArray<SBNodeMaterial*>									materialDataDS_;
+	ADNArray<SBNode*>											nodeDataDS_;
 
 	//@}
 
