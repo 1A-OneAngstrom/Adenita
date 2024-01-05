@@ -407,6 +407,8 @@ void SEAdenitaVisualModel::update() {
 	isPrepareDiscreteScalesDimRequested = false;
 	isUpdateRequested = false;
 
+	changed();
+
 }
 
 unsigned int	SEAdenitaVisualModel::getHighlightMinLength() const { return highlightMinLen_; }
@@ -1090,7 +1092,6 @@ void SEAdenitaVisualModel::prepareSingleStrandsToDoubleStrands(double iv) {
 	//nodeIndices_ = ADNArray<unsigned int>(nPositions_);
 	//indices_ = ADNArray<unsigned int>(nCylinders_ * 2);
 
-
 	//positions_ = positionsNt_;
 	//radiiV_ = radiiVSS_;
 	//radiie_ = radiiESS_;
@@ -1284,6 +1285,8 @@ void SEAdenitaVisualModel::changeHighlightFlag() {
 	}
 
 	setScale(scale_);
+
+	changed();
 
 }
 
@@ -2110,10 +2113,15 @@ void SEAdenitaVisualModel::display(SBNode::RenderingPass renderingPass) {
 
 		SBEditor* activeEditor = SAMSON::getActiveEditor();
 		//logger.Log(activeEditor->getName());
-		if (isPrepareDiscreteScalesDimRequested || activeEditor->getName() == "SEERotation" || activeEditor->getName() == "SEETranslation") {
+		if (isPrepareDiscreteScalesDimRequested
+			// TODO: check what editor names should be here and should they be here at all? Move editors?
+			|| activeEditor->getName() == "SEERotation" || activeEditor->getName() == "SEETranslation"
+			) {
 
 			prepareDiscreteScalesDim();
 			setScale(scale_);
+
+			changed();
 
 		}
 

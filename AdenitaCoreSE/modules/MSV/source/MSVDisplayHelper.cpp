@@ -101,7 +101,6 @@ void ADNDisplayHelper::displayCylinder(const SBPosition3& start, const SBPositio
     delete[] colorData;
     delete[] flagData;
 
-
 }
 
 void ADNDisplayHelper::displayLine(ublas::vector<double> center, ublas::vector<double> dir, int length) {

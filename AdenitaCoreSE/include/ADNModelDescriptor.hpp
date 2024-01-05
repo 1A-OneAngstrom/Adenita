@@ -32,7 +32,6 @@ SB_CLASS_BEGIN(ADNAtom);
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNAtom, Nucleotide, "Nucleotide", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(SBPosition3 const&, ADNAtom, Position, "Position", "Adenita");
 
-
 	SB_ATTRIBUTE_READ_WRITE(SBElement::Type, ADNAtom, ElementType, "Element", "Element");
 	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, ElementName, "Element name", "Element");
 	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, ElementSymbol, "Element symbol", "Element");
@@ -58,7 +57,6 @@ SB_CLASS_BEGIN(ADNAtom);
 	SB_ATTRIBUTE_READ_WRITE_CLEAR(const std::string&, ADNAtom, Name, "Name", "Identity");
 	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, MoleculeName, "Molecule name", "Identity");
 	
-
 	SB_ATTRIBUTE_READ_ONLY(bool, ADNAtom, Selected, "Selected", "Node");
 	SB_ATTRIBUTE_READ_ONLY(bool, ADNAtom, Visible, "Visible", "Node");
 	SB_ATTRIBUTE_READ_WRITE(bool, ADNAtom, SelectionFlag, "Selection flag", "Node");
@@ -82,8 +80,6 @@ SB_CLASS_BEGIN(ADNAtom);
 
 	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, SubstructureName, "Substructure name", "Protein");
 	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, SubstructureSequenceNumberString, "Substructure sequence number", "Protein");
-
-
 
 	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, ChainIDString, "Chain ID", "Protein");
 	SB_CONST_FUNCTION_0(int, ADNAtom, getChainID);
@@ -122,7 +118,8 @@ SB_CLASS_BEGIN(ADNBackbone);
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNBackbone, Name, "Name", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(std::string const &, ADNBackbone, Name, "Name", "Identity");
+
     SB_ATTRIBUTE_READ_ONLY(int, ADNBackbone, NumberOfAtoms, "Number of atoms", "Adenita");
 
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBackbone, ThisNode, "Itself", "Node");
@@ -150,7 +147,8 @@ SB_CLASS_BEGIN(ADNSidechain);
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNSidechain, Name, "Name", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(std::string const &, ADNSidechain, Name, "Name", "Identity");
+
     SB_ATTRIBUTE_READ_ONLY(int, ADNSidechain, NumberOfAtoms, "Number of atoms", "Adenita");
 
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNSidechain, ThisNode, "Itself", "Node");
@@ -178,7 +176,9 @@ SB_CLASS_BEGIN(ADNNucleotide);
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNNucleotide, Name, "Name", "Adenita");
+    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNNucleotide, Name, "Name", "Identity");
+    SB_ATTRIBUTE_READ_WRITE_CLEAR(const int&, ADNNucleotide, StructuralID, "Residue sequence number", "Identity");
+
     SB_ATTRIBUTE_READ_ONLY(DNABlocks, ADNNucleotide, NucleotideType, "Type", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, SingleStrand, "Single strand", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, BaseSegment, "Base segment", "Adenita");
@@ -214,7 +214,8 @@ SB_CLASS_BEGIN(ADNSingleStrand);
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNSingleStrand, Name, "Name", "Adenita");
+    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNSingleStrand, Name, "Name", "Identity");
+
     SB_ATTRIBUTE_READ_WRITE(bool, ADNSingleStrand, ScaffoldFlag, "Is scaffold", "Adenita");
     SB_ATTRIBUTE_READ_WRITE(bool, ADNSingleStrand, CircularFlag, "Is circular", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(int, ADNSingleStrand, NumberOfNucleotides, "Nucleotides", "Adenita");
@@ -266,7 +267,9 @@ SB_CLASS_BEGIN(ADNBasePair);
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNBasePair, Name, "Name", "Adenita");
+    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNBasePair, Name, "Name", "Identity");
+    SB_ATTRIBUTE_READ_WRITE_CLEAR(const int&, ADNBasePair, StructuralID, "Structural group ID", "Identity");
+
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBasePair, LeftNucleotide, "Left", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBasePair, RightNucleotide, "Right", "Adenita");
 
@@ -313,7 +316,8 @@ SB_CLASS_BEGIN(ADNLoopPair);
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNLoopPair, Name, "Name", "Adenita");
+    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNLoopPair, Name, "Name", "Identity");
+
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNLoopPair, LeftLoop, "Left", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNLoopPair, RightLoop, "Right", "Adenita");
 
@@ -342,7 +346,8 @@ SB_CLASS_BEGIN(ADNLoop);
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNLoop, Name, "Name", "Adenita");
+    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNLoop, Name, "Name", "Identity");
+
     SB_ATTRIBUTE_READ_ONLY(int, ADNLoop, NumberOfNucleotides, "Number of nucleotides", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(std::string, ADNLoop, LoopSequence, "Sequence", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNLoop, StartNucleotide, "Start nucleotide", "Adenita");
@@ -373,8 +378,10 @@ SB_CLASS_BEGIN(ADNBaseSegment);
 
   SB_INTERFACE_BEGIN;
 
+    SB_ATTRIBUTE_READ_WRITE(std::string const&, ADNBaseSegment, Name, "Name", "Identity");
+    SB_ATTRIBUTE_READ_WRITE_CLEAR(const int&, ADNBaseSegment, StructuralID, "Structural group ID", "Identity");
+
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBaseSegment, DoubleStrand, "Double strand", "Adenita");
-    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNBaseSegment, Name, "Name", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(int, ADNBaseSegment, Number, "Number", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(std::string, ADNBaseSegment, CellTypeString, "Contains", "Adenita");
 
@@ -403,7 +410,8 @@ SB_CLASS_BEGIN(ADNDoubleStrand);
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNDoubleStrand, Name, "Name", "Adenita");
+    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNDoubleStrand, Name, "Name", "Identity");
+
     SB_ATTRIBUTE_READ_ONLY(int, ADNDoubleStrand, Length, "Length", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(double, ADNDoubleStrand, InitialTwistAngle, "Helical twist offset", "Adenita");
     SB_ATTRIBUTE_READ_WRITE(bool, ADNDoubleStrand, CircularFlag, "Is circular", "Adenita");
