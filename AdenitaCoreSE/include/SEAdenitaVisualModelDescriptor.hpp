@@ -88,7 +88,7 @@ SB_CLASS_BEGIN(SEAdenitaVisualModel);
 
 		SB_ATTRIBUTE_PUSH_BUTTON(SEAdenitaVisualModel, "Update", "Update", "Display", update);
 		SB_ATTRIBUTE_READ_WRITE_RESET_RANGE_SLIDER(unsigned int, SEAdenitaVisualModel, Transparency, "Transparency", "Display");
-		SB_ATTRIBUTE_READ_ONLY(SBDDataGraphNodeMaterial*, SEAdenitaVisualModel, Material, "Material", "Display");
+		//SB_ATTRIBUTE_READ_ONLY(SBDDataGraphNodeMaterial*, SEAdenitaVisualModel, Material, "Material", "Display");
 
 	SB_INTERFACE_END;
 
