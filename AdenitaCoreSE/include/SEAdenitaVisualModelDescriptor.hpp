@@ -44,12 +44,6 @@ SB_CLASS_BEGIN(SEAdenitaVisualModel);
 
 		SB_ATTRIBUTE_READ_WRITE_LIST(SEAdenitaVisualModel, Highlight, "Highlight", "Highlight options");
 
-#if 0
-		SB_ATTRIBUTE_READ_WRITE_RESET(bool, SEAdenitaVisualModel, NotScaffold, "Not scaffold", "Highlight options");
-		SB_ATTRIBUTE_READ_WRITE_RESET(bool, SEAdenitaVisualModel, NotWithinRange, "Not within the range", "Highlight options");
-		SB_ATTRIBUTE_READ_WRITE(unsigned int, SEAdenitaVisualModel, HighlightMinLength, "Min length (nts)", "Highlight options");
-		SB_ATTRIBUTE_READ_WRITE(unsigned int, SEAdenitaVisualModel, HighlightMaxLength, "Max length (nts)", "Highlight options");
-#else
 		SB_ATTRIBUTE_BEGIN(SBAttribute::Type::ReadWrite, bool, SEAdenitaVisualModel, NotScaffold, "Not scaffold", "Highlight options");
 			SB_ATTRIBUTE_GET(bool, SEAdenitaVisualModel, getNotScaffold);
 			SB_ATTRIBUTE_SET(bool, SEAdenitaVisualModel, setNotScaffold);
@@ -75,7 +69,6 @@ SB_CLASS_BEGIN(SEAdenitaVisualModel);
 			SB_ATTRIBUTE_SET(unsigned int, SEAdenitaVisualModel, setHighlightMaxLength);
 			SB_ATTRIBUTE_ENABLED_FLAG(SEAdenitaVisualModel, getEnabledFlagForHighlightAttributes);
 		SB_ATTRIBUTE_END;
-#endif
 
 		SB_ATTRIBUTE_READ_WRITE_LIST(SEAdenitaVisualModel, ColorType, "Color type", "Colorization");
 		SB_ATTRIBUTE_READ_WRITE_LIST(SEAdenitaVisualModel, PropertyColorScheme, "Property color scheme", "Colorization");

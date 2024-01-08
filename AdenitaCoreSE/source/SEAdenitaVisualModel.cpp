@@ -659,7 +659,7 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 	SB_FOR(auto part, parts) numberOfSingleStrandsInAllParts += part->GetSingleStrands().size();
 	if (singleStrands.size() != numberOfSingleStrandsInAllParts || numberOfSingleStrandsUsingSAMSON != numberOfSingleStrandsInAllParts) {
 
-		std::cerr << "ERROR: The number of single strands in nanorobot does not correspond to their number in the data graph. " <<
+		std::cerr << "[Adenita] ERROR: The number of single strands in nanorobot does not correspond to their number in the data graph. " <<
 			"The total number in nanorobot is " << singleStrands.size() << " (the number in parts in nanorobot it is " << numberOfSingleStrandsInAllParts << ") and using SAMSON it is " << numberOfSingleStrandsUsingSAMSON << std::endl;
 
 	}
@@ -670,7 +670,7 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 	const int numberOfNucleotidesInNanorobot = nanorobot_->GetNumberOfNucleotides();
 	if (numberOfNucleotidesUsingSAMSON != numberOfNucleotidesInNanorobot) {
 
-		std::cerr << "ERROR: The number of nucleotides in nanorobot does not correspond to their number in the data graph. " <<
+		std::cerr << "[Adenita] ERROR: The number of nucleotides in nanorobot does not correspond to their number in the data graph. " <<
 			"The total number in nanorobot is " << numberOfNucleotidesInNanorobot << " and using SAMSON it is " << numberOfNucleotidesUsingSAMSON << std::endl;
 
 	}
@@ -693,6 +693,7 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 		SB_FOR(ADNPointer<ADNSingleStrand> singleStrand, singleStrands) {
 
 			auto nucleotides = singleStrand->GetNucleotides();
+			if (nucleotides.size() == 0) continue;
 			ADNPointer<ADNNucleotide> currentNucleotide = singleStrand->GetFivePrime();
 			const size_t curNCylinders = nucleotides.size() - 1; //todo fix this
 			ADNArray<unsigned int> curIndices = ADNArray<unsigned int>(2 * curNCylinders);
@@ -707,6 +708,13 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 				unsigned int nextIndex = ntMap_[nextNucleotide];
 				//nucleotides.getIndex(nextNucleotide, nextIndex);
 
+				if (j >= curNCylinders) {
+
+					std::cerr << "[Adenita] ERROR: \tindex is out of range: " << j << std::endl;
+					break;
+
+				}
+
 				curIndices(2 * j) = currentIndex;
 				curIndices(2 * j + 1) = nextIndex;
 				j++;
@@ -719,7 +727,7 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 
 				if (sumNumEdges + k >= nCylinders * 2) {
 
-					std::cerr << "ERROR: \tindex is out of range: " << sumNumEdges + k << std::endl;
+					std::cerr << "[Adenita] ERROR: \tindex is out of range: " << sumNumEdges + k << std::endl;
 					break;
 
 				}
@@ -1162,7 +1170,7 @@ void SEAdenitaVisualModel::prepareSingleStrandsToDoubleStrands(double iv) {
 
 	//positions_ = positionsNt_;
 	//radiiV_ = radiiVSS_;
-	//radiie_ = radiiESS_;
+	//radiiE_ = radiiESS_;
 	capData_ = capDataNt_;
 	flags_ = flagsNt_;
 	nodeIndices_ = nodeIndicesNt_;
@@ -2060,7 +2068,7 @@ void SEAdenitaVisualModel::changePropertyColors(const int propertyIdx, const int
 
 		const SEConfig& config = SEConfig::GetInstance();
 
-		auto p = PIPrimer3::GetInstance();
+		const auto& p = PIPrimer3::GetInstance();
 
 		auto parts = nanorobot_->GetParts();
 
@@ -2973,12 +2981,12 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 	}
 	else if (highlightType_ == HighlightType::CROSSOVERS) {
 
-		for (auto p : ntMap_) {
+		for (const auto& p : ntMap_) {
 			auto index = p.second;
 			ntContext.push_back(index);
 		}
 
-		for (auto p : bsMap_) {
+		for (const auto& p : bsMap_) {
 			auto index = p.second;
 			bsContext.push_back(index);
 		}
@@ -2986,7 +2994,7 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 		SB_FOR(auto part, parts) {
 
 			auto xos = PICrossovers::GetCrossovers(part);
-			for (auto xo : xos) {
+			for (const auto& xo : xos) {
 
 				auto startNt = xo.first;
 				auto endNt = xo.second;
@@ -3010,12 +3018,12 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 	}
 	else if (highlightType_ == HighlightType::GC) {
 
-		for (auto p : ntMap_) {
+		for (const auto& p : ntMap_) {
 			auto index = p.second;
 			ntContext.push_back(index);
 		}
 
-		for (auto p : bsMap_) {
+		for (const auto& p : bsMap_) {
 			auto index = p.second;
 			bsContext.push_back(index);
 		}
@@ -3047,12 +3055,12 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 	}
 	else if (highlightType_ == HighlightType::TAGGED) {
 
-		for (auto p : ntMap_) {
+		for (const auto& p : ntMap_) {
 			auto index = p.second;
 			ntContext.push_back(index);
 		}
 
-		for (auto p : bsMap_) {
+		for (const auto& p : bsMap_) {
 			auto index = p.second;
 			bsContext.push_back(index);
 		}
@@ -3084,12 +3092,12 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 	}
 	else if (highlightType_ == HighlightType::LENGTH) {
 
-		for (auto p : ntMap_) {
+		for (const auto& p : ntMap_) {
 			auto index = p.second;
 			ntContext.push_back(index);
 		}
 
-		for (auto p : bsMap_) {
+		for (const auto& p : bsMap_) {
 			auto index = p.second;
 			bsContext.push_back(index);
 		}
@@ -3124,12 +3132,12 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 	}
 	else if (highlightType_ == HighlightType::NOBASE) {
 
-		for (auto p : ntMap_) {
+		for (const auto& p : ntMap_) {
 			auto index = p.second;
 			ntContext.push_back(index);
 		}
 
-		for (auto p : bsMap_) {
+		for (const auto& p : bsMap_) {
 			auto index = p.second;
 			bsContext.push_back(index);
 		}
@@ -3160,12 +3168,12 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 	}
 	else if (highlightType_ == HighlightType::UNPAIRED) {
 
-		for (auto p : ntMap_) {
+		for (const auto& p : ntMap_) {
 			auto index = p.second;
 			ntContext.push_back(index);
 		}
 
-		for (auto p : bsMap_) {
+		for (const auto& p : bsMap_) {
 			auto index = p.second;
 			bsContext.push_back(index);
 		}
@@ -3216,7 +3224,7 @@ ADNArray<float> SEAdenitaVisualModel::calcPropertyColor(int colorSchemeIdx, floa
 
 	ADNArray<float> color = ADNArray<float>(4);
 
-	auto colorScheme = propertyColorSchemes_[colorSchemeIdx];
+	const auto& colorScheme = propertyColorSchemes_[colorSchemeIdx];
 
 	if (val == FLT_MAX) { //if region is unbound
 

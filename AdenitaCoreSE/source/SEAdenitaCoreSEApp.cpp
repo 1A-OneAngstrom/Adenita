@@ -1034,9 +1034,9 @@ SBPosition3 SEAdenitaCoreSEApp::getSnappedPosition(const SBPosition3& currentPos
 
 	ADNNanorobot* nanorobot = GetNanorobot();
 
-	auto highlightedBaseSegments = nanorobot->GetHighlightedBaseSegments();
-	auto highlightedBaseSegmentsFromNucleotides = nanorobot->GetHighlightedBaseSegmentsFromNucleotides();
-	auto highlightedAtoms = nanorobot->GetHighlightedAtoms();
+	const auto highlightedBaseSegments = nanorobot->GetHighlightedBaseSegments();
+	const auto highlightedBaseSegmentsFromNucleotides = nanorobot->GetHighlightedBaseSegmentsFromNucleotides();
+	const auto highlightedAtoms = nanorobot->GetHighlightedAtoms();
 
 	if (highlightedAtoms.size() == 1)
 		snappedPosition = highlightedAtoms[0]->getPosition();
@@ -1058,8 +1058,8 @@ void SEAdenitaCoreSEApp::addPartToDocument(ADNPointer<ADNPart> part, bool positi
 
 		std::string fname = SEAdenitaCoreSEAppGUI::getScaffoldFilename();
 		std::string seq = SEAdenitaCoreSEApp::readScaffoldFilename(fname);
-		auto scafs = part->GetScaffolds();
-		SB_FOR(ADNPointer<ADNSingleStrand> ss, scafs) {
+		auto scaffolds = part->GetScaffolds();
+		SB_FOR(ADNPointer<ADNSingleStrand> ss, scaffolds) {
 
 			ADNBasicOperations::SetSingleStrandSequence(ss, seq);
 
