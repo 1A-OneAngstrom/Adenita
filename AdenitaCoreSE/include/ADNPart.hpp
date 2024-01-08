@@ -72,10 +72,8 @@ public:
     bool                                                        isLoadedViaSAMSON() const noexcept;
     void                                                        setLoadedViaSAMSON(bool l);
 
-    std::pair<SBPosition3, SBPosition3>                         GetBoundingBox() const;
+    const SBIAPosition3&                                        GetBoundingBox() const;
     void                                                        ResetBoundingBox();
-
-protected:
 
 private:
 
@@ -103,9 +101,7 @@ private:
     void                                                        SetBoundingBox(ADNPointer<ADNBaseSegment> newBs);
     void                                                        InitBoundingBox();
 
-    SBPosition3                                                 minBox_;
-    SBPosition3                                                 maxBox_;
-    //SBIAPosition3                                               boundingBox;  // TODO: switch to boundingBox from minBox_ and maxBox_
+    SBIAPosition3                                               boundingBox;
 
 };
 

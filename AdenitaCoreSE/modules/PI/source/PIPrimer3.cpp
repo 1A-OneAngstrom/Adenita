@@ -1,20 +1,20 @@
 #include "PIPrimer3.hpp"
-
 #include "ADNPart.hpp"
 
 #include <cfloat>
 
 #include <QProcess>
 
-CollectionMap<PIBindingRegion> PIPrimer3::GetBindingRegions() {
+CollectionMap<PIBindingRegion> PIPrimer3::GetBindingRegions() const {
 
     CollectionMap<PIBindingRegion> regions;
 
     for (auto it = regionsMap_.begin(); it != regionsMap_.end(); ++it) {
+
         CollectionMap<PIBindingRegion> regs = it->second;
-        SB_FOR(ADNPointer<PIBindingRegion> r, regs) {
+        SB_FOR(ADNPointer<PIBindingRegion> r, regs)
             regions.addReferenceTarget(r());
-        }
+
     }
 
     return regions;
@@ -28,11 +28,13 @@ PIPrimer3& PIPrimer3::GetInstance() {
 
 }
 
-CollectionMap<PIBindingRegion> PIPrimer3::GetBindingRegions(ADNPointer<ADNPart> p) {
+CollectionMap<PIBindingRegion> PIPrimer3::GetBindingRegions(ADNPointer<ADNPart> p) const {
 
     CollectionMap<PIBindingRegion> regions;
     if (regionsMap_.find(p()) != regionsMap_.end()) {
-        regions = regionsMap_[p()];
+
+        regions = regionsMap_.at(p());
+
     }
 
     return regions;
@@ -50,12 +52,12 @@ void PIPrimer3::DeleteBindingRegions(ADNPointer<ADNPart> p) {
 
 ThermParam PIPrimer3::ExecuteNtthal(std::string leftSequence, std::string rightSequence, int oligo_conc, int mv, int dv) {
 
-    SEConfig& c = SEConfig::GetInstance();
+    const SEConfig& c = SEConfig::GetInstance();
     QFileInfo ntthal(QString::fromStdString(c.ntthal));
     QString workingDirection = ntthal.absolutePath();
     QString program = ntthal.absoluteFilePath();
-    std::string test1 = program.toStdString();
-    std::string test2 = workingDirection.toStdString();
+    //std::string test1 = program.toStdString();
+    //std::string test2 = workingDirection.toStdString();
     QStringList arguments;
 
     arguments << "-s1" << leftSequence.c_str();
@@ -76,30 +78,32 @@ ThermParam PIPrimer3::ExecuteNtthal(std::string leftSequence, std::string rightS
 
     ThermParam res;
     if (strLines.size() != 6) {  //if there the region is unbound
+
         res.dS_ = FLT_MAX;
         res.dH_ = FLT_MAX;
         res.dG_ = FLT_MAX;
         res.T_ = FLT_MAX;
         return res;
+
     }
 
-    QString dS = "dS =";
-    QString dH = "dH =";
-    QString dG = "dG =";
-    QString t = "t =";
+    const QString dS = "dS =";
+    const QString dH = "dH =";
+    const QString dG = "dG =";
+    const QString t = "t =";
 
-    int idS = firstLine.indexOf(dS);
-    int idSEnd = firstLine.indexOf(dH, idS);
-    int idH = firstLine.indexOf(dH);
-    int idHEnd = firstLine.indexOf(dG, idH);
-    int idG = firstLine.indexOf(dG);
-    int idGEnd = firstLine.indexOf(t, idG);
-    int it = firstLine.indexOf(t);
+    const int idS = firstLine.indexOf(dS);
+    const int idSEnd = firstLine.indexOf(dH, idS);
+    const int idH = firstLine.indexOf(dH);
+    const int idHEnd = firstLine.indexOf(dG, idH);
+    const int idG = firstLine.indexOf(dG);
+    const int idGEnd = firstLine.indexOf(t, idG);
+    const int it = firstLine.indexOf(t);
 
-    QString dSVal = firstLine.mid(idS + 5, idSEnd - idS - 6);
-    QString dHVal = firstLine.mid(idH + 5, idHEnd - idH - 5);
-    QString dGVal = firstLine.mid(idG + 5, idGEnd - idG - 6);
-    QString tVal = firstLine.mid(it + 4, firstLine.size() - it);
+    const QString dSVal = firstLine.mid(idS + 5, idSEnd - idS - 6);
+    const QString dHVal = firstLine.mid(idH + 5, idHEnd - idH - 5);
+    const QString dGVal = firstLine.mid(idG + 5, idGEnd - idG - 6);
+    const QString tVal = firstLine.mid(it + 4, firstLine.size() - it);
 
     res.dS_ = dSVal.toFloat();
     res.dH_ = dHVal.toFloat();
@@ -110,7 +114,7 @@ ThermParam PIPrimer3::ExecuteNtthal(std::string leftSequence, std::string rightS
 
 }
 
-void PIPrimer3::Calculate(ADNPointer<ADNPart> p, int oligo_conc, int mv, int dv) {
+void PIPrimer3::Calculate(ADNPointer<ADNPart> p, int oligo_conc, int mv, int dv) const {
 
     auto regions = GetBindingRegions(p);
 
@@ -155,15 +159,19 @@ void PIPrimer3::UpdateBindingRegions(ADNPointer<ADNPart> p) {
                 auto sc_next = nt->GetNext();
 
                 if (sc_next != nullptr && st_cur != nullptr && st_cur->GetPrev() != nullptr) {
+
                     if (sc_next->GetPair() == st_cur->GetPrev()) {
                         endOfRegion = false;
                     }
+
                 }
                 else if (st_cur == nullptr) {
+
                     // group up in one binding region the contiguous unpaired nts
                     if (sc_next->GetPair() == nullptr) {
                         endOfRegion = false;
                     }
+
                 }
 
                 nodeIndexer.addNode(nt());
@@ -172,8 +180,10 @@ void PIPrimer3::UpdateBindingRegions(ADNPointer<ADNPart> p) {
 
                 auto pair = nt->GetPair();
                 if (pair != nullptr) {
+
                     nodeIndexer.addNode(pair());
                     added_nt.push_back(pair);
+
                 }
 
                 ++regionSize;

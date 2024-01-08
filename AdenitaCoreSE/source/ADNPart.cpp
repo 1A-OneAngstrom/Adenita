@@ -1,5 +1,5 @@
 #include "ADNPart.hpp"
-//#include "SEAdenitaVisualModel.hpp"
+#include "SEAdenitaCoreSEApp.hpp"
 
 ADNPart::ADNPart() : SBStructuralModel() {
     
@@ -97,6 +97,7 @@ void ADNPart::serialize(SBCSerializer * serializer, const SBNodeIndexer & nodeIn
     }
     serializer->writeEndElement();
     //end double strands
+
 }
 
 void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & nodeIndexer, const SBVersionNumber & sdkVersionNumber, const SBVersionNumber & classVersionNumber) {
@@ -149,7 +150,7 @@ void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & node
     serializer->readEndElement();
 
     // base segments
-    unsigned int numBaseSegments = serializer->readUnsignedIntElement();
+    const unsigned int numBaseSegments = serializer->readUnsignedIntElement();
     serializer->readStartElement();
     for (unsigned int i = 0; i < numBaseSegments; ++i) {
 
@@ -164,7 +165,7 @@ void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & node
     serializer->readEndElement();
 
     // double strands
-    unsigned int numDoubleStrands = serializer->readUnsignedIntElement();
+    const unsigned int numDoubleStrands = serializer->readUnsignedIntElement();
     serializer->readStartElement();
     for (unsigned int i = 0; i < numDoubleStrands; ++i) {
 
@@ -180,11 +181,18 @@ void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & node
 
     setLoadedViaSAMSON(true);
 
-    //SEAdenitaVisualModel::requestVisualModelUpdate();
+    // does not fully work: the VM is created but is not visible - needs a request for update after all the nodes were created
+    //if (this->getParent()) {
+    //
+    //    SEAdenitaCoreSEApp::resetVisualModel(this->getParent());
+    //    SAMSON::requestViewportUpdate();
+    //    SAMSON::getActiveCamera()->center();
+    //
+    //}
 
 }
 
-CollectionMap<ADNBaseSegment> ADNPart::GetBaseSegments(CellType celltype) const {
+CollectionMap<ADNBaseSegment> ADNPart::GetBaseSegments(CellType cellType) const {
 
 #if 0//ADENITA_ADNPART_REGISTER_BASESEGMENTS
     auto baseSegmentIndexer = baseSegmentsIndex_;
@@ -198,7 +206,7 @@ CollectionMap<ADNBaseSegment> ADNPart::GetBaseSegments(CellType celltype) const 
 #endif
 
     CollectionMap<ADNBaseSegment> bsList;
-    if (celltype == CellType::ALL) {
+    if (cellType == CellType::ALL) {
 
         bsList = baseSegmentIndexer;
 
@@ -207,7 +215,7 @@ CollectionMap<ADNBaseSegment> ADNPart::GetBaseSegments(CellType celltype) const 
 
         SB_FOR(ADNPointer<ADNBaseSegment> bs, baseSegmentIndexer) {
 
-            if (bs->GetCellType() == celltype)
+            if (bs->GetCellType() == cellType)
                 bsList.addReferenceTarget(bs());
 
         }
@@ -459,8 +467,8 @@ void ADNPart::setLoadedViaSAMSON(bool l) {
     loadedViaSAMSONFlag = l;
 }
 
-std::pair<SBPosition3, SBPosition3> ADNPart::GetBoundingBox() const {
-    return std::pair<SBPosition3, SBPosition3>(minBox_, maxBox_);
+const SBIAPosition3& ADNPart::GetBoundingBox() const {
+    return boundingBox;
 }
 
 void ADNPart::ResetBoundingBox() {
@@ -477,13 +485,7 @@ void ADNPart::SetBoundingBox(ADNPointer<ADNNucleotide> newNt) {
     if (newNt == nullptr) return;
 
     const SBPosition3 pos = newNt->GetBackbonePosition();
-    //boundingBox.bound(pos);
-    if (pos[0] < minBox_[0]) minBox_[0] = pos[0];
-    if (pos[1] < minBox_[1]) minBox_[1] = pos[1];
-    if (pos[2] < minBox_[2]) minBox_[2] = pos[2];
-    if (pos[0] > maxBox_[0]) maxBox_[0] = pos[0];
-    if (pos[1] > maxBox_[1]) maxBox_[1] = pos[1];
-    if (pos[2] > maxBox_[2]) maxBox_[2] = pos[2];
+    boundingBox.bound(pos);
 
 }
 
@@ -492,22 +494,14 @@ void ADNPart::SetBoundingBox(ADNPointer<ADNBaseSegment> newBs) {
     if (newBs == nullptr) return;
 
     const SBPosition3 pos = newBs->GetPosition();
-    //boundingBox.bound(pos);
-    if (pos[0] < minBox_[0]) minBox_[0] = pos[0];
-    if (pos[1] < minBox_[1]) minBox_[1] = pos[1];
-    if (pos[2] < minBox_[2]) minBox_[2] = pos[2];
-    if (pos[0] > maxBox_[0]) maxBox_[0] = pos[0];
-    if (pos[1] > maxBox_[1]) maxBox_[1] = pos[1];
-    if (pos[2] > maxBox_[2]) maxBox_[2] = pos[2];
+    boundingBox.bound(pos);
 
 }
 
 void ADNPart::InitBoundingBox() {
 
     const SBQuantity::picometer maxVal = SBQuantity::picometer(std::numeric_limits<double>::max());
-    minBox_ = SBPosition3(maxVal, maxVal, maxVal);
-    maxBox_ = SBPosition3(-maxVal, -maxVal, -maxVal);
-    //boundingBox = SBIAPosition3(maxVal, -maxVal, maxVal, -maxVal, maxVal, -maxVal);
+    boundingBox = SBIAPosition3(maxVal, -maxVal, maxVal, -maxVal, maxVal, -maxVal);
 
 }
 
@@ -603,7 +597,7 @@ void ADNPart::RegisterAtom(ADNPointer<ADNNucleotide> nt, NucleotideGroup g, ADNP
     if (nt.isValid()) {
 
         if (at->getNucleotide() != nt())
-            nt->AddAtom(g, at);
+            nt->addAtom(g, at);
 
     }
 

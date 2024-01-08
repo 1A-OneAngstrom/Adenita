@@ -5,6 +5,8 @@
 #include "SBDocumentEvent.hpp"
 #include "SBStructuralEvent.hpp"
 
+#include "SBGRenderOpenGLFunctions.hpp"
+
 #include "ADNArray.hpp"
 #include "ADNMixins.hpp"
 #include "ADNPart.hpp"
@@ -162,9 +164,7 @@ public:
 	/// \name Display
 	//@{
 
-	virtual void												display() override;														///< Displays the visual model
-	virtual void												displayForShadow() override;											///< Displays the visual model for shadow purposes
-	virtual void												displayForSelection() override;											///< Displays the visual model for selection purposes
+	virtual void												display(SBNode::RenderingPass renderingPass) override;					///< Displays the visual model
 
 	virtual void												highlightNucleotides();
 
@@ -201,9 +201,9 @@ private:
 
 	void														setupPropertyColors();
 	ADNArray<float>												calcPropertyColor(int colorSchemeIdx, float min, float max, float val);
-	void														displayBasePairConnections(bool onlySelected);
-	void														displayForDebugging();
-	void														displayCircularDNAConnection();
+	void														displayBasePairConnections(SBNode::RenderingPass renderingPass, bool onlySelected);
+	void														displayForDebugging(SBNode::RenderingPass renderingPass);
+	void														displayCircularDNAConnection(SBNode::RenderingPass renderingPass);
 	void														displayTags();
 
 	void														prepareAtoms();
@@ -220,7 +220,7 @@ private:
 
 	void														prepareDimensions();
 
-	void														displayTransition(bool forSelection); 
+	void														displayTransition(SBNode::RenderingPass renderingPass);
 
 	void														prepareSticksToBalls(double iv);
 	void														prepareBallsToNucleotides(double iv);
@@ -247,6 +247,16 @@ private:
 	ADNNanorobot*												nanorobot_{ nullptr };
 
 	bool														isUpdateRequested = true;
+	
+	static SB_OPENGL_FUNCTIONS*									gl;
+
+	/// \name Path-tracing
+	//@{
+
+	SBPointer<SBSphereArray>									sphereArray{ nullptr };
+	SBPointer<SBCylinderArray>									cylinderArray{ nullptr };
+
+	//@}
 
 	/// \name Transitional scale
 	//@{
@@ -261,6 +271,10 @@ private:
 	ADNArray<unsigned int>										flags_;
 	ADNArray<unsigned int>										nodeIndices_;
 	ADNArray<unsigned int>										indices_;
+	ADNArray<unsigned int>										capData_;
+	
+	ADNArray<SBNodeMaterial*>									materialData_;
+	ADNArray<SBNode*>											nodeData_;
 
 	//@}
 
@@ -274,9 +288,13 @@ private:
 	ADNArray<float>												positionsAtom_;
 	ADNArray<float>												radiiVAtom_;
 	ADNArray<float>												radiiEAtom_;
+	ADNArray<unsigned int>										capDataAtom_;
 	ADNArray<unsigned int>										flagsAtom_;
 	ADNArray<unsigned int>										nodeIndicesAtom_;
 	ADNArray<unsigned int>										indicesAtom_;
+
+	ADNArray<SBNodeMaterial*>									materialDataAtom_;
+	ADNArray<SBNode*>											nodeDataAtom_;
 
 	//@}
 
@@ -294,6 +312,9 @@ private:
 	ADNArray<unsigned int>										flagsNt_;
 	ADNArray<unsigned int>										nodeIndicesNt_;
 	ADNArray<unsigned int>										indicesNt_;
+
+	ADNArray<SBNodeMaterial*>									materialDataNt_;
+	ADNArray<SBNode*>											nodeDataNt_;
 
 	//@}
 
@@ -317,6 +338,9 @@ private:
 	ADNArray<float>												radiiVDS_;
 	ADNArray<unsigned int>										flagsDS_;
 	ADNArray<unsigned int>										nodeIndicesDS_;
+
+	ADNArray<SBNodeMaterial*>									materialDataDS_;
+	ADNArray<SBNode*>											nodeDataDS_;
 
 	//@}
 

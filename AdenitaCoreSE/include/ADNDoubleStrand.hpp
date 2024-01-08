@@ -22,7 +22,7 @@ public:
 	virtual void												serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const override;		///< Serializes the node
 	virtual void												unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;			///< Unserializes the node
 
-	ADNPointer<ADNPart>                                         GetPart();                                                              ///< Returns a pointer to the part to which this double strand belongs
+	ADNPointer<ADNPart>                                         GetPart() const;                                                        ///< Returns a pointer to the part to which this double strand belongs
 	
 	void														SetInitialTwistAngle(double angle);
 	double														GetInitialTwistAngle() const;
@@ -36,7 +36,7 @@ public:
 	void														setCircularFlag(bool b);
 
 	CollectionMap<ADNBaseSegment>								GetBaseSegments() const;
-	ADNPointer<ADNBaseSegment>									GetNthBaseSegment(int n);  // return the base segment by position in the double strand
+	ADNPointer<ADNBaseSegment>									GetNthBaseSegment(int n) const;											///< Returns the base segment by position in the double strand
 
 	ADNPointer<ADNBaseSegment>									GetFirstBaseSegment() const;
 	SBNode*														getFirstBaseSegment() const;

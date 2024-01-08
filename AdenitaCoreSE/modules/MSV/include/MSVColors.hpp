@@ -46,11 +46,14 @@ private:
 
     template<typename T>
     std::pair<bool, ADNArray<float>> GetColor(T el, std::map<T, ADNArray<float>>& searchMap) {
+
         ADNArray<float> color = ADNArray<float>(4);
         bool found = false;
         if (searchMap.find(el) != searchMap.end()) {
+
             color = searchMap.at(el);
             found = true;
+
         }
 
         //bool found = false;
@@ -60,14 +63,17 @@ private:
         //}
 
         return std::make_pair(found, color);
+
     }
 
     template<typename T>
     void SetColor(ADNArray<float> color, T el, std::map<T, ADNArray<float>>& searchMap) {
+
         searchMap[el] = color;
+
     }
 
-    ADNArray<float> defaultbssColor_;
+    //ADNArray<float> defaultbssColor_;
 
     std::map<ADNAtom*, ADNArray<float>> atomColors_;
     std::map<ADNNucleotide*, ADNArray<float>> ntsColors_;

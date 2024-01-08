@@ -71,7 +71,10 @@ public:
 
 	static void													requestVisualModelUpdate();												///< Requests an update of the Adenita visual model in the active document on the next display call
 	static void													resetVisualModel();														///< Resets the Adenita visual model in the active document if any, else creates one
+	static void													resetVisualModel(SBNode* parent);										///< Resets the Adenita visual model in the active document if any, else creates one
 	static SEAdenitaVisualModel*								getVisualModel();														///< Returns an Adenita visual model from the active document if any, else returns nullptr
+	static SEAdenitaVisualModel*								getVisualModel(SBNode* parent);											///< Returns an Adenita visual model from the parent node if any, else returns nullptr
+	static bool													addVisualModel(SBNode* parent);
 
 	//@}
 

@@ -1355,14 +1355,14 @@ NtPair DASBackToTheAtom::ParseBasePairPDB(std::string source) {
 
 				NucleotideGroup g = SBNode::SideChain;
 				if (ADNModel::IsAtomInBackboneByName(atom->getName())) g = SBNode::Backbone;
-				nt_left->AddAtom(g, atom);
+				nt_left->addAtom(g, atom);
 
 			}
 			else {
 
 				NucleotideGroup g = SBNode::SideChain;
 				if (ADNModel::IsAtomInBackboneByName(atom->getName())) g = SBNode::Backbone;
-				nt_right->AddAtom(g, atom);
+				nt_right->addAtom(g, atom);
 
 			}
 
@@ -1541,7 +1541,7 @@ ADNPointer<ADNNucleotide> DASBackToTheAtom::ParsePDB(std::string source) {
 			atom->setPosition(pos);
 			NucleotideGroup g = SBNode::SideChain;
 			if (ADNModel::IsAtomInBackboneByName(atom->getName())) g = SBNode::Backbone;
-			nt->AddAtom(g, atom);
+			nt->addAtom(g, atom);
 
 		}
 		if (record_name == "CONECT") {

@@ -29,7 +29,8 @@ SB_CLASS_BEGIN(ADNPart);
     SB_ATTRIBUTE_READ_ONLY(int, ADNPart, NumberOfSingleStrands, "Number of single strands", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(int, ADNPart, NumberOfBaseSegments, "Number of base segments", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(int, ADNPart, NumberOfDoubleStrands, "Number of double strands", "Adenita");
-    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNPart, Name, "Name", "Adenita");
+    
+    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNPart, Name, "Name", "Identity");
 
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNPart, ThisNode, "Itself", "Node");
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNPart, Parent, "Parent", "Node");
