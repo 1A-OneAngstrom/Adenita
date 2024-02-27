@@ -181,7 +181,10 @@ SBNode* ADNNucleotide::getPair() const {
 
 ADNPointer<ADNNucleotide> ADNNucleotide::GetPrev(bool checkCircular) const {
 
-    ADNPointer<ADNNucleotide> p = static_cast<ADNNucleotide*>(getPreviousNucleicAcid());
+    ADNPointer<ADNNucleotide> p;
+
+    if (SBResidue* prevResidue = getPreviousNucleicAcid())
+        p = static_cast<ADNNucleotide*>(prevResidue);
 
     if (checkCircular) {
 
@@ -202,7 +205,10 @@ SBNode* ADNNucleotide::getPrev() const {
 
 ADNPointer<ADNNucleotide> ADNNucleotide::GetNext(bool checkCircular) const {
 
-    ADNPointer<ADNNucleotide> p = static_cast<ADNNucleotide*>(getNextNucleicAcid());
+    ADNPointer<ADNNucleotide> p;
+
+    if (SBResidue* nextResidue = getNextNucleicAcid())
+        p = static_cast<ADNNucleotide*>(nextResidue);
 
     if (checkCircular) {
 

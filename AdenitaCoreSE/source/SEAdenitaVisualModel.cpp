@@ -656,7 +656,7 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 
 	const int numberOfSingleStrandsUsingSAMSON = document->countNodes((SBNode::GetClass() == std::string("ADNSingleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 	int numberOfSingleStrandsInAllParts = 0;
-	SB_FOR(auto part, parts) numberOfSingleStrandsInAllParts += part->GetSingleStrands().size();
+	SB_FOR(auto part, parts) if (part) numberOfSingleStrandsInAllParts += part->GetSingleStrands().size();
 	if (singleStrands.size() != numberOfSingleStrandsInAllParts || numberOfSingleStrandsUsingSAMSON != numberOfSingleStrandsInAllParts) {
 
 		std::cerr << "[Adenita] ERROR: The number of single strands in nanorobot does not correspond to their number in the data graph. " <<
@@ -686,7 +686,7 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 
 	size_t sumNumEdges = 0;
 
-	SB_FOR(auto part, parts) {
+	SB_FOR(auto part, parts) if (part) {
 
 		auto singleStrands = part->GetSingleStrands();
 
@@ -694,7 +694,10 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 
 			auto nucleotides = singleStrand->GetNucleotides();
 			if (nucleotides.size() == 0) continue;
+			
 			ADNPointer<ADNNucleotide> currentNucleotide = singleStrand->GetFivePrime();
+			if (currentNucleotide == nullptr) continue;
+
 			const size_t curNCylinders = nucleotides.size() - 1; //todo fix this
 			ADNArray<unsigned int> curIndices = ADNArray<unsigned int>(2 * curNCylinders);
 
@@ -710,7 +713,7 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 
 				if (j >= curNCylinders) {
 
-					std::cerr << "[Adenita] ERROR: \tindex is out of range: " << j << std::endl;
+					std::cerr << "[Adenita] ERROR: index is out of range: " << j << std::endl;
 					break;
 
 				}
@@ -727,7 +730,7 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 
 				if (sumNumEdges + k >= nCylinders * 2) {
 
-					std::cerr << "[Adenita] ERROR: \tindex is out of range: " << sumNumEdges + k << std::endl;
+					std::cerr << "[Adenita] ERROR: index is out of range: " << sumNumEdges + k << std::endl;
 					break;
 
 				}
@@ -2996,8 +2999,8 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 			auto xos = PICrossovers::GetCrossovers(part);
 			for (const auto& xo : xos) {
 
-				auto startNt = xo.first;
-				auto endNt = xo.second;
+				auto& startNt = xo.first;
+				auto& endNt = xo.second;
 				auto startBs = startNt->GetBaseSegment();
 				auto endBs = endNt->GetBaseSegment();
 
