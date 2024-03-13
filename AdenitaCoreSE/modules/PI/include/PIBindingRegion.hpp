@@ -26,7 +26,7 @@ class SB_EXPORT PIBindingRegion : public SBNodeGroup {
 public:
 
 	PIBindingRegion() : SBNodeGroup() {};
-	PIBindingRegion(std::string name, SBNodeIndexer indexer) : SBNodeGroup(name, indexer) {};
+	PIBindingRegion(const std::string& name, const SBNodeIndexer& indexer) : SBNodeGroup(name, indexer) {};
 	PIBindingRegion(const PIBindingRegion& other) : SBNodeGroup(other) {};
 	~PIBindingRegion() = default;
 
