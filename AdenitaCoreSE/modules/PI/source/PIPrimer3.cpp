@@ -44,9 +44,8 @@ CollectionMap<PIBindingRegion> PIPrimer3::GetBindingRegions(ADNPointer<ADNPart> 
 void PIPrimer3::DeleteBindingRegions(ADNPointer<ADNPart> p) {
 
     auto regions = GetBindingRegions(p);
-    SB_FOR(ADNPointer<PIBindingRegion> r, regions) {
+    SB_FOR(ADNPointer<PIBindingRegion> r, regions)
         r->UnregisterBindingRegion();
-    }
 
 }
 
@@ -131,10 +130,14 @@ void PIPrimer3::Calculate(ADNPointer<ADNPart> p, int oligo_conc, int mv, int dv)
 void PIPrimer3::UpdateBindingRegions(ADNPointer<ADNPart> p) {
 
     if (regionsMap_.find(p()) != regionsMap_.end()) {
+
         regionsMap_[p()].clear();
+
     }
     else {
+
         regionsMap_.insert(std::make_pair(p(), CollectionMap<PIBindingRegion>()));
+
     }
 
     auto singleStrands = p->GetSingleStrands();
@@ -144,6 +147,7 @@ void PIPrimer3::UpdateBindingRegions(ADNPointer<ADNPart> p) {
     unsigned int numRegions = 0;
 
     SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
+
         ADNPointer<ADNNucleotide> nt = ss->GetFivePrime();
 
         int regionSize = 0;
@@ -160,17 +164,15 @@ void PIPrimer3::UpdateBindingRegions(ADNPointer<ADNPart> p) {
 
                 if (sc_next != nullptr && st_cur != nullptr && st_cur->GetPrev() != nullptr) {
 
-                    if (sc_next->GetPair() == st_cur->GetPrev()) {
+                    if (sc_next->GetPair() == st_cur->GetPrev())
                         endOfRegion = false;
-                    }
 
                 }
                 else if (st_cur == nullptr) {
 
                     // group up in one binding region the contiguous unpaired nts
-                    if (sc_next->GetPair() == nullptr) {
+                    if (sc_next->GetPair() == nullptr)
                         endOfRegion = false;
-                    }
 
                 }
 
@@ -191,7 +193,7 @@ void PIPrimer3::UpdateBindingRegions(ADNPointer<ADNPart> p) {
                 if (endOfRegion) {
 
                     regionSize = 0;
-                    std::string name = "Binding Region " + std::to_string(numRegions);
+                    const std::string name = "Binding Region " + std::to_string(numRegions);
                     ADNPointer<PIBindingRegion> region = new PIBindingRegion(name, nodeIndexer);
                     region->SetPart(p);
                     region->RegisterBindingRegion();
@@ -200,6 +202,7 @@ void PIPrimer3::UpdateBindingRegions(ADNPointer<ADNPart> p) {
                     region->SetFirstNt(firstNt);
                     ++numRegions;
                     nodeIndexer.clear();
+
                 }
 
             }
