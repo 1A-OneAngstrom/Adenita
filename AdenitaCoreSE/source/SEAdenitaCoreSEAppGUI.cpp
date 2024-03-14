@@ -595,7 +595,17 @@ void SEAdenitaCoreSEAppGUI::onCalculateBindingProperties() {
 
 	if (getApp()->GetNanorobot()->GetSelectedParts().empty()) {
 
-		SAMSON::informUser(QString("Adenita: Calculate Thermodynamic Properties"), QString("The selection is empty. Please select one or more components."));
+		SAMSON::informUser(QString("Adenita: Calculate Thermodynamic Properties"), QString("The selection is empty. Please select one or more components from the document.\n"));
+		return;
+
+	}
+
+	// check if ntthal is specified
+
+	SEConfig& c = SEConfig::GetInstance();
+	if (!QFileInfo::exists(QString::fromStdString(c.ntthal))) {
+
+		SAMSON::informUser(QString("Adenita: Calculate Thermodynamic Properties"), QString("The path to <b>ntthal</b> is not specified or is not valid. Please set it in the <b>Settings</b>."));
 		return;
 
 	}
@@ -649,7 +659,7 @@ void SEAdenitaCoreSEAppGUI::onCalculateBindingProperties() {
 				SEAdenitaVisualModel* adenitaVisualModel = SEAdenitaCoreSEApp::getVisualModel();
 				if (adenitaVisualModel) {
 
-					adenitaVisualModel->changePropertyColors(1, 0);
+					adenitaVisualModel->changePropertyColors(0, 0);
 					SAMSON::requestViewportUpdate();
 
 				}
@@ -1321,7 +1331,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getEditSequencesButtons() {
 		btnSetScaff->setObjectName(QStringLiteral("btnSetScaff"));
 		btnSetScaff->setText("Set\nscaffold\n");
 		btnSetScaff->setToolTip("<b>Set scaffold</b><br/><br/>"
-			"All scaffolds from the selection will be assigned a sequence specified through the Options menu, scaffold nucleotide's pairs will also be assigned the complementary base.");
+			"All scaffolds from the selection will be assigned a sequence specified through the <b>Settings</b>, scaffold nucleotide's pairs will also be assigned the complementary base.");
 		btnSetScaff->setIconSize(QSize(24, 24));
 		btnSetScaff->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnSetScaff->setAutoRaise(true);
@@ -1350,7 +1360,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getEditSequencesButtons() {
 		btnCalculateBindingProperties->setObjectName(QStringLiteral("btnCalculateBindingProperties"));
 		btnCalculateBindingProperties->setText("Calculate\nbinding\nproperties");
 		btnCalculateBindingProperties->setToolTip("<b>Calculate binding properties</b><br/><br/>"
-			"If a path to <b>ntthal</b> has been specified in the Options menu, it will be used to calculate the melting temperatures and Gibbs free energies of all binding regions of a selected component.");
+			"If a path to <b>ntthal</b> has been specified in the <b>Settings</b>, it will be used to calculate the melting temperatures and Gibbs free energies of all binding regions of a selected component.");
 		btnCalculateBindingProperties->setIconSize(QSize(24, 24));
 		btnCalculateBindingProperties->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnCalculateBindingProperties->setAutoRaise(true);

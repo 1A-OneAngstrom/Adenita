@@ -26,6 +26,7 @@ SB_CLASS_BEGIN(PIBindingRegion);
     SB_ATTRIBUTE_READ_ONLY(double, PIBindingRegion, Enthalpy, "Enthalpy (cal/mol)", "Thermodynamic Parameters");
     SB_ATTRIBUTE_READ_ONLY(double, PIBindingRegion, Gibbs, "Gibbs Free Energy (cal/mol)", "Thermodynamic Parameters");
     SB_ATTRIBUTE_READ_ONLY(double, PIBindingRegion, Temp, "Melting Temperature (C)", "Thermodynamic Parameters");
+    SB_ATTRIBUTE_READ_ONLY(std::string, PIBindingRegion, StatusString, "Status", "Thermodynamic Parameters");
 
   SB_INTERFACE_END;
 

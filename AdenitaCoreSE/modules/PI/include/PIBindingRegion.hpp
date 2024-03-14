@@ -5,17 +5,19 @@
 #include "ADNMixins.hpp"
 
 #include "SBNodeGroup.hpp"
+#include "SBFolder.hpp"
 
 
 class ADNNucleotide;
 class ADNPart;
 
-struct ThermParam {
+struct ThermodynamicParameters {
 
-	double dS_ = 0.0;
-	double dH_ = 0.0;
-	double T_ = 0.0;
-	double dG_ = 0.0;
+	double dS_{ 0.0 };
+	double dH_{ 0.0 };
+	double T_{ 0.0 };
+	double dG_{ 0.0 };
+	bool isValid{ false };
 
 };
 
@@ -36,20 +38,21 @@ public:
 	double getEnthalpy() const;
 	double getGibbs() const;
 	double getTemp() const;
+	std::string getStatusString() const;
 
 	void SetLastNt(ADNPointer<ADNNucleotide> nt);
 	void SetFirstNt(ADNPointer<ADNNucleotide> nt);
 	ADNPointer<ADNPart> GetPart();
 	void SetPart(ADNPointer<ADNPart> part);
-	void SetThermParam(ThermParam res);
+	void SetThermodynamicParameters(ThermodynamicParameters res);
 
-	void RegisterBindingRegion();
+	void RegisterBindingRegion(SBFolder* folder = nullptr);
 	void UnregisterBindingRegion();
 	std::pair<std::string, std::string> GetSequences();
 
 private:
 
-	ThermParam thermParam_;
+	ThermodynamicParameters thermodynamicParameters_;
 	ADNPointer<ADNNucleotide> firstNt_;
 	ADNPointer<ADNNucleotide> lastNt_;
 	ADNPointer<ADNPart> part_;
