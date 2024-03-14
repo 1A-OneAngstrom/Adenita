@@ -53,12 +53,12 @@ public:
 	//@{
 
 	enum class Scale {
-		ATOMS_STICKS = 0,
-		ATOMS_BALLS = 1,
-		NUCLEOTIDES = 2,
-		SINGLE_STRANDS = 3,
-		DOUBLE_STRANDS = 4,
-		OBJECTS = 5
+		ATOMS_STICKS											= 0,
+		ATOMS_BALLS												= 1,
+		NUCLEOTIDES												= 2,
+		SINGLE_STRANDS											= 3,
+		DOUBLE_STRANDS											= 4,
+		OBJECTS													= 5
 	};
 
 	float       												getScale() const;
@@ -195,7 +195,7 @@ private:
 	ADNArray<unsigned int>										getBaseSegmentIndices();
 
 	void														changeHighlightFlag();													///< scale 9: display polyhedron
-	bool														isHighlightFlagChangeRequested = true;
+	bool														isHighlightFlagChangeRequested{ true };
 
 	void														orderVisibility();
 
@@ -216,7 +216,7 @@ private:
 	void														displayDoubleStrands(bool forSelection = false);
 
 	void														prepareDiscreteScalesDim();
-	bool														isPrepareDiscreteScalesDimRequested = true;
+	bool														isPrepareDiscreteScalesDimRequested{ true };
 
 	void														prepareDimensions();
 
@@ -239,10 +239,10 @@ private:
 
 	ADNArray<float>												nucleotideEColor_;
   
-	float														scale_ = 3.0f;
-	float														dim_ = 3.0f;
+	float														scale_{ 3.0f };
+	float														dim_{ 3.0f };
 
-	double														visibility_ = 0.99;
+	double														visibility_{ 0.99 };
 
 	ADNNanorobot*												nanorobot_{ nullptr };
 
@@ -261,8 +261,8 @@ private:
 	/// \name Transitional scale
 	//@{
 
-	unsigned int												nPositions_ = 0;
-	unsigned int												nCylinders_ = 0;
+	unsigned int												nPositions_{ 0 };
+	unsigned int												nCylinders_{ 0 };
 	ADNArray<float>												colorsV_;
 	ADNArray<float>												colorsE_;
 	ADNArray<float>												positions_;
@@ -281,8 +281,8 @@ private:
 	/// \name Atom scale
 	//@{
 
-	unsigned int												nPositionsAtom_ = 0;
-	unsigned int												nCylindersAtom_ = 0;
+	unsigned int												nPositionsAtom_{ 0 };
+	unsigned int												nCylindersAtom_{ 0 };
 	ADNArray<float>												colorsVAtom_;
 	ADNArray<float>												colorsEAtom_;
 	ADNArray<float>												positionsAtom_;
@@ -301,8 +301,8 @@ private:
 	/// \name Nucleotide scale
 	//@{
 
-	unsigned int												nPositionsNt_ = 0;
-	unsigned int												nCylindersNt_ = 0;
+	unsigned int												nPositionsNt_{ 0 };
+	unsigned int												nCylindersNt_{ 0 };
 	ADNArray<float>												colorsVNt_;
 	ADNArray<float>												colorsENt_;
 	ADNArray<float>												positionsNt_;
@@ -331,8 +331,8 @@ private:
 	/// \name Double strand scale
 	//@{
 
-	unsigned int												nPositionsDS_ = 0;
-	unsigned int												nCylindersDS_ = 0;
+	unsigned int												nPositionsDS_{ 0 };
+	unsigned int												nCylindersDS_{ 0 };
 	ADNArray<float>												colorsVDS_;
 	ADNArray<float>												positionsDS_;
 	ADNArray<float>												radiiVDS_;
@@ -365,19 +365,19 @@ private:
 	std::vector<ADNArray<float>>								propertyColorSchemes_;
   
 	enum class ColorType {
-		REGULAR = 0,	///< default color map
-		MELTTEMP = 1,	///< melting temperatures color map
-		GIBBS = 2		///< Gibbs free energy color map
+		REGULAR													= 0,											///< default color map
+		MELTTEMP												= 1,											///< melting temperatures color map
+		GIBBS													= 2												///< Gibbs free energy color map
 	};
 
-	ColorType													curColorType_ = ColorType::REGULAR;
+	ColorType													curColorType_{ ColorType::REGULAR };
 
 	std::map<ColorType, MSVColors*>								colors_;
 
-	int															colorSchemeCurrentIndex = 0;
-	int															nucleotideColorSchemeCurrentIndex = 0;
-	int															singleStrandColorsCurrentIndex = 0;
-	int															doubleStrandColorsCurrentIndex = 0;
+	int															colorSchemeCurrentIndex{ 0 };
+	int															nucleotideColorSchemeCurrentIndex{ 0 };
+	int															singleStrandColorsCurrentIndex{ 0 };
+	int															doubleStrandColorsCurrentIndex{ 0 };
 
 	//@}
 
@@ -385,24 +385,24 @@ private:
 	//@{
 
 	enum class HighlightType {
-		NONE = 0,
-		CROSSOVERS = 1,
-		GC = 2,
-		TAGGED = 3,
-		LENGTH = 4,
-		NOBASE = 5,
-		UNPAIRED = 6
+		NONE													= 0,
+		CROSSOVERS												= 1,
+		GC														= 2,
+		TAGGED													= 3,
+		LENGTH													= 4,
+		NOBASE													= 5,
+		UNPAIRED												= 6
 	};
 
 	void														setHighlight(const HighlightType highlightType);
-	HighlightType												highlightType_ = HighlightType::NONE;
+	HighlightType												highlightType_{ HighlightType::NONE };
 	void														updateEnabledFlagForHighlightAttributes();
 
-	bool														showBasePairing_ = false;
-	unsigned int												highlightMinLen_ = 0;
-	unsigned int												highlightMaxLen_ = UINT_MAX;
-	bool														notWithin_ = false;
-	bool														notScaffold_ = true;
+	bool														showBasePairing_{ false };
+	unsigned int												highlightMinLen_{ 0 };
+	unsigned int												highlightMaxLen_{ UINT_MAX };
+	bool														notWithin_{ false };
+	bool														notScaffold_{ true };
 
 	//@}
 

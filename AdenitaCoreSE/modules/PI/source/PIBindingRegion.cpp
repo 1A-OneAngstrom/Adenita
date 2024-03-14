@@ -11,19 +11,26 @@ PIBindingRegion& PIBindingRegion::operator=(const PIBindingRegion& other) {
 }
 
 double PIBindingRegion::getEntropy() const {
-    return thermParam_.dS_;
+    return thermodynamicParameters_.dS_;
 }
 
 double PIBindingRegion::getEnthalpy() const {
-    return thermParam_.dH_;
+    return thermodynamicParameters_.dH_;
 }
 
 double PIBindingRegion::getGibbs() const {
-    return thermParam_.dG_;
+    return thermodynamicParameters_.dG_;
 }
 
 double PIBindingRegion::getTemp() const {
-    return thermParam_.T_;
+    return thermodynamicParameters_.T_;
+}
+
+std::string PIBindingRegion::getStatusString() const {
+
+    if (thermodynamicParameters_.isValid) return "OK";
+    else return "Could not compute for this binding site.";
+
 }
 
 void PIBindingRegion::SetLastNt(ADNPointer<ADNNucleotide> nt) {
@@ -42,15 +49,16 @@ void PIBindingRegion::SetPart(ADNPointer<ADNPart> part) {
     part_ = part;
 }
 
-void PIBindingRegion::SetThermParam(ThermParam res) {
-    thermParam_ = res;
+void PIBindingRegion::SetThermodynamicParameters(ThermodynamicParameters res) {
+    thermodynamicParameters_ = res;
 }
 
-void PIBindingRegion::RegisterBindingRegion() {
+void PIBindingRegion::RegisterBindingRegion(SBFolder* folder) {
 
     if (SAMSON::isHolding()) SAMSON::hold(this);
     create();
-    SAMSON::getActiveDocument()->addChild(this);
+    if (folder) folder->addChild(this);
+    else SAMSON::getActiveDocument()->addChild(this);
 
 }
 

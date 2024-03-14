@@ -140,6 +140,8 @@ void SEAdenitaVisualModel::onErase() {
 float		SEAdenitaVisualModel::getScale() const { return scale_; }
 void		SEAdenitaVisualModel::setScale(float scale) {
 
+	prepareDiscreteScalesDim();
+
 	//if (this->scale_ == scale) return;
 
 	if (hasScaleRange() && scale < getMinimumScale()) this->scale_ = getMinimumScale();
@@ -167,7 +169,7 @@ void		SEAdenitaVisualModel::setScale(float scale) {
 	else if (scale_ < static_cast<float>(Scale::DOUBLE_STRANDS)) {
 		prepareSingleStrandsToDoubleStrands(interpolated);
 	}
-	else if (scale_ < static_cast<float>(Scale::OBJECTS)) {
+	else if (scale_ <= static_cast<float>(Scale::OBJECTS)) {
 		prepareDoubleStrandsToObjects(interpolated);
 	}
 
@@ -456,7 +458,6 @@ void SEAdenitaVisualModel::update() {
 	if (highlightType_ != HighlightType::NONE) highlightNucleotides();
 	setScale(scale_);
 
-	isPrepareDiscreteScalesDimRequested = false;
 	isUpdateRequested = false;
 
 	changed();
@@ -1690,7 +1691,7 @@ void		SEAdenitaVisualModel::setSingleStrandColorsCurrentIndex(const int index) {
 
 	}
 
-	prepareDiscreteScalesDim();
+	//prepareDiscreteScalesDim(); // is called in setScale
 	setScale(scale_);// , false);
 
 	changed();
@@ -1801,7 +1802,7 @@ void		SEAdenitaVisualModel::setNucleotideColorsCurrentIndex(const int index) {
 
 	}
 
-	prepareDiscreteScalesDim();
+	//prepareDiscreteScalesDim(); // is called in setScale
 	setScale(scale_);// , false);
 
 	changed();
@@ -1980,7 +1981,7 @@ void		SEAdenitaVisualModel::setDoubleStrandColorsCurrentIndex(const int index) {
 
 	}
 
-	prepareDiscreteScalesDim();
+	//prepareDiscreteScalesDim(); // is called in setScale
 	setScale(scale_);// , false);
 
 	changed();
@@ -2066,13 +2067,11 @@ void SEAdenitaVisualModel::changePropertyColors(const int propertyIdx, const int
 
 	if (this->curColorType_ == ColorType::MELTTEMP || this->curColorType_ == ColorType::GIBBS) {
 
-		auto meltingTempColors = colors_.at(ColorType::MELTTEMP);
-		auto gibbsColors = colors_.at(ColorType::GIBBS);
+		MSVColors* meltingTempColors = colors_.at(ColorType::MELTTEMP);
+		MSVColors* gibbsColors = colors_.at(ColorType::GIBBS);
 
 		const SEConfig& config = SEConfig::GetInstance();
-
 		const auto& p = PIPrimer3::GetInstance();
-
 		auto parts = nanorobot_->GetParts();
 
 		SB_FOR(auto part, parts) {
@@ -2081,22 +2080,24 @@ void SEAdenitaVisualModel::changePropertyColors(const int propertyIdx, const int
 
 			SB_FOR(auto region, regions) {
 
-				auto mt = region->getTemp();
-				auto gibbs = region->getGibbs();
+				const double mt = region->getTemp();
+				const double gibbs = region->getGibbs();
 				auto groupNodes = region->getGroupNodes();
 
-				for (unsigned i = 0; i < groupNodes->size(); i++) {
+				SB_FOR(SBNode* node, *groupNodes) {
 
-					auto node = groupNodes->getReferenceTarget(i);
 					ADNPointer<ADNNucleotide> nt = static_cast<ADNNucleotide*>(node);
 					auto baseSegment = nt->GetBaseSegment();
+					auto ss = nt->GetStrand();
 
 					ADNArray<float> meltTempColor = calcPropertyColor(colorSchemeIdx, config.min_melting_temp, config.max_melting_temp, mt);
 					meltingTempColors->SetColor(meltTempColor, nt);
+					meltingTempColors->SetColor(meltTempColor, ss);
 					meltingTempColors->SetColor(meltTempColor, baseSegment);
 
 					ADNArray<float> gibbsColor = calcPropertyColor(colorSchemeIdx, config.min_gibbs_free_energy, config.max_gibbs_free_energy, gibbs);
 					gibbsColors->SetColor(gibbsColor, nt);
+					gibbsColors->SetColor(gibbsColor, ss);
 					gibbsColors->SetColor(gibbsColor, baseSegment);
 
 				}
@@ -2107,8 +2108,10 @@ void SEAdenitaVisualModel::changePropertyColors(const int propertyIdx, const int
 
 	}
 
+	// update colors
+	setScale(scale_);
+
 	changed();
-	//SAMSON::requestViewportUpdate();
 
 }
 
@@ -2211,7 +2214,7 @@ void SEAdenitaVisualModel::display(SBNode::RenderingPass renderingPass) {
 			|| activeEditor->getName() == "SEERotation" || activeEditor->getName() == "SEETranslation"
 			) {
 
-			prepareDiscreteScalesDim();
+			//prepareDiscreteScalesDim(); // is called in setScale
 			setScale(scale_);
 
 			changed();

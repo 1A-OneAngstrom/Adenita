@@ -93,7 +93,7 @@ void SEConfig::setInterpolateDimensions(bool b) {
 
 }
 
-void SEConfig::setNtthalExe(std::string filename, bool write) {
+void SEConfig::setNtthalExe(const std::string& filename, bool write) {
 
     ntthal = filename;
     if (setting_.FindMember("ntthal") != setting_.MemberEnd()) {
@@ -123,7 +123,7 @@ void SEConfig::setScaffType(int typ) {
 
 }
 
-void SEConfig::setScaffCustomFilename(std::string filename, bool write) {
+void SEConfig::setScaffCustomFilename(const std::string& filename, bool write) {
 
     scaffCustomFilename = filename;
     if (setting_.FindMember("scaffCustomFilename") != setting_.MemberEnd()) {
@@ -528,6 +528,7 @@ void SEConfig::updateConfig() {
 
     if (setting_.FindMember("ntthal") != setting_.MemberEnd()) {
       ntthal = setting_["ntthal"].GetString();
+      //std::cout << "ntthal read: " << ntthal << '\n';
     }
 
     if (setting_.FindMember("custom_mesh_model") != setting_.MemberEnd()) {

@@ -25,7 +25,7 @@ private:
 	//double													GetMinMeltingTemperature();
 	//double													GetMaxMeltingTemperature();
 
-	static ThermParam											ExecuteNtthal(std::string leftSequence, std::string rightSequence, int oligo_conc, int mv, int dv);
+	static ThermodynamicParameters								ExecuteNtthal(std::string leftSequence, std::string rightSequence, int oligo_conc, int mv, int dv);
 
 	std::map<ADNPart*, CollectionMap<PIBindingRegion>>			regionsMap_;
 
