@@ -28,10 +28,10 @@ SEAdenitaVisualModel::SEAdenitaVisualModel() {
 
 	if (!gl) gl = SAMSON::getOpenGLFunctions();
 
-	sphereArray = new SBSphereArray(0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
-	getSphereArrayIndexer().addReferenceTarget(sphereArray());
-	cylinderArray = new SBCylinderArray(0, 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
-	getCylinderArrayIndexer().addReferenceTarget(cylinderArray());
+	sphereArray = new SBSphereArray(0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	getGeometryArrayIndexer().addReferenceTarget(sphereArray());
+	cylinderArray = new SBCylinderArray(0, 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	getGeometryArrayIndexer().addReferenceTarget(cylinderArray());
 
 	init();
 
@@ -48,10 +48,10 @@ SEAdenitaVisualModel::SEAdenitaVisualModel(const SBNodeIndexer& nodeIndexer) {
 
 	if (!gl) gl = SAMSON::getOpenGLFunctions();
 
-	sphereArray = new SBSphereArray(0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
-	getSphereArrayIndexer().addReferenceTarget(sphereArray());
-	cylinderArray = new SBCylinderArray(0, 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
-	getCylinderArrayIndexer().addReferenceTarget(cylinderArray());
+	sphereArray = new SBSphereArray(0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	getGeometryArrayIndexer().addReferenceTarget(sphereArray());
+	cylinderArray = new SBCylinderArray(0, 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	getGeometryArrayIndexer().addReferenceTarget(cylinderArray());
 
 	SEAdenitaCoreSEApp* adenitaApp = SEAdenitaCoreSEApp::getAdenitaApp();
 	if (adenitaApp) {
@@ -69,7 +69,7 @@ SEAdenitaVisualModel::~SEAdenitaVisualModel() {
 
 	if (sphereArray.isValid()) {
 	
-		sphereArray->setNumberOfSpheres(0);
+		sphereArray->setNumberOfGeometries(0);
 		sphereArray->setPositionData(nullptr);
 		sphereArray->setRadiusData(nullptr);
 		sphereArray->setColorData(nullptr);
@@ -82,7 +82,7 @@ SEAdenitaVisualModel::~SEAdenitaVisualModel() {
 	
 	if (cylinderArray.isValid()) {
 	
-		cylinderArray->setNumberOfCylinders(0);
+		cylinderArray->setNumberOfGeometries(0);
 		cylinderArray->setNumberOfPositions(0);
 		cylinderArray->setPositionData(nullptr);
 		cylinderArray->setIndexData(nullptr);
@@ -934,7 +934,7 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 				capData_.GetArray(),
 				colorsE_.GetArray(),
 				flags_.GetArray(),
-				false, false, 1.0f);
+				false);
 
 		}
 
@@ -944,7 +944,7 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 			radiiV_.GetArray(),
 			colorsV_.GetArray(),
 			flags_.GetArray(),
-			false, false, 1.0f);
+			false);
 
 		displayCircularDNAConnection(renderingPass);
 		if (showBasePairing_) displayBasePairConnections(renderingPass, false);
@@ -953,10 +953,6 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 
 	}
 	else if ((renderingPass == SBNode::RenderingPass::TransparentGeometry) && (inheritedOpacity != 1.0f)) {
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_DEPTH_TEST);
 
 		gl->glColorMask(false, false, false, false);
 
@@ -971,7 +967,7 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 				capData_.GetArray(),
 				colorsE_.GetArray(),
 				flags_.GetArray(),
-				false, true, inheritedOpacity);
+				false, SBSpatialTransform::identity, inheritedOpacity);
 
 		}
 
@@ -981,7 +977,7 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 			radiiV_.GetArray(),
 			colorsV_.GetArray(),
 			flags_.GetArray(),
-			false, true, inheritedOpacity);
+			false, SBSpatialTransform::identity, inheritedOpacity);
 
 		gl->glColorMask(true, true, true, true);
 
@@ -996,7 +992,7 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 				capData_.GetArray(),
 				colorsE_.GetArray(),
 				flags_.GetArray(),
-				false, true, inheritedOpacity);
+				false, SBSpatialTransform::identity, inheritedOpacity);
 
 		}
 
@@ -1006,9 +1002,7 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 			radiiV_.GetArray(),
 			colorsV_.GetArray(),
 			flags_.GetArray(),
-			false, true, inheritedOpacity);
-
-		glDisable(GL_BLEND);
+			false, SBSpatialTransform::identity, inheritedOpacity);
 
 		displayCircularDNAConnection(renderingPass);
 		if (showBasePairing_) displayBasePairConnections(renderingPass, false);
@@ -2227,7 +2221,7 @@ void SEAdenitaVisualModel::display(SBNode::RenderingPass renderingPass) {
 
 		if (cylinderArray.isValid()) {
 
-			cylinderArray->setNumberOfCylinders(nCylinders_);
+			cylinderArray->setNumberOfGeometries(nCylinders_);
 			cylinderArray->setNumberOfPositions(nPositions_);
 			cylinderArray->setPositionData(positions_.GetArray());
 			cylinderArray->setIndexData(indices_.GetArray());
@@ -2243,7 +2237,7 @@ void SEAdenitaVisualModel::display(SBNode::RenderingPass renderingPass) {
 
 		if (sphereArray.isValid()) {
 
-			sphereArray->setNumberOfSpheres(nPositions_);
+			sphereArray->setNumberOfGeometries(nPositions_);
 			sphereArray->setPositionData(positions_.GetArray());
 			sphereArray->setRadiusData(radiiV_.GetArray());
 			sphereArray->setColorData(colorsV_.GetArray());
@@ -2735,8 +2729,7 @@ void SEAdenitaVisualModel::displayBasePairConnections(SBNode::RenderingPass rend
 			caps.GetArray(),
 			colors.GetArray(),
 			flags.GetArray(),
-			false, false, 1.0f
-		);
+			false);
 
 	}
 	else if ((renderingPass == SBNode::RenderingPass::TransparentGeometry) && (inheritedOpacity != 1.0f)) {
@@ -2756,7 +2749,7 @@ void SEAdenitaVisualModel::displayBasePairConnections(SBNode::RenderingPass rend
 			caps.GetArray(),
 			colors.GetArray(),
 			flags.GetArray(),
-			false, true, inheritedOpacity
+			false, SBSpatialTransform::identity, inheritedOpacity
 		);
 
 		gl->glColorMask(true, true, true, true);
@@ -2770,7 +2763,7 @@ void SEAdenitaVisualModel::displayBasePairConnections(SBNode::RenderingPass rend
 			caps.GetArray(),
 			colors.GetArray(),
 			flags.GetArray(),
-			false, true, inheritedOpacity
+			false, SBSpatialTransform::identity, inheritedOpacity
 		);
 
 		glDisable(GL_BLEND);
