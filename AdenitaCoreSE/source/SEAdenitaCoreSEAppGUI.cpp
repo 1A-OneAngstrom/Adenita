@@ -18,6 +18,8 @@
 #include "SEDSDNACreatorEditor.hpp"
 #include "SEMergePartsEditor.hpp"
 
+#include "DASPolyhedron.hpp"
+
 #ifdef _WIN32
 #include <locale>
 #include <codecvt>
@@ -127,6 +129,13 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 	}
 	else if (filename.endsWith(".ply", Qt::CaseInsensitive)) {
 
+		if (!DASPolyhedron::isPLYFile(filename.toStdString())) {
+
+			SAMSON::informUser("Adenita", "The provided file is not in the PLY format.\nPlease check the file.");
+			return;
+
+		}
+
 		int i = 42;
 		if (SAMSON::getIntegerFromUser(QString("Wireframe structure (Daedalus)"), i, 31, 1050, 1, QString("Minimum edge size: "), QString(" bp"))) {
 
@@ -159,7 +168,7 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 
 	SEAdenitaCoreSEApp::resetVisualModel();
 
-	SAMSON::getActiveCamera()->center();
+	SEAdenitaCoreSEApp::centerCameraOnLoadedSystem();
 
 }
 
@@ -813,6 +822,15 @@ void SEAdenitaCoreSEAppGUI::onGenerateSequence() {
 
 void SEAdenitaCoreSEAppGUI::onResetVisualModel() { getApp()->resetVisualModel(); }
 
+void SEAdenitaCoreSEAppGUI::onCenterOnAllModels() {
+
+	// explicitly center on the just loaded system, i.e. on the last structural model in the active document
+	SBNodeIndexer nodeIndexer;
+	SAMSON::getActiveDocument()->getNodes(nodeIndexer, SBNode::StructuralModel);
+	SAMSON::getActiveCamera()->center(nodeIndexer, SBNode::All(), true);	// take into account the hidden dummy atoms
+
+}
+
 void SEAdenitaCoreSEAppGUI::onSettings() {
 
 	SEAdenitaCoreSettingsGUI diag(this);
@@ -1274,6 +1292,15 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getMenuButtons() {
 		btnResetVisualModel->setAutoRaise(true);
 		menuButtons_.push_back(btnResetVisualModel);
 
+		auto btnCenterOnAllModels = new QToolButton(this);
+		btnCenterOnAllModels->setObjectName(QStringLiteral("btnCenterOnAll"));
+		btnCenterOnAllModels->setText("Center\non all");
+		btnCenterOnAllModels->setToolTip("Center on all models.<br><br>This will zoom the camera to fit all models in the viewport.");
+		btnCenterOnAllModels->setIconSize(QSize(24, 24));
+		btnCenterOnAllModels->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnCenterOnAllModels->setAutoRaise(true);
+		menuButtons_.push_back(btnCenterOnAllModels);
+
 		auto btnSettings = new QToolButton(this);
 		btnSettings->setObjectName(QStringLiteral("btnSettings"));
 		btnSettings->setText("Settings\n");
@@ -1289,6 +1316,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getMenuButtons() {
 		QObject::connect(btnSettings, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSettings, Qt::ConnectionType::UniqueConnection);
 		QObject::connect(btnExport, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onExport, Qt::ConnectionType::UniqueConnection);
 		QObject::connect(btnResetVisualModel, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onResetVisualModel, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnCenterOnAllModels, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCenterOnAllModels, Qt::ConnectionType::UniqueConnection);
 
 		//change icons
 		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
@@ -1312,6 +1340,10 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getMenuButtons() {
 		QIcon resetVM;
 		resetVM.addFile(std::string(iconsPath + "resetVisualModel.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnResetVisualModel->setIcon(resetVM);
+
+		QIcon centerIcon;
+		centerIcon.addFile(std::string(iconsPath + "SBGActionCenterCamera.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
+		btnCenterOnAllModels->setIcon(centerIcon);
 
 		QIcon settings;
 		settings.addFile(std::string(iconsPath + "settings.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);

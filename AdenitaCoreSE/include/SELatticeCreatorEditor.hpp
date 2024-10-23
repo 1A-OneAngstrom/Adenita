@@ -80,15 +80,15 @@ public:
 	/// \name GUI Events
 	//@{
 
-	virtual void												mousePressEvent(QMouseEvent* event);									///< Handles mouse press event
-	virtual void												mouseReleaseEvent(QMouseEvent* event);									///< Handles mouse release event
-	virtual void												mouseMoveEvent(QMouseEvent* event);										///< Handles mouse move event
-	virtual void												mouseDoubleClickEvent(QMouseEvent* event);								///< Handles mouse double click event
+	virtual void												mousePressEvent(QMouseEvent* event) override;							///< Handles mouse press event
+	virtual void												mouseReleaseEvent(QMouseEvent* event) override;							///< Handles mouse release event
+	virtual void												mouseMoveEvent(QMouseEvent* event) override;							///< Handles mouse move event
+	virtual void												mouseDoubleClickEvent(QMouseEvent* event) override;						///< Handles mouse double click event
 
-	virtual void												wheelEvent(QWheelEvent* event);											///< Handles wheel event
+	virtual void												wheelEvent(QWheelEvent* event) override;								///< Handles wheel event
 
-	virtual void												keyPressEvent(QKeyEvent* event);										///< Handles key press event
-	virtual void												keyReleaseEvent(QKeyEvent* event);										///< Handles key release event
+	virtual void												keyPressEvent(QKeyEvent* event) override;								///< Handles key press event
+	virtual void												keyReleaseEvent(QKeyEvent* event) override;								///< Handles key release event
 
 	//@}
 

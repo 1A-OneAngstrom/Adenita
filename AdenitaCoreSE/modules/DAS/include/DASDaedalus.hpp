@@ -42,10 +42,10 @@ struct DOTNode {
 	std::vector<double> coordinates_;
 	int id_;
 
-	DASVertex* vertex_; // if it corresponds with a vertex
-	DASEdge* edge_; // if it lies in an edge
+	DASVertex* vertex_{ nullptr }; // if it corresponds with a vertex
+	DASEdge* edge_{ nullptr }; // if it lies in an edge
 
-	bool pseudo_ = false; // if it is a pseudo-node
+	bool pseudo_{ false }; // if it is a pseudo-node
 
 };
 
@@ -57,17 +57,17 @@ struct DOTLink {
 	DOTLink& operator=(const DOTLink& other);
 
 	int id_;
-	DOTNode* source_;
-	DOTNode* target_;
+	DOTNode* source_{ nullptr };
+	DOTNode* target_{ nullptr };
 
 	DASHalfEdge* halfEdge_;
 	bool directed_;
-	bool split_ = false;
+	bool split_{ false };
 
 	ADNPointer<ADNBaseSegment> firstBase_;
 	ADNPointer<ADNBaseSegment> lastBase_;
 
-	int bp_ = 0; // number of base pairs
+	int bp_{ 0 }; // number of base pairs
 
 };
 
@@ -84,7 +84,7 @@ struct VertexProperty {
 	 *  \param x coordinate in 2D space (for Schlegel diagrams).
 	 *  \param y coordinate in 2D space (for Schlegel diagrams).
 	 */
-	DOTNode* node_;
+	DOTNode* node_{ nullptr };
 	int index;
 	//int pseudoindex;
 	//int original_index;
@@ -93,8 +93,8 @@ struct VertexProperty {
 };
 
 struct EdgeProperty {
-	DOTLink* link_;
-	int weight_ = 1;
+	DOTLink* link_{ nullptr };
+	int weight_{ 1 };
 };
 
 /** \enum Daedalus::CrossoverType
@@ -206,7 +206,7 @@ private:
 	 *  \param UndirectedGraph object
 	 *  \return a vector with the edges in the order they are accessed
 	 */
-	std::vector<DOTLink*> MinimumSpanningTree(const UndirectedGraph& u_graph);
+	LinkList MinimumSpanningTree(const UndirectedGraph& u_graph);
 	/** Get the Eulerian Circuit from a cyclic graph
 	 *  \param the cyclic graph
 	 *  \return a vector with the nodes in order of visitation
@@ -217,13 +217,13 @@ private:
 	 *  \param the graph.
 	 *  \return a vector with the nodes connected to the input node.
 	 */
-	std::vector<Node<UndirectedGraph>> GetNeighbours(Node<UndirectedGraph> v, UndirectedGraph g);
+	std::vector<Node<UndirectedGraph>> GetNeighbors(Node<UndirectedGraph> v, UndirectedGraph g);
 	/** Split edges not in MST.
 	 *  Edges not belonging to MST are split in half to allow scaffold crossovers.
 	 *  \param vector with MST
 	 *  \param target object
 	 */
-	void SplitEdges(const std::vector<DOTLink*>& mst, ADNPointer<ADNPart> origami, DASPolyhedron& figure);
+	void SplitEdges(const LinkList& mst, ADNPointer<ADNPart> origami, DASPolyhedron& figure);
 	/** Adds Pseudo-nodes so the A-trail can be routed.
 	 *  \param the target polyhedron
 	 */

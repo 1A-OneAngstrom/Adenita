@@ -257,7 +257,7 @@ void SELatticeCreatorEditor::resetData() {
 	secondPosition = SBPosition3();
 	thirdPosition = SBPosition3();
 	displayFlag = false;
-	tempPart == nullptr;
+	tempPart = nullptr;
 
 }
 

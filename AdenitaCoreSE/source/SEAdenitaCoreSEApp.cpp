@@ -6,6 +6,8 @@
 #include "PICrossovers.hpp"
 #include "DASAlgorithms.hpp"
 
+#include <QTimer>
+
 SEAdenitaCoreSEApp* SEAdenitaCoreSEApp::adenitaApp = nullptr;
 
 SEAdenitaCoreSEApp::SEAdenitaCoreSEApp() {
@@ -119,6 +121,8 @@ void SEAdenitaCoreSEApp::LoadPartWithDaedalus(QString filename, int minEdgeSize)
 	alg->SetMinEdgeLength(minEdgeSize);
 	std::string seq = "";
 	auto part = alg->ApplyAlgorithm(seq, filename.toStdString());
+
+	if (part == nullptr) return;
 
 	QFileInfo fi(filename);
 	QString s = fi.baseName();
@@ -240,6 +244,34 @@ void SEAdenitaCoreSEApp::AddNtThreeP(int numNt) {
 		SEAdenitaCoreSEApp::resetVisualModel();
 
 	}
+
+}
+
+void SEAdenitaCoreSEApp::centerCameraOnLoadedSystem() {
+
+#if 1
+	// explicitly center on the just loaded system, i.e. on the last structural model in the active document
+	SBNodeIndexer nodeIndexer;
+	SAMSON::getActiveDocument()->getNodes(nodeIndexer, SBNode::StructuralModel);
+	if (nodeIndexer.size()) {
+
+		SBStructuralModel* structuralModel = static_cast<SBStructuralModel*>(nodeIndexer[nodeIndexer.size() - 1]);
+		SBNodeIndexer tmpIndexer;
+		tmpIndexer.push_back(structuralModel);
+		SAMSON::getActiveCamera()->center(tmpIndexer, SBNode::All());	// take into account the hidden dummy atoms
+
+	}
+#else
+	// warning: does not center on the hidden atoms and since Adenita hides the dummy atoms then it won't center on the just loaded system
+	SAMSON::getActiveCamera()->center();
+#endif
+
+}
+
+void SEAdenitaCoreSEApp::centerCameraOnLoadedSystemWithTimer() const {
+
+	// call to center the camera in 500ms
+	QTimer::singleShot(500, getGUI(), []() { SEAdenitaCoreSEApp::centerCameraOnLoadedSystem(); });
 
 }
 

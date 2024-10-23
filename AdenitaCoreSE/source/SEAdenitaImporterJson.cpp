@@ -78,7 +78,7 @@ bool SEAdenitaImporterJson::importFromFile(const std::string& fileName, const st
 
 	SEAdenitaCoreSEApp::resetVisualModel();
 
-	SAMSON::getActiveCamera()->center();
+	adenitaApp->centerCameraOnLoadedSystemWithTimer();
 
 	return true;
 

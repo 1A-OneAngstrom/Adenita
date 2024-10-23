@@ -137,6 +137,8 @@ CollectionMap<ADNNucleotide> ADNSingleStrand::GetNucleotides() const {
 
 void ADNSingleStrand::AddNucleotideThreePrime(ADNPointer<ADNNucleotide> nucleotide) {
 
+    if (!nucleotide.isValid()) return;
+
     addChild(nucleotide());
 
     if (threePrimeNucleotide != nullptr) {
@@ -160,6 +162,8 @@ void ADNSingleStrand::AddNucleotideThreePrime(ADNPointer<ADNNucleotide> nucleoti
 
 void ADNSingleStrand::AddNucleotideFivePrime(ADNPointer<ADNNucleotide> nucleotide) {
 
+    if (!nucleotide.isValid()) return;
+
     if (fivePrimeNucleotide != nullptr) {
 
         if (fivePrimeNucleotide->getEndType() == ADNNucleotide::EndType::FiveAndThreePrime) fivePrimeNucleotide->setEndType(ADNNucleotide::EndType::ThreePrime);
@@ -181,6 +185,8 @@ void ADNSingleStrand::AddNucleotideFivePrime(ADNPointer<ADNNucleotide> nucleotid
 }
 
 void ADNSingleStrand::AddNucleotide(ADNPointer<ADNNucleotide> nucleotide, ADNPointer<ADNNucleotide> nextNucleotide) {
+
+    if (!nucleotide.isValid()) return;
 
     if (nextNucleotide == nullptr) return AddNucleotideThreePrime(nucleotide);
     if (nextNucleotide == GetFivePrime()) return AddNucleotideFivePrime(nucleotide);
@@ -208,13 +214,13 @@ void ADNSingleStrand::ShiftStart(ADNPointer<ADNNucleotide> nucleotide, bool shif
         "The total number in nanorobot is " << numberOfNucleotidesBefore << " and using SAMSON it is " << numberOfNucleotidesUsingSAMSONBefore << std::endl;
 
     std::string seq = GetSequence();
-    auto origThreePrime = threePrimeNucleotide;
-    auto loopNt = origThreePrime;
-    auto stopNt = nucleotide->GetPrev();
+    ADNPointer<ADNNucleotide> origThreePrime = threePrimeNucleotide;
+    ADNPointer<ADNNucleotide> loopNt = origThreePrime;
+    ADNPointer<ADNNucleotide> stopNt = nucleotide->GetPrev();
 
     while (loopNt != stopNt) {
 
-        auto cpNt = loopNt;
+        ADNPointer<ADNNucleotide> cpNt = loopNt;
         loopNt = loopNt->GetPrev();
         removeChild(cpNt());
         AddNucleotideFivePrime(cpNt);

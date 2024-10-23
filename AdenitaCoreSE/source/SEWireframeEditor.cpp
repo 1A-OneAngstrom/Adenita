@@ -304,7 +304,7 @@ ADNPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock) {
 			std::string seq = "";
 			part = alg->ApplyAlgorithm(seq, polyhedron, false, true);
 
-			if (!partName.empty()) {
+			if (part != nullptr && !partName.empty()) {
 
 				part->setName(SEAdenitaCoreSEApp::getAdenitaApp()->getUniquePartName(partName));
 
@@ -440,7 +440,7 @@ void SEWireframeEditor::resetData() {
 
 	DASCreatorEditors::resetPositions(positionData);
 	displayFlag = false;
-	tempPart == nullptr;
+	tempPart = nullptr;
 
 }
 
@@ -464,7 +464,7 @@ void SEWireframeEditor::display() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+	const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
 
 	if (wireframeType == DASCreator::EditorType::Cuboid) {
 

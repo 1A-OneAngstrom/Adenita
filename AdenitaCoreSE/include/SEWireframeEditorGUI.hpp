@@ -57,7 +57,7 @@ public slots:
 
 protected:
 
-	void														showEvent(QShowEvent* event);
+	void														showEvent(QShowEvent* event) override;
 
 private:
 

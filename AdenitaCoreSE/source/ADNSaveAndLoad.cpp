@@ -1,5 +1,3 @@
-#pragma once
-
 #include "ADNSaveAndLoad.hpp"
 
 #include "SBBackbone.hpp"

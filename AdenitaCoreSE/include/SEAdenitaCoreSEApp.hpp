@@ -76,6 +76,9 @@ public:
 	static SEAdenitaVisualModel*								getVisualModel(SBNode* parent);											///< Returns an Adenita visual model from the parent node if any, else returns nullptr
 	static bool													addVisualModel(SBNode* parent);
 
+	static void													centerCameraOnLoadedSystem();
+	void														centerCameraOnLoadedSystemWithTimer() const;
+
 	//@}
 
 	void														setStartNucleotide();

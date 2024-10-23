@@ -712,9 +712,9 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 				unsigned int nextIndex = ntMap_[nextNucleotide];
 				//nucleotides.getIndex(nextNucleotide, nextIndex);
 
-				if (j >= curNCylinders) {
+				if (2 * j + 1 >= 2 * curNCylinders) {
 
-					std::cerr << "[Adenita] ERROR: index is out of range: " << j << std::endl;
+					std::cerr << "[Adenita] ERROR: index is out of range: " << 2 * j + 1 << std::endl;
 					break;
 
 				}
@@ -3106,7 +3106,7 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 			auto singleStrands = part->GetSingleStrands();
 			SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
-				bool inRange = ss->getNumberOfNucleotides() > highlightMinLen_ && ss->getNumberOfNucleotides() < highlightMaxLen_;
+				bool inRange = (ss->getNumberOfNucleotides() > highlightMinLen_) && (ss->getNumberOfNucleotides() < highlightMaxLen_);
 				if (notWithin_) inRange = !inRange;
 				if (notScaffold_) inRange = ss->IsScaffold() ? false : inRange;
 				if (inRange) {

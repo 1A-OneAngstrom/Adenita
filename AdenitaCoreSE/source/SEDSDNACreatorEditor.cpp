@@ -362,7 +362,7 @@ void SEDSDNACreatorEditor::resetData() {
 
     DASCreatorEditors::resetPositions(positionData);
     displayFlag = false;
-    tempPart == nullptr;
+    tempPart = nullptr;
 
 }
 

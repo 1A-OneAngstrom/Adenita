@@ -42,6 +42,13 @@ bool SEAdenitaImporterPly::importFromFile(const std::string& fileName, const std
 	const QString fn = QString::fromStdString(fileName);
 	if (!QFileInfo::exists(fn)) return false;
 
+	if (!DASPolyhedron::isPLYFile(fileName)) {
+
+		SAMSON::informUser("Adenita", "The provided file is not in the PLY format.\nPlease check the file.");
+		return false;
+
+	}
+
 	// load in the Adenita App
 
 	int i = 42;
@@ -58,7 +65,7 @@ bool SEAdenitaImporterPly::importFromFile(const std::string& fileName, const std
 
 	SEAdenitaCoreSEApp::resetVisualModel();
 
-	SAMSON::getActiveCamera()->center();
+	adenitaApp->centerCameraOnLoadedSystemWithTimer();
 
 	return true;
 

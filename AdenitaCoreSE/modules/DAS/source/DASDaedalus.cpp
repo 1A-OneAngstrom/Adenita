@@ -17,6 +17,9 @@ ADNPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, std::string fil
 	DASPolyhedron p(filename);
 	p.Center(SBPosition3());
 
+	if (p.GetNumVertices() == 0 && p.GetNumFaces() == 0)
+		return nullptr;
+
 	ADNPointer<ADNPart> daedalus_part = ApplyAlgorithm(seq, p, center);
 
 	return daedalus_part;
@@ -25,7 +28,7 @@ ADNPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, std::string fil
 ADNPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, DASPolyhedron& p, bool center, bool editor) {
 
 	ADNPointer<ADNPart> daedalus_part = new ADNPart();
-	auto fig = p;
+	DASPolyhedron& fig = p;
 	if (center) fig.Center(SBPosition3());
 
 	// Set edge lengths in base pairs and generate the scaffold
@@ -348,13 +351,13 @@ std::vector<DOTNode*> DASDaedalus::GetEulerianCircuit(UndirectedGraph g) {
 	std::vector<DOTNode*> eu_circuit;
 	Node<UndirectedGraph> start_v = *boost::vertices(g).first;
 	// Future work: compute path going counter-clockwise to face
-	Node<UndirectedGraph> actual_v = GetNeighbours(start_v, g)[0];
+	Node<UndirectedGraph> actual_v = GetNeighbors(start_v, g)[0];
 	Node<UndirectedGraph> prev_v = start_v;
 	Node<UndirectedGraph> next_v = actual_v;
 	eu_circuit.push_back(g[start_v].node_);
 	eu_circuit.push_back(g[actual_v].node_);
 	while (start_v != next_v) {
-		std::vector<Node<UndirectedGraph>> neighbours = GetNeighbours(actual_v, g);
+		std::vector<Node<UndirectedGraph>> neighbours = GetNeighbors(actual_v, g);
 		// Choose one different from prev_v
 		next_v = neighbours[0];
 		if (next_v == prev_v) {
@@ -367,7 +370,7 @@ std::vector<DOTNode*> DASDaedalus::GetEulerianCircuit(UndirectedGraph g) {
 	return eu_circuit;
 }
 
-std::vector<Node<UndirectedGraph>> DASDaedalus::GetNeighbours(Node<UndirectedGraph> v, UndirectedGraph g) {
+std::vector<Node<UndirectedGraph>> DASDaedalus::GetNeighbors(Node<UndirectedGraph> v, UndirectedGraph g) {
 	std::vector<Node<UndirectedGraph>> neighbours;
 	boost::graph_traits<UndirectedGraph>::adjacency_iterator v_it, v_end;
 	for (boost::tie(v_it, v_end) = boost::adjacent_vertices(v, g); v_it != v_end; ++v_it) {
@@ -568,7 +571,7 @@ void DASDaedalus::InitEdgeMap(ADNPointer<ADNPart> origami, DASPolyhedron& fig) {
 			DASVertex* t = he->pair_->source_;
 			SBVector3 dir = (t->GetSBPosition() - s->GetSBPosition()).normalizedVersion();
 			SBVector3 u = SBCrossProduct(dir, norm);
-			auto coords = vertexPositions[he];
+			SBPosition3 coords = vertexPositions[he];
 
 			int l = bpLengths_.at(he->edge_) + 1; // +1 since we have apolyT region at the end
 
@@ -1150,7 +1153,7 @@ void DASDaedalus::SetVerticesPositions(ADNPointer<ADNPart> origami, DASPolyhedro
 		v = vertices.at(nId);
 		++count;
 	}
-	cm /= boost::numeric_cast<int>(vertices.size());
+	cm /= static_cast<double>(vertices.size());
 	// center
 	if (center) {
 		for (auto vit = vertices.begin(); vit != vertices.end(); ++vit) {
@@ -1281,8 +1284,8 @@ std::map<DASHalfEdge*, SBPosition3> DASDaedalus::GetVertexPositions(DASPolyhedro
 				else {
 					// check distance before updating
 					if (vertexPositions.find(he->pair_->next_) != vertexPositions.end()) {
-						auto v = vertexPositions[he];
-						auto w = vertexPositions[he->pair_->next_];
+						const auto& v = vertexPositions[he];
+						const auto& w = vertexPositions[he->pair_->next_];
 						SBQuantity::length d = (w - v).norm();
 						if (ADNVectorMath::IsNearlyZero(abs((d - dist).getValue()), tol.getValue())) {
 							++count;
