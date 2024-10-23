@@ -35,13 +35,13 @@ public:
 	DASHalfEdge(const DASHalfEdge& other);
 	DASHalfEdge& operator=(const DASHalfEdge& other);
 
-	DASHalfEdge* next_ = nullptr;
-	DASHalfEdge* prev_ = nullptr;
-	DASHalfEdge* pair_ = nullptr;
+	DASHalfEdge* next_{ nullptr };
+	DASHalfEdge* prev_{ nullptr };
+	DASHalfEdge* pair_{ nullptr };
 
-	DASVertex* source_ = nullptr;
-	DASPolygon* left_ = nullptr;
-	DASEdge* edge_ = nullptr;
+	DASVertex* source_{ nullptr };
+	DASPolygon* left_{ nullptr };
+	DASEdge* edge_{ nullptr };
 
 	// we need an id_ for copying
 	unsigned int id_{ 0 };
@@ -64,7 +64,7 @@ public:
 	DASVertex& operator=(const DASVertex& other);
 
 	/* Members */
-	DASHalfEdge* halfEdge_ = nullptr;
+	DASHalfEdge* halfEdge_{ nullptr };
 	int id_{ 0 };
 	SBPosition3 position_;
 
@@ -73,7 +73,7 @@ public:
 	SBPosition3 GetSBPosition() const;
 
 	/* Setters */
-	void SetCoordinates(SBPosition3 coordinates);
+	void SetCoordinates(const SBPosition3& coordinates);
 
 };
 
@@ -87,7 +87,7 @@ public:
 
 	DASEdge& operator=(const DASEdge& other);
 
-	DASHalfEdge* halfEdge_ = nullptr;
+	DASHalfEdge* halfEdge_{ nullptr };
 	int id_{ 0 };
 
 };
@@ -105,7 +105,7 @@ public:
 	SBPosition3 GetCenter();
 
 	int id_{ 0 };
-	DASHalfEdge* halfEdge_ = nullptr;
+	DASHalfEdge* halfEdge_{ nullptr };
 
 };
 
@@ -120,7 +120,7 @@ public:
 	/* Constructor */
 	DASPolyhedron() = default;
 	DASPolyhedron(const DASPolyhedron& p);
-	DASPolyhedron(std::string filename);
+	DASPolyhedron(const std::string& filename);
 
 	~DASPolyhedron();
 
@@ -143,10 +143,11 @@ public:
 	/* Methods */
 	size_t GetNumVertices() const;
 	size_t GetNumFaces() const;
-	void BuildPolyhedron(std::map<int, SBPosition3> vertices, std::map<int, std::vector<int>> faces);
+	void BuildPolyhedron(const std::map<int, SBPosition3>& vertices, const std::map<int, std::vector<int>>& faces);
+	static bool isPLYFile(const std::string& filename);
 	void LoadFromPLYFile(const std::string& filename);
-	void AddVertex(int id, SBPosition3 coords);
-	void AddFace(int id, std::vector<int> vertices);
+	void AddVertex(int id, const SBPosition3& coords);
+	void AddFace(int id, const std::vector<int>& vertices);
 	std::pair<DASEdge*, double> MinimumEdgeLength();
 	std::pair<DASEdge*, double> MaximumEdgeLength();
 	static double CalculateEdgeLength(DASEdge* edge);

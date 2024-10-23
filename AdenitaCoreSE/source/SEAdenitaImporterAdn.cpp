@@ -50,7 +50,7 @@ bool SEAdenitaImporterAdn::importFromFile(const std::string& fileName, const std
 
 	SEAdenitaCoreSEApp::resetVisualModel();
 
-	SAMSON::getActiveCamera()->center();
+	adenitaApp->centerCameraOnLoadedSystemWithTimer();
 
 	return true;
 

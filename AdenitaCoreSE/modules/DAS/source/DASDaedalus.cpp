@@ -17,6 +17,9 @@ ADNPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, std::string fil
 	DASPolyhedron p(filename);
 	p.Center(SBPosition3());
 
+	if (p.GetNumVertices() == 0 && p.GetNumFaces() == 0)
+		return nullptr;
+
 	ADNPointer<ADNPart> daedalus_part = ApplyAlgorithm(seq, p, center);
 
 	return daedalus_part;
@@ -1150,7 +1153,7 @@ void DASDaedalus::SetVerticesPositions(ADNPointer<ADNPart> origami, DASPolyhedro
 		v = vertices.at(nId);
 		++count;
 	}
-	cm /= boost::numeric_cast<int>(vertices.size());
+	cm /= static_cast<double>(vertices.size());
 	// center
 	if (center) {
 		for (auto vit = vertices.begin(); vit != vertices.end(); ++vit) {

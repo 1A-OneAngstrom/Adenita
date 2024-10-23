@@ -134,11 +134,11 @@ SBPosition3 DASVertex::GetSBPosition() const {
 	return position_;
 }
 
-void DASVertex::SetCoordinates(SBPosition3 coordinates) {
+void DASVertex::SetCoordinates(const SBPosition3& coordinates) {
 	position_ = coordinates;
 }
 
-DASPolyhedron::DASPolyhedron(std::string filename) {
+DASPolyhedron::DASPolyhedron(const std::string& filename) {
 	LoadFromPLYFile(filename);
 }
 
@@ -260,17 +260,17 @@ void DASPolyhedron::SetEdges(Edges edges) {
 	edges_ = edges;
 }
 
-void DASPolyhedron::BuildPolyhedron(std::map<int, SBPosition3> vertices, std::map<int, std::vector<int>> faces) {
+void DASPolyhedron::BuildPolyhedron(const std::map<int, SBPosition3>& vertices, const std::map<int, std::vector<int>>& faces) {
 
 	//create indices for faces
 	if (faces.size() > 0) {
-		auto firstFace = faces[0];
-		int verticesPerFace = boost::numeric_cast<int>(firstFace.size());
+		const auto& firstFace = faces.at(0);
+		const size_t verticesPerFace = firstFace.size();
 		indices_ = new unsigned int[verticesPerFace * faces.size()];
 
 		int k = 0;
-		for (auto& face : faces) {
-			auto faceIndices = face.second;
+		for (const auto& face : faces) {
+			const auto& faceIndices = face.second;
 			if (faceIndices.size() == 3) {
 				indices_[verticesPerFace * k + 0] = faceIndices[0];
 				indices_[verticesPerFace * k + 1] = faceIndices[1];
@@ -281,7 +281,7 @@ void DASPolyhedron::BuildPolyhedron(std::map<int, SBPosition3> vertices, std::ma
 	}
 
 
-	for (auto& vertex : vertices) {
+	for (const auto& vertex : vertices) {
 		AddVertex(vertex.first, vertex.second);
 	}
 	// store original vertices for scaling and such
@@ -290,7 +290,7 @@ void DASPolyhedron::BuildPolyhedron(std::map<int, SBPosition3> vertices, std::ma
 	std::map<std::pair<int, int>, DASEdge*> seen_edges;
 	unsigned int he_id = 0;
 	unsigned int e_id = 0;
-	for (auto& i : faces) {
+	for (const auto& i : faces) {
 		auto* face = new DASPolygon();
 		faces_.push_back(face);
 		face->id_ = i.first;
@@ -356,6 +356,20 @@ void DASPolyhedron::BuildPolyhedron(std::map<int, SBPosition3> vertices, std::ma
 	}
 }
 
+bool DASPolyhedron::isPLYFile(const std::string& filename) {
+
+	// get file lines
+	std::vector<std::string> lines;
+	SBIFileReader::getFileLines(filename, lines);
+
+	// Check first line is ply
+	if (lines.size() < 10) return false;
+	if (lines[0] != "ply") return false;
+
+	return true;
+
+}
+
 void DASPolyhedron::LoadFromPLYFile(const std::string& filename) {
 
 	//get file lines
@@ -371,7 +385,8 @@ void DASPolyhedron::LoadFromPLYFile(const std::string& filename) {
 	int total_faces = 0;
 
 	// Check first line is ply
-	if (lines[0] != "ply") throw 20;
+	if (lines.size() < 10) return;
+	if (lines[0] != "ply") return;
 
 	//initialize values
 	for (unsigned int i = 1; i < lines.size(); i++) {
@@ -488,7 +503,7 @@ std::vector<T> DASPolyhedron::SplitString(std::string s, std::string type, T dum
 
 }
 
-void DASPolyhedron::AddVertex(int id, SBPosition3 coords) {
+void DASPolyhedron::AddVertex(int id, const SBPosition3& coords) {
 
 	auto* vertex = new DASVertex();
 	vertex->id_ = id;
@@ -498,7 +513,7 @@ void DASPolyhedron::AddVertex(int id, SBPosition3 coords) {
 
 }
 
-void DASPolyhedron::AddFace(int id, std::vector<int> vertices) {
+void DASPolyhedron::AddFace(int id, const std::vector<int>& vertices) {
 
 	auto* face = new DASPolygon();
 	face->id_ = id;
@@ -763,13 +778,11 @@ DASHalfEdge* DASPolyhedron::GetHalfEdge(DASVertex* v, DASVertex* w) {
 
 void DASPolyhedron::Scale(double scalingFactor) {
 
-	std::vector<std::vector<double>> sc;
-	std::vector<double> v1 = { scalingFactor, 0.0, 0.0 };
-	std::vector<double> v2 = { 0.0, scalingFactor, 0.0 };
-	std::vector<double> v3 = { 0.0, 0.0, scalingFactor };
-	sc.push_back(v1);
-	sc.push_back(v2);
-	sc.push_back(v3);
+	const std::vector<std::vector<double>> sc{
+		{ scalingFactor, 0.0, 0.0 },
+		{ 0.0, scalingFactor, 0.0 },
+		{ 0.0, 0.0, scalingFactor }
+	};
 
 	ublas::matrix<double> scaleMatrix = ADNVectorMath::CreateBoostMatrix(sc);
 	for (const auto& originalVertex : originalVertices_) {
@@ -778,6 +791,7 @@ void DASPolyhedron::Scale(double scalingFactor) {
 		ublas::vector<double> cB = ADNVectorMath::CreateBoostVector(c);
 		ublas::vector<double> res = ublas::prod(scaleMatrix, cB);
 		std::vector<double> r = ADNVectorMath::CreateStdVector(res);
+		if (r.size() < 3) continue;
 		DASVertex* w = vertices_.at(originalVertex.first);
 		const SBPosition3 coords = SBPosition3(SBQuantity::angstrom(r[0]), SBQuantity::angstrom(r[1]), SBQuantity::angstrom(r[2]));
 		w->SetCoordinates(coords);
@@ -800,6 +814,7 @@ void DASPolyhedron::Center(const SBPosition3& center) {
 	ublas::matrix<double> positions = ADNVectorMath::CreateBoostMatrix(sc);
 	ublas::vector<double> cm = ADNVectorMath::CalculateCM(positions);
 	std::vector<double> cm_std = ADNVectorMath::CreateStdVector(cm);
+	if (cm_std.size() < 3) return;
 	const SBPosition3 cm_sb = SBPosition3(SBQuantity::angstrom(cm_std[0]), SBQuantity::angstrom(cm_std[1]), SBQuantity::angstrom(cm_std[2]));
 	const SBPosition3 R = center - cm_sb;
 
@@ -822,12 +837,12 @@ void DASPolyhedron::Center(const SBPosition3& center) {
 SBPosition3 DASPolyhedron::GetCenter() const {
 
 	SBPosition3 cm;
-	const int numVertices = boost::numeric_cast<int>(vertices_.size());
+	const size_t numVertices = vertices_.size();
 
 	for (const auto& vertex : vertices_)
 		cm += vertex.second->GetSBPosition();
 
-	cm /= numVertices;
+	cm /= static_cast<double>(numVertices);
 
 	return cm;
 

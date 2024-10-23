@@ -77,6 +77,7 @@ public slots:
 	void														onSaveSelection();
 	void														onExport();
 	void														onResetVisualModel();
+	void														onCenterOnAllModels();
 	void														onSettings();
 
 	// Edit sequences

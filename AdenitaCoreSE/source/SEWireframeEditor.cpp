@@ -304,7 +304,7 @@ ADNPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock) {
 			std::string seq = "";
 			part = alg->ApplyAlgorithm(seq, polyhedron, false, true);
 
-			if (!partName.empty()) {
+			if (part != nullptr && !partName.empty()) {
 
 				part->setName(SEAdenitaCoreSEApp::getAdenitaApp()->getUniquePartName(partName));
 

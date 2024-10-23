@@ -76,13 +76,13 @@ void DASOperations::CreateCrossover(ADNPointer<ADNPart> part1, ADNPointer<ADNPar
 
 	if (pair.first != nullptr && pair.second != nullptr) {
 		if (!seq.empty()) {
-			int seqLength = boost::numeric_cast<int>(seq.size());
+			const size_t seqLength = seq.size();
 
 			ADNPointer<ADNBaseSegment> bs1 = pair.first->GetThreePrime()->GetBaseSegment();
 			ADNPointer<ADNBaseSegment> bs2 = pair.second->GetFivePrime()->GetBaseSegment();
 			SBVector3 direction = (bs2->GetPosition() - bs1->GetPosition()).normalizedVersion();
 			SBQuantity::length availLength = (bs2->GetPosition() - bs1->GetPosition()).norm();
-			SBQuantity::length expectedLength = SBQuantity::nanometer(ADNConstants::BP_RISE) * (seqLength + 1);  // we need to accomodate space for distance between the ends
+			SBQuantity::length expectedLength = SBQuantity::nanometer(ADNConstants::BP_RISE) * (seqLength + 1);  // we need to accommodate space for distance between the ends
 			SBQuantity::length offset = (availLength - expectedLength) * 0.5;
 			SBPosition3 startPos = bs1->GetPosition() + (SBQuantity::nanometer(ADNConstants::BP_RISE) + offset) * direction;
 			if (two) {
