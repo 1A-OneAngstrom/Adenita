@@ -171,7 +171,7 @@ void DASCadnano::ParseCadnanoLegacy(rapidjson::Document& d) {
 			ADNLogger::LogError(std::string("Adenita couldn't find a compatible lattice: design seems empty"));
 		}
 		else {
-			ADNLogger::LogError(std::string("Adenita couldn't find a compatible lattice: number of vHelix positions = " + totalCount));
+			ADNLogger::LogError(std::string("Adenita couldn't find a compatible lattice: number of vHelix positions = " + std::to_string(totalCount)));
 		}
 		return;
 	}

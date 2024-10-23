@@ -3106,7 +3106,7 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 			auto singleStrands = part->GetSingleStrands();
 			SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
-				bool inRange = ss->getNumberOfNucleotides() > highlightMinLen_ && ss->getNumberOfNucleotides() < highlightMaxLen_;
+				bool inRange = (ss->getNumberOfNucleotides() > highlightMinLen_) && (ss->getNumberOfNucleotides() < highlightMaxLen_);
 				if (notWithin_) inRange = !inRange;
 				if (notScaffold_) inRange = ss->IsScaffold() ? false : inRange;
 				if (inRange) {

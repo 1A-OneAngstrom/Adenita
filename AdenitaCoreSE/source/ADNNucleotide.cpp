@@ -510,7 +510,7 @@ Position3D ADNNucleotide::GetSidechainPosition() const {
 
     auto sc = GetSidechain();
     if (sc.isValid()) return sc->GetPosition();
-    else Position3D();
+    else return Position3D();
 
 }
 
@@ -525,7 +525,7 @@ Position3D ADNNucleotide::GetBackbonePosition() const {
 
     auto bb = GetBackbone();
     if (bb.isValid()) return bb->GetPosition();
-    else Position3D();
+    else return Position3D();
 
 }
 
