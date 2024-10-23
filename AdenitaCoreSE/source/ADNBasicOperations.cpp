@@ -847,7 +847,7 @@ std::tuple<ADNPointer<ADNBaseSegment>, bool, bool, bool> ADNBasicOperations::Get
 
 void ADNBasicOperations::SetBackNucleotideIntoBaseSegment(ADNPointer<ADNNucleotide> nt, std::tuple<ADNPointer<ADNBaseSegment>, bool, bool, bool> info) {
 
-    auto bs = std::get<0>(info);
+    ADNPointer<ADNBaseSegment> bs = std::get<0>(info);
     const bool left = std::get<1>(info);
     const bool start = std::get<2>(info);
     const bool end = std::get<3>(info);

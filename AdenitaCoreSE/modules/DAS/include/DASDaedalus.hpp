@@ -217,7 +217,7 @@ private:
 	 *  \param the graph.
 	 *  \return a vector with the nodes connected to the input node.
 	 */
-	std::vector<Node<UndirectedGraph>> GetNeighbours(Node<UndirectedGraph> v, UndirectedGraph g);
+	std::vector<Node<UndirectedGraph>> GetNeighbors(Node<UndirectedGraph> v, UndirectedGraph g);
 	/** Split edges not in MST.
 	 *  Edges not belonging to MST are split in half to allow scaffold crossovers.
 	 *  \param vector with MST

@@ -102,7 +102,7 @@ public:
 
 	DASPolygon& operator=(const DASPolygon& p);
 
-	SBPosition3 GetCenter();
+	SBPosition3 GetCenter() const;
 
 	int id_{ 0 };
 	DASHalfEdge* halfEdge_{ nullptr };

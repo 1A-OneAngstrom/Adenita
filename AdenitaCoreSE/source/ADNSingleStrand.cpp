@@ -214,13 +214,13 @@ void ADNSingleStrand::ShiftStart(ADNPointer<ADNNucleotide> nucleotide, bool shif
         "The total number in nanorobot is " << numberOfNucleotidesBefore << " and using SAMSON it is " << numberOfNucleotidesUsingSAMSONBefore << std::endl;
 
     std::string seq = GetSequence();
-    auto origThreePrime = threePrimeNucleotide;
-    auto loopNt = origThreePrime;
-    auto stopNt = nucleotide->GetPrev();
+    ADNPointer<ADNNucleotide> origThreePrime = threePrimeNucleotide;
+    ADNPointer<ADNNucleotide> loopNt = origThreePrime;
+    ADNPointer<ADNNucleotide> stopNt = nucleotide->GetPrev();
 
     while (loopNt != stopNt) {
 
-        auto cpNt = loopNt;
+        ADNPointer<ADNNucleotide> cpNt = loopNt;
         loopNt = loopNt->GetPrev();
         removeChild(cpNt());
         AddNucleotideFivePrime(cpNt);

@@ -268,7 +268,7 @@ void SEAdenitaCoreSEApp::centerCameraOnLoadedSystem() {
 
 }
 
-void SEAdenitaCoreSEApp::centerCameraOnLoadedSystemWithTimer() {
+void SEAdenitaCoreSEApp::centerCameraOnLoadedSystemWithTimer() const {
 
 	// call to center the camera in 500ms
 	QTimer::singleShot(500, getGUI(), []() { SEAdenitaCoreSEApp::centerCameraOnLoadedSystem(); });

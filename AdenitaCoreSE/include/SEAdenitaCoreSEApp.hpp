@@ -77,7 +77,7 @@ public:
 	static bool													addVisualModel(SBNode* parent);
 
 	static void													centerCameraOnLoadedSystem();
-	void														centerCameraOnLoadedSystemWithTimer();
+	void														centerCameraOnLoadedSystemWithTimer() const;
 
 	//@}
 

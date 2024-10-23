@@ -272,7 +272,7 @@ void SEConnectSSDNAEditor::mouseReleaseEvent(QMouseEvent* event) {
     
 		if (highlightedNucleotides.size() == 1 && selectedStartNucleotide.isValid()) {
 
-			auto startNucleotide = selectedStartNucleotide;
+			ADNPointer<ADNNucleotide> startNucleotide = selectedStartNucleotide;
 			ADNPointer<ADNNucleotide> endNucleotide = highlightedNucleotides[0];
 			ADNPointer<ADNPart> part1 = startNucleotide->GetStrand()->GetPart();
 			ADNPointer<ADNPart> part2 = endNucleotide->GetStrand()->GetPart();

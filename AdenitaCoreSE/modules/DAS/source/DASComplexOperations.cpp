@@ -66,9 +66,9 @@ DASOperations::Connections DASOperations::PrepareStrandsForConnection(ADNPointer
 void DASOperations::CreateCrossover(ADNPointer<ADNPart> part1, ADNPointer<ADNPart> part2,
 	ADNPointer<ADNNucleotide> nt1, ADNPointer<ADNNucleotide> nt2, bool two, std::string seq)
 {
-	auto conn = PrepareStrandsForConnection(part1, part2, nt1, nt2);
-	auto pair = conn.stringPair;
-	auto compPair = conn.compStringPair;
+	const auto conn = PrepareStrandsForConnection(part1, part2, nt1, nt2);
+	const auto& pair = conn.stringPair;
+	const auto& compPair = conn.compStringPair;
 
 	// create joint strands if necessary
 	ADNPointer<ADNSingleStrand> joinStrand1 = nullptr;

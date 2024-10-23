@@ -106,7 +106,7 @@ DASPolygon& DASPolygon::operator=(const DASPolygon& other) {
 	return *this;
 }
 
-SBPosition3 DASPolygon::GetCenter() {
+SBPosition3 DASPolygon::GetCenter() const {
 	SBPosition3 cm;
 	int c = 0;
 	DASHalfEdge* begin = halfEdge_;
@@ -299,7 +299,7 @@ void DASPolyhedron::BuildPolyhedron(const std::map<int, SBPosition3>& vertices, 
 		auto* first = new DASHalfEdge();
 		first->id_ = he_id;
 		++he_id;
-		auto v = i.second;
+		const auto& v = i.second;
 		for (auto j = v.begin(); j != v.end(); ++j) {
 			DASVertex* vertex_i = vertices_.at(*j);
 			auto* he = new DASHalfEdge();
