@@ -204,13 +204,13 @@ ADNPointer<ADNPart> ADNBasicOperations::MergeParts(ADNPointer<ADNPart> part1, AD
         while (nt != nullptr) {
 
             auto ntNext = nt->GetNext();
-            auto info = ADNBasicOperations::GetBaseSegmentInfo(nt);
+            auto info = GetBaseSegmentInfo(nt);
 
             part2->DeregisterNucleotide(nt, false);
             // nt has de-registered from bp or loop pair
             part->RegisterNucleotideThreePrime(ss, nt, false);
 
-            ADNBasicOperations::SetBackNucleotideIntoBaseSegment(nt, info);
+            SetBackNucleotideIntoBaseSegment(nt, info);
 
             auto atoms = nt->GetAtoms();
             SB_FOR(ADNPointer<ADNAtom> atom, atoms) {
@@ -234,6 +234,8 @@ ADNPointer<ADNPart> ADNBasicOperations::MergeParts(ADNPointer<ADNPart> part1, AD
 
 std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOperations::BreakSingleStrand(ADNPointer<ADNPart> part, ADNPointer<ADNNucleotide> nt) {
 
+    if (!part.isValid() || !nt.isValid()) return {nullptr, nullptr};
+
     // TODO: take care of the following cases
     // 1. there is a single nucleotide in the single strand and this nucleotide is to be broken
     // 2. the nucleotide nt has not next or previous nucleotide (it's and end nucleotide)
@@ -254,7 +256,7 @@ std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOper
     auto fivePrime = ss->GetFivePrime();
     ADNPointer<ADNNucleotide> nucleo = fivePrime;
 
-    while (nucleo != nt) {
+    while (nucleo != nullptr && nucleo != nt) {
 
         ADNPointer<ADNNucleotide> ntNext = nucleo->GetNext();
         auto info = GetBaseSegmentInfo(nucleo);
@@ -279,8 +281,8 @@ std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOper
     if (ss->IsScaffold()) {
 
         // largest strand stays as scaffold
-        auto sizeF = ssFP->getNumberOfNucleotides();
-        auto sizeT = ssTP->getNumberOfNucleotides();
+        const auto sizeF = ssFP->getNumberOfNucleotides();
+        const auto sizeT = ssTP->getNumberOfNucleotides();
         if (sizeF > sizeT)
             ssFP->setScaffoldFlag(true);
         else
@@ -288,7 +290,7 @@ std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOper
 
     }
 
-    auto sz = ss->getNumberOfNucleotides();
+    const auto sz = ss->getNumberOfNucleotides();
     if (sz > 0) {
 
         std::string msg = "Possible error when breaking strands inside part";
@@ -409,7 +411,7 @@ std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOper
         }
 
         auto bs = nt->GetBaseSegment();
-        if (bs->GetCellType() == CellType::LoopPair) {
+        if (bs != nullptr && bs->GetCellType() == CellType::LoopPair) {
             ADNPointer<ADNLoopPair> loopPair = static_cast<ADNLoopPair*>(bs->GetCell()());
             loopPair->RemoveNucleotide(nt);
         }
@@ -812,6 +814,8 @@ std::pair<ADNNucleotide::EndType, ADNPointer<ADNBaseSegment>> ADNBasicOperations
 std::tuple<ADNPointer<ADNBaseSegment>, bool, bool, bool> ADNBasicOperations::GetBaseSegmentInfo(ADNPointer<ADNNucleotide> nt) {
 
     auto bs = nt->GetBaseSegment();
+    if (bs == nullptr) return { nullptr, false, false, false };
+
     auto cell = bs->GetCell();
     bool left = bs->IsLeft(nt);
     bool start = false;
@@ -847,6 +851,8 @@ void ADNBasicOperations::SetBackNucleotideIntoBaseSegment(ADNPointer<ADNNucleoti
     const bool left = std::get<1>(info);
     const bool start = std::get<2>(info);
     const bool end = std::get<3>(info);
+
+    if (bs == nullptr) return;
 
     auto cell = bs->GetCell();
     if (bs->GetCellType() == CellType::BasePair) {

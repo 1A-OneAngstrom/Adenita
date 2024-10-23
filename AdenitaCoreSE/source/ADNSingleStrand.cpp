@@ -137,6 +137,8 @@ CollectionMap<ADNNucleotide> ADNSingleStrand::GetNucleotides() const {
 
 void ADNSingleStrand::AddNucleotideThreePrime(ADNPointer<ADNNucleotide> nucleotide) {
 
+    if (!nucleotide.isValid()) return;
+
     addChild(nucleotide());
 
     if (threePrimeNucleotide != nullptr) {
@@ -160,6 +162,8 @@ void ADNSingleStrand::AddNucleotideThreePrime(ADNPointer<ADNNucleotide> nucleoti
 
 void ADNSingleStrand::AddNucleotideFivePrime(ADNPointer<ADNNucleotide> nucleotide) {
 
+    if (!nucleotide.isValid()) return;
+
     if (fivePrimeNucleotide != nullptr) {
 
         if (fivePrimeNucleotide->getEndType() == ADNNucleotide::EndType::FiveAndThreePrime) fivePrimeNucleotide->setEndType(ADNNucleotide::EndType::ThreePrime);
@@ -181,6 +185,8 @@ void ADNSingleStrand::AddNucleotideFivePrime(ADNPointer<ADNNucleotide> nucleotid
 }
 
 void ADNSingleStrand::AddNucleotide(ADNPointer<ADNNucleotide> nucleotide, ADNPointer<ADNNucleotide> nextNucleotide) {
+
+    if (!nucleotide.isValid()) return;
 
     if (nextNucleotide == nullptr) return AddNucleotideThreePrime(nucleotide);
     if (nextNucleotide == GetFivePrime()) return AddNucleotideFivePrime(nucleotide);
