@@ -29,7 +29,7 @@ namespace ADNBasicOperations {
     SB_EXPORT std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> DeleteNucleotide(ADNPointer<ADNPart> part, ADNPointer<ADNNucleotide> nt);
     SB_EXPORT void DeleteNucleotideWithoutBreak(ADNPointer<ADNPart> part, ADNPointer<ADNNucleotide> nt);
     SB_EXPORT std::pair<ADNPointer<ADNDoubleStrand>, ADNPointer<ADNDoubleStrand>> DeleteBaseSegment(ADNPointer<ADNPart> part, ADNPointer<ADNBaseSegment> bs);
-    SB_EXPORT void DeleteBaseSegmentWithoutBreak(ADNPointer<ADNBaseSegment> bs);
+    //SB_EXPORT void DeleteBaseSegmentWithoutBreak(ADNPointer<ADNBaseSegment> bs);
     SB_EXPORT void DeleteSingleStrand(ADNPointer<ADNSingleStrand> ss);
     SB_EXPORT void DeleteDoubleStrand(ADNPointer<ADNDoubleStrand> ds);
 

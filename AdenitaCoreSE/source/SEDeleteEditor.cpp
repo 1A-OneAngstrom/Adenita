@@ -161,21 +161,28 @@ void SEDeleteEditor::mousePressEvent(QMouseEvent* event) {
 		if (highlightedNucleotides.size() == 1) {
 
 			ADNPointer<ADNNucleotide> nt = highlightedNucleotides[0];
-			ADNPointer<ADNBaseSegment> bs = nt->GetBaseSegment();
-			ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
-			ADNPointer<ADNPart> part = ss->GetPart();
-			auto newStrands = ADNBasicOperations::DeleteNucleotide(part, nt);
-			if (ss->getNumberOfNucleotides() == 0) {
+			if (nt != nullptr) {
 
-				// delete single strand if was left empty
-				part->DeregisterSingleStrand(ss);
+				ADNPointer<ADNBaseSegment> bs = nt->GetBaseSegment();
+				ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
+				ADNPointer<ADNPart> part = nullptr;
+				if (ss != nullptr)
+					part = ss->GetPart();
+				auto newStrands = ADNBasicOperations::DeleteNucleotide(part, nt);
+				if (ss != nullptr && ss->getNumberOfNucleotides() == 0) {
 
-			}
+					// delete single strand if was left empty
+					if (part != nullptr)
+						part->DeregisterSingleStrand(ss);
 
-			if (bs->getNumberOfNucleotides() == 0) {
+				}
 
-				// if base segment is empty, delete
-				ADNBasicOperations::DeleteBaseSegment(part, bs);
+				if (bs != nullptr && bs->getNumberOfNucleotides() == 0) {
+
+					// if base segment is empty, delete
+					ADNBasicOperations::DeleteBaseSegment(part, bs);
+
+				}
 
 			}
 
