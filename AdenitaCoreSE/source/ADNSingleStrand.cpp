@@ -201,6 +201,7 @@ void ADNSingleStrand::AddNucleotide(ADNPointer<ADNNucleotide> nucleotide, ADNPoi
 */
 void ADNSingleStrand::ShiftStart(ADNPointer<ADNNucleotide> nucleotide, bool shiftSeq) {
 
+    if (nucleotide == nullptr) return;
     // skip if the nucleotide is already the 5'
     if (nucleotide == fivePrimeNucleotide) return;
 

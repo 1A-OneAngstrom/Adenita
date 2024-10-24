@@ -73,6 +73,10 @@ ADNPointer<ADNSingleStrand> ADNBasicOperations::MergeSingleStrands(ADNPointer<AD
 
 ADNPointer<ADNDoubleStrand> ADNBasicOperations::MergeDoubleStrand(ADNPointer<ADNPart> part, ADNPointer<ADNDoubleStrand> first_strand, ADNPointer<ADNDoubleStrand> second_strand) {
 
+    if (first_strand == nullptr && second_strand == nullptr) return nullptr;
+    else if (first_strand == nullptr) return second_strand;
+    else if (second_strand == nullptr) return first_strand;
+
     ADNPointer<ADNDoubleStrand> ds = ADNPointer<ADNDoubleStrand>(new ADNDoubleStrand());
     ds->setName("Merged Double Strand");
     if (SAMSON::isHolding()) SAMSON::hold(ds());
@@ -117,6 +121,8 @@ ADNPointer<ADNDoubleStrand> ADNBasicOperations::MergeDoubleStrand(ADNPointer<ADN
 CollectionMap<ADNNucleotide> ADNBasicOperations::AddNucleotidesThreePrime(ADNPointer<ADNPart> part, ADNPointer<ADNSingleStrand> ss, int number, SBVector3 dir) {
 
     CollectionMap<ADNNucleotide> nts;
+
+    if (part == nullptr || ss == nullptr) return nts;
 
     for (int i = 0; i < number; ++i) {
 
@@ -171,6 +177,10 @@ CollectionMap<ADNNucleotide> ADNBasicOperations::AddNucleotidesThreePrime(ADNPoi
 
 ADNPointer<ADNPart> ADNBasicOperations::MergeParts(ADNPointer<ADNPart> part1, ADNPointer<ADNPart> part2) {
 
+    if (part1 == nullptr && part2 == nullptr) return nullptr;
+    else if (part1 == nullptr) return part2;
+    else if (part2 == nullptr) return part1;
+
     ADNPointer<ADNPart> part = part1;
 
     auto doubleStrands = part2->GetDoubleStrands();
@@ -179,7 +189,7 @@ ADNPointer<ADNPart> ADNBasicOperations::MergeParts(ADNPointer<ADNPart> part1, AD
         part2->DeregisterDoubleStrand(ds);
         part->RegisterDoubleStrand(ds);
 
-        // the code below does smth only if ADNPart registers nodes
+        // the code below does something only if ADNPart registers nodes
         auto bs = ds->GetFirstBaseSegment();
         while (bs != nullptr) {
 
@@ -234,7 +244,7 @@ ADNPointer<ADNPart> ADNBasicOperations::MergeParts(ADNPointer<ADNPart> part1, AD
 
 std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOperations::BreakSingleStrand(ADNPointer<ADNPart> part, ADNPointer<ADNNucleotide> nt) {
 
-    if (!part.isValid() || !nt.isValid()) return {nullptr, nullptr};
+    if (!part.isValid() || !nt.isValid()) return { nullptr, nullptr };
 
     // TODO: take care of the following cases
     // 1. there is a single nucleotide in the single strand and this nucleotide is to be broken
@@ -254,27 +264,27 @@ std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOper
     ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
 
     auto fivePrime = ss->GetFivePrime();
-    ADNPointer<ADNNucleotide> nucleo = fivePrime;
+    ADNPointer<ADNNucleotide> nucleotide = fivePrime;
 
-    while (nucleo != nullptr && nucleo != nt) {
+    while (nucleotide != nullptr && nucleotide != nt) {
 
-        ADNPointer<ADNNucleotide> ntNext = nucleo->GetNext();
-        auto info = GetBaseSegmentInfo(nucleo);
-        part->DeregisterNucleotide(nucleo, true, false);
-        part->RegisterNucleotideThreePrime(ssFP, nucleo);
-        SetBackNucleotideIntoBaseSegment(nucleo, info);
-        nucleo = ntNext;
+        ADNPointer<ADNNucleotide> ntNext = nucleotide->GetNext();
+        auto info = GetBaseSegmentInfo(nucleotide);
+        part->DeregisterNucleotide(nucleotide, true, false);
+        part->RegisterNucleotideThreePrime(ssFP, nucleotide);
+        SetBackNucleotideIntoBaseSegment(nucleotide, info);
+        nucleotide = ntNext;
 
     }
 
-    while (nucleo != nullptr) {
+    while (nucleotide != nullptr) {
 
-        ADNPointer<ADNNucleotide> ntNext = nucleo->GetNext();
-        auto info = GetBaseSegmentInfo(nucleo);
-        part->DeregisterNucleotide(nucleo, true, false);
-        part->RegisterNucleotideThreePrime(ssTP, nucleo);
-        SetBackNucleotideIntoBaseSegment(nucleo, info);
-        nucleo = ntNext;
+        ADNPointer<ADNNucleotide> ntNext = nucleotide->GetNext();
+        auto info = GetBaseSegmentInfo(nucleotide);
+        part->DeregisterNucleotide(nucleotide, true, false);
+        part->RegisterNucleotideThreePrime(ssTP, nucleotide);
+        SetBackNucleotideIntoBaseSegment(nucleotide, info);
+        nucleotide = ntNext;
 
     }
 
@@ -311,6 +321,8 @@ std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOper
 
 std::pair<ADNPointer<ADNDoubleStrand>, ADNPointer<ADNDoubleStrand>> ADNBasicOperations::BreakDoubleStrand(ADNPointer<ADNPart> part, ADNPointer<ADNBaseSegment> bs) {
 
+    if (!part.isValid() || !bs.isValid()) return { nullptr, nullptr };
+
     ADNPointer<ADNDoubleStrand> dsFP = new ADNDoubleStrand();
     dsFP->setName("Broken Double Strand 1");
     if (SAMSON::isHolding()) SAMSON::hold(dsFP());
@@ -326,20 +338,24 @@ std::pair<ADNPointer<ADNDoubleStrand>, ADNPointer<ADNDoubleStrand>> ADNBasicOper
 
     auto firstBs = ds->GetFirstBaseSegment();
     ADNPointer<ADNBaseSegment> baseS = firstBs;
-    int num = bs->GetNumber();  // store number for calculating angle twist later
+    const int num = bs->GetNumber();  // store number for calculating angle twist later
 
     while (baseS != bs) {
+
         ADNPointer<ADNBaseSegment> bsNext = baseS->GetNext();
         part->DeregisterBaseSegment(baseS, true, false);
         part->RegisterBaseSegmentEnd(dsFP, baseS);
         baseS = bsNext;
+
     }
 
     while (baseS != nullptr) {
+
         ADNPointer<ADNBaseSegment> bsNext = baseS->GetNext();
         part->DeregisterBaseSegment(baseS, true, false);
         part->RegisterBaseSegmentEnd(dsTP, baseS);
         baseS = bsNext;
+
     }
 
     auto initAngle = ds->GetInitialTwistAngle();
@@ -362,6 +378,8 @@ std::pair<ADNPointer<ADNDoubleStrand>, ADNPointer<ADNDoubleStrand>> ADNBasicOper
 }
 
 std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOperations::DeleteNucleotide(ADNPointer<ADNPart> part, ADNPointer<ADNNucleotide> nt) {
+
+    if (!part.isValid() || !nt.isValid()) return { nullptr, nullptr };
 
     SEConfig& config = SEConfig::GetInstance();
 
@@ -461,6 +479,8 @@ void ADNBasicOperations::DeleteNucleotideWithoutBreak(ADNPointer<ADNPart> part, 
 
 std::pair<ADNPointer<ADNDoubleStrand>, ADNPointer<ADNDoubleStrand>> ADNBasicOperations::DeleteBaseSegment(ADNPointer<ADNPart> part, ADNPointer<ADNBaseSegment> bs) {
 
+    if (!part.isValid() || !bs.isValid()) return { nullptr, nullptr };
+
     SEConfig& config = SEConfig::GetInstance();
 
     auto numBss = part->GetNumberOfBaseSegments();
@@ -470,8 +490,8 @@ std::pair<ADNPointer<ADNDoubleStrand>, ADNPointer<ADNDoubleStrand>> ADNBasicOper
 
     ADNPointer<ADNDoubleStrand> ds = bs->GetDoubleStrand();
     ADNPointer<ADNBaseSegment> oldNext = bs->GetNext();
-    bool fst = bs->GetPrev() == nullptr;
-    bool fstAndLst = bs->GetNext() == nullptr && fst;
+    const bool fst = bs->GetPrev() == nullptr;
+    const bool fstAndLst = bs->GetNext() == nullptr && fst;
 
     if (fstAndLst || fst) {
 
@@ -536,13 +556,15 @@ std::pair<ADNPointer<ADNDoubleStrand>, ADNPointer<ADNDoubleStrand>> ADNBasicOper
 
 void ADNBasicOperations::DeleteSingleStrand(ADNPointer<ADNSingleStrand> ss) {
 
-    ss.deleteReferenceTarget();
+    if (ss != nullptr)
+        ss.deleteReferenceTarget();
 
 }
 
 void ADNBasicOperations::DeleteDoubleStrand(ADNPointer<ADNDoubleStrand> ds) {
 
-    ds.deleteReferenceTarget();
+    if (ds != nullptr)
+        ds.deleteReferenceTarget();
 
 }
 
@@ -554,9 +576,8 @@ void ADNBasicOperations::MutateNucleotide(ADNPointer<ADNNucleotide> nt, DNABlock
     if (changePair) {
 
         auto ntPair = nt->GetPair();
-        if (ntPair != nullptr) {
+        if (ntPair != nullptr)
             ntPair->setNucleotideType(ADNModel::GetComplementaryBase(newType));
-        }
 
     }
 
@@ -586,6 +607,7 @@ void ADNBasicOperations::MutateBasePairIntoLoopPair(ADNPointer<ADNBaseSegment> b
     if (!bs.isValid()) return;
 
     auto cell = bs->GetCell();
+    if (cell == nullptr) return;
     if (cell->GetCellType() != CellType::BasePair) return;
 
     ADNPointer<ADNBasePair> bp(static_cast<ADNBasePair*>(cell()));
@@ -751,6 +773,7 @@ std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>> ADNBasicOperatio
 
     std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>> res = std::make_pair(nullptr, nullptr);
 
+    if (nt1 == nullptr || nt2 == nullptr) return res;
     if (nt1->GetStrand() != nt2->GetStrand()) return res;
 
     ADNPointer<ADNSingleStrand> ss = nt1->GetStrand();
@@ -789,7 +812,11 @@ std::pair<ADNNucleotide::EndType, ADNPointer<ADNBaseSegment>> ADNBasicOperations
     ADNPointer<ADNBaseSegment> nextBs = nullptr;
     ADNNucleotide::EndType end = ADNNucleotide::EndType::NotEnd;
 
+    if (nt == nullptr) return { end, nextBs };
+
     auto bs = nt->GetBaseSegment();
+    if (bs == nullptr) return { end, nextBs };
+
     auto ds = bs->GetDoubleStrand();
     auto e3 = nt->GetE3();
     auto bsE3 = bs->GetE3();
@@ -813,6 +840,7 @@ std::pair<ADNNucleotide::EndType, ADNPointer<ADNBaseSegment>> ADNBasicOperations
 
 std::tuple<ADNPointer<ADNBaseSegment>, bool, bool, bool> ADNBasicOperations::GetBaseSegmentInfo(ADNPointer<ADNNucleotide> nt) {
 
+    if (nt == nullptr) return { nullptr, false, false, false };
     auto bs = nt->GetBaseSegment();
     if (bs == nullptr) return { nullptr, false, false, false };
 
@@ -855,6 +883,8 @@ void ADNBasicOperations::SetBackNucleotideIntoBaseSegment(ADNPointer<ADNNucleoti
     if (bs == nullptr) return;
 
     auto cell = bs->GetCell();
+    if (cell == nullptr) return;
+
     if (bs->GetCellType() == CellType::BasePair) {
 
         ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(cell());
