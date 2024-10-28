@@ -72,7 +72,7 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value& val, double ve
 
 	rapidjson::Value& d = val;
 
-	std::string name = d["name"].GetString();
+	const std::string name = d["name"].GetString();
 	part->setName(name);
 
 	ElementMap<ADNNucleotide> nts;
@@ -117,10 +117,16 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value& val, double ve
 		do {
 
 			// pairing is done when parsing base segments
-			int nextId = nexts.at(currId);
 			nt = nts.Get(currId).second;
 			part->RegisterNucleotideThreePrime(ss, nt);
-			currId = nextId;
+
+			if (nexts.find(currId) != nexts.end()) {
+
+				int nextId = nexts.at(currId);
+				currId = nextId;
+
+			}
+			else break;
 
 		} while (currId != -1);
 
@@ -293,10 +299,16 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value& val, double ve
 		int currId = bsStartId;
 		do {
 
-			const int nextId = nextsBs.at(currId);
 			bs = bss.Get(currId).second;
 			part->RegisterBaseSegmentEnd(ds, bs);
-			currId = nextId;
+
+			if (nextsBs.find(currId) != nextsBs.end()) {
+
+				int nextId = nextsBs.at(currId);
+				currId = nextId;
+
+			}
+			else break;
 
 		} while (currId != -1);
 
