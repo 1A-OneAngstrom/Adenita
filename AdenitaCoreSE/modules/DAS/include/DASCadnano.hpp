@@ -34,26 +34,26 @@ namespace ublas = boost::numeric::ublas;
 
 //JSON Parsing
 struct vec2 {
-	int n0;
-	int n1;
+	int n0{ 0 };
+	int n1{ 0 };
 };
 
 struct vec4 {
-	int n0;
-	int n1;
-	int n2;
-	int n3;
+	int n0{ 0 };
+	int n1{ 0 };
+	int n2{ 0 };
+	int n3{ 0 };
 };
 
 using Vec4List = std::map<int, vec4>;
 
 struct Vstrand {
-	int totalLength_;  // total length, including positions without nothing
-	int num_;  // identification
+	int totalLength_{ 0 };  // total length, including positions without nothing
+	int num_{ 0 };  // identification
 	Vec4List scaf_;  // key is position that scaffold base occupies in the vhelix
 	Vec4List stap_;
-	int col_;  // row and column
-	int row_;
+	int col_{ 0 };  // row and column
+	int row_{ 0 };
 	std::map<int, int> loops_;
 	std::map<int, int> skips_;
 };
@@ -67,9 +67,9 @@ struct CadnanoJSONFile {
 };
 
 struct VTube {
-	int vStrandId_;
-	int initPos_;
-	int endPos_;
+	int vStrandId_{ 0 };
+	int initPos_{ 0 };
+	int endPos_{ 0 };
 };
 
 struct VGrid {
@@ -97,7 +97,7 @@ private:
 	//! To speed up calculation of 1D conformation we keep track to relative position of nt within the single strand
 	std::map<ADNNucleotide*, int> ntPositions_;
 	std::map<ADNSingleStrand*, int> ssId_;
-	int lastKey = -1;
+	int lastKey{ -1 };
 
 	ADNPointer<ADNConformation> conformation3D_;
 	ADNPointer<ADNConformation> conformation2D_;
