@@ -390,7 +390,7 @@ void DASBackToTheAtom::SetPositionLoopNucleotides(ADNPointer<ADNBaseSegment> bs)
 
 }
 
-void DASBackToTheAtom::CheckDistances(ADNPointer<ADNPart> part) {
+void DASBackToTheAtom::CheckDistances(ADNPointer<ADNPart> part) const {
 
 	if (part == nullptr) return;
 
@@ -435,9 +435,9 @@ void DASBackToTheAtom::CheckDistances(ADNPointer<ADNPart> part) {
 		auto bsNext = bs->GetNext();
 		if (bsNext != nullptr) {
 
-			SBPosition3 nextPos = bsNext->GetPosition();
-			std::string nextName = bs->getName();
-			auto distance = (nextPos - bs->GetPosition()).norm();
+			const SBPosition3& nextPos = bsNext->GetPosition();
+			const std::string nextName = bs->getName();
+			const auto distance = (nextPos - bs->GetPosition()).norm();
 			if (!ADNVectorMath::IsNearlyZero(distance.getValue() - ADNConstants::BP_RISE * 1000)) {
 
 				//msg = "\tBase Segments " + nextName + " and " + bs->getName() + " too close or too further away: " + std::to_string(distance.getValue()) + "pm";
@@ -1402,7 +1402,7 @@ void DASBackToTheAtom::LoadNtPairs() {
 
 }
 
-NtPair DASBackToTheAtom::ParseBasePairPDB(std::string source) {
+NtPair DASBackToTheAtom::ParseBasePairPDB(const std::string& source) {
 
 #ifdef _WIN32
 	// convert to a wide string (UTF-8) to take care of special characters
@@ -1565,7 +1565,7 @@ NtPair DASBackToTheAtom::GetIdealBasePairNucleotides(DNABlocks nt_l, DNABlocks n
 ublas::matrix<double> DASBackToTheAtom::CalculateBaseSegmentBasis(ADNPointer<ADNBaseSegment> bs) {
 
 	ublas::vector<double> new_z(3);
-	auto direction = bs->GetE3();
+	const auto& direction = bs->GetE3();
 	new_z[0] = direction[0];
 	new_z[1] = direction[1];
 	new_z[2] = direction[2];
@@ -1606,7 +1606,7 @@ ublas::matrix<double> DASBackToTheAtom::CalculateBaseSegmentBasis(ADNPointer<ADN
 
 }
 
-ADNPointer<ADNNucleotide> DASBackToTheAtom::ParsePDB(std::string source) {
+ADNPointer<ADNNucleotide> DASBackToTheAtom::ParsePDB(const std::string& source) {
 
 #ifdef _WIN32
 	// convert to a wide string (UTF-8) to take care of special characters

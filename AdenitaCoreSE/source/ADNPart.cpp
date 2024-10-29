@@ -493,7 +493,7 @@ void ADNPart::SetBoundingBox(ADNPointer<ADNBaseSegment> newBs) {
 
     if (newBs == nullptr) return;
 
-    const SBPosition3 pos = newBs->GetPosition();
+    const SBPosition3& pos = newBs->GetPosition();
     boundingBox.bound(pos);
 
 }

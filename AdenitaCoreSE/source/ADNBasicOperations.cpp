@@ -51,8 +51,8 @@ ADNPointer<ADNSingleStrand> ADNBasicOperations::MergeSingleStrands(ADNPointer<AD
     if (first_strand->IsScaffold() || second_strand->IsScaffold())
         ss->setScaffoldFlag(true);
 
-    auto firstSize = first_strand->getNumberOfNucleotides();
-    auto secondSize = second_strand->getNumberOfNucleotides();
+    const auto firstSize = first_strand->getNumberOfNucleotides();
+    const auto secondSize = second_strand->getNumberOfNucleotides();
     if (firstSize > 0 || secondSize > 0) {
 
         std::string msg = "Possible error when merging strands inside part";
@@ -105,8 +105,8 @@ ADNPointer<ADNDoubleStrand> ADNBasicOperations::MergeDoubleStrand(ADNPointer<ADN
 
     }
 
-    auto firstSize = first_strand->GetLength();
-    auto secondSize = second_strand->GetLength();
+    const auto firstSize = first_strand->GetLength();
+    const auto secondSize = second_strand->GetLength();
     if (firstSize > 0 || secondSize > 0) {
 
         std::string msg = "Possible error when merging strands inside part";
@@ -383,8 +383,8 @@ std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOper
 
     SEConfig& config = SEConfig::GetInstance();
 
-    auto numNts = part->GetNumberOfNucleotides();
-    auto numSS = part->GetNumberOfSingleStrands();
+    const auto numNts = part->GetNumberOfNucleotides();
+    const auto numSS = part->GetNumberOfSingleStrands();
 
     auto ss = nt->GetStrand();
     ADNNucleotide::EndType e = nt->getEndType();
@@ -392,53 +392,68 @@ std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOper
     std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> res = std::make_pair(nullptr, nullptr);
 
     if (e == ADNNucleotide::EndType::FiveAndThreePrime || e == ADNNucleotide::EndType::FivePrime) {
+
         // we don't need to break, just delete
         ADNPointer<ADNNucleotide> ntNext = nt->GetNext();
         if (ntNext != nullptr) {
-            if (ntNext->getEndType() == ADNNucleotide::EndType::ThreePrime) {
+
+            if (ntNext->getEndType() == ADNNucleotide::EndType::ThreePrime)
                 ntNext->setEndType(ADNNucleotide::EndType::FiveAndThreePrime);
-            }
-            else {
+            else
                 ntNext->setEndType(e);
-            }
+
             ss->SetFivePrime(ntNext);
             res.first = ss;
+
         }
         else {
+
             // e should be FiveAndThreePrime
             part->DeregisterSingleStrand(ss);
+
         }
+
         part->DeregisterNucleotide(nt);
         nt.deleteReferenceTarget();
+
     }
     else {
+
         // first break
         auto ssPair = BreakSingleStrand(part, nt);
         res.first = ssPair.first;
         part->RegisterSingleStrand(res.first);  // register new strand
 
         if (e == ADNNucleotide::EndType::ThreePrime) {
+
             part->DeregisterSingleStrand(ssPair.second);
+
         }
         else {
+
             // second break
             auto ssPair2 = BreakSingleStrand(part, nt->GetNext());
             res.second = ssPair2.second;
             part->RegisterSingleStrand(res.second);
             part->DeregisterSingleStrand(ssPair2.first);  // deregister strand containing only the nt we want to delete
+
         }
 
         auto bs = nt->GetBaseSegment();
         if (bs != nullptr && bs->GetCellType() == CellType::LoopPair) {
+
             ADNPointer<ADNLoopPair> loopPair = static_cast<ADNLoopPair*>(bs->GetCell()());
             loopPair->RemoveNucleotide(nt);
+
         }
+
         part->DeregisterNucleotide(nt);
         nt.deleteReferenceTarget();
+
     }
 
-    auto numNtsNew = part->GetNumberOfNucleotides();
-    auto numSSNew = part->GetNumberOfSingleStrands();
+    const auto numNtsNew = part->GetNumberOfNucleotides();
+    const auto numSSNew = part->GetNumberOfSingleStrands();
 
     if (config.mode == SEConfigMode::DEBUG_NO_LOG || config.mode == SEConfigMode::DEBUG_LOG) {
         std::string msg = "  --> DELETING NUCLEOTIDE";
@@ -483,8 +498,8 @@ std::pair<ADNPointer<ADNDoubleStrand>, ADNPointer<ADNDoubleStrand>> ADNBasicOper
 
     SEConfig& config = SEConfig::GetInstance();
 
-    auto numBss = part->GetNumberOfBaseSegments();
-    auto numDS = part->GetNumberOfDoubleStrands();
+    const auto numBss = part->GetNumberOfBaseSegments();
+    const auto numDS = part->GetNumberOfDoubleStrands();
 
     std::pair<ADNPointer<ADNDoubleStrand>, ADNPointer<ADNDoubleStrand>> res = std::make_pair(nullptr, nullptr);
 
@@ -534,8 +549,8 @@ std::pair<ADNPointer<ADNDoubleStrand>, ADNPointer<ADNDoubleStrand>> ADNBasicOper
 
     }
 
-    auto numBssNew = part->GetNumberOfBaseSegments();
-    auto numDSNew = part->GetNumberOfDoubleStrands();
+    const auto numBssNew = part->GetNumberOfBaseSegments();
+    const auto numDSNew = part->GetNumberOfDoubleStrands();
 
     if (config.mode == SEConfigMode::DEBUG_NO_LOG || config.mode == SEConfigMode::DEBUG_LOG) {
 
@@ -818,8 +833,8 @@ std::pair<ADNNucleotide::EndType, ADNPointer<ADNBaseSegment>> ADNBasicOperations
     if (bs == nullptr) return { end, nextBs };
 
     auto ds = bs->GetDoubleStrand();
-    auto e3 = nt->GetE3();
-    auto bsE3 = bs->GetE3();
+    const auto& e3 = nt->GetE3();
+    const auto& bsE3 = bs->GetE3();
 
     if (ublas::inner_prod(e3, bsE3) > 0) {
 

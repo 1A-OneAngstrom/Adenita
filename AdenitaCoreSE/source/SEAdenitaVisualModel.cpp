@@ -2443,7 +2443,7 @@ void SEAdenitaVisualModel::prepareDoubleStrands() {
 				//auto cell = baseSegment->GetCell();
 				if (index >= positionsDS_.GetNumElements()) continue;
 
-				const Position3D pos = baseSegment->GetPosition();
+				const Position3D& pos = baseSegment->GetPosition();
 				positionsDS_(index, 0) = static_cast<float>(pos.v[0].getValue());
 				positionsDS_(index, 1) = static_cast<float>(pos.v[1].getValue());
 				positionsDS_(index, 2) = static_cast<float>(pos.v[2].getValue());

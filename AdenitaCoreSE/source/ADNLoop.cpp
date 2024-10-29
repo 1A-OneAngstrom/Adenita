@@ -112,7 +112,7 @@ void ADNLoop::SetBaseSegment(ADNPointer<ADNBaseSegment> baseSegment, bool setPos
         nucleotide->SetBaseSegment(baseSegment);
         if (setPositions) {
 
-            const Position3D baseSegmentPosition = baseSegment->GetPosition();
+            const Position3D& baseSegmentPosition = baseSegment->GetPosition();
 
             nucleotide->SetPosition(baseSegmentPosition);
             nucleotide->SetBackbonePosition(baseSegmentPosition);

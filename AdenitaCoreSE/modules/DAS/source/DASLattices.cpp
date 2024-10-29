@@ -46,7 +46,7 @@ void DASLattice::CreateHoneycombLattice(int maxRows, int maxCols) {
 
 }
 
-LatticeCell DASLattice::GetLatticeCell(unsigned int row, unsigned int column) {
+LatticeCell DASLattice::GetLatticeCell(unsigned int row, unsigned int column) const {
 
 	const size_t rSize = mat_.size1();
 	const size_t cSize = mat_.size2();
@@ -63,13 +63,13 @@ LatticeCell DASLattice::GetLatticeCell(unsigned int row, unsigned int column) {
 
 }
 
-size_t DASLattice::GetNumberRows() {
+size_t DASLattice::GetNumberRows() const {
 
 	return mat_.size1();
 
 }
 
-size_t DASLattice::GetNumberCols() {
+size_t DASLattice::GetNumberCols() const {
 
 	return mat_.size2();
 

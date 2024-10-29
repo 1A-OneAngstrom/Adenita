@@ -18,11 +18,11 @@ public:
     MSVColors();
     ~MSVColors() = default;
 
-    ADNArray<float> GetColor(ADNPointer<ADNAtom> a);
-    ADNArray<float> GetColor(ADNPointer<ADNNucleotide> nt);
-    ADNArray<float> GetColor(ADNPointer<ADNSingleStrand> ss);
-    ADNArray<float> GetColor(ADNPointer<ADNBaseSegment> bs);
-    ADNArray<float> GetColor(ADNPointer<ADNDoubleStrand> ds);
+    ADNArray<float> GetColor(ADNPointer<ADNAtom> a) const;
+    ADNArray<float> GetColor(ADNPointer<ADNNucleotide> nt) const;
+    ADNArray<float> GetColor(ADNPointer<ADNSingleStrand> ss) const;
+    ADNArray<float> GetColor(ADNPointer<ADNBaseSegment> bs) const;
+    ADNArray<float> GetColor(ADNPointer<ADNDoubleStrand> ds) const;
 
     void SetColor(ADNArray<float> color, ADNPointer<ADNAtom> a);
     void SetColor(ADNArray<float> color, ADNPointer<ADNNucleotide> nt);
@@ -40,12 +40,12 @@ public:
     void SetSingleStrandColorScheme(ADNArray<float> colorScheme);
     void SetDoubleStrandColorScheme(ADNArray<float> colorScheme);
 
-    ADNArray<float> GetMaterialColor(SBNode* node);
+    ADNArray<float> GetMaterialColor(SBNode* node) const;
 
 private:
 
     template<typename T>
-    std::pair<bool, ADNArray<float>> GetColor(T el, std::map<T, ADNArray<float>>& searchMap) {
+    std::pair<bool, ADNArray<float>> GetColor(T el, const std::map<T, ADNArray<float>>& searchMap) const {
 
         ADNArray<float> color = ADNArray<float>(4);
         bool found = false;
