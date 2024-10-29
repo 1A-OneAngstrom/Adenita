@@ -167,7 +167,23 @@ void ADNNucleotide::SetPair(ADNPointer<ADNNucleotide> nucleotide) {
 
 void ADNNucleotide::disconnectPair(ADNPointer<ADNNucleotide> nucleotide) {
 
-    if (this->pairNucleotide == nucleotide) this->pairNucleotide = nullptr;
+    if (nucleotide != nullptr && this->pairNucleotide == nucleotide) {
+
+        this->pairNucleotide->pairNucleotide = nullptr;
+        this->pairNucleotide = nullptr;
+
+    }
+
+}
+
+void ADNNucleotide::disconnectPair() {
+
+    if (this->pairNucleotide != nullptr) {
+
+        this->pairNucleotide->pairNucleotide = nullptr;
+        this->pairNucleotide = nullptr;
+
+    }
 
 }
 

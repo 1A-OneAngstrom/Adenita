@@ -1174,6 +1174,8 @@ ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraph(SBNode* n) {
 
 			// delete single strands since it's empty
 			part->DeregisterSingleStrand(ss);
+			ss->erase();
+			ss.deleteReferenceTarget();
 
 		}
 
@@ -1184,8 +1186,8 @@ ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraph(SBNode* n) {
 	return part;
 }
 
-ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraphParametrized(SBNode* sn, const SBQuantity::length& maxCutOff, const SBQuantity::length& minCutOff, double maxAngle)
-{
+ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraphParametrized(SBNode* sn, const SBQuantity::length& maxCutOff, const SBQuantity::length& minCutOff, double maxAngle) {
+
 	ADNPointer<ADNPart> part = new ADNPart();
 
 	SBNodeIndexer nodes;
@@ -1205,6 +1207,7 @@ ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraphParametrized(SBNode* sn
 		ublas::vector<double> e3avg(3, 0.0);
 
 		SB_FOR(SBStructuralNode * n, children) {
+
 			SBPointer<SBResidue> res = static_cast<SBResidue*>(n);
 			if (!res->isNucleicAcid()) continue;
 
@@ -1215,12 +1218,16 @@ ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraphParametrized(SBNode* sn
 			SBPointer<SBBackbone> bb = res->getBackbone();
 			SBPointerList<SBStructuralNode> bbAtoms = *bb->getChildren();
 			SB_FOR(SBStructuralNode * at, bbAtoms) {
+
 				if (at->getType() == SBNode::Atom) {
+
 					SBPointer<SBAtom> atom = static_cast<SBAtom*>(at);
 					pos += atom->getPosition();
 					bbPos += atom->getPosition();
 					++count;
+
 				}
+
 			}
 			bbPos /= count;
 			int scCount = 0;
@@ -1228,13 +1235,17 @@ ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraphParametrized(SBNode* sn
 			SBPointer<SBSideChain> sc = res->getSideChain();
 			SBPointerList<SBStructuralNode> scAtoms = *sc->getChildren();
 			SB_FOR(SBStructuralNode * at, scAtoms) {
+
 				if (at->getType() == SBNode::Atom) {
+
 					SBPointer<SBAtom> atom = static_cast<SBAtom*>(at);
 					pos += atom->getPosition();
 					scPos += atom->getPosition();
 					++count;
 					++scCount;
+
 				}
+
 			}
 			pos /= count;
 			scPos /= scCount;
@@ -1258,23 +1269,34 @@ ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraphParametrized(SBNode* sn
 
 			part->RegisterNucleotideThreePrime(ss, nt);
 			prevPos = pos;
+
 		}
+
 		// fix directionality of nucleotides
 		if (ss->getNumberOfNucleotides() > 1) {
+
 			ublas::vector<double> e3 = e3avg / ss->getNumberOfNucleotides();
 			e3 /= ublas::norm_2(e3);
 			auto nucleotides = ss->GetNucleotides();
 			SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
+
 				const auto& e2 = nt->GetE2();
 				ublas::vector<double> e1 = ADNVectorMath::CrossProduct(e2, e3);
 				nt->SetE3(e3);
 				nt->SetE1(e1);
+
 			}
+
 		}
 		else if (ss->getNumberOfNucleotides() == 0) {
+
 			// delete single strands since it's empty
 			part->DeregisterSingleStrand(ss);
+			ss->erase();
+			ss.deleteReferenceTarget();
+
 		}
+
 		//if (ss->getNumberOfNucleotides() > 1) {
 		//  auto fPrime = ss->GetFivePrime();
 		//  SBVector3 newE3 = (fPrime->GetNext()->GetPosition() - fPrime->GetPosition()).normalizedVersion();

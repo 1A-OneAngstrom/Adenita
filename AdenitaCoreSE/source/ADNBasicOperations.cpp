@@ -255,6 +255,7 @@ std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOper
     if (SAMSON::isHolding()) SAMSON::hold(ssFP());
     ssFP->create();
     part->RegisterSingleStrand(ssFP);
+
     ADNPointer<ADNSingleStrand> ssTP = new ADNSingleStrand();
     ssTP->setName("Broken Strand 2");
     if (SAMSON::isHolding()) SAMSON::hold(ssTP());
@@ -311,6 +312,8 @@ std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOper
 
         // Deregister old strand
         part->DeregisterSingleStrand(ss);
+        ss->erase();
+        ss.deleteReferenceTarget();
 
     }
 
@@ -340,7 +343,7 @@ std::pair<ADNPointer<ADNDoubleStrand>, ADNPointer<ADNDoubleStrand>> ADNBasicOper
     ADNPointer<ADNBaseSegment> baseS = firstBs;
     const int num = bs->GetNumber();  // store number for calculating angle twist later
 
-    while (baseS != bs) {
+    while (baseS != nullptr && baseS != bs) {
 
         ADNPointer<ADNBaseSegment> bsNext = baseS->GetNext();
         part->DeregisterBaseSegment(baseS, true, false);
@@ -364,12 +367,18 @@ std::pair<ADNPointer<ADNDoubleStrand>, ADNPointer<ADNDoubleStrand>> ADNBasicOper
 
     auto sz = ds->GetBaseSegments().size();
     if (sz > 0) {
+
         std::string msg = "Possible error when breaking strands inside part";
         ADNLogger::LogDebug(msg);
+
     }
     else {
+
         // Deregister old strand
         part->DeregisterDoubleStrand(ds);
+        ds->erase();
+        ds.deleteReferenceTarget();
+
     }
 
     std::pair<ADNPointer<ADNDoubleStrand>, ADNPointer<ADNDoubleStrand>> dsPair = std::make_pair(dsFP, dsTP);
@@ -410,10 +419,14 @@ std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOper
 
             // e should be FiveAndThreePrime
             part->DeregisterSingleStrand(ss);
+            ss->erase();
+            ss.deleteReferenceTarget();
 
         }
 
         part->DeregisterNucleotide(nt);
+        nt->disconnectPair();
+        nt->erase();
         nt.deleteReferenceTarget();
 
     }
@@ -448,6 +461,8 @@ std::pair<ADNPointer<ADNSingleStrand>, ADNPointer<ADNSingleStrand>> ADNBasicOper
         }
 
         part->DeregisterNucleotide(nt);
+        nt->disconnectPair();
+        nt->erase();
         nt.deleteReferenceTarget();
 
     }
@@ -503,27 +518,32 @@ std::pair<ADNPointer<ADNDoubleStrand>, ADNPointer<ADNDoubleStrand>> ADNBasicOper
 
     std::pair<ADNPointer<ADNDoubleStrand>, ADNPointer<ADNDoubleStrand>> res = std::make_pair(nullptr, nullptr);
 
-    ADNPointer<ADNDoubleStrand> ds = bs->GetDoubleStrand();
     ADNPointer<ADNBaseSegment> oldNext = bs->GetNext();
     const bool fst = bs->GetPrev() == nullptr;
     const bool fstAndLst = bs->GetNext() == nullptr && fst;
 
     if (fstAndLst || fst) {
 
+        ADNPointer<ADNDoubleStrand> ds = bs->GetDoubleStrand();
+
         // we don't need to break, just delete
         if (!fstAndLst) {
+
             if (oldNext->GetNext() == nullptr) {
                 ds->SetEnd(oldNext);
             }
             ds->SetStart(oldNext);
             res.first = ds;
+
         }
         else {
+
             // last base segment of the double strand
             part->DeregisterDoubleStrand(ds);
+            ds->erase();
+            ds.deleteReferenceTarget();
+
         }
-        part->DeregisterBaseSegment(bs);
-        bs.deleteReferenceTarget();
 
     }
     else {
@@ -534,20 +554,25 @@ std::pair<ADNPointer<ADNDoubleStrand>, ADNPointer<ADNDoubleStrand>> ADNBasicOper
         part->RegisterDoubleStrand(res.first);  // register new strand
 
         if (oldNext == nullptr) {
+
             part->DeregisterDoubleStrand(dsPair.second);
+
         }
         else {
+
             // second break
             auto dsPair2 = BreakDoubleStrand(part, oldNext);
             res.second = dsPair2.second;
             part->RegisterDoubleStrand(res.second);
             part->DeregisterDoubleStrand(dsPair2.first);  // deregister strand containing only the nt we want to delete
+
         }
 
-        part->DeregisterBaseSegment(bs);
-        bs.deleteReferenceTarget();
-
     }
+
+    part->DeregisterBaseSegment(bs);
+    bs->erase();
+    bs.deleteReferenceTarget();
 
     const auto numBssNew = part->GetNumberOfBaseSegments();
     const auto numDSNew = part->GetNumberOfDoubleStrands();

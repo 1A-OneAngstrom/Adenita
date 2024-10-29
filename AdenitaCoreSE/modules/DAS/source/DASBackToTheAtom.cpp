@@ -912,12 +912,27 @@ void DASBackToTheAtom::GenerateAllAtomModel(ADNPointer<ADNPart> origami, bool cr
 	SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
 
 		if (nt == nullptr) continue;
+
+		// delete existing bonds
+		SBNodeIndexer bondIndexer;
+		nt->getNodes(bondIndexer, SBNode::Bond);
+		SB_FOR (SBNode* bond, bondIndexer) {
+
+			SBPointer<SBBond> ptr = static_cast<SBBond*>(bond);
+			ptr->getParent()->removeChild(ptr());
+			ptr->erase();
+			ptr.deleteReferenceTarget();
+
+		}
+
 		auto atoms = nt->GetAtoms();
 		// delete previous atoms if they have been created
+		// TODO: take into account the dummy Unknown atom
 		SB_FOR(ADNPointer<ADNAtom> a, atoms) {
 
 			// todo: check that the node is only deleted from data graph but reference is not destroyed
-			if (a != nullptr) origami->DeregisterAtom(a);
+			if (a != nullptr)
+				origami->DeregisterAtom(a);
 
 		}
 
