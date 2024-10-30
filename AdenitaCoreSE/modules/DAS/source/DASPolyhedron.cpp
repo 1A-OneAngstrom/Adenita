@@ -130,7 +130,7 @@ std::vector<double> DASVertex::GetVectorCoordinates() const {
 	return coords;
 }
 
-SBPosition3 DASVertex::GetSBPosition() const {
+const SBPosition3& DASVertex::GetSBPosition() const {
 	return position_;
 }
 

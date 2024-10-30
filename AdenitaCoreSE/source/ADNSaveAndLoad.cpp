@@ -110,7 +110,7 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value& val, double ve
 
 		}
 
-		int f_id = itr->value["fivePrimeId"].GetInt();
+		const int f_id = itr->value["fivePrimeId"].GetInt();
 
 		ADNPointer<ADNNucleotide> nt = nts.Get(f_id).second;
 		int currId = f_id;
@@ -292,8 +292,8 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value& val, double ve
 
 		}
 
-		int bsStartId = itr->value["firstBaseSegment"].GetInt();
-		int bsEndId = itr->value["lastBaseSegment"].GetInt();
+		const int bsStartId = itr->value["firstBaseSegment"].GetInt();
+		const int bsEndId = itr->value["lastBaseSegment"].GetInt();
 
 		ADNPointer<ADNBaseSegment> bs = bss.Get(bsStartId).second;
 		int currId = bsStartId;
@@ -1174,6 +1174,8 @@ ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraph(SBNode* n) {
 
 			// delete single strands since it's empty
 			part->DeregisterSingleStrand(ss);
+			ss->erase();
+			ss.deleteReferenceTarget();
 
 		}
 
@@ -1184,8 +1186,8 @@ ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraph(SBNode* n) {
 	return part;
 }
 
-ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraphParametrized(SBNode* sn, const SBQuantity::length& maxCutOff, const SBQuantity::length& minCutOff, double maxAngle)
-{
+ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraphParametrized(SBNode* sn, const SBQuantity::length& maxCutOff, const SBQuantity::length& minCutOff, double maxAngle) {
+
 	ADNPointer<ADNPart> part = new ADNPart();
 
 	SBNodeIndexer nodes;
@@ -1205,6 +1207,7 @@ ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraphParametrized(SBNode* sn
 		ublas::vector<double> e3avg(3, 0.0);
 
 		SB_FOR(SBStructuralNode * n, children) {
+
 			SBPointer<SBResidue> res = static_cast<SBResidue*>(n);
 			if (!res->isNucleicAcid()) continue;
 
@@ -1215,12 +1218,16 @@ ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraphParametrized(SBNode* sn
 			SBPointer<SBBackbone> bb = res->getBackbone();
 			SBPointerList<SBStructuralNode> bbAtoms = *bb->getChildren();
 			SB_FOR(SBStructuralNode * at, bbAtoms) {
+
 				if (at->getType() == SBNode::Atom) {
+
 					SBPointer<SBAtom> atom = static_cast<SBAtom*>(at);
 					pos += atom->getPosition();
 					bbPos += atom->getPosition();
 					++count;
+
 				}
+
 			}
 			bbPos /= count;
 			int scCount = 0;
@@ -1228,20 +1235,24 @@ ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraphParametrized(SBNode* sn
 			SBPointer<SBSideChain> sc = res->getSideChain();
 			SBPointerList<SBStructuralNode> scAtoms = *sc->getChildren();
 			SB_FOR(SBStructuralNode * at, scAtoms) {
+
 				if (at->getType() == SBNode::Atom) {
+
 					SBPointer<SBAtom> atom = static_cast<SBAtom*>(at);
 					pos += atom->getPosition();
 					scPos += atom->getPosition();
 					++count;
 					++scCount;
+
 				}
+
 			}
 			pos /= count;
 			scPos /= scCount;
 
 			// Calculate local axis
-			SBVector3 e3SB = (pos - prevPos).normalizedVersion();
-			SBVector3 e2SB = -(scPos - bbPos).normalizedVersion();
+			const SBVector3 e3SB = (pos - prevPos).normalizedVersion();
+			const SBVector3 e2SB = -(scPos - bbPos).normalizedVersion();
 
 			ublas::vector<double> e3 = ADNAuxiliary::SBVectorToUblasVector(e3SB);
 			e3avg += e3;
@@ -1258,23 +1269,34 @@ ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraphParametrized(SBNode* sn
 
 			part->RegisterNucleotideThreePrime(ss, nt);
 			prevPos = pos;
+
 		}
+
 		// fix directionality of nucleotides
 		if (ss->getNumberOfNucleotides() > 1) {
+
 			ublas::vector<double> e3 = e3avg / ss->getNumberOfNucleotides();
 			e3 /= ublas::norm_2(e3);
 			auto nucleotides = ss->GetNucleotides();
 			SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
-				auto e2 = nt->GetE2();
+
+				const auto& e2 = nt->GetE2();
 				ublas::vector<double> e1 = ADNVectorMath::CrossProduct(e2, e3);
 				nt->SetE3(e3);
 				nt->SetE1(e1);
+
 			}
+
 		}
 		else if (ss->getNumberOfNucleotides() == 0) {
+
 			// delete single strands since it's empty
 			part->DeregisterSingleStrand(ss);
+			ss->erase();
+			ss.deleteReferenceTarget();
+
 		}
+
 		//if (ss->getNumberOfNucleotides() > 1) {
 		//  auto fPrime = ss->GetFivePrime();
 		//  SBVector3 newE3 = (fPrime->GetNext()->GetPosition() - fPrime->GetPosition()).normalizedVersion();
@@ -1662,13 +1684,13 @@ void ADNLoader::OutputToCanDo(ADNNanorobot* nanorobot, const std::string& filena
 		auto baseSegments = part->GetBaseSegments();
 		SB_FOR(ADNPointer<ADNBaseSegment> bs, baseSegments) {
 
-			auto pos = bs->GetPosition();
-			std::string line = std::to_string(bsId) + "," + std::to_string(pos[0].getValue() / 1000) + "," + std::to_string(pos[1].getValue() / 1000) + "," + std::to_string(pos[2].getValue() / 1000);
+			const auto& pos = bs->GetPosition();
+			const std::string line = std::to_string(bsId) + "," + std::to_string(pos[0].getValue() / 1000) + "," + std::to_string(pos[1].getValue() / 1000) + "," + std::to_string(pos[2].getValue() / 1000);
 			file << line << std::endl;
 
-			auto e3 = bs->GetE3();
-			auto e2 = -1.0 * bs->GetE2();
-			auto e1 = ADNVectorMath::CrossProduct(e2, e3);
+			const auto& e3 = bs->GetE3();
+			const auto e2 = -1.0 * bs->GetE2();
+			const auto e1 = ADNVectorMath::CrossProduct(e2, e3);
 			std::string t = std::to_string(bsId) + "," + std::to_string(e1[0]) + "," + std::to_string(e1[1]) + "," + std::to_string(e1[2]) + ","
 				+ std::to_string(e2[0]) + "," + std::to_string(e2[1]) + "," + std::to_string(e2[2]) + ","
 				+ std::to_string(e3[0]) + "," + std::to_string(e3[1]) + "," + std::to_string(e3[2]);
@@ -1678,8 +1700,8 @@ void ADNLoader::OutputToCanDo(ADNNanorobot* nanorobot, const std::string& filena
 			if (bs->GetCellType() == CellType::BasePair) {
 
 				ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(cell());
-				int id1 = nucleotidesId[bp->GetLeftNucleotide()()];
-				int id2 = nucleotidesId[bp->GetRightNucleotide()()];
+				const int id1 = nucleotidesId[bp->GetLeftNucleotide()()];
+				const int id2 = nucleotidesId[bp->GetRightNucleotide()()];
 				std::string s = std::to_string(bsId) + "," + std::to_string(id1) + "," + std::to_string(id2);
 				file << s << std::endl;
 
@@ -1760,14 +1782,14 @@ void ADNLoader::OutputToCanDo(ADNPointer<ADNPart> part, const std::string& filen
 	int bsId = 1;
 	SB_FOR(ADNPointer<ADNBaseSegment> bs, baseSegments) {
 
-		auto pos = bs->GetPosition();
-		std::string line = std::to_string(bsId) + "," + std::to_string(pos[0].getValue() / 1000) + "," + std::to_string(pos[1].getValue() / 1000) + "," + std::to_string(pos[2].getValue() / 1000);
+		const auto& pos = bs->GetPosition();
+		const std::string line = std::to_string(bsId) + "," + std::to_string(pos[0].getValue() / 1000) + "," + std::to_string(pos[1].getValue() / 1000) + "," + std::to_string(pos[2].getValue() / 1000);
 		file << line << std::endl;
 
-		auto e3 = bs->GetE3();
+		const auto& e3 = bs->GetE3();
 		auto e2 = bs->GetE2();
 		e2 *= -1.0;
-		auto e1 = ADNVectorMath::CrossProduct(e2, e3);
+		const auto e1 = ADNVectorMath::CrossProduct(e2, e3);
 		std::string t = std::to_string(bsId) + "," + std::to_string(e1[0]) + "," + std::to_string(e1[1]) + "," + std::to_string(e1[2]) + ","
 			+ std::to_string(e2[0]) + "," + std::to_string(e2[1]) + "," + std::to_string(e2[2]) + ","
 			+ std::to_string(e3[0]) + "," + std::to_string(e3[1]) + "," + std::to_string(e3[2]);
@@ -1777,8 +1799,8 @@ void ADNLoader::OutputToCanDo(ADNPointer<ADNPart> part, const std::string& filen
 		if (bs->GetCellType() == CellType::BasePair) {
 
 			ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(cell());
-			int id1 = nucleotidesId[bp->GetLeftNucleotide()()];
-			int id2 = nucleotidesId[bp->GetRightNucleotide()()];
+			const int id1 = nucleotidesId[bp->GetLeftNucleotide()()];
+			const int id2 = nucleotidesId[bp->GetRightNucleotide()()];
 			std::string s = std::to_string(bsId) + "," + std::to_string(id1) + "," + std::to_string(id2);
 			file << s << std::endl;
 
@@ -1828,9 +1850,9 @@ void ADNLoader::BuildTopScalesParametrized(ADNPointer<ADNPart> part, const SBQua
 
 			}
 
-			SBPosition3 posNt = nt->GetPosition();
-			auto e2Nt = nt->GetE2();
-			auto e3Nt = nt->GetE3();
+			const SBPosition3 posNt = nt->GetPosition();
+			const auto& e2Nt = nt->GetE2();
+			const auto& e3Nt = nt->GetE3();
 
 			auto ntBors = neighbors.GetNeighbors(nt);
 			SBQuantity::length minDist = SBQuantity::nanometer(ADNConstants::DH_DIAMETER);
@@ -1839,10 +1861,10 @@ void ADNLoader::BuildTopScalesParametrized(ADNPointer<ADNPart> part, const SBQua
 			// check possible base pairing against the neighbors
 			SB_FOR(ADNPointer<ADNNucleotide> bor, ntBors) {
 
-				SBPosition3 posBor = bor->GetPosition();
-				SBPosition3 dif = posBor - posNt;
-				auto e2Bor = bor->GetE2();
-				auto e3Bor = bor->GetE3();
+				const SBPosition3 posBor = bor->GetPosition();
+				const SBPosition3 dif = posBor - posNt;
+				const auto& e2Bor = bor->GetE2();
+				const auto& e3Bor = bor->GetE3();
 				// check right directionality and co-planarity
 				//double s = ublas::inner_prod(e3Nt, e3Bor);
 				//if (!ADNVectorMath::IsNearlyZero(s + 1)) continue;
@@ -1870,11 +1892,11 @@ void ADNLoader::BuildTopScalesParametrized(ADNPointer<ADNPart> part, const SBQua
 
 			ADNPointer<ADNBaseSegment> bs = new ADNBaseSegment(CellType::BasePair);
 			SBPosition3 bsPos = posNt - SBQuantity::nanometer(ADNConstants::DH_DIAMETER * 0.5) * ADNAuxiliary::UblasVectorToSBVector(e2Nt);
-			ublas::vector<double> e3 = nt->GetE3();
+			const auto& e3 = nt->GetE3();
 			/*ADNLogger& logger = ADNLogger::GetLogger();
 			std::string msg = ss->GetName() + ": " + std::to_string(e3[0]) + " " + std::to_string(e3[1]) + " " + std::to_string(e3[2]);
 			logger.LogDebug(msg);*/
-			ublas::vector<double> e1 = nt->GetE1();
+			const auto& e1 = nt->GetE1();
 			ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(bs->GetCell()());
 			bp->SetLeftNucleotide(nt);
 			nt->SetBaseSegment(bs);
@@ -1908,8 +1930,8 @@ void ADNLoader::BuildTopScalesParametrized(ADNPointer<ADNPart> part, const SBQua
 
 				// if huge change in directionality, make new strand
 				ADNPointer<ADNNucleotide> ntNext = nt->GetNext();
-				ublas::vector<double> e3Next = ntNext->GetE3();
-				auto theta = ublas::inner_prod(e3, e3Next);
+				const auto& e3Next = ntNext->GetE3();
+				const auto theta = ublas::inner_prod(e3, e3Next);
 				if (theta < 0.9) {
 					int test = 1;
 				}
@@ -1920,8 +1942,8 @@ void ADNLoader::BuildTopScalesParametrized(ADNPointer<ADNPart> part, const SBQua
 
 				// if huge change in directionality, make new strand
 				ADNPointer<ADNNucleotide> pairPrev = pair->GetPrev();
-				ublas::vector<double> e3Prev = pairPrev->GetE3();
-				auto theta = ublas::inner_prod(pair->GetE3(), e3Prev);
+				const auto& e3Prev = pairPrev->GetE3();
+				const auto theta = ublas::inner_prod(pair->GetE3(), e3Prev);
 				if (theta < turningThreshold) breakDs = true;
 
 			}
@@ -1939,9 +1961,9 @@ void ADNLoader::BuildTopScalesParametrized(ADNPointer<ADNPart> part, const SBQua
 
 void ADNLoader::BuildTopScales(ADNPointer<ADNPart> part) {
 
-	auto dh_radius = SBQuantity::nanometer(ADNConstants::DH_DIAMETER) * 0.5;
-	SBQuantity::length maxCutOff = dh_radius + SBQuantity::nanometer(0.2);
-	SBQuantity::length minCutOff = dh_radius - SBQuantity::nanometer(0.1);
+	const auto dh_radius = SBQuantity::nanometer(ADNConstants::DH_DIAMETER) * 0.5;
+	const SBQuantity::length maxCutOff = dh_radius + SBQuantity::nanometer(0.2);
+	const SBQuantity::length minCutOff = dh_radius - SBQuantity::nanometer(0.1);
 	auto neighbors = ADNNeighbors();
 	neighbors.SetMaxCutOff(maxCutOff);
 	neighbors.SetMinCutOff(minCutOff);
@@ -1966,7 +1988,7 @@ void ADNLoader::BuildTopScales(ADNPointer<ADNPart> part) {
 			}
 
 			SBPosition3 posNt = nt->GetPosition();
-			auto e2Nt = nt->GetE2();
+			const auto& e2Nt = nt->GetE2();
 
 			auto ntBors = neighbors.GetNeighbors(nt);
 			double maxCos = 0.0;
@@ -1975,17 +1997,17 @@ void ADNLoader::BuildTopScales(ADNPointer<ADNPart> part) {
 			ADNPointer<ADNNucleotide> pair = nullptr;
 			// check possible base pairing against the neighbors
 			SB_FOR(ADNPointer<ADNNucleotide> bor, ntBors) {
-				SBPosition3 posBor = bor->GetPosition();
-				SBPosition3 dif = posBor - posNt;
-				auto e2Bor = bor->GetE2();
+				const SBPosition3 posBor = bor->GetPosition();
+				const SBPosition3 dif = posBor - posNt;
+				const auto& e2Bor = bor->GetE2();
 				// check right directionality and co-planarity
-				double t = ublas::inner_prod(e2Nt, e2Bor);
+				const double t = ublas::inner_prod(e2Nt, e2Bor);
 				// check that they are "in front" of each other
-				ublas::vector<double> df = ADNAuxiliary::SBPositionToUblas(dif);
-				double n = ublas::inner_prod(e2Nt, df);
-				double angle_threshold = 49.0;
+				const ublas::vector<double> df = ADNAuxiliary::SBPositionToUblas(dif);
+				const double n = ublas::inner_prod(e2Nt, df);
+				const double angle_threshold = 49.0;
 				// check they are complementary
-				bool comp = ADNModel::GetComplementaryBase(nt->getNucleotideType()) == bor->getNucleotideType();
+				const bool comp = ADNModel::GetComplementaryBase(nt->getNucleotideType()) == bor->getNucleotideType();
 				if (n > 0 && t < 0.0 && abs(t) > cos(ADNVectorMath::DegToRad(angle_threshold)) && comp) {
 
 					// possible paired, take closest
@@ -2002,10 +2024,10 @@ void ADNLoader::BuildTopScales(ADNPointer<ADNPart> part) {
 
 			ADNPointer<ADNBaseSegment> bs = new ADNBaseSegment(CellType::BasePair);
 			SBPosition3 bsPos = posNt + SBQuantity::nanometer(ADNConstants::DH_DIAMETER * 0.5) * ADNAuxiliary::UblasVectorToSBVector(e2Nt);
-			ublas::vector<double> e3 = nt->GetE3();
+			const auto& e3 = nt->GetE3();
 			std::string msg = ss->getName() + ": " + std::to_string(e3[0]) + " " + std::to_string(e3[1]) + " " + std::to_string(e3[2]);
 			ADNLogger::LogDebug(msg);
-			ublas::vector<double> e1 = nt->GetE1();
+			const auto& e1 = nt->GetE1();
 			ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(bs->GetCell()());
 			bp->SetLeftNucleotide(nt);
 			nt->SetBaseSegment(bs);
@@ -2041,8 +2063,8 @@ void ADNLoader::BuildTopScales(ADNPointer<ADNPart> part) {
 
 				// if huge change in directionality, make new strand
 				ADNPointer<ADNNucleotide> ntNext = nt->GetNext();
-				ublas::vector<double> e3Next = ntNext->GetE3();
-				auto theta = ublas::inner_prod(e3, e3Next);
+				const auto& e3Next = ntNext->GetE3();
+				const auto theta = ublas::inner_prod(e3, e3Next);
 				if (theta < 0.9) {
 					int test = 1;
 				}
@@ -2053,8 +2075,8 @@ void ADNLoader::BuildTopScales(ADNPointer<ADNPart> part) {
 
 				// if huge change in directionality, make new strand
 				ADNPointer<ADNNucleotide> pairPrev = pair->GetPrev();
-				ublas::vector<double> e3Prev = pairPrev->GetE3();
-				auto theta = ublas::inner_prod(pair->GetE3(), e3Prev);
+				const auto& e3Prev = pairPrev->GetE3();
+				const auto theta = ublas::inner_prod(pair->GetE3(), e3Prev);
 				if (theta < turningThreshold) breakDs = true;
 
 			}

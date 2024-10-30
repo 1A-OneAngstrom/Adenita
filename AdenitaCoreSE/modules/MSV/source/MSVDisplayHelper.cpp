@@ -837,7 +837,7 @@ void ADNDisplayHelper::displayPart(ADNPointer<ADNPart> part, float basePairRadiu
             auto cell = baseSegment->GetCell();
 
             radiiV(index) = basePairRadius;
-            SBPosition3 pos = baseSegment->GetPosition();
+            const SBPosition3& pos = baseSegment->GetPosition();
             positions(index, 0) = (float)pos.v[0].getValue();
             positions(index, 1) = (float)pos.v[1].getValue();
             positions(index, 2) = (float)pos.v[2].getValue();

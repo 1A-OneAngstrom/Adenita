@@ -390,7 +390,7 @@ void DASBackToTheAtom::SetPositionLoopNucleotides(ADNPointer<ADNBaseSegment> bs)
 
 }
 
-void DASBackToTheAtom::CheckDistances(ADNPointer<ADNPart> part) {
+void DASBackToTheAtom::CheckDistances(ADNPointer<ADNPart> part) const {
 
 	if (part == nullptr) return;
 
@@ -435,9 +435,9 @@ void DASBackToTheAtom::CheckDistances(ADNPointer<ADNPart> part) {
 		auto bsNext = bs->GetNext();
 		if (bsNext != nullptr) {
 
-			SBPosition3 nextPos = bsNext->GetPosition();
-			std::string nextName = bs->getName();
-			auto distance = (nextPos - bs->GetPosition()).norm();
+			const SBPosition3& nextPos = bsNext->GetPosition();
+			const std::string nextName = bs->getName();
+			const auto distance = (nextPos - bs->GetPosition()).norm();
 			if (!ADNVectorMath::IsNearlyZero(distance.getValue() - ADNConstants::BP_RISE * 1000)) {
 
 				//msg = "\tBase Segments " + nextName + " and " + bs->getName() + " too close or too further away: " + std::to_string(distance.getValue()) + "pm";
@@ -912,12 +912,38 @@ void DASBackToTheAtom::GenerateAllAtomModel(ADNPointer<ADNPart> origami, bool cr
 	SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
 
 		if (nt == nullptr) continue;
-		auto atoms = nt->GetAtoms();
+
+		// delete existing bonds
+		SBNodeIndexer bondIndexer;
+		nt->getNodes(bondIndexer, SBNode::Bond);
+		SB_FOR (SBNode* bond, bondIndexer) {
+
+			SBPointer<SBBond> ptr = static_cast<SBBond*>(bond);
+			ptr->getParent()->removeChild(ptr());
+			ptr->erase();
+			ptr.deleteReferenceTarget();
+
+		}
+
 		// delete previous atoms if they have been created
+		auto atoms = nt->GetAtoms();
 		SB_FOR(ADNPointer<ADNAtom> a, atoms) {
 
-			// todo: check that the node is only deleted from data graph but reference is not destroyed
-			if (a != nullptr) origami->DeregisterAtom(a);
+			if (a != nullptr) {
+
+				// Erase previously generated DNA atoms except for the dummy center atoms used for visualization
+				// Note: the dummy atom is only deleted from data graph but reference is not destroyed such that it will be possible to use it during the visualization 
+
+				origami->DeregisterAtom(a);
+
+				if (a != nt->GetBackboneCenterAtom() && a != nt->GetSidechainCenterAtom()) {
+
+					a->erase();
+					a.deleteReferenceTarget();
+
+				}
+
+			}
 
 		}
 
@@ -970,6 +996,7 @@ std::tuple<SBPosition3, SBPosition3, SBPosition3> DASBackToTheAtom::CalculateCen
 	ublas::matrix<double> positions_bb = ublas::matrix<double>(0, 3);
 	ublas::matrix<double> positions_sc = ublas::matrix<double>(0, 3);
 	ublas::matrix<double> positions = ublas::matrix<double>(0, 3);
+
 	auto ntAtoms = nt->GetAtoms();
 	SB_FOR(ADNPointer<ADNAtom> n, ntAtoms) {
 
@@ -1006,18 +1033,25 @@ std::tuple<SBPosition3, SBPosition3, SBPosition3> DASBackToTheAtom::CalculateCen
 	double totalBBMass(0.0);
 	double totalSCMass(0.0);
 	SB_FOR(ADNPointer<ADNAtom> n, ntAtoms) {
-		double mass = n->getAtomicWeight().getValue();
+
+		const double mass = n->getAtomicWeight().getValue();
 		ublas::vector<double> ac_blas = mass * ADNAuxiliary::SBPositionToUblas(n->getPosition());
 		totalMass += mass;
 		ADNVectorMath::AddRowToMatrix(positions, ac_blas);
+
 		if (n->IsInADNBackbone()) {
+
 			ADNVectorMath::AddRowToMatrix(positions_bb, ac_blas);
 			totalBBMass += mass;
+
 		}
 		else {
+
 			ADNVectorMath::AddRowToMatrix(positions_sc, ac_blas);
 			totalSCMass += mass;
+
 		}
+
 	}
 
 	ublas::vector<double> cm_bb_vec = ADNVectorMath::CalculateCM(positions_bb, totalBBMass);
@@ -1071,6 +1105,7 @@ void DASBackToTheAtom::SetReferenceFrame(NtPair pair) {
 	std::vector<int> sidechain_indices;
 	int idx = 0;
 	SB_FOR(ADNPointer<ADNAtom> a, atoms) {
+
 		positions.push_back(ADNAuxiliary::SBPositionToVector(a->getPosition()));
 		if (a->getName() == "C1'") {
 			c1_prime_left_std = ADNAuxiliary::SBPositionToVector(a->getPosition());
@@ -1085,9 +1120,12 @@ void DASBackToTheAtom::SetReferenceFrame(NtPair pair) {
 			sidechain_indices.push_back(idx);
 		}
 		++idx;
+
 	}
+
 	atoms = nt_right->GetAtoms();
 	SB_FOR(ADNPointer<ADNAtom> a, atoms) {
+
 		positions.push_back(ADNAuxiliary::SBPositionToVector(a->getPosition()));
 		if (a->getName() == "C1'") {
 			c1_prime_right_std = ADNAuxiliary::SBPositionToVector(a->getPosition());
@@ -1102,6 +1140,7 @@ void DASBackToTheAtom::SetReferenceFrame(NtPair pair) {
 			sidechain_indices.push_back(idx);
 		}
 		++idx;
+
 	}
 
 	ublas::vector<double> c5_prime_left = ADNVectorMath::CreateBoostVector(c5_prime_left_std);
@@ -1133,14 +1172,15 @@ void DASBackToTheAtom::SetReferenceFrame(NtPair pair) {
 	// third component
 	ublas::vector<double> x = ADNVectorMath::CrossProduct(y, z);
 	x /= ublas::norm_2(x);
-	// we want to transform all positions so local base is the standard basis
-	ublas::matrix<double> transf(3, 3);
-	ublas::column(transf, 0) = x;
-	ublas::column(transf, 1) = y;
-	ublas::column(transf, 2) = z;
-	ublas::matrix<double> inv_transf = ADNVectorMath::InvertMatrix(transf);
 
-	ublas::matrix<double> coords = ADNVectorMath::ApplyTransformation(inv_transf, new_positions);
+	// we want to transform all positions so local base is the standard basis
+	ublas::matrix<double> transform(3, 3);
+	ublas::column(transform, 0) = x;
+	ublas::column(transform, 1) = y;
+	ublas::column(transform, 2) = z;
+	ublas::matrix<double> inv_transform = ADNVectorMath::InvertMatrix(transform);
+
+	ublas::matrix<double> coords = ADNVectorMath::ApplyTransformation(inv_transform, new_positions);
 
 	atoms = nt_left->GetAtoms();
 	int r_id = SetAtomsPositions(atoms, coords, 0);
@@ -1298,7 +1338,7 @@ void DASBackToTheAtom::LoadNucleotides() {
 #endif
 			{
 
-				ADNLogger::LogError("Could not find file " + nt_source);
+				ADNLogger::LogError("Could not find the file " + nt_source);
 				return;
 
 			}
@@ -1306,7 +1346,7 @@ void DASBackToTheAtom::LoadNucleotides() {
 		}
 		catch (...) {
 
-			ADNLogger::LogError("Caught an exception when checking the file: " + nt_source);
+			ADNLogger::LogError("Caught an exception when checking the file " + nt_source);
 			return;
 
 		}
@@ -1318,9 +1358,12 @@ void DASBackToTheAtom::LoadNucleotides() {
 		std::vector<std::vector<double>> positions;
 		std::vector<std::vector<double>> base_plane;
 		SB_FOR(ADNPointer<ADNAtom> a, atoms) {
+
 			auto coords = ADNAuxiliary::SBPositionToVector(a->getPosition());
 			positions.push_back(coords);
+
 		}
+
 		// Set same coordinate system for all nucleotides
 		ublas::matrix<double> positions_matrix = ADNVectorMath::CreateBoostMatrix(positions);
 		ublas::matrix<double> new_positions = ADNVectorMath::CenterSystem(positions_matrix);
@@ -1358,7 +1401,7 @@ void DASBackToTheAtom::LoadNtPairs() {
 #endif
 			{
 
-				ADNLogger::LogError("Could not find file " + nt_source);
+				ADNLogger::LogError("Could not find the file " + nt_source);
 				return;
 
 			}
@@ -1366,7 +1409,7 @@ void DASBackToTheAtom::LoadNtPairs() {
 		}
 		catch (...) {
 
-			ADNLogger::LogError("Caught an exception when checking the file: " + nt_source);
+			ADNLogger::LogError("Caught an exception when checking the file " + nt_source);
 			return;
 
 		}
@@ -1402,7 +1445,7 @@ void DASBackToTheAtom::LoadNtPairs() {
 
 }
 
-NtPair DASBackToTheAtom::ParseBasePairPDB(std::string source) {
+NtPair DASBackToTheAtom::ParseBasePairPDB(const std::string& source) {
 
 #ifdef _WIN32
 	// convert to a wide string (UTF-8) to take care of special characters
@@ -1413,7 +1456,7 @@ NtPair DASBackToTheAtom::ParseBasePairPDB(std::string source) {
 
 	if (!file) {
 
-		ADNLogger::LogError("Could not open file " + source);
+		ADNLogger::LogError("Could not open the file " + source);
 
 	}
 
@@ -1565,7 +1608,7 @@ NtPair DASBackToTheAtom::GetIdealBasePairNucleotides(DNABlocks nt_l, DNABlocks n
 ublas::matrix<double> DASBackToTheAtom::CalculateBaseSegmentBasis(ADNPointer<ADNBaseSegment> bs) {
 
 	ublas::vector<double> new_z(3);
-	auto direction = bs->GetE3();
+	const auto& direction = bs->GetE3();
 	new_z[0] = direction[0];
 	new_z[1] = direction[1];
 	new_z[2] = direction[2];
@@ -1606,7 +1649,7 @@ ublas::matrix<double> DASBackToTheAtom::CalculateBaseSegmentBasis(ADNPointer<ADN
 
 }
 
-ADNPointer<ADNNucleotide> DASBackToTheAtom::ParsePDB(std::string source) {
+ADNPointer<ADNNucleotide> DASBackToTheAtom::ParsePDB(const std::string& source) {
 
 #ifdef _WIN32
 	// convert to a wide string (UTF-8) to take care of special characters
@@ -1617,7 +1660,7 @@ ADNPointer<ADNNucleotide> DASBackToTheAtom::ParsePDB(std::string source) {
 
 	if (!file) {
 
-		ADNLogger::LogError("Could not open file " + source);
+		ADNLogger::LogError("Could not open the file " + source);
 
 	}
 
@@ -1651,6 +1694,7 @@ ADNPointer<ADNNucleotide> DASBackToTheAtom::ParsePDB(std::string source) {
 			nt->addAtom(g, atom);
 
 		}
+
 		if (record_name == "CONECT") {
 
 			// Check length of connect field

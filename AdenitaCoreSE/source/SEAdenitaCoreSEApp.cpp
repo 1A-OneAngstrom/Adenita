@@ -522,10 +522,14 @@ void SEAdenitaCoreSEApp::setStartNucleotide() {
 
 void SEAdenitaCoreSEApp::MergeComponents(ADNPointer<ADNPart> p1, ADNPointer<ADNPart> p2) {
 
+	if (p1 == nullptr || p2 == nullptr) return;
+
 	ADNPointer<ADNPart> newPart = ADNBasicOperations::MergeParts(p1, p2);
 	
 	GetNanorobot()->DeregisterPart(p2);
-	if (p2->getParent()) p2->getParent()->removeChild(p2());
+	if (p2->getParent())
+		p2->getParent()->removeChild(p2());
+
 	p1 = newPart;
 
 	SEAdenitaCoreSEApp::resetVisualModel();
@@ -773,6 +777,7 @@ void SEAdenitaCoreSEApp::FixDesigns() {
 			if (SAMSON::isHolding()) SAMSON::hold(newSs());
 			newSs->create();
 			part->RegisterSingleStrand(newSs);
+
 			// reverse 5'->3' direction
 			ADNPointer<ADNNucleotide> nt = ss->GetFivePrime();
 			while (nt != nullptr) {
@@ -785,6 +790,8 @@ void SEAdenitaCoreSEApp::FixDesigns() {
 			}
 
 			part->DeregisterSingleStrand(ss);
+			ss->erase();
+			ss.deleteReferenceTarget();
 
 		}
     
@@ -927,8 +934,19 @@ void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* structuralEvent) {
 			if (ss != nullptr) {
 
 				auto part = ss->GetPart();
-				if (part != nullptr) part->DeregisterNucleotide(nt, false, true, true);
-				if (ss->getNumberOfNucleotides() == 0) ss->erase();
+				if (part != nullptr) {
+					
+					part->DeregisterNucleotide(nt, false, true, true);
+					nt->disconnectPair();
+
+				}
+				if (ss->getNumberOfNucleotides() == 0) {
+
+					if (part != nullptr) part->DeregisterSingleStrand(ss);
+					ss->erase();
+					//ss.deleteReferenceTarget();	// causes a crash
+
+				}
 
 			}
 

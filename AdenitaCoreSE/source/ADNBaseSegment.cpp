@@ -46,7 +46,7 @@ void ADNBaseSegment::serialize(SBCSerializer* serializer, const SBNodeIndexer& n
     serializer->writeUnsignedIntElement("centerAtom", nodeIndexer.getIndex(atom()));
 
     serializer->writeStartElement("e3");
-    auto e3 = GetE3();
+    const auto& e3 = GetE3();
     double e3x = e3[0];
     double e3y = e3[1];
     double e3z = e3[2];
@@ -56,7 +56,7 @@ void ADNBaseSegment::serialize(SBCSerializer* serializer, const SBNodeIndexer& n
     serializer->writeEndElement();
 
     serializer->writeStartElement("e2");
-    auto e2 = GetE2();
+    const auto& e2 = GetE2();
     double e2x = e2[0];
     double e2y = e2[1];
     double e2z = e2[2];
@@ -66,7 +66,7 @@ void ADNBaseSegment::serialize(SBCSerializer* serializer, const SBNodeIndexer& n
     serializer->writeEndElement();
 
     serializer->writeStartElement("e1");
-    auto e1 = GetE1();
+    const auto& e1 = GetE1();
     double e1x = e1[0];
     double e1y = e1[1];
     double e1z = e1[2];

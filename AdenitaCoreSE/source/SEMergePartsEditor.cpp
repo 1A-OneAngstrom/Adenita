@@ -117,7 +117,12 @@ bool SEMergePartsEditor::mergeParts(int idx, int jdx) {
 	if (p1 != nullptr && p2 != nullptr) {
 		
 		app->MergeComponents(p1, p2);
-		if (p2 != nullptr) if (!p2->isErased()) p2->erase();
+		if (p2 != nullptr) {
+
+			p2->erase();
+			p2.deleteReferenceTarget();
+
+		}
 
 	}
 

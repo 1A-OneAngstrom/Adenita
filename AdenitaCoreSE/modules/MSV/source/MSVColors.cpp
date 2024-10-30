@@ -16,7 +16,7 @@ MSVColors::MSVColors() {
 
 }
 
-ADNArray<float> MSVColors::GetColor(ADNPointer<ADNAtom> a) {
+ADNArray<float> MSVColors::GetColor(ADNPointer<ADNAtom> a) const {
 
     auto res = GetColor(a(), atomColors_);
     auto color = res.second;
@@ -75,9 +75,9 @@ ADNArray<float> MSVColors::GetColor(ADNPointer<ADNAtom> a) {
 
 }
 
-ADNArray<float> MSVColors::GetColor(ADNPointer<ADNNucleotide> nt) {
+ADNArray<float> MSVColors::GetColor(ADNPointer<ADNNucleotide> nt) const {
 
-    auto res = GetColor(nt(), ntsColors_);
+    const auto res = GetColor(nt(), ntsColors_);
     auto color = res.second;
     if (res.first == false) {
         SEConfig& config = SEConfig::GetInstance();
@@ -122,9 +122,9 @@ ADNArray<float> MSVColors::GetColor(ADNPointer<ADNNucleotide> nt) {
 
 }
 
-ADNArray<float> MSVColors::GetColor(ADNPointer<ADNSingleStrand> ss) {
+ADNArray<float> MSVColors::GetColor(ADNPointer<ADNSingleStrand> ss) const {
 
-    auto res = GetColor(ss(), sssColors_);
+    const auto res = GetColor(ss(), sssColors_);
     auto color = res.second;
     if (res.first == false) {
 
@@ -150,9 +150,9 @@ ADNArray<float> MSVColors::GetColor(ADNPointer<ADNSingleStrand> ss) {
 
 }
 
-ADNArray<float> MSVColors::GetColor(ADNPointer<ADNBaseSegment> bs) {
+ADNArray<float> MSVColors::GetColor(ADNPointer<ADNBaseSegment> bs) const {
 
-    auto res = GetColor(bs(), bssColors_);
+    const auto res = GetColor(bs(), bssColors_);
     auto color = res.second;
     if (res.first == false) {
 
@@ -172,9 +172,9 @@ ADNArray<float> MSVColors::GetColor(ADNPointer<ADNBaseSegment> bs) {
 
 }
 
-ADNArray<float> MSVColors::GetColor(ADNPointer<ADNDoubleStrand> ds) {
+ADNArray<float> MSVColors::GetColor(ADNPointer<ADNDoubleStrand> ds) const {
 
-    auto res = GetColor(ds(), dssColors_);
+    const auto res = GetColor(ds(), dssColors_);
     auto color = res.second;
     if (res.first == false) {
         // fetch default or random color
@@ -331,7 +331,7 @@ void MSVColors::SetNucleotideColorScheme(ADNArray<float> colorScheme) {
     nucleotideColorScheme_ = colorScheme;
 }
 
-ADNArray<float> MSVColors::GetMaterialColor(SBNode* node) {
+ADNArray<float> MSVColors::GetMaterialColor(SBNode* node) const {
 
     ADNArray<float> color = ADNArray<float>(4);
 

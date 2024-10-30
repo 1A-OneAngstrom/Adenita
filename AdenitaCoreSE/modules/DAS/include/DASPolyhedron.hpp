@@ -33,6 +33,7 @@ public:
 	 */
 	~DASHalfEdge() = default;
 	DASHalfEdge(const DASHalfEdge& other);
+
 	DASHalfEdge& operator=(const DASHalfEdge& other);
 
 	DASHalfEdge* next_{ nullptr };
@@ -70,7 +71,7 @@ public:
 
 	/* Getters */
 	std::vector<double> GetVectorCoordinates() const; // always returns picometers 10^-12
-	SBPosition3 GetSBPosition() const;
+	const SBPosition3& GetSBPosition() const;
 
 	/* Setters */
 	void SetCoordinates(const SBPosition3& coordinates);

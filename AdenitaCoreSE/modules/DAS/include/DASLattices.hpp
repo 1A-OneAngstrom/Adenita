@@ -15,8 +15,8 @@ using LatticeType = ADNConstants::LatticeType;
 namespace ublas = boost::numeric::ublas;
 
 struct LatticeCell {
-	double x_ = 0.0;
-	double y_ = 0.0;
+	double x_{ 0.0 };
+	double y_{ 0.0 };
 };
 
 class SB_EXPORT DASLattice {
@@ -27,10 +27,10 @@ public:
 	DASLattice(LatticeType type, double edgeDistance, int maxRows, int maxCols);
 	~DASLattice() = default;
 
-	LatticeCell GetLatticeCell(unsigned int row, unsigned int column);
+	LatticeCell GetLatticeCell(unsigned int row, unsigned int column) const;
 
-	size_t GetNumberRows();
-	size_t GetNumberCols();
+	size_t GetNumberRows() const;
+	size_t GetNumberCols() const;
 
 private:
 
@@ -39,6 +39,6 @@ private:
 	void CreateSquareLattice(int maxRows, int maxCols);
 	void CreateHoneycombLattice(int maxRows, int maxCols);
 
-	double edgeDistance_ = 0.0;
+	double edgeDistance_{ 0.0 };
 
 };

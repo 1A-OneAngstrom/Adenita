@@ -218,7 +218,7 @@ void SEDSDNACreatorEditor::setSequence(ADNPointer<ADNPart> nanotube) {
 
             ADNPointer<ADNNucleotide> fPrime = currentSingleStrand->GetFivePrime();
             ADNPointer<ADNBaseSegment> bs = fPrime->GetBaseSegment();
-            SBPosition3 pos = bs->GetPosition();
+            const SBPosition3& pos = bs->GetPosition();
             if (pos == positionData.FirstPosition) {
 
                 singleStrand = currentSingleStrand;

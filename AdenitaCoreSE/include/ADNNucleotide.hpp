@@ -43,6 +43,7 @@ public:
 	ADNPointer<ADNNucleotide>									GetPair() const;														///< Return a nucleotide's pair
 	SBNode*														getPair() const;
 	void														disconnectPair(ADNPointer<ADNNucleotide> nucleotide);					///< Disconnects a pairing to the nucleotide \p nucleotide
+	void														disconnectPair();														///< Disconnects a pairing between this nucleotide and its pair nucleotide
 
 	ADNPointer<ADNNucleotide>									GetPrev(bool checkCircular = false) const;								///< Return the nucleotide previous on the single strand
 	SBNode*														getPrev() const;

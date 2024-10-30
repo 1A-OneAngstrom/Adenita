@@ -73,8 +73,8 @@ public:
 
     Positionable& operator=(const Positionable& other);
 
-    void SetPosition(ublas::vector<double> pos);
-    ublas::vector<double> GetPosition() const;
+    void SetPosition(const ublas::vector<double>& pos);
+    const ublas::vector<double>& GetPosition() const;
 
 private:
 
@@ -94,8 +94,8 @@ public:
 
     PositionableSB& operator=(const PositionableSB& other);
 
-    void SetPosition(Position3D pos);
-    Position3D GetPosition() const;
+    void SetPosition(const Position3D& pos);
+    const Position3D& GetPosition() const;
 
     ADNPointer<ADNAtom> GetCenterAtom() const;
     void SetCenterAtom(ADNPointer<ADNAtom> centerAtom);
@@ -136,12 +136,12 @@ public:
 
     Orientable& operator=(const Orientable& other);
 
-    void SetE1(ublas::vector<double> e1);
-    void SetE2(ublas::vector<double> e2);
-    void SetE3(ublas::vector<double> e3);
-    ublas::vector<double> GetE1() const;
-    ublas::vector<double> GetE2() const;
-    ublas::vector<double> GetE3() const;
+    void SetE1(const ublas::vector<double>& e1);
+    void SetE2(const ublas::vector<double>& e2);
+    void SetE3(const ublas::vector<double>& e3);
+    const ublas::vector<double>& GetE1() const;
+    const ublas::vector<double>& GetE2() const;
+    const ublas::vector<double>& GetE3() const;
 
 private:
 
@@ -163,7 +163,7 @@ public:
     Collection<T>& operator=(const Collection<T>& other);
 
     void AddElement(ADNPointer<T> elem, int id = -1);
-    CollectionMap<T> GetCollection() const;
+    const CollectionMap<T>& GetCollection() const;
     void DeleteElement(int id);
     int GetLastKey() const;
     ADNPointer<T> GetElement(int id) const;
@@ -208,7 +208,7 @@ inline void Collection<T>::AddElement(ADNPointer<T> elem, int id) {
 }
 
 template<class T>
-inline CollectionMap<T> Collection<T>::GetCollection() const {
+inline const CollectionMap<T>& Collection<T>::GetCollection() const {
 
     return collection_;
 

@@ -44,11 +44,11 @@ Positionable& Positionable::operator=(const Positionable& other) {
 
 }
 
-void Positionable::SetPosition(ublas::vector<double> pos) {
+void Positionable::SetPosition(const ublas::vector<double>& pos) {
     this->position_ = pos;
 }
 
-ublas::vector<double> Positionable::GetPosition() const {
+const ublas::vector<double>& Positionable::GetPosition() const {
     return position_;
 }
 
@@ -72,19 +72,19 @@ PositionableSB& PositionableSB::operator=(const PositionableSB& other) {
 
 }
 
-void PositionableSB::SetPosition(Position3D pos) {
+void PositionableSB::SetPosition(const Position3D& pos) {
 
     if (centerAtom_.isValid())
         centerAtom_->setPosition(pos);
 
 }
 
-Position3D PositionableSB::GetPosition() const {
+const Position3D& PositionableSB::GetPosition() const {
 
     if (centerAtom_.isValid())
         return centerAtom_->getPosition();
     else
-        return Position3D();
+        return Position3D::zero;
 
 }
 
@@ -153,26 +153,26 @@ Orientable& Orientable::operator=(const Orientable& other) {
 
 }
 
-void Orientable::SetE1(ublas::vector<double> e1) {
+void Orientable::SetE1(const ublas::vector<double>& e1) {
     this->e1_ = e1;
 }
 
-void Orientable::SetE2(ublas::vector<double> e2) {
+void Orientable::SetE2(const ublas::vector<double>& e2) {
     this->e2_ = e2;
 }
 
-void Orientable::SetE3(ublas::vector<double> e3) {
+void Orientable::SetE3(const ublas::vector<double>& e3) {
     this->e3_ = e3;
 }
 
-ublas::vector<double> Orientable::GetE1() const {
+const ublas::vector<double>& Orientable::GetE1() const {
     return e1_;
 }
 
-ublas::vector<double> Orientable::GetE2() const {
+const ublas::vector<double>& Orientable::GetE2() const {
     return e2_;
 }
 
-ublas::vector<double> Orientable::GetE3() const {
+const ublas::vector<double>& Orientable::GetE3() const {
     return e3_;
 }

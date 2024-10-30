@@ -2,8 +2,8 @@
 
 namespace ADNVectorMath {
 
-	ublas::vector<double> CreateBoostVector(std::vector<double> vec) {
-		size_t sz = vec.size();
+	ublas::vector<double> CreateBoostVector(const std::vector<double>& vec) {
+		const size_t sz = vec.size();
 		ublas::vector<double> vex(sz);
 		for (size_t i = 0; i < sz; ++i) {
 			vex(i) = vec[i];
@@ -11,8 +11,8 @@ namespace ADNVectorMath {
 		return vex;
 	}
 
-	std::vector<double> CreateStdVector(ublas::vector<double> vec) {
-		size_t sz = vec.size();
+	std::vector<double> CreateStdVector(const ublas::vector<double>& vec) {
+		const size_t sz = vec.size();
 		std::vector<double> vex(sz);
 		for (size_t i = 0; i < sz; ++i) {
 			vex[i] = vec(i);
@@ -20,8 +20,8 @@ namespace ADNVectorMath {
 		return vex;
 	}
 
-	ublas::matrix<double> CreateBoostMatrix(std::vector<std::vector<double>> vecovec) {
-		size_t num_rows = vecovec.size();
+	ublas::matrix<double> CreateBoostMatrix(const std::vector<std::vector<double>>& vecovec) {
+		const size_t num_rows = vecovec.size();
 		size_t num_cols = 0;
 		ublas::matrix<double> mat(num_rows, num_cols);
 		if (num_rows > 0) {
@@ -37,34 +37,34 @@ namespace ADNVectorMath {
 		return mat;
 	}
 
-	ublas::vector<double> CalculateCM(ublas::matrix<double> positions) {
+	ublas::vector<double> CalculateCM(const ublas::matrix<double>& positions) {
 		ublas::vector<double> vec = InitializeVector(positions.size2());
-		for (ublas::matrix<double>::iterator1 it1 = positions.begin1(); it1 != positions.end1(); ++it1) {
+		for (ublas::matrix<double>::const_iterator1 it1 = positions.begin1(); it1 != positions.end1(); ++it1) {
 			// iteration over rows
 			ublas::vector<double> r = ublas::row(positions, it1.index1());
 			vec += r;
 		}
-		size_t n = positions.size1();
+		const size_t n = positions.size1();
 		vec *= (1.0 / n);
 		return vec;
 	}
 
-	ublas::vector<double> CalculateCM(ublas::matrix<double> weightedPositions, double totalMass)
+	ublas::vector<double> CalculateCM(const ublas::matrix<double>& weightedPositions, double totalMass)
 	{
 		ublas::vector<double> vec = InitializeVector(weightedPositions.size2());
-		for (ublas::matrix<double>::iterator1 it1 = weightedPositions.begin1(); it1 != weightedPositions.end1(); ++it1) {
+		for (ublas::matrix<double>::const_iterator1 it1 = weightedPositions.begin1(); it1 != weightedPositions.end1(); ++it1) {
 			// iteration over rows
 			ublas::vector<double> r = ublas::row(weightedPositions, it1.index1());
 			vec += r;
 		}
-		size_t n = weightedPositions.size1();
+		//size_t n = weightedPositions.size1();
 		vec /= totalMass;
 		return vec;
 	}
 
-	ublas::vector<double> CrossProduct(ublas::vector<double> v, ublas::vector<double> w) {
-		size_t vsz = v.size();
-		size_t wsz = w.size();
+	ublas::vector<double> CrossProduct(const ublas::vector<double>& v, const ublas::vector<double>& w) {
+		const size_t vsz = v.size();
+		const size_t wsz = w.size();
 		if (vsz != wsz || vsz != 3) {
 			std::exit(EXIT_FAILURE);
 		}
@@ -77,7 +77,7 @@ namespace ADNVectorMath {
 		return k;
 	}
 
-	ublas::matrix<double> SkewMatrix(ublas::vector<double> v) {
+	ublas::matrix<double> SkewMatrix(const ublas::vector<double>& v) {
 		std::vector<double> row1 = { 0.0, -v[2], v[1] };
 		std::vector<double> row2 = { v[2], 0.0, -v[0] };
 		std::vector<double> row3 = { -v[1], v[0], 0.0 };
@@ -85,8 +85,8 @@ namespace ADNVectorMath {
 		return ADNVectorMath::CreateBoostMatrix(skew);
 	}
 
-	ublas::vector<double> DirectionVector(ublas::vector<double> p, ublas::vector<double> q) {
-		ublas::vector<double> dif = (q - p);
+	ublas::vector<double> DirectionVector(const ublas::vector<double>& p, const ublas::vector<double>& q) {
+		const ublas::vector<double> dif = (q - p);
 		return dif / ublas::norm_2(dif);
 	}
 
@@ -95,11 +95,11 @@ namespace ADNVectorMath {
 		return degree * pi / 180.0;
 	}
 
-	ublas::matrix<double> MakeRotationMatrix(ublas::vector<double> dir, double angle) {
+	ublas::matrix<double> MakeRotationMatrix(const ublas::vector<double>& dir, double angle) {
 		// We use R = d*d^T + cos(a) * (I - d*d^T) - sin(a)*skew(d)
-		ublas::matrix<double> ident = ublas::identity_matrix<double>(3);
-		ublas::matrix<double> ddT = ublas::outer_prod(dir, dir);
-		ublas::matrix<double> skew = SkewMatrix(dir);
+		const ublas::matrix<double> ident = ublas::identity_matrix<double>(3);
+		const ublas::matrix<double> ddT = ublas::outer_prod(dir, dir);
+		const ublas::matrix<double> skew = SkewMatrix(dir);
 		ublas::matrix<double> mtx = ddT + cos(angle) * (ident - ddT) - sin(angle) * skew;
 		return mtx;
 	}
@@ -118,22 +118,21 @@ namespace ADNVectorMath {
 		return InitializeMatrix(sz, sz);
 	}
 
-	ublas::matrix<double> Translate(ublas::matrix<double> input, ublas::vector<double> t_vector) {
-		ublas::vector<double> T = t_vector;
+	ublas::matrix<double> Translate(const ublas::matrix<double>& input, const ublas::vector<double>& t_vector) {
 		ublas::matrix<double> trans_pos(input.size1(), input.size2());
-		std::size_t N = input.size1();
+		const std::size_t N = input.size1();
 		for (size_t rit = 0; rit < N; ++rit) {
 			ublas::vector<double> coords = ublas::row(input, rit);
-			ublas::vector<double> new_coords = coords + T;
+			ublas::vector<double> new_coords = coords + t_vector;
 			ublas::row(trans_pos, rit) = new_coords;
 		}
 
 		return trans_pos;
 	}
 
-	ublas::matrix<double> Rotate(ublas::matrix<double> input, ublas::matrix<double> rot_matrix) {
+	ublas::matrix<double> Rotate(const ublas::matrix<double>& input, const ublas::matrix<double>& rot_matrix) {
 		ublas::matrix<double> rot_pos(input.size1(), input.size2());
-		size_t N = input.size1();
+		const size_t N = input.size1();
 		for (size_t rit = 0; rit < N; ++rit) {
 			ublas::vector<double> coords = ublas::row(input, rit);
 			ublas::vector<double> new_coords = ublas::prod(rot_matrix, coords);
@@ -143,21 +142,21 @@ namespace ADNVectorMath {
 		return rot_pos;
 	}
 
-	ublas::matrix<double> CenterSystem(ublas::matrix<double> input) {
+	ublas::matrix<double> CenterSystem(const ublas::matrix<double>& input) {
 		ublas::vector<double> cm = CalculateCM(input);
 		return Translate(input, -cm);
 	}
 
 	void AddRowToMatrix(ublas::matrix<double>& input, ublas::vector<double> r) {
-		size_t num_rows = input.size1();
-		size_t num_cols = input.size2();
+		const size_t num_rows = input.size1();
+		const size_t num_cols = input.size2();
 		input.resize(num_rows + 1, num_cols, true);
 		ublas::row(input, num_rows) = r;
 	}
 
-	ublas::vector<double> CalculatePlane(ublas::matrix<double> mat) {
-		size_t num_points = mat.size1();
-		size_t dim = mat.size2();
+	ublas::vector<double> CalculatePlane(const ublas::matrix<double>& mat) {
+		const size_t num_points = mat.size1();
+		const size_t dim = mat.size2();
 		ublas::vector<double> sol(3);
 
 		if (dim != 3) {
@@ -244,8 +243,8 @@ namespace ADNVectorMath {
 	}
 
 	double Determinant(ublas::matrix<double> mat) {
-		size_t num_rows = mat.size1();
-		size_t num_cols = mat.size2();
+		const size_t num_rows = mat.size1();
+		const size_t num_cols = mat.size2();
 		if (num_rows != num_cols || num_rows != 3) {
 			throw std::invalid_argument("Non-square 3-dimensional matrix");
 		}
@@ -266,10 +265,9 @@ namespace ADNVectorMath {
 		return sol;
 	}
 
-	double CalculateVectorNorm(ublas::vector<double> v)
-	{
+	double CalculateVectorNorm(const ublas::vector<double>& v) {
 		double n = 0.0;
-		size_t sz = v.size();
+		const size_t sz = v.size();
 		for (size_t i = 0; i < sz; ++i) {
 			n += v[i] * v[i];
 		}
@@ -277,9 +275,9 @@ namespace ADNVectorMath {
 		return n;
 	}
 
-	ublas::matrix<double> ApplyTransformation(ublas::matrix<double> t_mat, ublas::matrix<double> points) {
-		size_t num_points = points.size1();
-		size_t dim = points.size2();
+	ublas::matrix<double> ApplyTransformation(const ublas::matrix<double>& t_mat, const ublas::matrix<double>& points) {
+		const size_t num_points = points.size1();
+		const size_t dim = points.size2();
 
 		if (t_mat.size1() != dim || t_mat.size2() != dim) {
 			throw std::invalid_argument("Transformation matrix does not have the right dimensions.");
@@ -293,11 +291,10 @@ namespace ADNVectorMath {
 		return coords;
 	}
 
-	ublas::vector<double> Spherical2Cartesian(ublas::vector<double> spher)
-	{
-		double r = spher[0];
-		double theta = spher[1];
-		double phi = spher[2];
+	ublas::vector<double> Spherical2Cartesian(const ublas::vector<double>& spher) {
+		const double r = spher[0];
+		const double theta = spher[1];
+		const double phi = spher[2];
 		ublas::vector<double> cart(3, 0.0);
 		cart[0] = r * sin(theta) * cos(phi);  // x
 		cart[1] = r * sin(theta) * sin(phi);  // y
@@ -305,8 +302,7 @@ namespace ADNVectorMath {
 		return cart;
 	}
 
-	SBVector3 SBCrossProduct(SBVector3 v, SBVector3 w)
-	{
+	SBVector3 SBCrossProduct(const SBVector3& v, const SBVector3& w) {
 		std::vector<double> v_std = { v[0].getValue(), v[1].getValue(), v[2].getValue() };
 		std::vector<double> w_std = { w[0].getValue(), w[1].getValue(), w[2].getValue() };
 		ublas::vector<double> v_boost = ADNVectorMath::CreateBoostVector(v_std);
@@ -318,67 +314,64 @@ namespace ADNVectorMath {
 		return u;
 	}
 
-	double SBInnerProduct(SBVector3 v, SBVector3 w)
-	{
+	double SBInnerProduct(const SBVector3& v, const SBVector3& w) {
 		auto res = v[0] * w[0] + v[1] * w[1] + v[2] * w[2];
 		return res.getValue();
 	}
 
-	SBQuantity::length CalculateNanotubeRadius(int numDs)
-	{
-		double pi = atan(1.0) * 4.0;
-		double theta = 2 * pi / numDs;
+	SBQuantity::length CalculateNanotubeRadius(int numDs) {
+		const double pi = atan(1.0) * 4.0;
+		const double theta = 2 * pi / numDs;
 
-		double r = ADNConstants::DH_DIAMETER * 0.5;
+		const double r = ADNConstants::DH_DIAMETER * 0.5;
 
-		double R = r / (2 * sin(theta * 0.25));
+		const double R = r / (2 * sin(theta * 0.25));
 
 		return SBQuantity::nanometer(R);
 	}
 
-	int CalculateNanotubeDoubleStrands(SBQuantity::length radius)
-	{
-		double r = ADNConstants::DH_DIAMETER * 0.5;
-		double R = radius.getValue() / 1000;
-		double pi = atan(1.0) * 4.0;
+	int CalculateNanotubeDoubleStrands(const SBQuantity::length& radius) {
+		const double r = ADNConstants::DH_DIAMETER * 0.5;
+		const double R = radius.getValue() / 1000;
+		const double pi = atan(1.0) * 4.0;
 
-		double theta = 4 * asin(r * 0.5 / R);
+		const double theta = 4 * asin(r * 0.5 / R);
 
 		int num = ceil(2 * pi / theta);
 
 		return num;
 	}
 
-	SBQuantity::length LengthQuadraticBezier(SBPosition3 P0, SBPosition3 P1, SBPosition3 P2)
-	{
+	SBQuantity::length LengthQuadraticBezier(const SBPosition3& P0, const SBPosition3& P1, const SBPosition3& P2) {
 		// starting from derivative of Bezier curve
 		// B'(t) = 2(1-t)(P1-P0)+2t(P2-P1) 
 		// we rewrite as B'(t) = At + B 
 		// so length L = int_0^1 |At + B| = int_0^1 sqrt(Dt^2 + Et + F)
 		// where A and B are vectors, but D, E and F are scalars
-		SBPosition3 A = 2 * (P2 - 2 * P1 + P0);
-		SBPosition3 B = 2 * (P1 - P0);
-		SBQuantity::length An = A.norm();
-		SBQuantity::length Bn = B.norm();
-		SBQuantity::area D = An * An;
-		SBQuantity::area E = 2 * (A | B);
-		SBQuantity::area F = Bn * Bn;
-		SBQuantity::dimensionless b = E / (2 * D);
-		SBQuantity::dimensionless c = F / D;
-		SBQuantity::dimensionless k = c - b * b;
+		const SBPosition3 A = 2 * (P2 - 2 * P1 + P0);
+		const SBPosition3 B = 2 * (P1 - P0);
+		const SBQuantity::length An = A.norm();
+		const SBQuantity::length Bn = B.norm();
+		const SBQuantity::area D = An * An;
+		const SBQuantity::area E = 2 * (A | B);
+		const SBQuantity::area F = Bn * Bn;
+		const SBQuantity::dimensionless b = E / (2 * D);
+		const SBQuantity::dimensionless c = F / D;
+		const SBQuantity::dimensionless k = c - b * b;
 
-		SBQuantity::length length = An * 0.5 * ((1 + b) * sqrt(1 + 2 * b + c) + 0.5 * k * k * log(1 + b + sqrt(1 + 2 * b + c)) - 0.5 * b * sqrt(c) - 0.5 * k * k * log(b + sqrt(c)));
+		const auto sqrt_c = sqrt(c);
+		const auto sqrt_1_2b_c = sqrt(1 + 2 * b + c);
+
+		SBQuantity::length length = An * 0.5 * ((1 + b) * sqrt_1_2b_c + 0.5 * k * k * log(1 + b + sqrt_1_2b_c) - 0.5 * b * sqrt_c - 0.5 * k * k * log(b + sqrt_c));
 
 		return length;
 	}
 
-	SBPosition3 QuadraticBezierPoint(SBPosition3 P0, SBPosition3 P1, SBPosition3 P2, double t)
-	{
+	SBPosition3 QuadraticBezierPoint(const SBPosition3& P0, const SBPosition3& P1, const SBPosition3& P2, double t) {
 		return (1 - t) * ((1 - t) * P0 + t * P1) + t * ((1 - t) * P1 + t * P2);
 	}
 
-	SBVector3 DerivativeQuadraticBezier(SBPosition3 P0, SBPosition3 P1, SBPosition3 P2, double t)
-	{
+	SBVector3 DerivativeQuadraticBezier(const SBPosition3& P0, const SBPosition3& P1, const SBPosition3& P2, double t) {
 		return (2 * (1 - t) * (P1 - P0) + 2 * t * (P2 - P1)).normalizedVersion();
 	}
 
@@ -410,4 +403,5 @@ namespace ADNVectorMath {
 		ublas::row(subspace, 1) = y;
 		return subspace;
 	}
+
 };
