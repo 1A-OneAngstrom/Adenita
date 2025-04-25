@@ -63,6 +63,7 @@ private:
 };
 #endif
 
+#if 0
 class SB_EXPORT Positionable {
 
 public:
@@ -81,6 +82,7 @@ private:
     ublas::vector<double> position_;
 
 };
+#endif
 
 class ADNAtom; // PositionableSB needs ADNAtom defined, hence defined here
 
@@ -107,6 +109,7 @@ private:
 
 };
 
+#if 0
 class SB_EXPORT Identifiable {
 
 public:
@@ -125,6 +128,7 @@ private:
     int id_ = -1;
 
 };
+#endif
 
 class SB_EXPORT Orientable {
 
@@ -151,6 +155,7 @@ private:
 
 };
 
+#if 0
 template <class T>
 class SB_EXPORT Collection {
 
@@ -239,3 +244,4 @@ inline ADNPointer<T> Collection<T>::GetElement(int id) const {
     return collection_.at(id);
 
 }
+#endif

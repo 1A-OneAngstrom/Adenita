@@ -63,7 +63,7 @@ void DASBackToTheAtom::SetDoubleStrandPositions(ADNPointer<ADNDoubleStrand> ds) 
 			break;
 
 		}
-		int num = bs->GetNumber();
+		const int num = bs->GetNumber();
 		ADNPointer<ADNCell> cell = bs->GetCell();
 		if (cell->GetCellType() == CellType::BasePair) {
 
@@ -82,7 +82,7 @@ void DASBackToTheAtom::SetDoubleStrandPositions(ADNPointer<ADNDoubleStrand> ds) 
 		bs = bs->GetNext();
 		if (bs != nullptr && abs(bs->GetNumber() - num) != 1) {
 
-			std::string msg = "Consecutive base segments have not consecutive numbers.";
+			std::string msg = "Consecutive base segments have non-consecutive numbers.";
 			ADNLogger::LogDebug(msg);
 
 		}
