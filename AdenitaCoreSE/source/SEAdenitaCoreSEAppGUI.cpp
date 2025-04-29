@@ -20,10 +20,7 @@
 
 #include "DASPolyhedron.hpp"
 
-#ifdef _WIN32
-#include <locale>
-#include <codecvt>
-#endif
+#include <filesystem>
 
 #include <QPixmap>
 #include <QTimer>
@@ -1018,12 +1015,13 @@ std::string SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(QString filename) {
 	FILE* fp = nullptr;
 	try {
 
+		std::filesystem::path filepath = std::filesystem::u8path(filename.toStdString());
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
-		std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename.toStdString());
-		fp = _wfopen(wfileName.c_str(), L"rb");
+		//std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename.toStdString());
+		fp = _wfopen(filepath.c_str(), L"rb");
 #else
-		fp = fopen(filename.toStdString().c_str(), "rb");
+		fp = fopen(filepath.toStdString().c_str(), "rb");
 #endif
 
 	}
