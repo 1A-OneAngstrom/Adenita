@@ -28,6 +28,7 @@ std::string Nameable::GetName() const {
 }
 #endif
 
+#if 0
 Positionable::Positionable(const Positionable& other) {
     *this = other;
 }
@@ -51,6 +52,7 @@ void Positionable::SetPosition(const ublas::vector<double>& pos) {
 const ublas::vector<double>& Positionable::GetPosition() const {
     return position_;
 }
+#endif
 
 PositionableSB::PositionableSB() {
     centerAtom_ = new ADNAtom();
@@ -103,6 +105,7 @@ void PositionableSB::HideCenterAtom() {
 
 }
 
+#if 0
 Identifiable::Identifiable(const Identifiable& other) {
     *this = other;
 }
@@ -126,6 +129,7 @@ void Identifiable::SetId(int id) noexcept {
 int Identifiable::GetId() const noexcept {
     return id_;
 }
+#endif
 
 Orientable::Orientable() {
 

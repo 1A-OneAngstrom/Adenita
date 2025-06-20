@@ -3,10 +3,7 @@
 #include "SBBackbone.hpp"
 #include "SBSideChain.hpp"
 
-#ifdef _WIN32
-#include <locale>
-#include <codecvt>
-#endif
+#include <filesystem>
 
 #undef foreach
 #include <boost/foreach.hpp>
@@ -16,12 +13,13 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(const std::string& filename) {
 
 	FILE* fp = nullptr;
 	try {
+		std::filesystem::path filepath = std::filesystem::u8path(filename);
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
-		std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
-		fp = _wfopen(wfileName.c_str(), L"rb");
+		//std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
+		fp = _wfopen(filepath.c_str(), L"rb");
 #else
-		fp = fopen(filename.c_str(), "rb");
+		fp = fopen(filepath.c_str(), "rb");
 #endif
 	}
 	catch (...) {
@@ -326,12 +324,13 @@ std::vector<ADNPointer<ADNPart>> ADNLoader::LoadPartsFromJson(std::string filena
 
 	FILE* fp = nullptr;
 	try {
+		std::filesystem::path filepath = std::filesystem::u8path(filename);
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
-		std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
-		fp = _wfopen(wfileName.c_str(), L"rb");
+		//std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
+		fp = _wfopen(filepath.c_str(), L"rb");
 #else
-		fp = fopen(filename.c_str(), "rb");
+		fp = fopen(filepath.c_str(), "rb");
 #endif
 	}
 	catch (...) {
@@ -378,12 +377,13 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filenam
 
 	FILE* fp = nullptr;
 	try {
+		std::filesystem::path filepath = std::filesystem::u8path(filename);
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
-		std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
-		fp = _wfopen(wfileName.c_str(), L"rb");
+		//std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
+		fp = _wfopen(filepath.c_str(), L"rb");
 #else
-		fp = fopen(filename.c_str(), "rb");
+		fp = fopen(filepath.c_str(), "rb");
 #endif
 	}
 	catch (...) {
@@ -1470,12 +1470,7 @@ std::pair<bool, ADNPointer<ADNPart>> ADNLoader::InputFromOxDNA(const std::string
 	std::vector<NucleotideWrap> oxDNAIndices;
 
 	// parse topology file
-#ifdef _WIN32
-	// convert to a wide string (UTF-8) to take care of special characters
-	std::ifstream topo(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(topoFile));
-#else
-	std::ifstream topo(topoFile);
-#endif
+	std::ifstream topo(std::filesystem::u8path(topoFile));
 
 	if (topo.is_open()) {
 
@@ -1541,12 +1536,7 @@ std::pair<bool, ADNPointer<ADNPart>> ADNLoader::InputFromOxDNA(const std::string
 	// parse config file and set positions if topology file was parsed correctly
 	if (!error) {
 
-#ifdef _WIN32
-		// convert to a wide string (UTF-8) to take care of special characters
-		std::ifstream config(std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(configFile));
-#else
-		std::ifstream config(configFile);
-#endif
+		std::ifstream config(std::filesystem::u8path(configFile));
 
 		if (config.is_open()) {
 
