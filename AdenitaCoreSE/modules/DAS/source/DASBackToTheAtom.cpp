@@ -12,15 +12,8 @@
 #include <sstream>
 #include <fstream>
 #include <cstdio>
+#include <filesystem>
 
-#ifdef _WIN32
-#include <locale>
-#include <codecvt>
-
-static std::wstring stringToWstring(const std::string& str) { return std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(str); }
-static std::string	wstringToString(const std::wstring& wstr) { return std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(wstr); }
-
-#endif
 
 DASBackToTheAtom::DASBackToTheAtom() {
 
@@ -814,7 +807,7 @@ void DASBackToTheAtom::FindAtomsPositions(ADNPointer<ADNNucleotide> nt) {
 
 	}
 	else {
-		
+
 		// DM: if there is no base pair (e.g., due to some building issues) info then position based on the nucleotide (its side chain and shift in the direction of the possible base pair center)
 		t_vec = ADNAuxiliary::SBPositionToUblas(nt->GetSidechainPosition() + 0.5 * (nt->GetSidechainPosition() - nt->GetBackbonePosition()));
 
@@ -916,7 +909,7 @@ void DASBackToTheAtom::GenerateAllAtomModel(ADNPointer<ADNPart> origami, bool cr
 		// delete existing bonds
 		SBNodeIndexer bondIndexer;
 		nt->getNodes(bondIndexer, SBNode::Bond);
-		SB_FOR (SBNode* bond, bondIndexer) {
+		SB_FOR(SBNode * bond, bondIndexer) {
 
 			SBPointer<SBBond> ptr = static_cast<SBBond*>(bond);
 			ptr->getParent()->removeChild(ptr());
@@ -981,7 +974,7 @@ void DASBackToTheAtom::GenerateAllAtomModel(ADNPointer<ADNPart> origami, bool cr
 
 		origami->createCovalentBonds();
 
-		SB_FOR(ADNNucleotide* nt, nucleotidesDI)
+		SB_FOR(ADNNucleotide * nt, nucleotidesDI)
 			nt->setNucleotideType(DNABlocks::DI);
 
 	}
@@ -1330,13 +1323,9 @@ void DASBackToTheAtom::LoadNucleotides() {
 
 		try {
 
-#ifdef _WIN32
-			// convert to a wide string (UTF-8) to take care of special characters
-			if (!QFileInfo::exists(QString::fromStdWString(stringToWstring(nt_source))))
-#else
-			if (!QFileInfo::exists(QString::fromStdString(nt_source)))
-#endif
-			{
+			// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
+			const std::filesystem::path filePath = std::filesystem::u8path(nt_source);
+			if (!std::filesystem::exists(filePath)) {
 
 				ADNLogger::LogError("Could not find the file " + nt_source);
 				return;
@@ -1393,13 +1382,9 @@ void DASBackToTheAtom::LoadNtPairs() {
 		const std::string nt_source = SB_ELEMENT_PATH + "/Data/" + name + ".pdb";
 		try {
 
-#ifdef _WIN32
-			// convert to a wide string (UTF-8) to take care of special characters
-			if (!QFileInfo::exists(QString::fromStdWString(stringToWstring(nt_source))))
-#else
-			if (!QFileInfo::exists(QString::fromStdString(nt_source)))
-#endif
-			{
+			// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
+			const std::filesystem::path filePath = std::filesystem::u8path(nt_source);
+			if (!std::filesystem::exists(filePath)) {
 
 				ADNLogger::LogError("Could not find the file " + nt_source);
 				return;
@@ -1447,12 +1432,9 @@ void DASBackToTheAtom::LoadNtPairs() {
 
 NtPair DASBackToTheAtom::ParseBasePairPDB(const std::string& source) {
 
-#ifdef _WIN32
-	// convert to a wide string (UTF-8) to take care of special characters
-	std::ifstream file(stringToWstring(source).c_str(), std::ios::in);
-#else
-	std::ifstream file(source.c_str(), std::ios::in);
-#endif
+	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
+	const std::filesystem::path filePath = std::filesystem::u8path(source);
+	std::ifstream file(filePath, std::ios::in);
 
 	if (!file) {
 
@@ -1476,7 +1458,7 @@ NtPair DASBackToTheAtom::ParseBasePairPDB(const std::string& source) {
 
 		file.getline(line, 1023);
 		std::string s = line;
-		std::string record_name = s.substr(0, 6);
+		const std::string record_name = s.substr(0, 6);
 		if (record_name == "ATOM  ") {
 
 			auto residue_chain = s.substr(21, 1);
@@ -1520,10 +1502,11 @@ NtPair DASBackToTheAtom::ParseBasePairPDB(const std::string& source) {
 			prev_residue_chain = residue_chain;
 
 		}
-		if (record_name == "CONECT") {
+#if 0
+		else if (record_name == "CONECT") {
 
 			// Check length of connect field
-			size_t l = s.size();
+			const size_t l = s.size();
 			std::string a_id = s.substr(7, 5);
 			boost::trim(a_id);
 			int aid = std::stoi(a_id);
@@ -1565,6 +1548,7 @@ NtPair DASBackToTheAtom::ParseBasePairPDB(const std::string& source) {
 			}*/
 
 		}
+#endif
 
 	}
 
@@ -1651,12 +1635,9 @@ ublas::matrix<double> DASBackToTheAtom::CalculateBaseSegmentBasis(ADNPointer<ADN
 
 ADNPointer<ADNNucleotide> DASBackToTheAtom::ParsePDB(const std::string& source) {
 
-#ifdef _WIN32
-	// convert to a wide string (UTF-8) to take care of special characters
-	std::ifstream file(stringToWstring(source).c_str(), std::ios::in);
-#else
-	std::ifstream file(source.c_str(), std::ios::in);
-#endif
+	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
+	const std::filesystem::path filePath = std::filesystem::u8path(source);
+	std::ifstream file(filePath, std::ios::in);
 
 	if (!file) {
 
@@ -1674,7 +1655,7 @@ ADNPointer<ADNNucleotide> DASBackToTheAtom::ParsePDB(const std::string& source) 
 
 		file.getline(line, 1023);
 		std::string s = line;
-		std::string record_name = s.substr(0, 6);
+		const std::string record_name = s.substr(0, 6);
 		if (record_name == "ATOM  ") {
 
 			ADNPointer<ADNAtom> atom = new ADNAtom();
@@ -1694,11 +1675,11 @@ ADNPointer<ADNNucleotide> DASBackToTheAtom::ParsePDB(const std::string& source) 
 			nt->addAtom(g, atom);
 
 		}
-
-		if (record_name == "CONECT") {
+#if 0
+		else if (record_name == "CONECT") {
 
 			// Check length of connect field
-			size_t l = s.size();
+			const size_t l = s.size();
 			std::string a_id = s.substr(7, 5);
 			boost::trim(a_id);
 			int aid = std::stoi(a_id);
@@ -1740,6 +1721,7 @@ ADNPointer<ADNNucleotide> DASBackToTheAtom::ParsePDB(const std::string& source) 
 			}*/
 
 		}
+#endif
 
 	}
 

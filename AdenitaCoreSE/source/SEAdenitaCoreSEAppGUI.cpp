@@ -1018,7 +1018,6 @@ std::string SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(QString filename) {
 		std::filesystem::path filePath = std::filesystem::u8path(filename.toStdString());
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
-		//std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename.toStdString());
 		fp = _wfopen(filePath.c_str(), L"rb");
 #else
 		fp = fopen(filePath.c_str(), "rb");
