@@ -719,7 +719,7 @@ void SEAdenitaCoreSEAppGUI::onOxDNAImport() {
 
 }
 
-void SEAdenitaCoreSEAppGUI::onFromDatagraph() {
+void SEAdenitaCoreSEAppGUI::onFromDataGraph() {
 
 	getApp()->FromDataGraph();
 
@@ -782,10 +782,10 @@ void SEAdenitaCoreSEAppGUI::onGenerateSequence() {
 	gcCont->setValue(40.0);
 	form.addRow(new QLabel("GC Content"), gcCont);
 
-	QSpinBox *contigousGs = new QSpinBox(&dialog);
-	contigousGs->setMinimum(0);
-	contigousGs->setMaximum(100);
-	form.addRow(new QLabel("Maximum amount of contiguous Gs"), contigousGs);
+	QSpinBox *contiguousGs = new QSpinBox(&dialog);
+	contiguousGs->setMinimum(0);
+	contiguousGs->setMaximum(100);
+	form.addRow(new QLabel("Maximum amount of contiguous Gs"), contiguousGs);
 
 	QCheckBox* chk = new QCheckBox(&dialog);
 	chk->setChecked(false);
@@ -806,7 +806,7 @@ void SEAdenitaCoreSEAppGUI::onGenerateSequence() {
 	if (dialog.exec() == QDialog::Accepted) {
 
 		double gc100 = gcCont->value() / 100;
-		int maxContGs = contigousGs->value();
+		int maxContGs = contiguousGs->value();
 		bool overwrite = chk->isChecked();
 
 		getApp()->GenerateSequence(gc100, maxContGs, overwrite);
@@ -830,9 +830,9 @@ void SEAdenitaCoreSEAppGUI::onCenterOnAllModels() {
 
 void SEAdenitaCoreSEAppGUI::onSettings() {
 
-	SEAdenitaCoreSettingsGUI diag(this);
-	diag.showDialog();
-	//diag.exec();
+	SEAdenitaCoreSettingsGUI settingsDialog(this);
+	settingsDialog.showDialog();
+	//settingsDialog.exec();
 
 }
 
@@ -986,7 +986,7 @@ void SEAdenitaCoreSEAppGUI::onGenerateAtomicModel() {
 		if (addToAll && parts.size() > 1) {
 
 			if (!SAMSON::askUser(getName(), "The document contains multiple DNA origami parts. Would you like to generate atomic models for all of them?<br>"
-				"If you would like to generate atomic models only for some of them, click Cancel, select them in the document, and click <b>Generate</b> again."))
+				"If you would like to generate atomic models only for some of them, click <b>Cancel</b>, select them in the document, and click <b>Generate</b> again."))
 				return;
 
 		}
@@ -1726,7 +1726,7 @@ std::vector<QPushButton*> SEAdenitaCoreSEAppGUI::getDebugButtons() {
 		QObject::connect(btnCatenanes, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCatenanes, Qt::ConnectionType::UniqueConnection);
 		QObject::connect(btnAddNtThreeP, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onAddNtThreeP, Qt::ConnectionType::UniqueConnection);
 		QObject::connect(btnFix, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onFixDesigns, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnDataGraph, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onFromDatagraph, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnDataGraph, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onFromDataGraph, Qt::ConnectionType::UniqueConnection);
 
 	}
 

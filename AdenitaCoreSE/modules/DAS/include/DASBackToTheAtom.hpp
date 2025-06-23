@@ -49,7 +49,7 @@ public:
       \param The nucleotide we want to untwist
       \param Whether to also untwist the pair
     */
-    void SetNucleotidePosition(ADNPointer<ADNBaseSegment> bs, bool set_pair);
+    void SetNucleotidePosition(ADNPointer<ADNBaseSegment> bs, bool set_pair = false);
     //! Untwist the nucleotides of a base segment (remove the helix turn)
     /*!
       \param The base segment
@@ -58,7 +58,7 @@ public:
     void UntwistNucleotidesPosition(ADNPointer<ADNBaseSegment> bs);
 
     //! Sets the positions of a collection of nucleotides, meant to be called after modifications
-    void SetPositionsForNewNucleotides(ADNPointer<ADNPart> part, CollectionMap<ADNNucleotide> nts, bool all_atoms = false);
+    void SetPositionsForNewNucleotides(ADNPointer<ADNPart> part, CollectionMap<ADNNucleotide> nts);
 
     //void SetAllAtomsPositions(ADNPointer<ADNPart> origami);
     // for cadnano
@@ -148,10 +148,6 @@ private:
     /** Sets the positions of a list of atoms according to a matrix positions
     */
     static int SetAtomsPositions(CollectionMap<ADNAtom> atoms, ublas::matrix<double> new_positions, int r_id);
-    /**
-     *
-     */
-    static ADNPointer<ADNAtom> CopyAtom(ADNPointer<ADNAtom> atom);
 
 };
 

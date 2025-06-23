@@ -515,35 +515,33 @@ ADNPointer<ADNSidechain> ADNNucleotide::GetSidechain() const {
 
 }
 
-void ADNNucleotide::SetSidechainPosition(Position3D pos) {
+void ADNNucleotide::SetSidechainPosition(const Position3D& pos) {
 
 	auto sc = GetSidechain();
 	if (sc.isValid()) sc->SetPosition(pos);
 
 }
 
-Position3D ADNNucleotide::GetSidechainPosition() const {
+const Position3D& ADNNucleotide::GetSidechainPosition() const {
 
 	auto sc = GetSidechain();
     if (sc.isValid()) return sc->GetPosition();
-    else return Position3D();
-	else return Position3D();
+    else return Position3D::zero;
 
 }
 
-void ADNNucleotide::SetBackbonePosition(Position3D pos) {
+void ADNNucleotide::SetBackbonePosition(const Position3D& pos) {
 
 	auto bb = GetBackbone();
 	if (bb.isValid()) bb->SetPosition(pos);
 
 }
 
-Position3D ADNNucleotide::GetBackbonePosition() const {
+const Position3D& ADNNucleotide::GetBackbonePosition() const {
 
 	auto bb = GetBackbone();
     if (bb.isValid()) return bb->GetPosition();
-    else return Position3D();
-	else return Position3D();
+    else return Position3D::zero;
 
 }
 
@@ -621,5 +619,11 @@ void ADNNucleotide::setTag(std::string t) {
 bool ADNNucleotide::hasTag() const {
 
 	return !tag.empty();
+
+}
+
+void ADNNucleotide::print(unsigned int offset) const {
+
+	std::cout << "Nucleotide " << getName() << ": position = " << GetPosition() << "; backbone position = " << GetBackbonePosition() << "; side-chain position = " << GetSidechainPosition() << std::endl;
 
 }

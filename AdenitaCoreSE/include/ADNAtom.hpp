@@ -12,6 +12,7 @@ public:
 
 	ADNAtom() : SBAtom() {}
 	ADNAtom(const ADNAtom& other);
+	ADNAtom(SBElement::Type element, const SBPosition3& position);
 	~ADNAtom() = default;
 
 	ADNAtom&													operator=(const ADNAtom& other);

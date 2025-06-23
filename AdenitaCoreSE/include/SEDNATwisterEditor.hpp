@@ -107,14 +107,14 @@ private:
 	void														updateEditorText();
 	void														updateForwardReverseState();
 
-	bool														altPressed = false;
+	bool														altPressed{ false };
 	SBPosition3													spherePosition;
-	std::string													editorText = "Untwisting";
-	BendingType													bendingType = BendingType::UNTWIST;
-	SBQuantity::length											sphereRadius = SBQuantity::nanometer(2.0);
-	bool														forwardActionSphereActive = false;
-	bool														reverseActionSphereActive = false;
-	bool														snappingIsActive = true;
+	std::string													editorText{ "Untwisting" };
+	BendingType													bendingType{ BendingType::UNTWIST };
+	SBQuantity::length											sphereRadius{ SBQuantity::nanometer(2.0) };
+	bool														forwardActionSphereActive{ false };
+	bool														reverseActionSphereActive{ false };
+	bool														snappingIsActive{ true };
 
 	/// \name Display
 	//@{

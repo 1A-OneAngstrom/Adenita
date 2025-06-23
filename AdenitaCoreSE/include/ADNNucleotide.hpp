@@ -68,10 +68,10 @@ public:
 	ADNPointer<ADNBackbone>										GetBackbone() const;
 	ADNPointer<ADNSidechain>									GetSidechain() const;
 
-	void														SetSidechainPosition(Position3D pos);
-	Position3D													GetSidechainPosition() const;											///< Return the position of the sidechain of a nucleotide
-	void														SetBackbonePosition(Position3D pos);
-	Position3D													GetBackbonePosition() const;											///< Return the position of the backbone of a nucleotide
+	void														SetSidechainPosition(const Position3D& pos);
+	const Position3D&											GetSidechainPosition() const;											///< Return the position of the sidechain of a nucleotide
+	void														SetBackbonePosition(const Position3D& pos);
+	const Position3D&											GetBackbonePosition() const;											///< Return the position of the backbone of a nucleotide
 
 	// overload position to retrieve it from bb and sc
 	Position3D													GetPosition() const;													///< Return the position of a nucleotide
@@ -97,6 +97,13 @@ public:
 	std::string													getTag() const;
 	void														setTag(std::string t);
 	bool														hasTag() const;
+
+	/// \name Debugging
+	//@{
+
+	virtual void												print(unsigned int offset = 0) const override;							///< Prints debugging information
+
+	//@}
 
 private:
 

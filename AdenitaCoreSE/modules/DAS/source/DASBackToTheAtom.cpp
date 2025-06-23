@@ -1,4 +1,4 @@
-﻿#include "DASBackToTheAtom.hpp"
+#include "DASBackToTheAtom.hpp"
 #include "ADNBackbone.hpp"
 #include "ADNSidechain.hpp"
 
@@ -89,7 +89,7 @@ void DASBackToTheAtom::SetDoubleStrandPositions(ADNPointer<ADNDoubleStrand> ds) 
 
 }
 
-void DASBackToTheAtom::SetNucleotidePosition(ADNPointer<ADNBaseSegment> bs, bool set_pair = false) {
+void DASBackToTheAtom::SetNucleotidePosition(ADNPointer<ADNBaseSegment> bs, bool set_pair) {
 
 	if (bs == nullptr) return;
 
@@ -99,7 +99,7 @@ void DASBackToTheAtom::SetNucleotidePosition(ADNPointer<ADNBaseSegment> bs, bool
 	if (cell->GetCellType() != CellType::BasePair) return;
 
 	auto ds = bs->GetDoubleStrand();
-	double initialAngleDegrees = ds->GetInitialTwistAngle();
+	const double initialAngleDegrees = ds->GetInitialTwistAngle();
 
 	ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(cell());
 	ADNPointer<ADNNucleotide> nt_l = bp->GetLeftNucleotide();
@@ -133,7 +133,7 @@ void DASBackToTheAtom::SetNucleotidePosition(ADNPointer<ADNBaseSegment> bs, bool
 	ublas::matrix<double> new_basisNoTwist = subspace;
 	// apply rotation to basis (rotation has to be negative)
 	// if number is too big, reset it
-	double angle = -ADNVectorMath::DegToRad(initialAngleDegrees) - ADNVectorMath::DegToRad(bs->GetNumber() * ADNConstants::BP_ROT);
+	const double angle = -ADNVectorMath::DegToRad(initialAngleDegrees) - ADNVectorMath::DegToRad(bs->GetNumber() * ADNConstants::BP_ROT);
 	ublas::matrix<double> rot_mat = ADNVectorMath::MakeRotationMatrix(bs->GetE3(), angle);
 	ublas::matrix<double> new_basis = ADNVectorMath::ApplyTransformation(rot_mat, subspace);
 	// Apply transformation
@@ -152,8 +152,10 @@ void DASBackToTheAtom::SetNucleotidePosition(ADNPointer<ADNBaseSegment> bs, bool
 		nt_l->SetE3(ublas::column(new_basis, 2));
 
 		if (nt_l->GetStrand()->IsScaffold()) {
+
 			std::string msg = "Left: " + std::to_string(nt_l->GetE3()[0]) + " " + std::to_string(nt_l->GetE3()[1]) + " " + std::to_string(nt_l->GetE3()[2]);
 			ADNLogger::LogDebug(msg);
+
 		}
 
 		// Set new residue positions
@@ -168,6 +170,16 @@ void DASBackToTheAtom::SetNucleotidePosition(ADNPointer<ADNBaseSegment> bs, bool
 
 	if (nt_r != nullptr) {
 
+
+	}
+
+	if (nt_r != nullptr) {
+
+		auto basis_r = ublas::prod(new_basis, local_basis);
+		//auto basis_r = ublas::prod(new_basis, ublas::identity_matrix<double>(3));
+		nt_r->SetE1(ublas::column(basis_r, 0));
+		nt_r->SetE2(ublas::column(basis_r, 1));
+
 		// right nt has a slightly different basis
 		ublas::matrix<double> local_basis = ublas::identity_matrix<double>(3);
 		local_basis.at_element(0, 0) = 1;
@@ -180,8 +192,10 @@ void DASBackToTheAtom::SetNucleotidePosition(ADNPointer<ADNBaseSegment> bs, bool
 		nt_r->SetE3(ublas::column(basis_r, 2));
 
 		if (nt_r->GetStrand()->IsScaffold()) {
+
 			std::string msg = "Right: " + std::to_string(nt_r->GetE3()[0]) + " " + std::to_string(nt_r->GetE3()[1]) + " " + std::to_string(nt_r->GetE3()[2]);
 			ADNLogger::LogDebug(msg);
+
 		}
 
 		// Set positions
@@ -196,7 +210,7 @@ void DASBackToTheAtom::SetNucleotidePosition(ADNPointer<ADNBaseSegment> bs, bool
 
 }
 
-void DASBackToTheAtom::SetPositionsForNewNucleotides(ADNPointer<ADNPart> part, CollectionMap<ADNNucleotide> nts, bool all_atoms) {
+void DASBackToTheAtom::SetPositionsForNewNucleotides(ADNPointer<ADNPart> part, CollectionMap<ADNNucleotide> nts) {
 
 	if (part == nullptr) return;
 
@@ -260,15 +274,15 @@ ublas::matrix<double> DASBackToTheAtom::CreatePositionsMatrix(NtPair pair) {
 
 	ADNPointer<ADNNucleotide> nt_left = pair.first;
 	ADNPointer<ADNNucleotide> nt_right = pair.second;
-	auto ntLeftAtoms = nt_left->GetAtoms();
-	auto ntRightAtoms = nt_right->GetAtoms();
+	const auto ntLeftAtoms = nt_left->GetAtoms();
+	const auto ntRightAtoms = nt_right->GetAtoms();
 	const size_t cols = 3;
 	const size_t rows_left = ntLeftAtoms.size();
 	const size_t rows_right = ntRightAtoms.size();
 	ublas::matrix<double> positions(rows_left + rows_right, cols);
 	int i = 0;
 
-	SB_FOR(ADNPointer<ADNAtom> n, ntLeftAtoms) {
+	SB_FOR(const ADNPointer<ADNAtom> n, ntLeftAtoms) {
 
 		ublas::vector<double> ac_blas = ADNAuxiliary::SBPositionToUblas(n->getPosition());
 		ublas::row(positions, i) = ac_blas;
@@ -276,7 +290,7 @@ ublas::matrix<double> DASBackToTheAtom::CreatePositionsMatrix(NtPair pair) {
 
 	}
 
-	SB_FOR(ADNPointer<ADNAtom> n, ntRightAtoms) {
+	SB_FOR(const ADNPointer<ADNAtom> n, ntRightAtoms) {
 
 		ublas::vector<double> ac_blas = ADNAuxiliary::SBPositionToUblas(n->getPosition());
 		ublas::row(positions, i) = ac_blas;
@@ -445,12 +459,14 @@ void DASBackToTheAtom::CheckDistances(ADNPointer<ADNPart> part) const {
 				ADNPointer<ADNNucleotide> right = bp->GetRightNucleotide();
 				ADNPointer<ADNNucleotide> leftNext = bpNext->GetLeftNucleotide();
 				ADNPointer<ADNNucleotide> rightNext = bpNext->GetRightNucleotide();
+
 				if (left != nullptr && right != nullptr && leftNext != nullptr && rightNext != nullptr) {
 
 					auto basePairCenterPosition = (left->GetPosition() + right->GetPosition()) * 0.5;
 					auto basePairCenterPositionNext = (leftNext->GetPosition() + rightNext->GetPosition()) * 0.5;
 					auto bpDistance = (basePairCenterPosition - basePairCenterPositionNext).norm();
 					if (!ADNVectorMath::IsNearlyZero(bpDistance.getValue() - ADNConstants::BP_RISE * 1000)) {
+
 						msg = "\tBase Pairs " + nextName + " and " + bs->getName() + " too close or too further away: " + std::to_string(distance.getValue()) + "pm";
 						ADNLogger::LogDebug(msg);
 
@@ -621,21 +637,29 @@ void DASBackToTheAtom::PositionLoopNucleotidesQBezier(ADNPointer<ADNLoop> loop, 
 	SBVector3 endE3;
 
 	if (refS == nullptr) {
+
 		P0 = bsPositionPrev;
 		startE3 = bsPrevE3;
+
 	}
 	else {
+
 		P0 = refS->GetPosition();
 		startE3 = ADNAuxiliary::UblasVectorToSBVector(refS->GetE3());
+
 	}
 
 	if (refE == nullptr) {
+
 		P2 = bsPositionNext;
 		endE3 = bsNextE3;
+
 	}
 	else {
+
 		P2 = refE->GetPosition();
 		endE3 = ADNAuxiliary::UblasVectorToSBVector(refE->GetE3());
+
 	}
 
 	SBVector3 nDir = (startE3 - endE3).normalizedVersion();
@@ -792,14 +816,14 @@ void DASBackToTheAtom::FindAtomsPositions(ADNPointer<ADNNucleotide> nt) {
 
 	}
 
-	// to calculate the translation we need to take into account the base pair
-	// even if pair is not defined, thus we use the ideal base pairs
-	NtPair pair = GetIdealBasePairNucleotides(nt->getNucleotideType(), ADNModel::GetComplementaryBase(nt->getNucleotideType()));
-	ublas::matrix<double> bpPositions = CreatePositionsMatrix(pair);
-
 	// Calculate translation vector
 	ublas::vector<double> t_vec;
 	if (bs != nullptr) {
+
+		// to calculate the translation we need to take into account the base pair
+		// even if pair is not defined, thus we use the ideal base pairs
+		NtPair pair = GetIdealBasePairNucleotides(nt->getNucleotideType(), ADNModel::GetComplementaryBase(nt->getNucleotideType()));
+		ublas::matrix<double> bpPositions = CreatePositionsMatrix(pair);
 
 		// because atoms are fetched from bp, local coordinates refer to base pair c.o.m.
 		ublas::vector<double> sys_cm = ADNAuxiliary::SBPositionToUblas(bs->GetPosition());
@@ -808,7 +832,7 @@ void DASBackToTheAtom::FindAtomsPositions(ADNPointer<ADNNucleotide> nt) {
 	}
 	else {
 
-		// DM: if there is no base pair (e.g., due to some building issues) info then position based on the nucleotide (its side chain and shift in the direction of the possible base pair center)
+		// DM: if there is no base pair info (e.g., due to some building issues) then position atoms based on the nucleotide (its side chain and shift in the direction of the possible base pair center)
 		t_vec = ADNAuxiliary::SBPositionToUblas(nt->GetSidechainPosition() + 0.5 * (nt->GetSidechainPosition() - nt->GetBackbonePosition()));
 
 	}
@@ -890,7 +914,10 @@ void DASBackToTheAtom::PopulateNucleotideWithAllAtoms(ADNPointer<ADNPart> origam
 		NucleotideGroup g = NucleotideGroup::SideChain;
 		if (atom->IsInADNBackbone()) g = NucleotideGroup::Backbone;
 
-		ADNPointer<ADNAtom> newAtom = CopyAtom(atom);
+		// clone the atom
+		ADNPointer<ADNAtom> newAtom = new ADNAtom(atom->getElementType(), atom->getPosition());
+		newAtom->setName(atom->getName());
+
 		origami->RegisterAtom(nt, g, newAtom, createFlag);
 
 	}
@@ -1068,16 +1095,6 @@ SBPosition3 DASBackToTheAtom::UblasToSBPosition(ublas::vector<double> vec) {
 	res[2] = SBQuantity::angstrom(pos[2] * 0.01);
 
 	return res;
-
-}
-
-ADNPointer<ADNAtom> DASBackToTheAtom::CopyAtom(ADNPointer<ADNAtom> atom) {
-
-	ADNPointer<ADNAtom> newAt = new ADNAtom();
-	newAt->setPosition(atom->getPosition());
-	newAt->setElementType(atom->getElementType());
-	newAt->setName(atom->getName());
-	return newAt;
 
 }
 
