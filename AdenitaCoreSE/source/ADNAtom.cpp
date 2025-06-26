@@ -8,12 +8,7 @@ ADNAtom::ADNAtom(const ADNAtom& other) : SBAtom(other) {
 
 }
 
-ADNAtom::ADNAtom(SBElement::Type element, const SBPosition3& position) {
-
-	setElementType(element);
-	setPosition(position);
-
-}
+ADNAtom::ADNAtom(SBElement::Type element, const SBPosition3& position) : SBAtom(element, position) {}
 
 ADNAtom& ADNAtom::operator=(const ADNAtom& other) {
 
