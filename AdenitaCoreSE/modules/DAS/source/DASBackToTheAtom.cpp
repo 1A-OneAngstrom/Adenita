@@ -168,8 +168,6 @@ void DASBackToTheAtom::SetNucleotidePosition(ADNPointer<ADNBaseSegment> bs, bool
 
 	}
 
-	}
-
 	if (nt_r != nullptr) {
 
 		// right nt has a slightly different basis

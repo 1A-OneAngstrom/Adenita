@@ -108,7 +108,7 @@ public:
 	void														ExportToCanDo(const QString& filename);
 	void														FixDesigns();
 
-	virtual void												onDocumentEvent(SBDocumentEvent* documentEvent);						///< Handles document events
+	virtual void												onDocumentEvent(SBDocumentEvent* documentEvent) override;				///< Handles document events
 	virtual void												onStructuralEvent(SBStructuralEvent* structuralEvent);					///< Handles structural events
 	void														ConnectToDocument();
 	void														ConnectToDocument(SBDocument* doc);
