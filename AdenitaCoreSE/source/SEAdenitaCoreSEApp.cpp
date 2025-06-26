@@ -562,7 +562,7 @@ bool SEAdenitaCoreSEApp::CalculateBindingRegions(int oligoConc, int monovalentCo
 
 	}
 
-	SB_FOR(ADNPointer<ADNPart> part, parts) {
+	SB_FOR(ADNPointer<ADNPart> part, parts) if (part != nullptr) {
 
 		PIPrimer3& p = PIPrimer3::GetInstance();
 		p.UpdateBindingRegions(part);

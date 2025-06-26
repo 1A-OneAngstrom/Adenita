@@ -168,17 +168,9 @@ void DASBackToTheAtom::SetNucleotidePosition(ADNPointer<ADNBaseSegment> bs, bool
 
 	}
 
-	if (nt_r != nullptr) {
-
-
 	}
 
 	if (nt_r != nullptr) {
-
-		auto basis_r = ublas::prod(new_basis, local_basis);
-		//auto basis_r = ublas::prod(new_basis, ublas::identity_matrix<double>(3));
-		nt_r->SetE1(ublas::column(basis_r, 0));
-		nt_r->SetE2(ublas::column(basis_r, 1));
 
 		// right nt has a slightly different basis
 		ublas::matrix<double> local_basis = ublas::identity_matrix<double>(3);

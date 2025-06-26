@@ -648,17 +648,17 @@ void SEAdenitaCoreSEAppGUI::onCalculateBindingProperties() {
 	if (dialog.exec() == QDialog::Accepted) {
 
 		bool oligoConcOk = false;
-		int oligoConc = oligoConcText->text().toInt(&oligoConcOk);
+		const int oligoConc = oligoConcText->text().toInt(&oligoConcOk);
 
 		bool monovalentConcOk = false;
-		int monovalentConc = monovalentConcText->text().toInt(&monovalentConcOk);
+		const int monovalentConc = monovalentConcText->text().toInt(&monovalentConcOk);
 
 		bool divalentConcOk = false;
-		int divalentConc = divalentConcText->text().toInt(&divalentConcOk);
+		const int divalentConc = divalentConcText->text().toInt(&divalentConcOk);
 
 		if (oligoConcOk && monovalentConcOk && divalentConcOk) {
 
-			bool res = getApp()->CalculateBindingRegions(oligoConc, monovalentConc, divalentConc);
+			const bool res = getApp()->CalculateBindingRegions(oligoConc, monovalentConc, divalentConc);
 
 			if (res) {
 
