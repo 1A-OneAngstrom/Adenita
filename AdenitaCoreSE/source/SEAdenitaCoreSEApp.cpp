@@ -117,7 +117,7 @@ void SEAdenitaCoreSEApp::LoadPartWithDaedalus(QString filename, int minEdgeSize)
 	SAMSON::setStatusMessage(QString("Loading ") + filename);
 
 	// Apply algorithm
-	DASDaedalus *alg = new DASDaedalus();
+	DASDaedalus* alg = new DASDaedalus();
 	alg->SetMinEdgeLength(minEdgeSize);
 	std::string seq = "";
 	auto part = alg->ApplyAlgorithm(seq, filename.toStdString());
@@ -151,7 +151,7 @@ bool SEAdenitaCoreSEApp::importFromCadnano(const QString& filename, SBDDocumentF
 		return false;
 
 	}
-  
+
 	QFileInfo fi(filename);
 	QString s = fi.baseName();
 	part->setName(s.toStdString());
@@ -240,7 +240,7 @@ void SEAdenitaCoreSEApp::AddNtThreeP(int numNt) {
 		auto nts = ADNBasicOperations::AddNucleotidesThreePrime(part, ss, numNt, dir);
 		DASBackToTheAtom* btta = new DASBackToTheAtom();
 		btta->SetPositionsForNewNucleotides(part, nts);
-		
+
 		SEAdenitaCoreSEApp::resetVisualModel();
 
 	}
@@ -351,13 +351,13 @@ bool SEAdenitaCoreSEApp::addVisualModel(SBNode* parent) {
 	if (parent) {
 
 		SEAdenitaVisualModel* newVisualModel = new SEAdenitaVisualModel();
-		
+
 		if (SAMSON::isHolding())
 			SAMSON::hold(newVisualModel);
 
 		if (parent->isCreated())
 			newVisualModel->create();
-		
+
 		bool ret = parent->addChild(newVisualModel);
 		return ret;
 
@@ -379,15 +379,15 @@ SEAdenitaVisualModel* SEAdenitaCoreSEApp::getVisualModel(SBNode* parent) {
 
 	SBNodeIndexer nodeIndexer;
 	parent->getNodes(nodeIndexer, SBNode::VisualModel);
-  
+
 	SEAdenitaVisualModel* adenitaVisualModel = nullptr;
 
-	SB_FOR(SBNode* node, nodeIndexer) {
+	SB_FOR(SBNode * node, nodeIndexer) {
 
 		if (node->getType() == SBNode::VisualModel) {
 
 			SBVisualModel* visualModel = static_cast<SBVisualModel*>(node);
-			
+
 			if (visualModel->getProxy()->getName() == "SEAdenitaVisualModel" && visualModel->getProxy()->getElementUUID() == SBUUID(SB_ELEMENT_UUID)) {
 
 				adenitaVisualModel = static_cast<SEAdenitaVisualModel*>(visualModel);
@@ -398,7 +398,7 @@ SEAdenitaVisualModel* SEAdenitaCoreSEApp::getVisualModel(SBNode* parent) {
 		}
 
 	}
-    
+
 	return adenitaVisualModel;
 
 }
@@ -525,7 +525,7 @@ void SEAdenitaCoreSEApp::MergeComponents(ADNPointer<ADNPart> p1, ADNPointer<ADNP
 	if (p1 == nullptr || p2 == nullptr) return;
 
 	ADNPointer<ADNPart> newPart = ADNBasicOperations::MergeParts(p1, p2);
-	
+
 	GetNanorobot()->DeregisterPart(p2);
 	if (p2->getParent())
 		p2->getParent()->removeChild(p2());
@@ -562,7 +562,7 @@ bool SEAdenitaCoreSEApp::CalculateBindingRegions(int oligoConc, int monovalentCo
 
 	}
 
-	SB_FOR(ADNPointer<ADNPart> part, parts) {
+	SB_FOR(ADNPointer<ADNPart> part, parts) if (part != nullptr) {
 
 		PIPrimer3& p = PIPrimer3::GetInstance();
 		p.UpdateBindingRegions(part);
@@ -706,7 +706,7 @@ void SEAdenitaCoreSEApp::ExportToCanDo(const QString& filename) {
 		ADNLoader::OutputToCanDo(nanorobot, filename.toStdString());
 
 	}
-  
+
 }
 
 void SEAdenitaCoreSEApp::FixDesigns() {
@@ -794,7 +794,7 @@ void SEAdenitaCoreSEApp::FixDesigns() {
 			ss.deleteReferenceTarget();
 
 		}
-    
+
 	}
 
 	SEAdenitaCoreSEApp::resetVisualModel();
@@ -935,7 +935,7 @@ void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* structuralEvent) {
 
 				auto part = ss->GetPart();
 				if (part != nullptr) {
-					
+
 					part->DeregisterNucleotide(nt, false, true, true);
 					nt->disconnectPair();
 
@@ -961,7 +961,7 @@ void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* structuralEvent) {
 
 			auto nucleotides = bs->GetNucleotides();
 			SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) if (nt != nullptr) nt->erase();
-			
+
 			ADNPointer<ADNDoubleStrand> ds = static_cast<ADNDoubleStrand*>(structuralEvent->getSender());
 			if (ds != nullptr) {
 
@@ -981,7 +981,7 @@ void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* structuralEvent) {
 
 			}
 
-		}   
+		}
 
 	}
 
@@ -997,7 +997,7 @@ void SEAdenitaCoreSEApp::ConnectToDocument(SBDocument* doc) {
 void SEAdenitaCoreSEApp::ConnectToDocument() {
 
 	ConnectToDocument(SAMSON::getActiveDocument());
-	
+
 }
 
 ADNNanorobot* SEAdenitaCoreSEApp::GetNanorobot() {
@@ -1006,7 +1006,7 @@ ADNNanorobot* SEAdenitaCoreSEApp::GetNanorobot() {
 
 }
 
-ADNNanorobot* SEAdenitaCoreSEApp::getNanorobot(SBDocument * document) {
+ADNNanorobot* SEAdenitaCoreSEApp::getNanorobot(SBDocument* document) {
 
 	ADNNanorobot* nanorobot = nullptr;
 
@@ -1142,7 +1142,7 @@ void SEAdenitaCoreSEApp::addPartToDocument(ADNPointer<ADNPart> part, bool positi
 
 	if (SAMSON::isHolding()) SAMSON::hold(part());
 	part->create();
-	
+
 	if (preferredFolder) preferredFolder->addChild(part());
 	else SAMSON::getActiveDocument()->addChild(part());
 

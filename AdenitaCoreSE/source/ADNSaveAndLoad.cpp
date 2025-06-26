@@ -16,7 +16,6 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(const std::string& filename) {
 		std::filesystem::path filepath = std::filesystem::u8path(filename);
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
-		//std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
 		fp = _wfopen(filepath.c_str(), L"rb");
 #else
 		fp = fopen(filepath.c_str(), "rb");
@@ -327,7 +326,6 @@ std::vector<ADNPointer<ADNPart>> ADNLoader::LoadPartsFromJson(std::string filena
 		std::filesystem::path filepath = std::filesystem::u8path(filename);
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
-		//std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
 		fp = _wfopen(filepath.c_str(), L"rb");
 #else
 		fp = fopen(filepath.c_str(), "rb");
@@ -380,7 +378,6 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filenam
 		std::filesystem::path filepath = std::filesystem::u8path(filename);
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
-		//std::wstring wfileName = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(filename);
 		fp = _wfopen(filepath.c_str(), L"rb");
 #else
 		fp = fopen(filepath.c_str(), "rb");

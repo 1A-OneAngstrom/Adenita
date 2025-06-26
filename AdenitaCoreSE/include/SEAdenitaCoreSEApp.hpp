@@ -140,7 +140,7 @@ private:
 
 	std::map<SBDocument*, ADNNanorobot*>						nanorobotMap;
 
-	bool														mod_ = false;
+	bool														mod_{ false };
 
 };
 

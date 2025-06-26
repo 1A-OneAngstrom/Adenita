@@ -14,8 +14,12 @@ CollectionMap<PIBindingRegion> PIPrimer3::GetBindingRegions() const {
     for (auto it = regionsMap_.begin(); it != regionsMap_.end(); ++it) {
 
         CollectionMap<PIBindingRegion> regs = it->second;
-        SB_FOR(ADNPointer<PIBindingRegion> r, regs)
-            regions.addReferenceTarget(r());
+        SB_FOR(ADNPointer<PIBindingRegion> r, regs) {
+
+            if (r != nullptr)
+                regions.addReferenceTarget(r());
+
+        }
 
     }
 
@@ -46,8 +50,12 @@ CollectionMap<PIBindingRegion> PIPrimer3::GetBindingRegions(ADNPointer<ADNPart> 
 void PIPrimer3::DeleteBindingRegions(ADNPointer<ADNPart> p) {
 
     auto regions = GetBindingRegions(p);
-    SB_FOR(ADNPointer<PIBindingRegion> r, regions)
-        r->UnregisterBindingRegion();
+    SB_FOR(ADNPointer<PIBindingRegion> r, regions) {
+        
+        if (r != nullptr)
+            r->UnregisterBindingRegion();
+
+    }
 
 }
 
@@ -133,7 +141,7 @@ void PIPrimer3::Calculate(ADNPointer<ADNPart> p, int oligo_conc, int mv, int dv)
 
     auto regions = GetBindingRegions(p);
 
-    SB_FOR(ADNPointer<PIBindingRegion> r, regions) {
+    SB_FOR(ADNPointer<PIBindingRegion> r, regions) if (r != nullptr) {
 
         auto seqs = r->GetSequences();
         ThermodynamicParameters res = ExecuteNtthal(seqs.first, seqs.second, oligo_conc, mv, dv);
@@ -169,7 +177,7 @@ void PIPrimer3::UpdateBindingRegions(ADNPointer<ADNPart> p) {
     bindingRegionsFolder->create();
     SAMSON::getActiveDocument()->addChild(bindingRegionsFolder);
 
-    SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
+    SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) if (ss != nullptr) {
 
         ADNPointer<ADNNucleotide> nt = ss->GetFivePrime();
 
@@ -191,7 +199,7 @@ void PIPrimer3::UpdateBindingRegions(ADNPointer<ADNPart> p) {
                         endOfRegion = false;
 
                 }
-                else if (st_cur == nullptr) {
+                else if (sc_next != nullptr && st_cur == nullptr) {
 
                     // group up in one binding region the contiguous unpaired nts
                     if (sc_next->GetPair() == nullptr)

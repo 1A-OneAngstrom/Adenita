@@ -476,8 +476,7 @@ RTDoubleStrand DASCreator::AddSingleStrandToADNPart(ADNPointer<ADNPart> part, si
 		part->RegisterNucleotideThreePrime(ss, nt);
 
 		DNABlocks nucleotideType = DNABlocks::DI;
-		SBNode* rightNucleotideNode = bp->getRightNucleotide();
-		if (rightNucleotideNode) if (rightNucleotideNode->getType() == SBNode::Residue) {
+		if (SBNode* rightNucleotideNode = bp->getRightNucleotide(); rightNucleotideNode && rightNucleotideNode->getType() == SBNode::Residue) {
 
 			try {
 				ADNNucleotide* rightNucleotide = static_cast<ADNNucleotide*>(rightNucleotideNode);

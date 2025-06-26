@@ -115,7 +115,7 @@ public slots:
 	void														onKinetoplast();
 	void														onTestNeighbors();
 	void														onOxDNAImport();
-	void														onFromDatagraph();
+	void														onFromDataGraph();
 	void														onHighlightXOs();
 	void														onHighlightPosXOs();
 	void														onExportToCanDo();
