@@ -4,9 +4,9 @@
 #include <QFileDialog>
 
 
-SEAdenitaCoreSettingsGUI::SEAdenitaCoreSettingsGUI(QWidget *parent, Qt::WindowFlags f) : QDialog(parent, f) {
+SEAdenitaCoreSettingsGUI::SEAdenitaCoreSettingsGUI(QWidget* parent, Qt::WindowFlags f) : QDialog(parent, f) {
 
-	ui.setupUi( this );
+	ui.setupUi(this);
 
 	populateUi();
 
@@ -43,7 +43,6 @@ void SEAdenitaCoreSettingsGUI::populateUi() {
 
 }
 
-
 void SEAdenitaCoreSettingsGUI::onResetToDefault() {
 
 }
@@ -65,7 +64,7 @@ void SEAdenitaCoreSettingsGUI::onChangeScaffold(int idx) {
 
 		QString filename;// = QFileDialog::getOpenFileName(this, tr("Choose scaffold"), QDir::currentPath(), tr("(Sequences *.fasta)"));
 		if (!SAMSON::getFileNameFromUser(tr("Choose scaffold"), filename, QDir::currentPath(), tr("(Sequences *.fasta)"))) return;
-		
+
 		ui.lineEditCustomScaffold->setText(filename);
 
 	}

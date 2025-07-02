@@ -35,7 +35,7 @@ namespace ADNBasicOperations {
 
     // Mutations
     SB_EXPORT void MutateNucleotide(ADNPointer<ADNNucleotide> nt, DNABlocks newType, bool changePair = true);
-    SB_EXPORT void SetSingleStrandSequence(ADNPointer<ADNSingleStrand> ss, std::string seq, bool changePair = true, bool overwrite = true);
+    SB_EXPORT void SetSingleStrandSequence(ADNPointer<ADNSingleStrand> ss, const std::string& seq, bool changePair = true, bool overwrite = true);
     SB_EXPORT void MutateBasePairIntoLoopPair(ADNPointer<ADNBaseSegment> bs);
     //! Shift start of the strand to the selected nucleotide and sequence.
     /*!

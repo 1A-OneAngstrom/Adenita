@@ -243,7 +243,7 @@ CollectionMap<ADNSingleStrand> ADNPart::GetScaffolds() const {
 
 }
 
-CollectionMap<ADNNucleotide> ADNPart::GetNucleotides(CellType celltype) const {
+CollectionMap<ADNNucleotide> ADNPart::GetNucleotides(CellType cellType) const {
 
 #if ADENITA_ADNPART_REGISTER_NUCLEOTIDES
     return nucleotidesIndex_;

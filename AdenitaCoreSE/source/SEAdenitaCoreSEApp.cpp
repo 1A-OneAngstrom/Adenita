@@ -1106,12 +1106,16 @@ void SEAdenitaCoreSEApp::addPartToDocument(ADNPointer<ADNPart> part, bool positi
 	SEConfig& config = SEConfig::GetInstance();
 	if (config.auto_set_scaffold_sequence) {
 
-		std::string fname = SEAdenitaCoreSEAppGUI::getScaffoldFilename();
-		std::string seq = SEAdenitaCoreSEApp::readScaffoldFilename(fname);
-		auto scaffolds = part->GetScaffolds();
-		SB_FOR(ADNPointer<ADNSingleStrand> ss, scaffolds) {
+		const std::string fname = SEAdenitaCoreSEAppGUI::getScaffoldFilename();
+		const std::string seq = SEAdenitaCoreSEApp::readScaffoldFilename(fname);
+		if (seq.size()) {
 
-			ADNBasicOperations::SetSingleStrandSequence(ss, seq);
+			auto scaffolds = part->GetScaffolds();
+			SB_FOR(ADNPointer<ADNSingleStrand> ss, scaffolds) {
+
+				ADNBasicOperations::SetSingleStrandSequence(ss, seq);
+
+			}
 
 		}
 
