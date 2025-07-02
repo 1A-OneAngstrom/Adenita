@@ -440,7 +440,7 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filenam
 			ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
 			nt->Init();
 			part->RegisterNucleotideThreePrime(ss, nt);
-			std::string test = itr2->value["type"].GetString();
+			const std::string test = itr2->value["type"].GetString();
 			auto test2 = test.c_str();
 			nt->setNucleotideType(ADNModel::ResidueNameToType(test2[0]));
 			nt->SetE1(ADNAuxiliary::StringToUblasVector(itr2->value["e1"].GetString()));
@@ -448,7 +448,7 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filenam
 			nt->SetE3(ADNAuxiliary::StringToUblasVector(itr2->value["e3"].GetString()));
 			nt->SetPosition(ADNAuxiliary::StringToSBPosition(itr2->value["position"].GetString()));
 
-			nt->setName(itr2->value["type"].GetString() + std::to_string(nt->getNodeIndex()));
+			nt->setName(test + std::to_string(nt->getNodeIndex()));
 			nt->setStructuralID(nt->getNodeIndex());
 
 			nt->SetBackbonePosition(ADNAuxiliary::StringToSBPosition(itr2->value["backboneCenter"].GetString()));
