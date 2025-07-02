@@ -189,6 +189,7 @@ void ADNLoopPair::SetLeftLoop(ADNPointer<ADNLoop> lp) {
     this->leftLoop = lp;
     addChild(lp());
     lp->setName("Left loop " + std::to_string(lp->getNodeIndex()));
+    lp->setStructuralID(lp->getNodeIndex());
 
 }
 
@@ -205,6 +206,7 @@ void ADNLoopPair::SetRightLoop(ADNPointer<ADNLoop> lp) {
     this->rightLoop = lp;
     addChild(lp());
     lp->setName("Right loop " + std::to_string(lp->getNodeIndex()));
+    lp->setStructuralID(lp->getNodeIndex());
 
 }
 

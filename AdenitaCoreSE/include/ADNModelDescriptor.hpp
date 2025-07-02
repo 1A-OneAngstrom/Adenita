@@ -178,8 +178,8 @@ SB_CLASS_BEGIN(ADNNucleotide);
 
     SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNNucleotide, Name, "Name", "Identity");
     SB_ATTRIBUTE_READ_WRITE_CLEAR(const int&, ADNNucleotide, StructuralID, "Residue sequence number", "Identity");
+    SB_ATTRIBUTE_READ_ONLY(DNABlocks, ADNNucleotide, NucleotideType, "Residue type", "Identity");
 
-    SB_ATTRIBUTE_READ_ONLY(DNABlocks, ADNNucleotide, NucleotideType, "Type", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, SingleStrand, "Single strand", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, BaseSegment, "Base segment", "Adenita");
     SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, Next, "Next nucleotide", "Adenita");

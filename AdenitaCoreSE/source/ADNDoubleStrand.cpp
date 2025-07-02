@@ -166,6 +166,8 @@ void ADNDoubleStrand::AddBaseSegmentBeginning(ADNPointer<ADNBaseSegment> baseSeg
     if (baseSegment == nullptr) return;
 
     baseSegment->setName("Base segment " + std::to_string(baseSegment->getNodeIndex()));
+    baseSegment->setStructuralID(baseSegment->getNodeIndex());
+
     int number = baseSegment->GetNumber();
     if (number == -1) {
         // number not defined
@@ -191,6 +193,8 @@ void ADNDoubleStrand::AddBaseSegmentEnd(ADNPointer<ADNBaseSegment> baseSegment) 
     if (baseSegment == nullptr) return;
 
     baseSegment->setName("Base segment " + std::to_string(baseSegment->getNodeIndex()));
+    baseSegment->setStructuralID(baseSegment->getNodeIndex());
+
     int number = baseSegment->GetNumber();
     if (number == -1) {
         // number not defined

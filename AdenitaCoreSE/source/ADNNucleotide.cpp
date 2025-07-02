@@ -140,6 +140,7 @@ void ADNNucleotide::setNucleotideType(DNABlocks t) {
 
 	setResidueType(t);
 	setName(std::string(1, ADNModel::GetResidueName(t)) + " " + std::to_string(getNodeIndex()));
+	setStructuralID(getNodeIndex());
 
 }
 

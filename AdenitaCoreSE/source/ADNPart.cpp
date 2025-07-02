@@ -512,6 +512,7 @@ void ADNPart::RegisterSingleStrand(ADNPointer<ADNSingleStrand> ss) {
     if (ss->getName().empty()) {
 
         ss->setName("Single strand " + std::to_string(singleStrandId_));
+        ss->setStructuralID(singleStrandId_);
         ++singleStrandId_;
 
     }
@@ -531,6 +532,7 @@ void ADNPart::RegisterNucleotideThreePrime(ADNPointer<ADNSingleStrand> ss, ADNPo
     if (nt->getName().empty()) {
 
         nt->setName(nt->getNucleotideTypeString() + " " + std::to_string(nucleotideId_));
+        nt->setStructuralID(nucleotideId_);
         ++nucleotideId_;
 
     }
@@ -550,6 +552,7 @@ void ADNPart::RegisterNucleotideFivePrime(ADNPointer<ADNSingleStrand> ss, ADNPoi
     if (nt->getName().empty()) {
 
         nt->setName(nt->getNucleotideTypeString() + " " + std::to_string(nucleotideId_));
+        nt->setStructuralID(nucleotideId_);
         ++nucleotideId_;
 
     }
@@ -570,6 +573,7 @@ void ADNPart::RegisterNucleotide(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNN
     if (nt->getName().empty()) {
 
         nt->setName(nt->getNucleotideTypeString() + " " + std::to_string(nucleotideId_));
+        nt->setStructuralID(nucleotideId_);
         ++nucleotideId_;
 
     }
@@ -652,6 +656,7 @@ void ADNPart::RegisterDoubleStrand(ADNPointer<ADNDoubleStrand> ds) {
     if (ds->getName().empty()) {
 
         ds->setName("Double strand " + std::to_string(doubleStrandId_));
+        ds->setStructuralID(doubleStrandId_);
         ++doubleStrandId_;
 
     }

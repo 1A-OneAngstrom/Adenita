@@ -336,7 +336,8 @@ void DASCadnano::CreateStaples(ADNPointer<ADNPart> part) {
 		std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> bs_positions = cellBsMap_.at(&vstrands[vStrandId]);
 
 		ADNPointer<ADNSingleStrand> staple = new ADNSingleStrand();
-		staple->setName("Staple" + std::to_string(sid));
+		staple->setName("Staple " + std::to_string(sid));
+		staple->setStructuralID(sid);
 		++sid;
 		staple->setScaffoldFlag(false);
 		part->RegisterSingleStrand(staple);
