@@ -907,6 +907,7 @@ void DASBackToTheAtom::PopulateNucleotideWithAllAtoms(ADNPointer<ADNPart> origam
 		// clone the atom
 		ADNPointer<ADNAtom> newAtom = new ADNAtom(atom->getElementType(), atom->getPosition());
 		newAtom->setName(atom->getName());
+		newAtom->setRecordType((char*)"ATOM", 4);
 
 		origami->RegisterAtom(nt, g, newAtom, createFlag);
 
@@ -1477,6 +1478,8 @@ NtPair DASBackToTheAtom::ParseBasePairPDB(const std::string& source) {
 			int p_id = std::stoi(pdb_id);
 
 			ADNPointer<ADNAtom> atom = new ADNAtom();
+			atom->setRecordType((char*)"ATOM", 4);
+
 			std::string name = s.substr(12, 4);
 			boost::trim(name);
 			atom->setName(name);
@@ -1666,6 +1669,8 @@ ADNPointer<ADNNucleotide> DASBackToTheAtom::ParsePDB(const std::string& source) 
 		if (record_name == "ATOM  ") {
 
 			ADNPointer<ADNAtom> atom = new ADNAtom();
+			atom->setRecordType((char*)"ATOM", 4);
+
 			std::string name = s.substr(12, 4);
 			boost::trim(name);
 			atom->setName(name);

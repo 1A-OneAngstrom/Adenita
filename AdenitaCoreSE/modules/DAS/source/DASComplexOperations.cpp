@@ -206,6 +206,7 @@ void DASOperations::AddComplementaryStrands(ADNNanorobot* nanorobot, CollectionM
 				// create new strand if we change part
 				ss = new ADNSingleStrand();
 				ss->setName("Paired Strand " + std::to_string(i));
+				ss->setStructuralID(i);
 				++i;
 				part->RegisterSingleStrand(ss);
 				createSs = false;

@@ -903,8 +903,11 @@ void DASDaedalus::RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleSt
 	bool left = true;
 
 	for (auto lit = linkGraph_.begin(); lit != linkGraph_.end(); ++lit) {
+
 		ADNPointer<ADNBaseSegment> bs = (*lit)->firstBase_;
+
 		for (int i = 0; i < (*lit)->bp_; ++i) {
+
 			ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
 			nt->Init();
 			part->RegisterNucleotideThreePrime(scaff, nt);
@@ -916,6 +919,7 @@ void DASDaedalus::RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleSt
 
 			ADNPointer<ADNCell> cell = bs->GetCell();
 			if (cell->GetCellType() == CellType::BasePair) {
+
 				// scaffold only goes through dsDNA regions
 				ADNPointer<ADNBasePair> bp_cell = static_cast<ADNBasePair*>(cell());
 				if (left) {
@@ -924,10 +928,15 @@ void DASDaedalus::RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleSt
 				else {
 					bp_cell->SetRightNucleotide(nt);
 				}
+
 			}
+
 			bs = bs->GetNext();
+
 		}
+
 		//left *= false;  // we don't need to change to right because double strands have opposite directions
+
 	}
 
 	// advance beginning of scaffold
@@ -939,42 +948,47 @@ void DASDaedalus::RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleSt
 	if (idx1 < idx2) pos = floor(m);
 	ADNPointer<ADNNucleotide> res = AdvanceNucleotide(scaff->GetFivePrime(), pos);
 	ADNBasicOperations::SetStart(res);
+
 }
 
 ADNPointer<ADNBaseSegment> DASDaedalus::AdvanceBaseSegment(ADNPointer<ADNBaseSegment> bs, int pos) {
+
 	ADNPointer<ADNBaseSegment> res = bs->GetNext();
-	for (int i = 0; i < pos - 1; ++i) {
+	for (int i = 0; i < pos - 1; ++i)
 		res = res->GetNext();
-	}
 	return res;
+
 }
 
 ADNPointer<ADNBaseSegment> DASDaedalus::MoveBackBaseSegment(ADNPointer<ADNBaseSegment> bs, int pos) {
+
 	ADNPointer<ADNBaseSegment> res = bs->GetPrev();
-	for (int i = 0; i < pos - 1; ++i) {
+	for (int i = 0; i < pos - 1; ++i)
 		res = res->GetPrev();
-	}
 	return res;
+
 }
 
-ADNPointer<ADNNucleotide> DASDaedalus::AdvanceNucleotide(ADNPointer<ADNNucleotide> nt, int pos)
-{
+ADNPointer<ADNNucleotide> DASDaedalus::AdvanceNucleotide(ADNPointer<ADNNucleotide> nt, int pos) {
+
 	ADNPointer<ADNNucleotide> res = nt;
-	for (int i = 0; i < pos - 1; ++i) {
+	for (int i = 0; i < pos - 1; ++i)
 		res = res->GetNext();
-	}
 	return res;
+
 }
 
 ADNPointer<ADNSingleStrand> DASDaedalus::CreateEdgeChain(ADNPointer<ADNPart> origami, ADNPointer<ADNBaseSegment> bs, int c_id, int pos_span, int neg_span) {
 
 	ADNPointer<ADNSingleStrand> chain = new ADNSingleStrand();
 	chain->setName("Edge Staple " + std::to_string(c_id));
+	chain->setStructuralID(c_id);
 
 	unsigned int nt_id = 0;
 	bool fst = true;
 
 	for (int i = 0; i < pos_span; ++i) {
+
 		ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
 		nt->Init();
 		origami->RegisterNucleotideThreePrime(chain, nt);
@@ -982,10 +996,12 @@ ADNPointer<ADNSingleStrand> DASDaedalus::CreateEdgeChain(ADNPointer<ADNPart> ori
 		ADNPointer<ADNCell> cell = bs->GetCell();
 		ADNPointer<ADNNucleotide> ntOld = nullptr;
 		if (cell->GetCellType() == CellType::BasePair) {
+
 			// edge staples only goes through dsDNA regions
 			ADNPointer<ADNBasePair> bp_cell = static_cast<ADNBasePair*>(cell());
 			bp_cell->SetRemainingNucleotide(nt);
 			ntOld = nt->GetPair();
+
 		}
 
 		if (ntOld != nullptr) {
@@ -996,11 +1012,14 @@ ADNPointer<ADNSingleStrand> DASDaedalus::CreateEdgeChain(ADNPointer<ADNPart> ori
 		nt->SetSidechainPosition(bs->GetPosition());
 		nt->SetBaseSegment(bs);
 		bs = bs->GetPrev();
+
 	}
+
 	// move base segment to other edge
 	bs = FindBaseSegmentPair(origami, bs);
 
 	for (int i = 0; i < neg_span; ++i) {
+
 		ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
 		nt->Init();
 		origami->RegisterNucleotideThreePrime(chain, nt);
@@ -1008,10 +1027,12 @@ ADNPointer<ADNSingleStrand> DASDaedalus::CreateEdgeChain(ADNPointer<ADNPart> ori
 		ADNPointer<ADNCell> cell = bs->GetCell();
 		ADNPointer<ADNNucleotide> ntOld = nullptr;
 		if (cell->GetCellType() == CellType::BasePair) {
+
 			// edge staples only goes through dsDNA regions
 			ADNPointer<ADNBasePair> bp_cell = static_cast<ADNBasePair*>(cell());
 			bp_cell->SetRemainingNucleotide(nt);
 			ntOld = nt->GetPair();
+
 		}
 		if (ntOld != nullptr) {
 			nt->setNucleotideType(ADNModel::GetComplementaryBase(ntOld->getNucleotideType()));
@@ -1022,14 +1043,18 @@ ADNPointer<ADNSingleStrand> DASDaedalus::CreateEdgeChain(ADNPointer<ADNPart> ori
 		nt->SetBaseSegment(bs);
 
 		bs = bs->GetPrev();
+
 	}
 
 	return chain;
+
 }
 
 ADNPointer<ADNSingleStrand> DASDaedalus::CreateVertexChain(ADNPointer<ADNPart> part, int c_id, std::vector<DASHalfEdge*>ps, EdgeBps& lengths) {
+
 	ADNPointer<ADNSingleStrand> chain = new ADNSingleStrand();
 	chain->setName("Vertex Staple " + std::to_string(c_id));
+	chain->setStructuralID(c_id);
 
 	bool beg = false;
 	int len = 0;

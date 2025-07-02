@@ -55,7 +55,10 @@ const ublas::vector<double>& Positionable::GetPosition() const {
 #endif
 
 PositionableSB::PositionableSB() {
+
     centerAtom_ = new ADNAtom();
+    centerAtom_->setRecordType((char*)"HETATM", 6);
+
 }
 
 PositionableSB::PositionableSB(const PositionableSB& other) {

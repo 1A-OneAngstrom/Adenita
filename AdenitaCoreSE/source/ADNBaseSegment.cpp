@@ -247,6 +247,7 @@ void ADNBaseSegment::SetCell(ADNCell* c) {
     if (this->cell_ != nullptr) {
 
         this->cell_->setName(cell_->getCellTypeString() + " " + std::to_string(this->cell_->getNodeIndex()));
+        this->cell_->setStructuralID(this->cell_->getNodeIndex());
         addChild(this->cell_());
 
     }
