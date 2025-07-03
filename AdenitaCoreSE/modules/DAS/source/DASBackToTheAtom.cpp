@@ -393,7 +393,7 @@ void DASBackToTheAtom::CheckDistances(ADNPointer<ADNPart> part) const {
 
 	auto singleStrands = part->GetSingleStrands();
 	SBPosition3 prevPos;
-	std::string prevName = "";
+	//std::string prevName = "";
 	std::string msg = "Checking distances between nucleotides...";
 	ADNLogger::LogDebug(msg);
 	SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
@@ -417,7 +417,7 @@ void DASBackToTheAtom::CheckDistances(ADNPointer<ADNPart> part) const {
 				start = 1;
 			}
 			prevPos = nt->GetPosition();
-			prevName = nt->getName();
+			//prevName = nt->getName();
 			nt = nt->GetNext();
 
 		}
@@ -720,10 +720,10 @@ void DASBackToTheAtom::CreateBonds(ADNPointer<ADNPart> origami, bool createFlag)
 			if (at == nullptr) continue;
 
 			ADNPointer<ADNAtom> atC = nullptr;
-			std::string atName = at->getName();
+			const std::string atName = at->getName();
 			if (connections.find(atName) != connections.end()) {
 
-				const auto& conns = connections.at(at->getName());
+				const auto& conns = connections.at(atName);
 				for (const std::string& name : conns) {
 
 					auto lst = nt->GetAtomsByName(name);

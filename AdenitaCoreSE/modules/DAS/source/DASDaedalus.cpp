@@ -1,6 +1,9 @@
 #include "DASDaedalus.hpp"
 
+#include <filesystem>
+
 DASDaedalus::~DASDaedalus() {
+
 	for (auto& l : linkGraph_) {
 		delete l;
 	}
@@ -9,6 +12,7 @@ DASDaedalus::~DASDaedalus() {
 	firstBasesHe_.clear();
 	chains_.clear();
 	positionsBBSC_.clear();
+
 }
 
 ADNPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, std::string filename, bool center) {
@@ -23,6 +27,7 @@ ADNPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, std::string fil
 	ADNPointer<ADNPart> daedalus_part = ApplyAlgorithm(seq, p, center);
 
 	return daedalus_part;
+
 }
 
 ADNPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, DASPolyhedron& p, bool center, bool editor) {
@@ -941,7 +946,7 @@ void DASDaedalus::RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleSt
 
 	// advance beginning of scaffold
 	DASEdge* edge = (*linkGraph_.begin())->halfEdge_->edge_;
-	float m = bpLengths_[edge] * 0.5;
+	float m = bpLengths_[edge] * 0.5f;
 	int idx1 = edge->halfEdge_->source_->id_;
 	int idx2 = edge->halfEdge_->pair_->source_->id_;
 	int pos = ceil(m);
@@ -1353,9 +1358,13 @@ int DASDaedalus::CalculateEdgeSize(SBQuantity::length nmLength) {
 }
 
 template <typename T>
-void DASDaedalus::OutputGraph(T g, std::string filename) {
-	std::ofstream dotfile(filename.c_str());
+void DASDaedalus::OutputGraph(T g, const std::string& filename) {
+
+	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
+	const std::filesystem::path filePath = std::filesystem::u8path(filename);
+	std::ofstream dotfile(filePath);
 	boost::write_graphviz(dotfile, g);
+
 }
 
 DOTLink::DOTLink(const DOTLink& other) {

@@ -26,7 +26,6 @@
 #include <QTimer>
 #include <QGroupBox>
 #include <QMessageBox>
-#include <QInputDialog>
 #include <QFormLayout>
 #include <QToolButton>
 

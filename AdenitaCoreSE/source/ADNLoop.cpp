@@ -94,7 +94,7 @@ std::string ADNLoop::getLoopSequence() const {
     ADNPointer<ADNNucleotide> currentNucleotide = startNucleotide;
     while (currentNucleotide != nullptr && currentNucleotide != endNucleotide->GetNext()) {
 
-        seq += currentNucleotide->getNucleotideTypeString();
+        seq += currentNucleotide->getOneLetterNucleotideTypeString();
         currentNucleotide = currentNucleotide->GetNext();
 
     }

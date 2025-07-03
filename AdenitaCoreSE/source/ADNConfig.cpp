@@ -1,5 +1,6 @@
 #include "ADNConfig.hpp"
 #include "rapidjson/filewritestream.h"
+#include <filesystem>
 
 SEConfig & SEConfig::GetInstance() {
 
@@ -314,7 +315,9 @@ void SEConfig::loadConfig() {
 
 		writer.EndObject();
 
-		std::ofstream out(DEFAULT_CONFIGPATH);
+        // Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
+        const std::filesystem::path filePath = std::filesystem::u8path(DEFAULT_CONFIGPATH);
+		std::ofstream out(filePath);
 		out << s.GetString();
 		out.close();
 	}
@@ -361,7 +364,9 @@ void SEConfig::loadDebugConfig() {
 
         writer.EndObject();
 
-        std::ofstream out(DEBUG_CONFIGPATH);
+        // Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
+        const std::filesystem::path filePath = std::filesystem::u8path(DEBUG_CONFIGPATH);
+        std::ofstream out(filePath);
         out << s.GetString();
         out.close();
 

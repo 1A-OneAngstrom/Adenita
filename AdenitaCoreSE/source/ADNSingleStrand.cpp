@@ -264,7 +264,7 @@ std::string ADNSingleStrand::GetSequence() const {
     ADNPointer<ADNNucleotide> nt = fivePrimeNucleotide;
     while (nt != nullptr) {
 
-        seq += nt->getNucleotideTypeString();
+        seq += nt->getOneLetterNucleotideTypeString();
         nt = nt->GetNext();
 
     }
@@ -282,11 +282,10 @@ std::string ADNSingleStrand::GetSequenceWithTags() const {
     ADNPointer<ADNNucleotide> nt = fivePrimeNucleotide;
     while (nt != nullptr) {
 
-        std::string totalBase = nt->getNucleotideTypeString();
+        std::string totalBase = nt->getOneLetterNucleotideTypeString();
         if (nt->hasTag()) {
 
-            std::string base = nt->getNucleotideTypeString();
-            totalBase = "[" + nt->getTag() + base + "]";
+            totalBase = "[" + nt->getTag() + totalBase + "]";
 
         }
         seq += totalBase;

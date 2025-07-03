@@ -4,7 +4,23 @@
 
 #include "SAMSON.hpp"
 
-#include <QInputDialog>
+//#include <QInputDialog>
+
+const std::map<int, DNABlocks> SETaggingEditor::values = {
+	{0, DNABlocks::DA},
+	{1, DNABlocks::DT},
+	{2, DNABlocks::DC},
+	{3, DNABlocks::DG},
+	{4, DNABlocks::DI}
+};
+
+const std::map<DNABlocks, int> SETaggingEditor::indices = {
+	{DNABlocks::DA, 0},
+	{DNABlocks::DT, 1},
+	{DNABlocks::DC, 2},
+	{DNABlocks::DG, 3},
+	{DNABlocks::DI, 4}
+};
 
 
 SETaggingEditor::SETaggingEditor() {
@@ -29,11 +45,11 @@ SETaggingEditorGUI* SETaggingEditor::getPropertyWidget() const { return static_c
 
 SBCContainerUUID SETaggingEditor::getUUID() const { return SBCContainerUUID("2A1B195E-3E38-BD20-1B61-70A3CA6761C8"); }
 
-QString SETaggingEditor::getName() const { 
+QString SETaggingEditor::getName() const {
 
 	// SAMSON Element generator pro tip: this name should not be changed
 
-	return "SETaggingEditor"; 
+	return "SETaggingEditor";
 
 }
 
@@ -59,23 +75,23 @@ int SETaggingEditor::getFormat() const {
 
 }
 
-QKeySequence SETaggingEditor::getShortcut() const { 
-	
+QKeySequence SETaggingEditor::getShortcut() const {
+
 	// SAMSON Element generator pro tip: modify this function to associate a tentative shortcut to your editor
 
-	return QKeySequence(""); 
+	return QKeySequence("");
 
 }
 
-QString SETaggingEditor::getToolTip() const { 
-	
+QString SETaggingEditor::getToolTip() const {
+
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Tag nucleotides or change their base. The tag will appear when exporting sequences."); 
+	return QObject::tr("Tag nucleotides or change their base. The tag will appear when exporting sequences.");
 
 }
 
-void SETaggingEditor::loadSettings(SBGSettings * settings) {
+void SETaggingEditor::loadSettings(SBGSettings* settings) {
 
 	if (settings == nullptr) return;
 
@@ -139,14 +155,13 @@ void SETaggingEditor::display() {
 
 	if (taggingMode == TaggingMode::Base) {
 
-		const std::string base(1, ADNModel::GetResidueName(nucleotideType));
+		const std::string base = ADNModel::GetResidueName(nucleotideType, true);
 		const SBPosition3 position = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
 		ADNDisplayHelper::displayText(position, base);
 
 	}
 
 }
-
 
 void SETaggingEditor::displayForShadow() {
 
@@ -179,12 +194,12 @@ void SETaggingEditor::mouseReleaseEvent(QMouseEvent* event) {
 			//const QString tagText = QInputDialog::getText(this, tr("Enter Nucleotide Tag"), tr("Tag:"), QLineEdit::Normal, QString(), &ok);
 			QString tagText;
 			if (SAMSON::getStringFromUser("Enter Nucleotide Tag", tagText))
-			if (!tagText.isEmpty()) {
+				if (!tagText.isEmpty()) {
 
-				nucleotide->setTag(tagText.toStdString());
-				nucleotide->setSelectionFlag(true);
+					nucleotide->setTag(tagText.toStdString());
+					nucleotide->setSelectionFlag(true);
 
-			}
+				}
 
 		}
 		else if (taggingMode == TaggingMode::Base) {
@@ -250,7 +265,7 @@ void SETaggingEditor::keyReleaseEvent(QKeyEvent* event) {
 
 }
 
-ADNPointer<ADNNucleotide> SETaggingEditor::GetHighlightedNucleotide() {
+ADNPointer<ADNNucleotide> SETaggingEditor::GetHighlightedNucleotide() const {
 
 	ADNPointer<ADNNucleotide> nucleotide = nullptr;
 	auto highlightedNucleotides = SEAdenitaCoreSEApp::getAdenitaApp()->GetNanorobot()->GetHighlightedNucleotides();
@@ -263,55 +278,36 @@ ADNPointer<ADNNucleotide> SETaggingEditor::GetHighlightedNucleotide() {
 }
 
 void SETaggingEditor::setTaggingMode(TaggingMode mode) {
-	
+
 	this->taggingMode = mode;
 
 }
 
-DNABlocks SETaggingEditor::getNucleotideType(QPoint numSteps) {
+DNABlocks SETaggingEditor::getNucleotideType(const QPoint& numSteps) const {
 
 	DNABlocks t = nucleotideType;
 
-	std::map<int, DNABlocks> values = {
-		{0, DNABlocks::DA},
-		{1, DNABlocks::DT},
-		{2, DNABlocks::DC},
-		{3, DNABlocks::DG},
-		{4, DNABlocks::DI}
-	};
-
-	std::map<DNABlocks, int> indices = {
-		{DNABlocks::DA, 0},
-		{DNABlocks::DT, 1},
-		{DNABlocks::DC, 2},
-		{DNABlocks::DG, 3},
-		{DNABlocks::DI, 4}
-	};
-
-	const int currIndex = indices[t];
+	const int currIndex = indices.at(t);
 	int newIndex = currIndex + numSteps.y();
 	// keep new index between 0 and 4
 	const int numValues = static_cast<int>(values.size());
 	if (newIndex < 0) {
 
 		int turns = abs(newIndex);
-		std::div_t divresult;
-		divresult = std::div(turns, numValues);
-		newIndex = numValues - divresult.rem + 1;
+		std::div_t divResult = std::div(turns, numValues);
+		newIndex = numValues - divResult.rem + 1;
 
 	}
 	else if (newIndex > 4) {
 
 		int turns = newIndex + 1; // take into account 0
-		std::div_t divresult;
-		divresult = std::div(turns, numValues);
-		newIndex = divresult.rem;
+		std::div_t divResult = std::div(turns, numValues);
+		newIndex = divResult.rem;
 
 	}
 
-	t = values[newIndex];
+	t = values.at(newIndex);
 
 	return t;
 
 }
-

@@ -95,14 +95,12 @@ public:
 		ADNPointer<ADNSingleStrand> ss;
 		ADNPointer<ADNDoubleStrand> ds;
 
-		std::string GetName() {
+		std::string GetName() const {
 			std::string n = "";
-			if (type == 0) {
+			if (type == 0)
 				n = ds->getName();
-			}
-			else if (type == 1) {
+			else if (type == 1)
 				n = ss->getName();
-			}
 			return n;
 		}
 	};
@@ -113,8 +111,8 @@ public:
 	bool														mergeParts(int idx, int jdx);
 	bool														moveElement(int edx, int pdx);
 
-	void														selectComponent(int idx);
-	void														selectElement(int idx);
+	void														selectComponent(int idx) const;
+	void														selectElement(int idx) const;
 
 private:
 

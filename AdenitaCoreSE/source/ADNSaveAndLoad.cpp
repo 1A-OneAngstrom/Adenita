@@ -1318,10 +1318,15 @@ ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraphParametrized(SBNode* sn
 
 void ADNLoader::OutputToOxDNA(ADNPointer<ADNPart> part, const std::string& folder, const ADNAuxiliary::OxDNAOptions& options) {
 
-	std::string fnameConf = "config.conf";
-	std::ofstream outConf(folder + "/" + fnameConf);
-	std::string fnameTopo = "topo.top";
-	std::ofstream outTopo(folder + "/" + fnameTopo);
+	const std::string fnameConf = "config.conf";
+	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
+	const std::filesystem::path confFilePath = std::filesystem::u8path(folder + "/" + fnameConf);
+	std::ofstream outConf(confFilePath);
+
+	const std::string fnameTopo = "topo.top";
+	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
+	const std::filesystem::path topoFilePath = std::filesystem::u8path(folder + "/" + fnameTopo);
+	std::ofstream outTopo(topoFilePath);
 
 	auto singleStrands = part->GetSingleStrands();
 	SingleStrandsToOxDNA(singleStrands, outConf, outTopo, options);
@@ -1342,10 +1347,15 @@ void ADNLoader::OutputToOxDNA(CollectionMap<ADNPart> parts, const std::string& f
 
 	}
 
-	std::string fnameConf = "config.conf";
-	std::ofstream outConf(folder + "/" + fnameConf);
-	std::string fnameTopo = "topo.top";
-	std::ofstream outTopo(folder + "/" + fnameTopo);
+	const std::string fnameConf = "config.conf";
+	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
+	const std::filesystem::path confFilePath = std::filesystem::u8path(folder + "/" + fnameConf);
+	std::ofstream outConf(confFilePath);
+
+	const std::string fnameTopo = "topo.top";
+	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
+	const std::filesystem::path topoFilePath = std::filesystem::u8path(folder + "/" + fnameTopo);
+	std::ofstream outTopo(topoFilePath);
 
 	SingleStrandsToOxDNA(singleStrands, outConf, outTopo, options);
 
@@ -1405,7 +1415,7 @@ void ADNLoader::SingleStrandsToOxDNA(CollectionMap<ADNSingleStrand> singleStrand
 			outConf << positionVector + " " + backboneBaseVector + " " + normalVector + " " + v + " " + L << std::endl;
 
 			// topology file info
-			std::string base = nt->getNucleotideTypeString();
+			std::string base = nt->getOneLetterNucleotideTypeString();
 			if (base == "N") base = "R";  // oxDNA uses R for random
 
 			std::string threePrime = "-1";
@@ -1616,7 +1626,10 @@ std::pair<bool, ADNPointer<ADNPart>> ADNLoader::InputFromOxDNA(const std::string
 
 void ADNLoader::OutputToCanDo(ADNNanorobot* nanorobot, const std::string& filename) {
 
-	std::ofstream file(filename);
+	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
+	const std::filesystem::path filePath = std::filesystem::u8path(filename);
+	std::ofstream file(filePath);
+
 	const std::string header = "\"CanDo (.cndo) file format version 1.0, Keyao Pan, Laboratory for Computational Biology "
 		"and Biophysics, Massachusetts Institute of Technology, November 2015\"";
 	file << header << std::endl;
@@ -1653,7 +1666,7 @@ void ADNLoader::OutputToCanDo(ADNNanorobot* nanorobot, const std::string& filena
 		int pairIdx = -1;
 		if (pairNt != nullptr) prevIdx = nucleotidesId[pairNt];
 
-		std::string line = std::to_string(idx) + "," + std::to_string(prevIdx) + "," + std::to_string(nextIdx) + "," + std::to_string(pairIdx) + nt->getNucleotideTypeString();
+		std::string line = std::to_string(idx) + "," + std::to_string(prevIdx) + "," + std::to_string(nextIdx) + "," + std::to_string(pairIdx) + nt->getOneLetterNucleotideTypeString();
 		file << line << std::endl;
 
 	}
@@ -1718,7 +1731,10 @@ void ADNLoader::OutputToCanDo(ADNNanorobot* nanorobot, const std::string& filena
 
 void ADNLoader::OutputToCanDo(ADNPointer<ADNPart> part, const std::string& filename) {
 
-	std::ofstream file(filename);
+	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
+	const std::filesystem::path filePath = std::filesystem::u8path(filename);
+	std::ofstream file(filePath);
+
 	const std::string header = "\"CanDo (.cndo) file format version 1.0, Keyao Pan, Laboratory for Computational Biology "
 		"and Biophysics, Massachusetts Institute of Technology, November 2015\"";
 	file << header << std::endl;
@@ -1756,7 +1772,7 @@ void ADNLoader::OutputToCanDo(ADNPointer<ADNPart> part, const std::string& filen
 		int pairIdx = -1;
 		if (pairNt != nullptr) pairIdx = nucleotidesId[pairNt];
 
-		std::string line = std::to_string(idx) + "," + std::to_string(prevIdx) + "," + std::to_string(nextIdx) + "," + std::to_string(pairIdx) + nt->getNucleotideTypeString();
+		std::string line = std::to_string(idx) + "," + std::to_string(prevIdx) + "," + std::to_string(nextIdx) + "," + std::to_string(pairIdx) + nt->getOneLetterNucleotideTypeString();
 		file << line << std::endl;
 
 	}
@@ -2083,7 +2099,11 @@ void ADNLoader::BuildTopScales(ADNPointer<ADNPart> part) {
 void ADNLoader::OutputToCSV(CollectionMap<ADNPart> parts, const std::string& fname, const std::string& folder) {
 
 	int num = 0;
-	std::ofstream out(folder + "/" + fname);
+
+	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
+	const std::filesystem::path filePath = std::filesystem::u8path(folder + "/" + fname);
+	std::ofstream out(filePath);
+
 	SignOutputFile(out);
 	SB_FOR(ADNPointer<ADNPart> part, parts) {
 

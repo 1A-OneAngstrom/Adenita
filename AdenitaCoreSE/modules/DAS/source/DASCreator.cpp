@@ -90,7 +90,7 @@ ADNPointer<ADNSingleStrand> DASCreator::CreateSingleStrand(ADNPointer<ADNPart> p
 	return res.ss1;
 }
 
-ADNPointer<ADNLoop> DASCreator::CreateLoop(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nextNt, std::string seq, ADNPointer<ADNPart> part)
+ADNPointer<ADNLoop> DASCreator::CreateLoop(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nextNt, const std::string& seq, ADNPointer<ADNPart> part)
 {
 	ADNPointer<ADNLoop> loop = new ADNLoop();
 
@@ -376,7 +376,7 @@ ADNPointer<ADNDoubleStrand> DASCreator::AddRingToADNPart(ADNPointer<ADNPart> par
 
 }
 
-RTDoubleStrand DASCreator::AddDoubleStrandToADNPart(ADNPointer<ADNPart> part, size_t length, SBPosition3 start, SBVector3 direction, bool mock) {
+RTDoubleStrand DASCreator::AddDoubleStrandToADNPart(ADNPointer<ADNPart> part, const size_t length, SBPosition3 start, SBVector3 direction, bool mock) {
 
 	const SBPosition3 delt = SBQuantity::nanometer(ADNConstants::BP_RISE) * direction;
 	SBPosition3 pos = start;
@@ -449,7 +449,7 @@ RTDoubleStrand DASCreator::AddDoubleStrandToADNPart(ADNPointer<ADNPart> part, si
 
 }
 
-RTDoubleStrand DASCreator::AddSingleStrandToADNPart(ADNPointer<ADNPart> part, size_t length, SBPosition3 start, SBVector3 direction) {
+RTDoubleStrand DASCreator::AddSingleStrandToADNPart(ADNPointer<ADNPart> part, const size_t length, SBPosition3 start, SBVector3 direction) {
 
 	const SBPosition3 delt = SBQuantity::nanometer(ADNConstants::BP_RISE) * direction;
 	SBPosition3 pos = start;

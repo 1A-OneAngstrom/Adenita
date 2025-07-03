@@ -471,7 +471,7 @@ void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPoi
 			break;
 		}
 
-		//find next scaf element
+		//find next scaffold element
 		auto nextVstrand = json_.vstrands_[curVstrandElem.n2];
 		vec4 nextVstrandElem;
 		if (scaf) nextVstrandElem = nextVstrand.scaf_[curVstrandElem.n3];
@@ -487,7 +487,7 @@ void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPoi
 
 void DASCadnano::CreateConformations(ADNPointer<ADNPart> part) {
 
-	std::string name = part->getName();
+	const std::string name = part->getName();
 	SBNodeIndexer nodeIndexer;
 	part->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNAtom")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 

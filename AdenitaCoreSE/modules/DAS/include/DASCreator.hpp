@@ -49,12 +49,12 @@ namespace DASCreator {
     */
     ADNPointer<ADNSingleStrand> CreateSingleStrand(ADNPointer<ADNPart> part, int length, SBPosition3 start, SBVector3 direction, bool mock = false);
 
-    ADNPointer<ADNLoop> CreateLoop(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nextNt, std::string seq, ADNPointer<ADNPart> part = nullptr);
+    ADNPointer<ADNLoop> CreateLoop(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nextNt, const std::string& seq, ADNPointer<ADNPart> part = nullptr);
 
     //! Creates a ADNPart containing a nanotube
     /*!
       \param the radius of the nanotube
-      \param position of the center of the bottom circumpherence
+      \param position of the center of the bottom circumference
       \param direction vector towards which to grow the nanotube
       \param length of the nanotube in base pairs
       \param whether to create a mock part containing only the high-level details
@@ -63,7 +63,7 @@ namespace DASCreator {
     //! Creates a ADNPart containing only the high-level model (double strands) of a nanotube for displaying purposes
     /*!
       \param the radius of the nanotube
-      \param position of the center of the bottom circumpherence
+      \param position of the center of the bottom circumference
       \param direction vector towards which to grow the nanotube
       \param length of the nanotube in base pairs
     */
@@ -127,7 +127,7 @@ namespace DASCreator {
       \param direction of the double strand
       \param whether to generate a mock part or not
     */
-    RTDoubleStrand AddDoubleStrandToADNPart(ADNPointer<ADNPart> part, size_t length, SBPosition3 start, SBVector3 direction, bool mock = false);
+    RTDoubleStrand AddDoubleStrandToADNPart(ADNPointer<ADNPart> part, const size_t length, SBPosition3 start, SBVector3 direction, bool mock = false);
 
     //! Helper function that creates a single strand B-DNA like in a ADNPart
     /*!
@@ -136,13 +136,13 @@ namespace DASCreator {
       \param position of the 5' in space
       \param direction of the double strand
     */
-    RTDoubleStrand AddSingleStrandToADNPart(ADNPointer<ADNPart> part, size_t length, SBPosition3 start, SBVector3 direction);
+    RTDoubleStrand AddSingleStrandToADNPart(ADNPointer<ADNPart> part, const size_t length, SBPosition3 start, SBVector3 direction);
 
     //* Generates a crippled cuboid for viewing purposes
     //*/
     //ADNPart* CreateCrippledWireframeCuboid(SBPosition3 topLeft, int xSize, int ySize, int zSize);
 
-    ///** Generates a small system for debuging crossovers purposes
+    ///** Generates a small system for debugging crossovers purposes
     // */
     //ADNPart* DebugCrossoversPart();
 
@@ -156,8 +156,8 @@ namespace DASCreatorEditors {
         SBPosition3 SecondPosition;
         SBPosition3 ThirdPosition;
         SBVector3 FirstVector;
-        int positionsCounter = 0;
-        int vectorsCounter = 0;
+        int positionsCounter{ 0 };
+        int vectorsCounter{ 0 };
     };
 
     void resetPositions(UIData& pos);
