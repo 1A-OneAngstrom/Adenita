@@ -259,7 +259,7 @@ private:
 	DOTLink* AddLink(std::pair<DOTNode*, DOTNode*> ab, int bp, DASPolyhedron& fig);
 	DOTNode* GetNodeById(int id) const;
 	DOTLink* GetLinkByNodes(DOTNode* v, DOTNode* w) const;
-	void RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleStrand> scaff, std::string seq, int routing_length);
+	void RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleStrand> scaffold, std::string seq, int routing_length);
 	ADNPointer<ADNBaseSegment> AdvanceBaseSegment(ADNPointer<ADNBaseSegment> bs, int pos);
 	ADNPointer<ADNBaseSegment> MoveBackBaseSegment(ADNPointer<ADNBaseSegment> bs, int pos);
 	ADNPointer<ADNNucleotide> AdvanceNucleotide(ADNPointer<ADNNucleotide> nt, int pos);

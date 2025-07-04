@@ -315,9 +315,7 @@ void SEConfig::loadConfig() {
 
 		writer.EndObject();
 
-        // Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
-        const std::filesystem::path filePath = std::filesystem::u8path(DEFAULT_CONFIGPATH);
-		std::ofstream out(filePath);
+		std::ofstream out(std::filesystem::u8path(DEFAULT_CONFIGPATH));
 		out << s.GetString();
 		out.close();
 	}
@@ -364,9 +362,7 @@ void SEConfig::loadDebugConfig() {
 
         writer.EndObject();
 
-        // Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
-        const std::filesystem::path filePath = std::filesystem::u8path(DEBUG_CONFIGPATH);
-        std::ofstream out(filePath);
+        std::ofstream out(std::filesystem::u8path(DEBUG_CONFIGPATH));
         out << s.GetString();
         out.close();
 

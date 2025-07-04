@@ -304,9 +304,8 @@ double ADNSingleStrand::GetGCContent() const {
 
     SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
-        if (nt->getNucleotideType() == DNABlocks::DC || nt->getNucleotideType() == DNABlocks::DG) {
+        if (nt->getNucleotideType() == DNABlocks::DC || nt->getNucleotideType() == DNABlocks::DG)
             gcCont += 1.0;
-        }
 
     }
 
@@ -316,7 +315,9 @@ double ADNSingleStrand::GetGCContent() const {
 }
 
 double ADNSingleStrand::getGCContent() const {
+
     return GetGCContent();
+
 }
 
 void ADNSingleStrand::SetSequence(std::string seq) {
@@ -350,7 +351,9 @@ void ADNSingleStrand::SetSequence(std::string seq) {
 }
 
 void ADNSingleStrand::setSequence(std::string seq) {
+
     SetSequence(seq);
+
 }
 
 void ADNSingleStrand::SetDefaultName() {

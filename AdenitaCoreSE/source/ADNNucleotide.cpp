@@ -139,7 +139,7 @@ void ADNNucleotide::unserialize(SBCSerializer* serializer, const SBNodeIndexer& 
 void ADNNucleotide::setNucleotideType(DNABlocks t) {
 
 	setResidueType(t);
-	setName(ADNModel::GetResidueName(t) + " " + std::to_string(getNodeIndex()));
+	setName(ADNModel::GetResidueName(t, false) + " " + std::to_string(getNodeIndex()));
 	setStructuralID(getNodeIndex());
 
 }
@@ -152,7 +152,7 @@ DNABlocks ADNNucleotide::getNucleotideType() const {
 
 std::string ADNNucleotide::getNucleotideTypeString() const {
 
-	return ADNModel::GetResidueName(getNucleotideType());
+	return ADNModel::GetResidueName(getNucleotideType(), false);
 
 }
 

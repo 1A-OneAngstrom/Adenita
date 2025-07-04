@@ -202,9 +202,9 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 
 	}
 	typeSelection->insertItem(i, QString::fromStdString("Selected Component(s)"));
-	int sel_idx = i;
+	const int sel_idx = i;
 	typeSelection->insertItem(i + 1, QString::fromStdString("Workspace"));
-	int all_idx = i + 1;
+	const int all_idx = i + 1;
 
 	QStringList itemsExportType;
 	itemsExportType << "Sequence list" << "oxDNA";
@@ -237,11 +237,10 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 	dialogWindow->setWindowModality(Qt::ApplicationModal);
 	dialogWindow->show();
 
-	int dialogCode = dialog->exec();
+	if (dialog->exec() == QDialog::Accepted) {
 
-	if (dialogCode == QDialog::Accepted) {
-
-		auto val = typeSelection->currentIndex();
+		const auto val = typeSelection->currentIndex();
+		const QString eType = exportType->currentText();
 
 		CollectionMap<ADNPart> selectedParts;
 
@@ -261,8 +260,6 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 			selectedParts = nr->GetParts();
 
 		}
-
-		QString eType = exportType->currentText();
 
 		if (eType == "Sequence list") {
 
@@ -335,7 +332,7 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 			dialogOxDNAWindow->setWindowModality(Qt::ApplicationModal);
 			dialogOxDNAWindow->show();
 
-			int dCode = dialogOxDNA->exec();
+			const int dCode = dialogOxDNA->exec();
 
 			if (dCode == QDialog::Accepted) {
 
@@ -377,7 +374,7 @@ void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 
 	}
 	typeSelection->insertItem(i, QString::fromStdString("Selected Component"));
-	int sel_idx = i;
+	const int sel_idx = i;
 
 	QPushButton* acceptButton = new QPushButton(tr("Save"));
 	acceptButton->setDefault(true);
@@ -404,9 +401,7 @@ void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 	dialogWindow->setWindowModality(Qt::ApplicationModal);
 	dialogWindow->show();
 
-	int dialogCode = dialog->exec();
-
-	if (dialogCode == QDialog::Accepted) {
+	if (dialog->exec() == QDialog::Accepted) {
 
 		auto val = typeSelection->currentIndex();
 		ADNPointer<ADNPart> part = nullptr;
@@ -501,9 +496,7 @@ void SEAdenitaCoreSEAppGUI::onCatenanes() {
 	dialogWindow->setWindowModality(Qt::ApplicationModal);
 	dialogWindow->show();
 
-	int dialogCode = dialog->exec();
-
-	if (dialogCode == QDialog::Accepted) {
+	if (dialog->exec() == QDialog::Accepted) {
 
 		int num = number->value();
 		SBQuantity::length R = SBQuantity::nanometer(radius->value());
@@ -575,9 +568,7 @@ void SEAdenitaCoreSEAppGUI::onKinetoplast() {
 	dialogWindow->setWindowModality(Qt::ApplicationModal);
 	dialogWindow->show();
 
-	int dialogCode = dialog->exec();
-
-	if (dialogCode == QDialog::Accepted) {
+	if (dialog->exec() == QDialog::Accepted) {
 
 		int r = rows->value();
 		int c = cols->value();
@@ -975,12 +966,11 @@ void SEAdenitaCoreSEAppGUI::onGenerateAtomicModel() {
 
 	if (parts.size()) {
 
-		bool addToAll = true;
 		unsigned int nSelectedParts = 0;
 		SB_FOR(ADNPointer<ADNPart> part, parts)
 			if (part->getSelectionFlag()) ++nSelectedParts;
 
-		addToAll = (nSelectedParts == 0);
+		const bool addToAll = (nSelectedParts == 0);
 
 		if (addToAll && parts.size() > 1) {
 
@@ -1271,13 +1261,23 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getMenuButtons() {
 
 		auto btnExport = new QToolButton(this);
 		btnExport->setObjectName(QStringLiteral("btnExport"));
-		btnExport->setText("Export\n");
+		btnExport->setText("Export to\nCSV or oxDNA");
 		btnExport->setToolTip("<b>Export</b><br/><br/>"
 			"Export as CSV sequence file or in a format appropriate for oxDNA.");
 		btnExport->setIconSize(QSize(24, 24));
 		btnExport->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnExport->setAutoRaise(true);
 		menuButtons_.push_back(btnExport);
+
+		auto btnExportCanDo = new QToolButton(this);
+		btnExportCanDo->setObjectName(QStringLiteral("btnExportCanDo"));
+		btnExportCanDo->setText("Export to\nCanDo");
+		btnExportCanDo->setToolTip("<b>Export to CanDo</b><br/><br/>"
+			"Export the selected part or the whole document in a CanDo file (.cndo).");
+		btnExportCanDo->setIconSize(QSize(24, 24));
+		btnExportCanDo->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnExportCanDo->setAutoRaise(true);
+		menuButtons_.push_back(btnExportCanDo);
 
 		auto btnResetVisualModel = new QToolButton(this);
 		btnResetVisualModel->setObjectName(QStringLiteral("btnResetVisualModel"));
@@ -1311,6 +1311,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getMenuButtons() {
 		QObject::connect(btnSaveAll, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSaveAll, Qt::ConnectionType::UniqueConnection);
 		QObject::connect(btnSettings, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSettings, Qt::ConnectionType::UniqueConnection);
 		QObject::connect(btnExport, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onExport, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnExportCanDo, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onExportToCanDo, Qt::ConnectionType::UniqueConnection);
 		QObject::connect(btnResetVisualModel, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onResetVisualModel, Qt::ConnectionType::UniqueConnection);
 		QObject::connect(btnCenterOnAllModels, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCenterOnAllModels, Qt::ConnectionType::UniqueConnection);
 
@@ -1332,6 +1333,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getMenuButtons() {
 		QIcon exportIcon;
 		exportIcon.addFile(std::string(iconsPath + "export.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnExport->setIcon(exportIcon);
+		btnExportCanDo->setIcon(exportIcon);
 
 		QIcon resetVM;
 		resetVM.addFile(std::string(iconsPath + "resetVisualModel.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);

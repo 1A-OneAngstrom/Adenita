@@ -5,7 +5,7 @@
 SEMergePartsEditorGUI::SEMergePartsEditorGUI(SEMergePartsEditor* editor) {
 
 	this->editor = editor;
-	ui.setupUi( this );
+	ui.setupUi(this);
 
 	connect(ui.comboBoxMergeComponent1, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboBoxMergeComponent1CurrentIndexChanged(int)));
 	connect(ui.comboBoxMergeComponent2, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboBoxMergeComponent2CurrentIndexChanged(int)));
@@ -20,15 +20,15 @@ SEMergePartsEditorGUI::~SEMergePartsEditorGUI() {
 
 SEMergePartsEditor* SEMergePartsEditorGUI::getEditor() const { return editor; }
 
-void SEMergePartsEditorGUI::loadSettings( SBGSettings *settings ) {
+void SEMergePartsEditorGUI::loadSettings(SBGSettings* settings) {
 
 	if (settings == nullptr) return;
-	
+
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
 }
 
-void SEMergePartsEditorGUI::saveSettings( SBGSettings *settings ) {
+void SEMergePartsEditorGUI::saveSettings(SBGSettings* settings) {
 
 	if (settings == nullptr) return;
 
@@ -57,22 +57,20 @@ void SEMergePartsEditorGUI::updatePartsList() {
 
 	for (auto& pair : indexParts) {
 
-		int i = pair.first;
 		ADNPointer<ADNPart> part = pair.second;
 		std::string n = part->getName();
-		ui.comboBoxMergeComponent1->insertItem(i, QString::fromStdString(n));
-		ui.comboBoxMergeComponent2->insertItem(i, QString::fromStdString(n));
-		ui.comboBoxMoveToComponent->insertItem(i, QString::fromStdString(n));
+		ui.comboBoxMergeComponent1->insertItem(pair.first, QString::fromStdString(n));
+		ui.comboBoxMergeComponent2->insertItem(pair.first, QString::fromStdString(n));
+		ui.comboBoxMoveToComponent->insertItem(pair.first, QString::fromStdString(n));
 
 	}
 
 	for (auto& pair : indexElements) {
 
-		int i = pair.first;
 		auto element = pair.second;
 		std::string n = element.GetName();
-    
-		ui.comboBoxMoveElement->insertItem(i, QString::fromStdString(n));
+
+		ui.comboBoxMoveElement->insertItem(pair.first, QString::fromStdString(n));
 
 	}
 
@@ -131,10 +129,10 @@ void SEMergePartsEditorGUI::onMove() {
 
 }
 
-SBCContainerUUID SEMergePartsEditorGUI::getUUID() const { return SBCContainerUUID( "3F52AD7B-A478-D380-AA01-2041081D06CB" );}
+SBCContainerUUID SEMergePartsEditorGUI::getUUID() const { return SBCContainerUUID("3F52AD7B-A478-D380-AA01-2041081D06CB"); }
 
 QPixmap SEMergePartsEditorGUI::getLogo() const {
-	
+
 	// SAMSON Element generator pro tip: this icon will be visible in the GUI title bar. 
 	// Modify it to better reflect the purpose of your editor.
 
@@ -147,7 +145,7 @@ QString SEMergePartsEditorGUI::getName() const {
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your editor inside SAMSON
 
-	return "Merge Components Editor"; 
+	return "Merge Components Editor";
 
 }
 

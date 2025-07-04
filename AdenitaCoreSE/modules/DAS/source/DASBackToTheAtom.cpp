@@ -1331,9 +1331,7 @@ void DASBackToTheAtom::LoadNucleotides() {
 
 		try {
 
-			// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
-			const std::filesystem::path filePath = std::filesystem::u8path(nt_source);
-			if (!std::filesystem::exists(filePath)) {
+			if (!std::filesystem::exists(std::filesystem::u8path(nt_source))) {
 
 				ADNLogger::LogError("Could not find the file " + nt_source);
 				return;
@@ -1390,9 +1388,7 @@ void DASBackToTheAtom::LoadNtPairs() {
 		const std::string nt_source = SB_ELEMENT_PATH + "/Data/" + name + ".pdb";
 		try {
 
-			// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
-			const std::filesystem::path filePath = std::filesystem::u8path(nt_source);
-			if (!std::filesystem::exists(filePath)) {
+			if (!std::filesystem::exists(std::filesystem::u8path(nt_source))) {
 
 				ADNLogger::LogError("Could not find the file " + nt_source);
 				return;
@@ -1440,9 +1436,7 @@ void DASBackToTheAtom::LoadNtPairs() {
 
 NtPair DASBackToTheAtom::ParseBasePairPDB(const std::string& source) {
 
-	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
-	const std::filesystem::path filePath = std::filesystem::u8path(source);
-	std::ifstream file(filePath, std::ios::in);
+	std::ifstream file(std::filesystem::u8path(source), std::ios::in);
 
 	if (!file) {
 
@@ -1645,9 +1639,7 @@ ublas::matrix<double> DASBackToTheAtom::CalculateBaseSegmentBasis(ADNPointer<ADN
 
 ADNPointer<ADNNucleotide> DASBackToTheAtom::ParsePDB(const std::string& source) {
 
-	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
-	const std::filesystem::path filePath = std::filesystem::u8path(source);
-	std::ifstream file(filePath, std::ios::in);
+	std::ifstream file(std::filesystem::u8path(source), std::ios::in);
 
 	if (!file) {
 

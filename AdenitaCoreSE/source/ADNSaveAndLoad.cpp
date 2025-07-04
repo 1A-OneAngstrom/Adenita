@@ -88,7 +88,8 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value& val, double ve
 
 			ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
 			nt->Init();
-			nt->setNucleotideType(ADNModel::ResidueNameToType(itr2->value["type"].GetString()[0]));
+			const std::string type = itr2->value["type"].GetString();
+			nt->setNucleotideType(ADNModel::ResidueNameToType(type));
 			nt->SetPosition(ADNAuxiliary::StringToSBPosition(itr2->value["position"].GetString()));
 			nt->SetBackbonePosition(ADNAuxiliary::StringToSBPosition(itr2->value["backboneCenter"].GetString()));
 			nt->SetSidechainPosition(ADNAuxiliary::StringToSBPosition(itr2->value["sidechainCenter"].GetString()));
@@ -424,15 +425,15 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filenam
 
 	for (rapidjson::Value::ConstMemberIterator itr = strands.MemberBegin(); itr != strands.MemberEnd(); ++itr) {
 
-		int strandId = itr->value["id"].GetInt();
+		const int strandId = itr->value["id"].GetInt();
 		ADNPointer<ADNSingleStrand> ss = ADNPointer<ADNSingleStrand>(new ADNSingleStrand());
 		part->RegisterSingleStrand(ss);
 
 		ss->setName(itr->value["chainName"].GetString());
 		ss->setScaffoldFlag(itr->value["isScaffold"].GetBool());
 
-		int fivePrimeId = itr->value["fivePrimeId"].GetInt();
-		int threePrimeId = itr->value["fivePrimeId"].GetInt();
+		const int fivePrimeId = itr->value["fivePrimeId"].GetInt();
+		const int threePrimeId = itr->value["fivePrimeId"].GetInt();
 
 		const rapidjson::Value& val_nucleotides = itr->value["nucleotides"];
 		for (rapidjson::Value::ConstMemberIterator itr2 = val_nucleotides.MemberBegin(); itr2 != val_nucleotides.MemberEnd(); ++itr2) {
@@ -440,21 +441,17 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filenam
 			ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
 			nt->Init();
 			part->RegisterNucleotideThreePrime(ss, nt);
-			const std::string test = itr2->value["type"].GetString();
-			auto test2 = test.c_str();
-			nt->setNucleotideType(ADNModel::ResidueNameToType(test2[0]));
+			const std::string type = itr2->value["type"].GetString();
+			nt->setNucleotideType(ADNModel::ResidueNameToType(type));
 			nt->SetE1(ADNAuxiliary::StringToUblasVector(itr2->value["e1"].GetString()));
 			nt->SetE2(ADNAuxiliary::StringToUblasVector(itr2->value["e2"].GetString()));
 			nt->SetE3(ADNAuxiliary::StringToUblasVector(itr2->value["e3"].GetString()));
 			nt->SetPosition(ADNAuxiliary::StringToSBPosition(itr2->value["position"].GetString()));
 
-			nt->setName(test + std::to_string(nt->getNodeIndex()));
-			nt->setStructuralID(nt->getNodeIndex());
-
 			nt->SetBackbonePosition(ADNAuxiliary::StringToSBPosition(itr2->value["backboneCenter"].GetString()));
 			nt->SetSidechainPosition(ADNAuxiliary::StringToSBPosition(itr2->value["sidechainCenter"].GetString()));
 
-			int nucleotideId = itr2->value["id"].GetInt();
+			const int nucleotideId = itr2->value["id"].GetInt();
 
 			if (nucleotideId == fivePrimeId) {
 
@@ -532,7 +529,7 @@ ADNPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filenam
 		int dsId = itr->value["id"].GetInt();
 		ds->SetInitialTwistAngle(itr->value["initialTwistAngle"].GetDouble());
 
-		int size = itr->value["size"].GetInt();
+		const int size = itr->value["size"].GetInt();
 		int bsStartId = itr->value["bsStartId"].GetInt();
 
 		ADNPointer<ADNBaseSegment> startBs = nullptr;
@@ -967,8 +964,9 @@ void ADNLoader::SavePartToJson(ADNPointer<ADNPart> p, rapidjson::Writer<rapidjso
 			writer.StartObject();
 
 			writer.Key("type");
-			char t = ADNModel::ResidueNameToType(nt->getNucleotideType());
-			std::string typ = std::string(&t, 0, 1);
+			//char t = ADNModel::ResidueNameToType(nt->getNucleotideType());
+			//std::string typ = std::string(&t, 0, 1);
+			std::string typ = nt->getOneLetterNucleotideTypeString();
 			writer.String(typ.c_str());
 
 			int pairId = -1;
@@ -1318,15 +1316,8 @@ ADNPointer<ADNPart> ADNLoader::GenerateModelFromDataGraphParametrized(SBNode* sn
 
 void ADNLoader::OutputToOxDNA(ADNPointer<ADNPart> part, const std::string& folder, const ADNAuxiliary::OxDNAOptions& options) {
 
-	const std::string fnameConf = "config.conf";
-	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
-	const std::filesystem::path confFilePath = std::filesystem::u8path(folder + "/" + fnameConf);
-	std::ofstream outConf(confFilePath);
-
-	const std::string fnameTopo = "topo.top";
-	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
-	const std::filesystem::path topoFilePath = std::filesystem::u8path(folder + "/" + fnameTopo);
-	std::ofstream outTopo(topoFilePath);
+	std::ofstream outConf(std::filesystem::u8path(folder + "/" + "config.conf"));
+	std::ofstream outTopo(std::filesystem::u8path(folder + "/" + "topo.top"));
 
 	auto singleStrands = part->GetSingleStrands();
 	SingleStrandsToOxDNA(singleStrands, outConf, outTopo, options);
@@ -1347,15 +1338,8 @@ void ADNLoader::OutputToOxDNA(CollectionMap<ADNPart> parts, const std::string& f
 
 	}
 
-	const std::string fnameConf = "config.conf";
-	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
-	const std::filesystem::path confFilePath = std::filesystem::u8path(folder + "/" + fnameConf);
-	std::ofstream outConf(confFilePath);
-
-	const std::string fnameTopo = "topo.top";
-	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
-	const std::filesystem::path topoFilePath = std::filesystem::u8path(folder + "/" + fnameTopo);
-	std::ofstream outTopo(topoFilePath);
+	std::ofstream outConf(std::filesystem::u8path(folder + "/" + "config.conf"));
+	std::ofstream outTopo(std::filesystem::u8path(folder + "/" + "topo.top"));
 
 	SingleStrandsToOxDNA(singleStrands, outConf, outTopo, options);
 
@@ -1371,7 +1355,7 @@ void ADNLoader::SingleStrandsToOxDNA(CollectionMap<ADNSingleStrand> singleStrand
 	const std::string boxSizeX = std::to_string(options.boxSizeX_);
 	const std::string boxSizeY = std::to_string(options.boxSizeY_);
 	const std::string boxSizeZ = std::to_string(options.boxSizeZ_);
-	auto energies = std::tuple<std::string, std::string, std::string>("0.0", "0.0", "0.0");
+	const auto energies = std::tuple<std::string, std::string, std::string>("0.0", "0.0", "0.0");
 
 	outConf << "t = " + timeStep << std::endl;
 	outConf << "b = " + boxSizeX + " " + boxSizeY + " " + boxSizeZ << std::endl;
@@ -1507,10 +1491,10 @@ std::pair<bool, ADNPointer<ADNPart>> ADNLoader::InputFromOxDNA(const std::string
 
 			}
 
-			int numChain = std::stoi(cont[0]);
-			char base = cont[1][0];
-			int numPrevNt = std::stoi(cont[2]);
-			int numNextNt = std::stoi(cont[3]);
+			const int numChain = std::stoi(cont[0]);
+			const char base = cont[1][0];
+			//int numPrevNt = std::stoi(cont[2]);
+			//int numNextNt = std::stoi(cont[3]);
 
 			if (numChain != currChain) {
 
@@ -1626,122 +1610,43 @@ std::pair<bool, ADNPointer<ADNPart>> ADNLoader::InputFromOxDNA(const std::string
 
 void ADNLoader::OutputToCanDo(ADNNanorobot* nanorobot, const std::string& filename) {
 
-	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
-	const std::filesystem::path filePath = std::filesystem::u8path(filename);
-	std::ofstream file(filePath);
-
-	const std::string header = "\"CanDo (.cndo) file format version 1.0, Keyao Pan, Laboratory for Computational Biology "
-		"and Biophysics, Massachusetts Institute of Technology, November 2015\"";
-	file << header << std::endl;
-
-	// set nucleotide indices
-	std::map<ADNNucleotide*, int> nucleotidesId;
 	auto singleStrands = nanorobot->GetSingleStrands();
-	int ntId = 1;
-	SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
-		auto nt = ss->GetFivePrime();
-		while (nt != nullptr) {
-
-			nucleotidesId.insert(std::make_pair(nt(), ntId));
-			++ntId;
-
-		}
-
-	}
-
-	std::string line = "dnaTop,id,up,down,across,seq";
-	file << line << std::endl;
-	for (const auto& p : nucleotidesId) {
-
-		int idx = p.second;
-		ADNNucleotide* nt = p.first;
-		ADNNucleotide* prevNt = nt->GetPrev(true)();
-		ADNNucleotide* nextNt = nt->GetNext(true)();
-		ADNNucleotide* pairNt = nt->GetPair()();
-		int prevIdx = -1;
-		if (prevNt != nullptr) prevIdx = nucleotidesId[prevNt];
-		int nextIdx = -1;
-		if (nextNt != nullptr) nextIdx = nucleotidesId[nextNt];
-		int pairIdx = -1;
-		if (pairNt != nullptr) prevIdx = nucleotidesId[pairNt];
-
-		std::string line = std::to_string(idx) + "," + std::to_string(prevIdx) + "," + std::to_string(nextIdx) + "," + std::to_string(pairIdx) + nt->getOneLetterNucleotideTypeString();
-		file << line << std::endl;
-
-	}
-	file << line << std::endl;
-
+	std::vector < CollectionMap<ADNBaseSegment>> baseSegmentsVector;
 	auto parts = nanorobot->GetParts();
-
-	line = "dNode, \"e0(1)\", \"e0(2)\", \"e0(3)\"";
-	file << line << std::endl;
-
-	std::vector<std::string> triads;
-	std::vector<std::string> basePairs;
-	int bsId = 1;
 	SB_FOR(ADNPointer<ADNPart> part, parts) {
 
 		auto baseSegments = part->GetBaseSegments();
-		SB_FOR(ADNPointer<ADNBaseSegment> bs, baseSegments) {
-
-			const auto& pos = bs->GetPosition();
-			const std::string line = std::to_string(bsId) + "," + std::to_string(pos[0].getValue() / 1000) + "," + std::to_string(pos[1].getValue() / 1000) + "," + std::to_string(pos[2].getValue() / 1000);
-			file << line << std::endl;
-
-			const auto& e3 = bs->GetE3();
-			const auto e2 = -1.0 * bs->GetE2();
-			const auto e1 = ADNVectorMath::CrossProduct(e2, e3);
-			std::string t = std::to_string(bsId) + "," + std::to_string(e1[0]) + "," + std::to_string(e1[1]) + "," + std::to_string(e1[2]) + ","
-				+ std::to_string(e2[0]) + "," + std::to_string(e2[1]) + "," + std::to_string(e2[2]) + ","
-				+ std::to_string(e3[0]) + "," + std::to_string(e3[1]) + "," + std::to_string(e3[2]);
-			triads.push_back(t);
-
-			auto cell = bs->GetCell();
-			if (bs->GetCellType() == CellType::BasePair) {
-
-				ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(cell());
-				const int id1 = nucleotidesId[bp->GetLeftNucleotide()()];
-				const int id2 = nucleotidesId[bp->GetRightNucleotide()()];
-				std::string s = std::to_string(bsId) + "," + std::to_string(id1) + "," + std::to_string(id2);
-				file << s << std::endl;
-
-			}
-
-			++bsId;
-
-		}
+		baseSegmentsVector.push_back(baseSegments);
 
 	}
-	file << std::endl;
 
-	line = "triad,\"e1(1)\",\"e1(2)\",\"e1(3)\",\"e2(1)\",\"e2(2)\",\"e2(3)\",\"e3(1)\",\"e3(2)\",\"e3(3)\"";
-	file << line << std::endl;
-	for (const auto& s : triads) {
-		file << s << std::endl;
-	}
-
-	line = "id_nt,id1,id2";
-	file << line << std::endl;
-	for (const auto& bp : basePairs) {
-		file << bp << std::endl;
-	}
+	ADNLoader::OutputToCanDo(singleStrands, baseSegmentsVector, filename);
 
 }
 
 void ADNLoader::OutputToCanDo(ADNPointer<ADNPart> part, const std::string& filename) {
 
-	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
-	const std::filesystem::path filePath = std::filesystem::u8path(filename);
-	std::ofstream file(filePath);
+	auto singleStrands = part->GetSingleStrands();
 
-	const std::string header = "\"CanDo (.cndo) file format version 1.0, Keyao Pan, Laboratory for Computational Biology "
-		"and Biophysics, Massachusetts Institute of Technology, November 2015\"";
-	file << header << std::endl;
+	std::vector < CollectionMap<ADNBaseSegment>> baseSegmentsVector;
+	auto baseSegments = part->GetBaseSegments();
+	baseSegmentsVector.push_back(baseSegments);
+
+	ADNLoader::OutputToCanDo(singleStrands, baseSegmentsVector, filename);
+
+}
+
+/// CanDo file format description: https://cando-dna-origami.org/cndo-file-converter/
+void ADNLoader::OutputToCanDo(const CollectionMap<ADNSingleStrand>& singleStrands, const std::vector < CollectionMap<ADNBaseSegment>>& baseSegmentsVector, const std::string& filename) {
+
+	std::ofstream file(std::filesystem::u8path(filename));
+
+	// A string describing the .cndo file format
+	file << "\"CanDo (.cndo) file format version 1.0, Keyao Pan, Laboratory for Computational Biology and Biophysics, Massachusetts Institute of Technology, November 2015\"" << '\n' << std::endl;
 
 	// set nucleotide indices
 	std::map<ADNNucleotide*, int> nucleotidesId;
-	auto singleStrands = part->GetSingleStrands();
 	int ntId = 1;
 	SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
 
@@ -1756,11 +1661,10 @@ void ADNLoader::OutputToCanDo(ADNPointer<ADNPart> part, const std::string& filen
 
 	}
 
-	std::string line = "dnaTop,id,up,down,across,seq";
-	file << line << std::endl;
+	file << "dnaTop,id,up,down,across,seq" << std::endl;
 	for (const auto& p : nucleotidesId) {
 
-		int idx = p.second;
+		const int idx = p.second;
 		ADNNucleotide* nt = p.first;
 		ADNNucleotide* prevNt = nt->GetPrev(true)();
 		ADNNucleotide* nextNt = nt->GetNext(true)();
@@ -1772,57 +1676,63 @@ void ADNLoader::OutputToCanDo(ADNPointer<ADNPart> part, const std::string& filen
 		int pairIdx = -1;
 		if (pairNt != nullptr) pairIdx = nucleotidesId[pairNt];
 
-		std::string line = std::to_string(idx) + "," + std::to_string(prevIdx) + "," + std::to_string(nextIdx) + "," + std::to_string(pairIdx) + nt->getOneLetterNucleotideTypeString();
+		// six subfields separated by commas, which are the serial number (1, 2, …, n_nt), id, up, down, across, and seq
+		std::string line = std::to_string(idx) + "," + std::to_string(idx) + "," + std::to_string(prevIdx) + "," + std::to_string(nextIdx) + "," + std::to_string(pairIdx) + "," + nt->getOneLetterNucleotideTypeString();
 		file << line << std::endl;
-
-	}
-	file << line << std::endl;
-
-	line = "dNode, \"e0(1)\", \"e0(2)\", \"e0(3)\"";
-	file << line << std::endl;
-	auto baseSegments = part->GetBaseSegments();
-	std::vector<std::string> triads;
-	std::vector<std::string> basePairs;
-	int bsId = 1;
-	SB_FOR(ADNPointer<ADNBaseSegment> bs, baseSegments) {
-
-		const auto& pos = bs->GetPosition();
-		const std::string line = std::to_string(bsId) + "," + std::to_string(pos[0].getValue() / 1000) + "," + std::to_string(pos[1].getValue() / 1000) + "," + std::to_string(pos[2].getValue() / 1000);
-		file << line << std::endl;
-
-		const auto& e3 = bs->GetE3();
-		auto e2 = bs->GetE2();
-		e2 *= -1.0;
-		const auto e1 = ADNVectorMath::CrossProduct(e2, e3);
-		std::string t = std::to_string(bsId) + "," + std::to_string(e1[0]) + "," + std::to_string(e1[1]) + "," + std::to_string(e1[2]) + ","
-			+ std::to_string(e2[0]) + "," + std::to_string(e2[1]) + "," + std::to_string(e2[2]) + ","
-			+ std::to_string(e3[0]) + "," + std::to_string(e3[1]) + "," + std::to_string(e3[2]);
-		triads.push_back(t);
-
-		auto cell = bs->GetCell();
-		if (bs->GetCellType() == CellType::BasePair) {
-
-			ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(cell());
-			const int id1 = nucleotidesId[bp->GetLeftNucleotide()()];
-			const int id2 = nucleotidesId[bp->GetRightNucleotide()()];
-			std::string s = std::to_string(bsId) + "," + std::to_string(id1) + "," + std::to_string(id2);
-			file << s << std::endl;
-
-		}
-
-		++bsId;
 
 	}
 	file << std::endl;
 
-	line = "triad,\"e1(1)\",\"e1(2)\",\"e1(3)\",\"e2(1)\",\"e2(2)\",\"e2(3)\",\"e3(1)\",\"e3(2)\",\"e3(3)\"";
-	file << line << std::endl;
+	file << "dNode,\"e0(1)\",\"e0(2)\",\"e0(3)\"" << std::endl;
+	std::vector<std::string> triads;
+	std::vector<std::string> basePairs;
+	int bsId = 1;
+	for (const CollectionMap<ADNBaseSegment>& baseSegments : baseSegmentsVector) {
+
+		SB_FOR(ADNPointer<ADNBaseSegment> bs, baseSegments) {
+
+			// four subfields separated by commas, which are the serial number (1, 2, ..., n_bp) of the basepair and the Cartesian coordinates e0 of the center of the reference frame
+
+			const auto& pos = bs->GetPosition();
+			const std::string line = std::to_string(bsId) + "," + std::to_string(pos[0].getValue() / 1000.0) + "," + std::to_string(pos[1].getValue() / 1000.0) + "," + std::to_string(pos[2].getValue() / 1000.0);
+			file << line << std::endl;
+
+			const auto& e3 = bs->GetE3();
+			const auto e2 = -1.0 * bs->GetE2();
+			const auto e1 = ADNVectorMath::CrossProduct(e2, e3);
+			std::string t = std::to_string(bsId) + ","
+				+ std::to_string(e1[0]) + "," + std::to_string(e1[1]) + "," + std::to_string(e1[2]) + ","
+				+ std::to_string(e2[0]) + "," + std::to_string(e2[1]) + "," + std::to_string(e2[2]) + ","
+				+ std::to_string(e3[0]) + "," + std::to_string(e3[1]) + "," + std::to_string(e3[2]);
+			triads.push_back(t);
+
+			auto cell = bs->GetCell();
+			if (bs->GetCellType() == CellType::BasePair) {
+
+				ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(cell());
+				const int id1 = nucleotidesId[bp->GetLeftNucleotide()()];
+				const int id2 = nucleotidesId[bp->GetRightNucleotide()()];
+				std::string s = std::to_string(bsId) + "," + std::to_string(id1) + "," + std::to_string(id2);
+				basePairs.push_back(s);
+
+			}
+
+			++bsId;
+
+		}
+
+	}
+	file << std::endl;
+
+	file << "triad,\"e1(1)\",\"e1(2)\",\"e1(3)\",\"e2(1)\",\"e2(2)\",\"e2(3)\",\"e3(1)\",\"e3(2)\",\"e3(3)\"" << std::endl;
+	// ten subfields separated by commas, which are the serial number(1, 2, ..., n_bp) of the basepair and three axes e1, e2, and e3 of the reference frame
 	for (const auto& s : triads) {
 		file << s << std::endl;
 	}
+	file << std::endl;
 
-	line = "id_nt,id1,id2";
-	file << line << std::endl;
+	file << "id_nt,id1,id2" << std::endl;
+	// three subfields separated by commas, which are the serial number (1, 2, ..., n_bp) of the basepair, id1, and id2
 	for (const auto& bp : basePairs) {
 		file << bp << std::endl;
 	}
@@ -2100,9 +2010,7 @@ void ADNLoader::OutputToCSV(CollectionMap<ADNPart> parts, const std::string& fna
 
 	int num = 0;
 
-	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
-	const std::filesystem::path filePath = std::filesystem::u8path(folder + "/" + fname);
-	std::ofstream out(filePath);
+	std::ofstream out(std::filesystem::u8path(folder + "/" + fname));
 
 	SignOutputFile(out);
 	SB_FOR(ADNPointer<ADNPart> part, parts) {
