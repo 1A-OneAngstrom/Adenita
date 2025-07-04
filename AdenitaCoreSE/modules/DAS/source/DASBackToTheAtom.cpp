@@ -393,7 +393,7 @@ void DASBackToTheAtom::CheckDistances(ADNPointer<ADNPart> part) const {
 
 	auto singleStrands = part->GetSingleStrands();
 	SBPosition3 prevPos;
-	std::string prevName = "";
+	//std::string prevName = "";
 	std::string msg = "Checking distances between nucleotides...";
 	ADNLogger::LogDebug(msg);
 	SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) {
@@ -417,7 +417,7 @@ void DASBackToTheAtom::CheckDistances(ADNPointer<ADNPart> part) const {
 				start = 1;
 			}
 			prevPos = nt->GetPosition();
-			prevName = nt->getName();
+			//prevName = nt->getName();
 			nt = nt->GetNext();
 
 		}
@@ -720,10 +720,10 @@ void DASBackToTheAtom::CreateBonds(ADNPointer<ADNPart> origami, bool createFlag)
 			if (at == nullptr) continue;
 
 			ADNPointer<ADNAtom> atC = nullptr;
-			std::string atName = at->getName();
+			const std::string atName = at->getName();
 			if (connections.find(atName) != connections.end()) {
 
-				const auto& conns = connections.at(at->getName());
+				const auto& conns = connections.at(atName);
 				for (const std::string& name : conns) {
 
 					auto lst = nt->GetAtomsByName(name);
@@ -1331,9 +1331,7 @@ void DASBackToTheAtom::LoadNucleotides() {
 
 		try {
 
-			// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
-			const std::filesystem::path filePath = std::filesystem::u8path(nt_source);
-			if (!std::filesystem::exists(filePath)) {
+			if (!std::filesystem::exists(std::filesystem::u8path(nt_source))) {
 
 				ADNLogger::LogError("Could not find the file " + nt_source);
 				return;
@@ -1390,9 +1388,7 @@ void DASBackToTheAtom::LoadNtPairs() {
 		const std::string nt_source = SB_ELEMENT_PATH + "/Data/" + name + ".pdb";
 		try {
 
-			// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
-			const std::filesystem::path filePath = std::filesystem::u8path(nt_source);
-			if (!std::filesystem::exists(filePath)) {
+			if (!std::filesystem::exists(std::filesystem::u8path(nt_source))) {
 
 				ADNLogger::LogError("Could not find the file " + nt_source);
 				return;
@@ -1440,9 +1436,7 @@ void DASBackToTheAtom::LoadNtPairs() {
 
 NtPair DASBackToTheAtom::ParseBasePairPDB(const std::string& source) {
 
-	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
-	const std::filesystem::path filePath = std::filesystem::u8path(source);
-	std::ifstream file(filePath, std::ios::in);
+	std::ifstream file(std::filesystem::u8path(source), std::ios::in);
 
 	if (!file) {
 
@@ -1645,9 +1639,7 @@ ublas::matrix<double> DASBackToTheAtom::CalculateBaseSegmentBasis(ADNPointer<ADN
 
 ADNPointer<ADNNucleotide> DASBackToTheAtom::ParsePDB(const std::string& source) {
 
-	// Create a filesystem path. Using u8path ensures that the string is treated as UTF-8.
-	const std::filesystem::path filePath = std::filesystem::u8path(source);
-	std::ifstream file(filePath, std::ios::in);
+	std::ifstream file(std::filesystem::u8path(source), std::ios::in);
 
 	if (!file) {
 

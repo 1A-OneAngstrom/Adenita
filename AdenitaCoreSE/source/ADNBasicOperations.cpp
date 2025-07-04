@@ -623,7 +623,7 @@ void ADNBasicOperations::MutateNucleotide(ADNPointer<ADNNucleotide> nt, DNABlock
 
 }
 
-void ADNBasicOperations::SetSingleStrandSequence(ADNPointer<ADNSingleStrand> ss, std::string seq, bool changePair, bool overwrite) {
+void ADNBasicOperations::SetSingleStrandSequence(ADNPointer<ADNSingleStrand> ss, const std::string& seq, bool changePair, bool overwrite) {
 
     if (!ss.isValid()) return;
 

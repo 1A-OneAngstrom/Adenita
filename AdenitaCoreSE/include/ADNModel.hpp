@@ -29,8 +29,9 @@ namespace ADNModel {
 
     SB_EXPORT DNABlocks											GetComplementaryBase(DNABlocks base);
 
-	SB_EXPORT char												GetResidueName(DNABlocks t);
-	SB_EXPORT DNABlocks											ResidueNameToType(char n);
+	SB_EXPORT std::string										GetResidueName(DNABlocks t, bool removePrefixD = true);
+	SB_EXPORT DNABlocks								            ResidueNameToType(const std::string& n);
+	SB_EXPORT DNABlocks								            ResidueNameToType(char n);
 
     SB_EXPORT bool												IsAtomInBackboneByName(std::string_view name);
 

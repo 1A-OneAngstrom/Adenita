@@ -17,15 +17,44 @@ DNABlocks ADNModel::GetComplementaryBase(DNABlocks base) {
 
 }
 
-char ADNModel::GetResidueName(DNABlocks t) {
+std::string ADNModel::GetResidueName(DNABlocks t, bool removePrefixD) {
 
-    std::string name = SBResidue::getResidueTypeString(t);
+    const std::string name = SBResidue::getResidueTypeString(t);
+#if 0
     char n = name[0];
     if (name.size() > 1) n = name[1];
 
     if (n == 'I') n = 'N';
+    return std::string(1, n);
+#else
+    if (name.size() == 1) {
+        
+        if (name[0] == 'I') return "N";
+        return name;
 
-    return n;
+    }
+    if (name.size() == 2 && name[0] == 'D') {
+
+        if (name[1] == 'I') return "N";
+        
+        if (removePrefixD)
+            return std::string(1, name[1]);
+
+        return name;
+
+    }
+
+    return "N";
+#endif
+
+}
+
+DNABlocks ADNModel::ResidueNameToType(const std::string& n) {
+
+    if (n.size() == 1) return ADNModel::ResidueNameToType(n[0]);
+    if (n.size() == 2 && n[0] == 'D') return ADNModel::ResidueNameToType(n[1]);
+
+    return SBResidue::ResidueType::DI;
 
 }
 

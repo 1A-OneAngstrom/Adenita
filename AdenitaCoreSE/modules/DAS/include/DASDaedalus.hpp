@@ -155,8 +155,6 @@ public:
 
 	void SetEdgeBps(int min_edge_bp, ADNPointer<ADNPart> part, DASPolyhedron& fig);
 
-protected:
-
 private:
 
 	/** Minimum edge length
@@ -261,7 +259,7 @@ private:
 	DOTLink* AddLink(std::pair<DOTNode*, DOTNode*> ab, int bp, DASPolyhedron& fig);
 	DOTNode* GetNodeById(int id) const;
 	DOTLink* GetLinkByNodes(DOTNode* v, DOTNode* w) const;
-	void RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleStrand> scaff, std::string seq, int routing_length);
+	void RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleStrand> scaffold, std::string seq, int routing_length);
 	ADNPointer<ADNBaseSegment> AdvanceBaseSegment(ADNPointer<ADNBaseSegment> bs, int pos);
 	ADNPointer<ADNBaseSegment> MoveBackBaseSegment(ADNPointer<ADNBaseSegment> bs, int pos);
 	ADNPointer<ADNNucleotide> AdvanceNucleotide(ADNPointer<ADNNucleotide> nt, int pos);
@@ -269,11 +267,11 @@ private:
 	ADNPointer<ADNSingleStrand> CreateVertexChain(ADNPointer<ADNPart> part, int c_id, std::vector<DASHalfEdge*>ps, EdgeBps& lengths);
 	void LogEdgeMap(ADNPointer<ADNPart> origami);
 	static SBVector3 SBCrossProduct(SBVector3 v, SBVector3 w);
-	double SBInnerProduct(SBVector3 v, SBVector3 w);
+	static double SBInnerProduct(SBVector3 v, SBVector3 w);
 	void LogLinkGraph();
 	template <typename T>
-	static void OutputGraph(T g, std::string filename);
-	SBVector3 GetPolygonNorm(DASPolygon* face);
+	static void OutputGraph(T g, const std::string& filename);
+	static SBVector3 GetPolygonNorm(DASPolygon* face);
 	ADNPointer<ADNBaseSegment> FindBaseSegmentPair(ADNPointer<ADNPart> origami, ADNPointer<ADNBaseSegment> bs);
 	std::map<DASHalfEdge*, SBPosition3> GetVertexPositions(DASPolyhedron& fig);
 

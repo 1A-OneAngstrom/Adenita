@@ -264,7 +264,7 @@ std::string ADNSingleStrand::GetSequence() const {
     ADNPointer<ADNNucleotide> nt = fivePrimeNucleotide;
     while (nt != nullptr) {
 
-        seq += nt->getNucleotideTypeString();
+        seq += nt->getOneLetterNucleotideTypeString();
         nt = nt->GetNext();
 
     }
@@ -282,11 +282,10 @@ std::string ADNSingleStrand::GetSequenceWithTags() const {
     ADNPointer<ADNNucleotide> nt = fivePrimeNucleotide;
     while (nt != nullptr) {
 
-        std::string totalBase = nt->getNucleotideTypeString();
+        std::string totalBase = nt->getOneLetterNucleotideTypeString();
         if (nt->hasTag()) {
 
-            std::string base = nt->getNucleotideTypeString();
-            totalBase = "[" + nt->getTag() + base + "]";
+            totalBase = "[" + nt->getTag() + totalBase + "]";
 
         }
         seq += totalBase;
@@ -305,9 +304,8 @@ double ADNSingleStrand::GetGCContent() const {
 
     SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides) {
 
-        if (nt->getNucleotideType() == DNABlocks::DC || nt->getNucleotideType() == DNABlocks::DG) {
+        if (nt->getNucleotideType() == DNABlocks::DC || nt->getNucleotideType() == DNABlocks::DG)
             gcCont += 1.0;
-        }
 
     }
 
@@ -317,7 +315,9 @@ double ADNSingleStrand::GetGCContent() const {
 }
 
 double ADNSingleStrand::getGCContent() const {
+
     return GetGCContent();
+
 }
 
 void ADNSingleStrand::SetSequence(std::string seq) {
@@ -351,7 +351,9 @@ void ADNSingleStrand::SetSequence(std::string seq) {
 }
 
 void ADNSingleStrand::setSequence(std::string seq) {
+
     SetSequence(seq);
+
 }
 
 void ADNSingleStrand::SetDefaultName() {

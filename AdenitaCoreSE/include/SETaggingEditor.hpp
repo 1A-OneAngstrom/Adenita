@@ -97,7 +97,7 @@ public:
 	//@{
 
 	SETaggingEditorGUI*											getPropertyWidget() const;												///< Returns the property widget of the editor
-	ADNPointer<ADNNucleotide>									GetHighlightedNucleotide();
+	ADNPointer<ADNNucleotide>									GetHighlightedNucleotide() const;
 
 	//@}
 
@@ -105,13 +105,16 @@ public:
 
 private:
 
-	DNABlocks													getNucleotideType(QPoint numSteps);
+	DNABlocks													getNucleotideType(const QPoint& numSteps) const;
 
-	//TaggingShape												shape_ = TaggingShape::Sphere;
-	TaggingMode													taggingMode = TaggingMode::Tags;
-	DNABlocks													nucleotideType = DNABlocks::DI;
+	//TaggingShape												shape_{ TaggingShape::Sphere };
+	TaggingMode													taggingMode{ TaggingMode::Tags };
+	DNABlocks													nucleotideType{ DNABlocks::DI };
 
 	std::string													previousSelectionFilter;
+
+	static const std::map<int, DNABlocks>						values;
+	static const std::map<DNABlocks, int>						indices;
 
 };
 

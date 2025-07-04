@@ -1,6 +1,9 @@
 #include "DASDaedalus.hpp"
 
+#include <filesystem>
+
 DASDaedalus::~DASDaedalus() {
+
 	for (auto& l : linkGraph_) {
 		delete l;
 	}
@@ -9,6 +12,7 @@ DASDaedalus::~DASDaedalus() {
 	firstBasesHe_.clear();
 	chains_.clear();
 	positionsBBSC_.clear();
+
 }
 
 ADNPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, std::string filename, bool center) {
@@ -23,6 +27,7 @@ ADNPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, std::string fil
 	ADNPointer<ADNPart> daedalus_part = ApplyAlgorithm(seq, p, center);
 
 	return daedalus_part;
+
 }
 
 ADNPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, DASPolyhedron& p, bool center, bool editor) {
@@ -838,14 +843,19 @@ void DASDaedalus::CreateLinkGraphFromMesh(ADNPointer<ADNPart> origami, DASPolyhe
 }
 
 void DASDaedalus::AddNode(DOTNode* node) {
+
 	nodes_.insert(std::make_pair(node->id_, node));
+
 }
 
 void DASDaedalus::RemoveLink(DOTLink* link) {
+
 	linkGraph_.erase(std::find(linkGraph_.begin(), linkGraph_.end(), link));
+
 }
 
 DOTLink* DASDaedalus::AddLink(std::pair<DOTNode*, DOTNode*> ab, int bp, DASPolyhedron& fig) {
+
 	DOTLink* link = new DOTLink();
 	link->source_ = ab.first;
 	link->target_ = ab.second;
@@ -856,50 +866,69 @@ DOTLink* DASDaedalus::AddLink(std::pair<DOTNode*, DOTNode*> ab, int bp, DASPolyh
 	link->bp_ = bp;
 	linkGraph_.push_back(link);
 	return link;
+
 }
 
 DOTNode* DASDaedalus::GetNodeById(int id) const {
+
 	return nodes_.at(id);
+
 }
 
 DOTLink* DASDaedalus::GetLinkByNodes(DOTNode* v, DOTNode* w) const {
+
 	DOTLink* link = new DOTLink();
 	for (auto lit = linkGraph_.begin(); lit != linkGraph_.end(); ++lit) {
+
 		if ((*lit)->source_ == v && (*lit)->target_ == w) {
+
 			link = *lit;
 			break;
+
 		}
+
 		if (!(*lit)->directed_) {
+
 			if ((*lit)->source_ == w && (*lit)->target_ == v) {
+
 				link = *lit;
 				break;
+
 			}
+
 		}
+
 	}
+
 	return link;
+
 }
 
 void DASDaedalus::SetEdgeBps(int min_edge_bp, ADNPointer<ADNPart> part, DASPolyhedron& fig) {
-	float min_length = fig.MinimumEdgeLength().second;
-	float rel = min_edge_bp / min_length;
+
+	const float min_length = fig.MinimumEdgeLength().second;
+	const float rel = min_edge_bp / min_length;
 
 	Edges edges = fig.GetEdges();
 
 	for (auto it = edges.begin(); it != edges.end(); ++it) {
-		double l = DASPolyhedron::CalculateEdgeLength(*it);
-		double bp_l = l * rel;
+
+		const double l = DASPolyhedron::CalculateEdgeLength(*it);
+		const double bp_l = l * rel;
 		int quot;
 		remquo(bp_l, 10.5, &quot);
 		int bp_length = int(std::floor(float(quot * 10.5)));
 		bpLengths_.insert(std::make_pair(*it, bp_length));
+
 	}
+
 }
 
-void DASDaedalus::RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleStrand> scaff, std::string seq, int routing_length) {
+void DASDaedalus::RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleStrand> scaffold, std::string seq, int routing_length) {
 
 	unsigned int nt_id = 0;
 
-	std::string used_seq = seq.substr(0, routing_length);
+	const std::string used_seq = seq.substr(0, routing_length);
 	bool left = true;
 
 	for (auto lit = linkGraph_.begin(); lit != linkGraph_.end(); ++lit) {
@@ -910,7 +939,7 @@ void DASDaedalus::RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleSt
 
 			ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
 			nt->Init();
-			part->RegisterNucleotideThreePrime(scaff, nt);
+			part->RegisterNucleotideThreePrime(scaffold, nt);
 			nt->setNucleotideType(ADNModel::ResidueNameToType(used_seq[nt_id]));
 			nt->SetPosition(bs->GetPosition());
 			nt->SetBackbonePosition(bs->GetPosition());
@@ -922,12 +951,10 @@ void DASDaedalus::RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleSt
 
 				// scaffold only goes through dsDNA regions
 				ADNPointer<ADNBasePair> bp_cell = static_cast<ADNBasePair*>(cell());
-				if (left) {
+				if (left)
 					bp_cell->SetLeftNucleotide(nt);
-				}
-				else {
+				else
 					bp_cell->SetRightNucleotide(nt);
-				}
 
 			}
 
@@ -941,12 +968,12 @@ void DASDaedalus::RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleSt
 
 	// advance beginning of scaffold
 	DASEdge* edge = (*linkGraph_.begin())->halfEdge_->edge_;
-	float m = bpLengths_[edge] * 0.5;
-	int idx1 = edge->halfEdge_->source_->id_;
-	int idx2 = edge->halfEdge_->pair_->source_->id_;
+	const float m = bpLengths_[edge] * 0.5f;
+	const int idx1 = edge->halfEdge_->source_->id_;
+	const int idx2 = edge->halfEdge_->pair_->source_->id_;
 	int pos = ceil(m);
 	if (idx1 < idx2) pos = floor(m);
-	ADNPointer<ADNNucleotide> res = AdvanceNucleotide(scaff->GetFivePrime(), pos);
+	ADNPointer<ADNNucleotide> res = AdvanceNucleotide(scaffold->GetFivePrime(), pos);
 	ADNBasicOperations::SetStart(res);
 
 }
@@ -1341,30 +1368,39 @@ std::map<DASHalfEdge*, SBPosition3> DASDaedalus::GetVertexPositions(DASPolyhedro
 	}
 
 	return vertexPositions;
+
 }
 
 int DASDaedalus::CalculateEdgeSize(SBQuantity::length nmLength) {
+
 	SBQuantity::dimensionless zSB = nmLength / SBQuantity::nanometer(ADNConstants::BP_RISE);
 	std::ldiv_t div;
 	div = std::div(long(zSB.getValue()), long(10.5));
 	int sz = std::floor(div.quot * 10.5);
 	if (sz < 31) sz = 31;
 	return sz;
+
 }
 
 template <typename T>
-void DASDaedalus::OutputGraph(T g, std::string filename) {
-	std::ofstream dotfile(filename.c_str());
+void DASDaedalus::OutputGraph(T g, const std::string& filename) {
+
+	std::ofstream dotfile(std::filesystem::u8path(filename));
 	boost::write_graphviz(dotfile, g);
+
 }
 
 DOTLink::DOTLink(const DOTLink& other) {
+
 	*this = other;
+
 }
 
 DOTLink::~DOTLink() {
+
 	delete source_;
 	delete target_;
+
 }
 
 DOTLink& DOTLink::operator=(const DOTLink& other) {

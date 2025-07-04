@@ -27,9 +27,9 @@ class SB_EXPORT PIBindingRegion : public SBNodeGroup {
 
 public:
 
-	PIBindingRegion() : SBNodeGroup() {};
-	PIBindingRegion(const std::string& name, const SBNodeIndexer& indexer) : SBNodeGroup(name, indexer) {};
-	PIBindingRegion(const PIBindingRegion& other) : SBNodeGroup(other) {};
+	PIBindingRegion() : SBNodeGroup() {}
+	PIBindingRegion(const std::string& name, const SBNodeIndexer& indexer) : SBNodeGroup(name, indexer) {}
+	PIBindingRegion(const PIBindingRegion& other) : SBNodeGroup(other) {}
 	~PIBindingRegion() = default;
 
 	PIBindingRegion& operator=(const PIBindingRegion& other);
@@ -42,13 +42,13 @@ public:
 
 	void SetLastNt(ADNPointer<ADNNucleotide> nt);
 	void SetFirstNt(ADNPointer<ADNNucleotide> nt);
-	ADNPointer<ADNPart> GetPart();
+	ADNPointer<ADNPart> GetPart() const;
 	void SetPart(ADNPointer<ADNPart> part);
 	void SetThermodynamicParameters(ThermodynamicParameters res);
 
 	void RegisterBindingRegion(SBFolder* folder = nullptr);
 	void UnregisterBindingRegion();
-	std::pair<std::string, std::string> GetSequences();
+	std::pair<std::string, std::string> GetSequences() const;
 
 private:
 

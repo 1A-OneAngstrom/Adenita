@@ -470,6 +470,7 @@ void SEAdenitaCoreSEApp::LinearCatenanes(SBQuantity::length radius, SBPosition3 
 	auto part = DASCreator::CreateLinearCatenanes(radius, center, normal, num);
 	addPartToDocument(part);
 	SEAdenitaCoreSEApp::resetVisualModel();
+	SEAdenitaCoreSEApp::centerCameraOnLoadedSystem();
 
 }
 
@@ -478,6 +479,7 @@ void SEAdenitaCoreSEApp::Kinetoplast(SBQuantity::length radius, SBPosition3 cent
 	auto part = DASCreator::CreateHexagonalCatenanes(radius, center, normal, rows, cols);
 	addPartToDocument(part);
 	SEAdenitaCoreSEApp::resetVisualModel();
+	SEAdenitaCoreSEApp::centerCameraOnLoadedSystem();
 
 }
 
@@ -685,7 +687,7 @@ void SEAdenitaCoreSEApp::ExportToCanDo(const QString& filename) {
 
 	SB_FOR(auto node, nodeIndexer) {
 
-		if (node->isSelected()) {
+		if (node->isSelected() && node->getProxy()->getName() == "ADNPart") {
 
 			ADNPointer<ADNPart> part = static_cast<ADNPart*>(node);
 			parts.addReferenceTarget(part());
@@ -694,7 +696,7 @@ void SEAdenitaCoreSEApp::ExportToCanDo(const QString& filename) {
 
 	}
 
-	if (nodeIndexer.size() == 1) {
+	if (parts.size() == 1) {
 
 		ADNPointer<ADNPart> part = parts[0];
 		ADNLoader::OutputToCanDo(part, filename.toStdString());
@@ -1106,12 +1108,16 @@ void SEAdenitaCoreSEApp::addPartToDocument(ADNPointer<ADNPart> part, bool positi
 	SEConfig& config = SEConfig::GetInstance();
 	if (config.auto_set_scaffold_sequence) {
 
-		std::string fname = SEAdenitaCoreSEAppGUI::getScaffoldFilename();
-		std::string seq = SEAdenitaCoreSEApp::readScaffoldFilename(fname);
-		auto scaffolds = part->GetScaffolds();
-		SB_FOR(ADNPointer<ADNSingleStrand> ss, scaffolds) {
+		const std::string fname = SEAdenitaCoreSEAppGUI::getScaffoldFilename();
+		const std::string seq = SEAdenitaCoreSEApp::readScaffoldFilename(fname);
+		if (seq.size()) {
 
-			ADNBasicOperations::SetSingleStrandSequence(ss, seq);
+			auto scaffolds = part->GetScaffolds();
+			SB_FOR(ADNPointer<ADNSingleStrand> ss, scaffolds) {
+
+				ADNBasicOperations::SetSingleStrandSequence(ss, seq);
+
+			}
 
 		}
 

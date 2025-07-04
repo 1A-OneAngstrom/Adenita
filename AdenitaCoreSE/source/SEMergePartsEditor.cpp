@@ -79,19 +79,22 @@ std::map<int, SEMergePartsEditor::Element> SEMergePartsEditor::getElementsList()
 
 }
 
-void SEMergePartsEditor::selectComponent(int idx) {
+void SEMergePartsEditor::selectComponent(int idx) const {
 
-	if (mapOfParts.find(idx) != mapOfParts.end())
-		mapOfParts[idx]->setSelectionFlag(true);
+	const auto& it = mapOfParts.find(idx);
+	if (it != mapOfParts.end())
+		it->second->setSelectionFlag(true);
 
 }
 
-void SEMergePartsEditor::selectElement(int idx) {
+void SEMergePartsEditor::selectElement(int idx) const {
 
-	if (mapOfElements.find(idx) != mapOfElements.end()) {
+	const auto& it = mapOfElements.find(idx);
+	if (it != mapOfElements.end()) {
 
-		if (mapOfElements[idx].ss != nullptr) mapOfElements[idx].ss->setSelectionFlag(true);
-		if (mapOfElements[idx].ds != nullptr) mapOfElements[idx].ds->setSelectionFlag(true);
+		const Element& element = it->second;
+		if (element.ss != nullptr) element.ss->setSelectionFlag(true);
+		if (element.ds != nullptr) element.ds->setSelectionFlag(true);
 
 	}
 
@@ -115,7 +118,7 @@ bool SEMergePartsEditor::mergeParts(int idx, int jdx) {
 	if (mapOfParts.find(jdx) != mapOfParts.end()) p2 = mapOfParts.at(jdx);
 
 	if (p1 != nullptr && p2 != nullptr) {
-		
+
 		app->MergeComponents(p1, p2);
 		if (p2 != nullptr) {
 
@@ -163,7 +166,7 @@ QString SEMergePartsEditor::getName() const {
 
 	// SAMSON Element generator pro tip: this name should not be changed
 
-	return "SEMergePartsEditor"; 
+	return "SEMergePartsEditor";
 
 }
 
@@ -190,22 +193,22 @@ int SEMergePartsEditor::getFormat() const {
 }
 
 QKeySequence SEMergePartsEditor::getShortcut() const {
-	
+
 	// SAMSON Element generator pro tip: modify this function to associate a tentative shortcut to your editor
 
-	return QKeySequence(""); 
+	return QKeySequence("");
 
 }
 
 QString SEMergePartsEditor::getToolTip() const {
-	
+
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Merge components"); 
+	return QObject::tr("Merge components");
 
 }
 
-void SEMergePartsEditor::loadSettings(SBGSettings * settings) {
+void SEMergePartsEditor::loadSettings(SBGSettings* settings) {
 
 	if (settings == nullptr) return;
 
@@ -275,14 +278,14 @@ void SEMergePartsEditor::mousePressEvent(QMouseEvent* event) {
 
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
-  
+
 }
 
 void SEMergePartsEditor::mouseReleaseEvent(QMouseEvent* event) {
 
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
-  
+
 }
 
 void SEMergePartsEditor::mouseMoveEvent(QMouseEvent* event) {

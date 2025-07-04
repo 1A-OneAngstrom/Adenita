@@ -38,6 +38,7 @@ public:
 	DNABlocks													getNucleotideType() const;
 
 	std::string													getNucleotideTypeString() const;
+	std::string													getOneLetterNucleotideTypeString() const;
 
 	void														SetPair(ADNPointer<ADNNucleotide> nucleotide);
 	ADNPointer<ADNNucleotide>									GetPair() const;														///< Return a nucleotide's pair

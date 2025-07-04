@@ -41,6 +41,7 @@ namespace ADNLoader {
 	// CanDo
 	SB_EXPORT void OutputToCanDo(ADNPointer<ADNPart> part, const std::string& filename);
 	SB_EXPORT void OutputToCanDo(ADNNanorobot* nanorobot, const std::string& filename);
+	SB_EXPORT void OutputToCanDo(const CollectionMap<ADNSingleStrand>& singleStrands, const std::vector<CollectionMap<ADNBaseSegment>>& baseSegmentsVector, const std::string& filename);
 
 	// sequence list
 	SB_EXPORT void OutputToCSV(CollectionMap<ADNPart> parts, const std::string& fname, const std::string& folder);
@@ -56,8 +57,8 @@ namespace ADNLoader {
 	template <typename T>
 	struct Wrap {
 		ADNPointer<T> elem_;
-		int id_ = -1;
-		int strandId_ = -1;
+		int id_{ -1 };
+		int strandId_{ -1 };
 	};
 
 	using NucleotideWrap = Wrap<ADNNucleotide>;

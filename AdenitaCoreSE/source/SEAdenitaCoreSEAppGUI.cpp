@@ -26,13 +26,12 @@
 #include <QTimer>
 #include <QGroupBox>
 #include <QMessageBox>
-#include <QInputDialog>
 #include <QFormLayout>
 #include <QToolButton>
 
 #include "SEAdenitaCoreSEAppGUIFlowLayout.hpp"
 
-SEAdenitaCoreSEAppGUI::SEAdenitaCoreSEAppGUI( SEAdenitaCoreSEApp* t ) : SBGApp( t ) {
+SEAdenitaCoreSEAppGUI::SEAdenitaCoreSEAppGUI(SEAdenitaCoreSEApp* t) : SBGApp(t) {
 
 	setupUI();
 
@@ -48,17 +47,17 @@ SEAdenitaCoreSEAppGUI::~SEAdenitaCoreSEAppGUI() {
 
 SEAdenitaCoreSEApp* SEAdenitaCoreSEAppGUI::getApp() const { return static_cast<SEAdenitaCoreSEApp*>(SBGApp::getApp()); }
 
-void SEAdenitaCoreSEAppGUI::loadSettings( SBGSettings *settings ) {
+void SEAdenitaCoreSEAppGUI::loadSettings(SBGSettings* settings) {
 
-	if ( settings == nullptr ) return;
-	
+	if (settings == nullptr) return;
+
 	// SAMSON Element generator pro tip: complete this function so your app can save its GUI state from one session to the next
 
 }
 
-void SEAdenitaCoreSEAppGUI::saveSettings( SBGSettings *settings ) {
+void SEAdenitaCoreSEAppGUI::saveSettings(SBGSettings* settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your app can save its GUI state from one session to the next
 
@@ -189,7 +188,7 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 	QDialog* dialog = new QDialog();
 
 	QComboBox* typeSelection = new QComboBox();
-  
+
 	auto nr = getApp()->GetNanorobot();
 	auto parts = nr->GetParts();
 	int i = 0;
@@ -203,9 +202,9 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 
 	}
 	typeSelection->insertItem(i, QString::fromStdString("Selected Component(s)"));
-	int sel_idx = i;
-	typeSelection->insertItem(i+1, QString::fromStdString("Workspace"));
-	int all_idx = i + 1;
+	const int sel_idx = i;
+	typeSelection->insertItem(i + 1, QString::fromStdString("Workspace"));
+	const int all_idx = i + 1;
 
 	QStringList itemsExportType;
 	itemsExportType << "Sequence list" << "oxDNA";
@@ -223,7 +222,7 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 	QObject::connect(cancelButton, SIGNAL(released()), dialog, SLOT(close()));
 	QObject::connect(acceptButton, SIGNAL(released()), dialog, SLOT(accept()));
 
-	QGridLayout *mainLayout = new QGridLayout;
+	QGridLayout* mainLayout = new QGridLayout;
 	mainLayout->setSizeConstraint(QLayout::SetFixedSize);
 	mainLayout->addWidget(typeSelection, 0, 0);
 	mainLayout->addWidget(exportType, 1, 0);
@@ -238,11 +237,10 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 	dialogWindow->setWindowModality(Qt::ApplicationModal);
 	dialogWindow->show();
 
-	int dialogCode = dialog->exec();
+	if (dialog->exec() == QDialog::Accepted) {
 
-	if (dialogCode == QDialog::Accepted) {
-    
-		auto val = typeSelection->currentIndex();
+		const auto val = typeSelection->currentIndex();
+		const QString eType = exportType->currentText();
 
 		CollectionMap<ADNPart> selectedParts;
 
@@ -262,8 +260,6 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 			selectedParts = nr->GetParts();
 
 		}
-
-		QString eType = exportType->currentText();
 
 		if (eType == "Sequence list") {
 
@@ -294,7 +290,7 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 
 			// oxDNA dialog
 			QDialog* dialogOxDNA = new QDialog();
-			QFormLayout *oxDNALayout = new QFormLayout;
+			QFormLayout* oxDNALayout = new QFormLayout;
 			QLabel* info = new QLabel;
 			info->setText("System size (nm): " + QString::number(sysX, 'g', 2) + " x " + QString::number(sysY, 'g', 2) + " x " + QString::number(sysZ, 'g', 2));
 			QDoubleSpinBox* boxX = new QDoubleSpinBox();
@@ -336,7 +332,7 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 			dialogOxDNAWindow->setWindowModality(Qt::ApplicationModal);
 			dialogOxDNAWindow->show();
 
-			int dCode = dialogOxDNA->exec();
+			const int dCode = dialogOxDNA->exec();
 
 			if (dCode == QDialog::Accepted) {
 
@@ -378,7 +374,7 @@ void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 
 	}
 	typeSelection->insertItem(i, QString::fromStdString("Selected Component"));
-	int sel_idx = i;
+	const int sel_idx = i;
 
 	QPushButton* acceptButton = new QPushButton(tr("Save"));
 	acceptButton->setDefault(true);
@@ -391,7 +387,7 @@ void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 	QObject::connect(cancelButton, SIGNAL(released()), dialog, SLOT(close()));
 	QObject::connect(acceptButton, SIGNAL(released()), dialog, SLOT(accept()));
 
-	QGridLayout *mainLayout = new QGridLayout;
+	QGridLayout* mainLayout = new QGridLayout;
 	mainLayout->setSizeConstraint(QLayout::SetFixedSize);
 	mainLayout->addWidget(typeSelection, 0, 0);
 	mainLayout->addWidget(buttonBox, 1, 0);
@@ -405,9 +401,7 @@ void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 	dialogWindow->setWindowModality(Qt::ApplicationModal);
 	dialogWindow->show();
 
-	int dialogCode = dialog->exec();
-
-	if (dialogCode == QDialog::Accepted) {
+	if (dialog->exec() == QDialog::Accepted) {
 
 		auto val = typeSelection->currentIndex();
 		ADNPointer<ADNPart> part = nullptr;
@@ -428,7 +422,7 @@ void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 			if (!filename.isEmpty()) getApp()->SaveFile(filename, part);
 
 		}
-	
+
 	}
 
 	dialogWindow->deleteLater();
@@ -485,7 +479,7 @@ void SEAdenitaCoreSEAppGUI::onCatenanes() {
 	QObject::connect(cancelButton, SIGNAL(released()), dialog, SLOT(reject()));
 	QObject::connect(acceptButton, SIGNAL(released()), dialog, SLOT(accept()));
 
-	QGridLayout *mainLayout = new QGridLayout;
+	QGridLayout* mainLayout = new QGridLayout;
 	mainLayout->setSizeConstraint(QLayout::SetFixedSize);
 	mainLayout->addWidget(numberLabel, 0, 0);
 	mainLayout->addWidget(number, 0, 1);
@@ -502,9 +496,7 @@ void SEAdenitaCoreSEAppGUI::onCatenanes() {
 	dialogWindow->setWindowModality(Qt::ApplicationModal);
 	dialogWindow->show();
 
-	int dialogCode = dialog->exec();
-
-	if (dialogCode == QDialog::Accepted ) {
+	if (dialog->exec() == QDialog::Accepted) {
 
 		int num = number->value();
 		SBQuantity::length R = SBQuantity::nanometer(radius->value());
@@ -513,7 +505,7 @@ void SEAdenitaCoreSEAppGUI::onCatenanes() {
 		normal[1] = 0.0;
 		normal[2] = 1.0;
 		SBPosition3 center = SBPosition3();
-		
+
 		getApp()->LinearCatenanes(R, center, normal, num);
 
 	}
@@ -557,7 +549,7 @@ void SEAdenitaCoreSEAppGUI::onKinetoplast() {
 	QObject::connect(cancelButton, SIGNAL(released()), dialog, SLOT(reject()));
 	QObject::connect(acceptButton, SIGNAL(released()), dialog, SLOT(accept()));
 
-	QGridLayout *mainLayout = new QGridLayout();
+	QGridLayout* mainLayout = new QGridLayout();
 	mainLayout->setSizeConstraint(QLayout::SetFixedSize);
 	mainLayout->addWidget(rowsLabel, 0, 0);
 	mainLayout->addWidget(rows, 0, 1);
@@ -576,9 +568,7 @@ void SEAdenitaCoreSEAppGUI::onKinetoplast() {
 	dialogWindow->setWindowModality(Qt::ApplicationModal);
 	dialogWindow->show();
 
-	int dialogCode = dialog->exec();
-
-	if (dialogCode == QDialog::Accepted) {
+	if (dialog->exec() == QDialog::Accepted) {
 
 		int r = rows->value();
 		int c = cols->value();
@@ -588,7 +578,7 @@ void SEAdenitaCoreSEAppGUI::onKinetoplast() {
 		normal[1] = 0.0;
 		normal[2] = 1.0;
 		SBPosition3 center = SBPosition3();
-		
+
 		getApp()->Kinetoplast(R, center, normal, r, c);
 
 	}
@@ -622,15 +612,15 @@ void SEAdenitaCoreSEAppGUI::onCalculateBindingProperties() {
 	form.addRow(new QLabel("Parameters for Calculating the Binding Region Properties"));
 
 	//oligo conc
-	QLineEdit *oligoConcText = new QLineEdit(&dialog);
+	QLineEdit* oligoConcText = new QLineEdit(&dialog);
 	oligoConcText->setText("100");
 	form.addRow(new QLabel("Oligo Conc"), oligoConcText);
 
-	QLineEdit *monovalentConcText = new QLineEdit(&dialog);
+	QLineEdit* monovalentConcText = new QLineEdit(&dialog);
 	monovalentConcText->setText("5");
 	form.addRow(new QLabel("Concentration of monovalent cations"), monovalentConcText);
 
-	QLineEdit *divalentConcText = new QLineEdit(&dialog);
+	QLineEdit* divalentConcText = new QLineEdit(&dialog);
 	divalentConcText->setText("16");
 	form.addRow(new QLabel("Concentration of divalent cations"), divalentConcText);
 
@@ -712,7 +702,7 @@ void SEAdenitaCoreSEAppGUI::onOxDNAImport() {
 	workingDirectory = QFileInfo(configFile).absolutePath();
 
 	if (!topoFile.isEmpty() || !configFile.isEmpty()) {
-		
+
 		getApp()->ImportFromOxDNA(topoFile.toStdString(), configFile.toStdString());
 
 	}
@@ -776,13 +766,13 @@ void SEAdenitaCoreSEAppGUI::onGenerateSequence() {
 	form.addRow(new QLabel("Generate Sequence"));
 
 	// gc content
-	QDoubleSpinBox *gcCont = new QDoubleSpinBox(&dialog);
+	QDoubleSpinBox* gcCont = new QDoubleSpinBox(&dialog);
 	gcCont->setMaximum(100.0);
 	gcCont->setMinimum(0.0);
 	gcCont->setValue(40.0);
 	form.addRow(new QLabel("GC Content"), gcCont);
 
-	QSpinBox *contiguousGs = new QSpinBox(&dialog);
+	QSpinBox* contiguousGs = new QSpinBox(&dialog);
 	contiguousGs->setMinimum(0);
 	contiguousGs->setMaximum(100);
 	form.addRow(new QLabel("Maximum amount of contiguous Gs"), contiguousGs);
@@ -976,12 +966,11 @@ void SEAdenitaCoreSEAppGUI::onGenerateAtomicModel() {
 
 	if (parts.size()) {
 
-		bool addToAll = true;
 		unsigned int nSelectedParts = 0;
 		SB_FOR(ADNPointer<ADNPart> part, parts)
 			if (part->getSelectionFlag()) ++nSelectedParts;
 
-		addToAll = (nSelectedParts == 0);
+		const bool addToAll = (nSelectedParts == 0);
 
 		if (addToAll && parts.size() > 1) {
 
@@ -1024,8 +1013,8 @@ std::string SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(QString filename) {
 #endif
 
 	}
-	catch (...) { 
-		
+	catch (...) {
+
 		return "unknown";
 
 	}
@@ -1061,7 +1050,7 @@ void SEAdenitaCoreSEAppGUI::setHighlightEditor(QToolButton* button) {
 		highlightedEditorButton_->style()->polish(highlightedEditorButton_);
 
 	}
-	
+
 	highlightedEditorButton_ = button;
 
 	if (highlightedEditorButton_) {
@@ -1081,7 +1070,7 @@ void SEAdenitaCoreSEAppGUI::checkForLoadedParts() {
 	SBNodeIndexer nodeIndexer;
 	SAMSON::getActiveDocument()->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNPart")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
-	SB_FOR(SBNode* node, nodeIndexer) {
+	SB_FOR(SBNode * node, nodeIndexer) {
 
 		ADNPointer<ADNPart> part = static_cast<ADNPart*>(node);
 		adenita->AddLoadedPartToNanorobot(part);
@@ -1093,7 +1082,7 @@ void SEAdenitaCoreSEAppGUI::checkForLoadedParts() {
 void SEAdenitaCoreSEAppGUI::keyPressEvent(QKeyEvent* event) {
 
 	if (event->modifiers() == Qt::ControlModifier) {
-	
+
 		SBProxy* editorProxy = nullptr;
 
 		//if (event->key() == Qt::Key_D) editorProxy = SAMSON::getProxy("SEDeleteEditor", SBUUID(SB_ELEMENT_UUID));
@@ -1102,7 +1091,7 @@ void SEAdenitaCoreSEAppGUI::keyPressEvent(QKeyEvent* event) {
 
 		if (editorProxy) {
 
-			SBEditor * editor = SAMSON::getEditor(editorProxy->getUUID(), editorProxy->getElementUUID());
+			SBEditor* editor = SAMSON::getEditor(editorProxy->getUUID(), editorProxy->getElementUUID());
 			if (editor) SAMSON::setActiveEditor(editor);
 
 		}
@@ -1112,10 +1101,10 @@ void SEAdenitaCoreSEAppGUI::keyPressEvent(QKeyEvent* event) {
 }
 
 
-SBCContainerUUID SEAdenitaCoreSEAppGUI::getUUID() const { return SBCContainerUUID( "386506A7-DD8B-69DD-4599-F136C1B91610" );}
+SBCContainerUUID SEAdenitaCoreSEAppGUI::getUUID() const { return SBCContainerUUID("386506A7-DD8B-69DD-4599-F136C1B91610"); }
 
-QPixmap SEAdenitaCoreSEAppGUI::getLogo() const { 
-	
+QPixmap SEAdenitaCoreSEAppGUI::getLogo() const {
+
 	// SAMSON Element generator pro tip: this icon will be visible in the GUI title bar. 
 	// Modify it to better reflect the purpose of your app.
 
@@ -1123,24 +1112,24 @@ QPixmap SEAdenitaCoreSEAppGUI::getLogo() const {
 
 }
 
-QString SEAdenitaCoreSEAppGUI::getName() const { 
+QString SEAdenitaCoreSEAppGUI::getName() const {
 
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your app inside SAMSON
 
-	return "Adenita"; 
+	return "Adenita";
 
 }
 
-int SEAdenitaCoreSEAppGUI::getFormat() const { 
-	
+int SEAdenitaCoreSEAppGUI::getFormat() const {
+
 	// SAMSON Element generator pro tip: modify these default settings to configure the window
 	//
 	// SBGWindow::Savable : let users save and load interface settings (implement loadSettings and saveSettings)
 	// SBGWindow::Lockable : let users lock the window on top
 	// SBGWindow::Resizable : let users resize the window
 	// SBGWindow::Citable : let users obtain citation information (implement getCitation)
-	
+
 	return (SBGWindow::Lockable | SBGWindow::Resizable | SBGWindow::Citable);
 
 }
@@ -1188,7 +1177,7 @@ void SEAdenitaCoreSEAppGUI::setupUI() {
 	const std::vector<QToolButton*> editSequencesButtons = getEditSequencesButtons();
 	const std::vector<QToolButton*> modelingButtons = getModelingButtons();
 	const std::vector<QToolButton*> creatorsButtons = getCreatorsButtons();
-	
+
 	for (auto b : menuButtons) layoutMenu->addWidget(b);
 	for (auto b : editSequencesButtons) layoutEditSequences->addWidget(b);
 	for (auto b : modelingButtons) layoutModeling->addWidget(b);
@@ -1272,13 +1261,23 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getMenuButtons() {
 
 		auto btnExport = new QToolButton(this);
 		btnExport->setObjectName(QStringLiteral("btnExport"));
-		btnExport->setText("Export\n");
+		btnExport->setText("Export to\nCSV or oxDNA");
 		btnExport->setToolTip("<b>Export</b><br/><br/>"
 			"Export as CSV sequence file or in a format appropriate for oxDNA.");
 		btnExport->setIconSize(QSize(24, 24));
 		btnExport->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 		btnExport->setAutoRaise(true);
 		menuButtons_.push_back(btnExport);
+
+		auto btnExportCanDo = new QToolButton(this);
+		btnExportCanDo->setObjectName(QStringLiteral("btnExportCanDo"));
+		btnExportCanDo->setText("Export to\nCanDo");
+		btnExportCanDo->setToolTip("<b>Export to CanDo</b><br/><br/>"
+			"Export the selected part or the whole document in a CanDo file (.cndo).");
+		btnExportCanDo->setIconSize(QSize(24, 24));
+		btnExportCanDo->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+		btnExportCanDo->setAutoRaise(true);
+		menuButtons_.push_back(btnExportCanDo);
 
 		auto btnResetVisualModel = new QToolButton(this);
 		btnResetVisualModel->setObjectName(QStringLiteral("btnResetVisualModel"));
@@ -1312,6 +1311,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getMenuButtons() {
 		QObject::connect(btnSaveAll, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSaveAll, Qt::ConnectionType::UniqueConnection);
 		QObject::connect(btnSettings, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSettings, Qt::ConnectionType::UniqueConnection);
 		QObject::connect(btnExport, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onExport, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnExportCanDo, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onExportToCanDo, Qt::ConnectionType::UniqueConnection);
 		QObject::connect(btnResetVisualModel, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onResetVisualModel, Qt::ConnectionType::UniqueConnection);
 		QObject::connect(btnCenterOnAllModels, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCenterOnAllModels, Qt::ConnectionType::UniqueConnection);
 
@@ -1333,6 +1333,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getMenuButtons() {
 		QIcon exportIcon;
 		exportIcon.addFile(std::string(iconsPath + "export.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
 		btnExport->setIcon(exportIcon);
+		btnExportCanDo->setIcon(exportIcon);
 
 		QIcon resetVM;
 		resetVM.addFile(std::string(iconsPath + "resetVisualModel.png").c_str(), QSize(), QIcon::Normal, QIcon::Off);
@@ -1436,7 +1437,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getEditSequencesButtons() {
 		btnTaggingEditor->setIcon(tagEditor);
 
 	}
-  
+
 	return editSequencesButtons_;
 
 }

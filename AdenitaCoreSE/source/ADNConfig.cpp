@@ -1,5 +1,6 @@
 #include "ADNConfig.hpp"
 #include "rapidjson/filewritestream.h"
+#include <filesystem>
 
 SEConfig & SEConfig::GetInstance() {
 
@@ -314,7 +315,7 @@ void SEConfig::loadConfig() {
 
 		writer.EndObject();
 
-		std::ofstream out(DEFAULT_CONFIGPATH);
+		std::ofstream out(std::filesystem::u8path(DEFAULT_CONFIGPATH));
 		out << s.GetString();
 		out.close();
 	}
@@ -361,7 +362,7 @@ void SEConfig::loadDebugConfig() {
 
         writer.EndObject();
 
-        std::ofstream out(DEBUG_CONFIGPATH);
+        std::ofstream out(std::filesystem::u8path(DEBUG_CONFIGPATH));
         out << s.GetString();
         out.close();
 
