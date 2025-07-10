@@ -313,8 +313,10 @@ void DASBackToTheAtom::SetPositionLoopNucleotides(ADNPointer<ADNBaseSegment> bs)
 
 		if (left != nullptr) {
 
-			ADNPointer<ADNNucleotide> ntPrevLeft = left->GetStart()->GetPrev();
-			ADNPointer<ADNNucleotide> ntNextLeft = left->GetEnd()->GetNext();
+			ADNPointer<ADNNucleotide> ntPrevLeft = nullptr;
+			ADNPointer<ADNNucleotide> ntNextLeft = nullptr;
+			if (left->GetStart() != nullptr) ntPrevLeft = left->GetStart()->GetPrev();
+			if (left->GetEnd() != nullptr) ntNextLeft = left->GetEnd()->GetNext();
 
 			if (ntPrevLeft != nullptr) {
 				posPrevLeft = ntPrevLeft->GetPosition();
@@ -349,8 +351,10 @@ void DASBackToTheAtom::SetPositionLoopNucleotides(ADNPointer<ADNBaseSegment> bs)
 
 		if (right != nullptr) {
 
-			ADNPointer<ADNNucleotide> ntPrevRight = right->GetStart()->GetPrev();
-			ADNPointer<ADNNucleotide> ntNextRight = right->GetEnd()->GetNext();
+			ADNPointer<ADNNucleotide> ntPrevRight = nullptr;
+			ADNPointer<ADNNucleotide> ntNextRight = nullptr;
+			if (right->GetStart() != nullptr) ntPrevRight = right->GetStart()->GetPrev();
+			if (right->GetEnd() != nullptr) ntNextRight = right->GetEnd()->GetNext();
 
 			if (ntPrevRight != nullptr) {
 				posPrevRight = ntPrevRight->GetPosition();
