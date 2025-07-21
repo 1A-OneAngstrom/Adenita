@@ -3,8 +3,6 @@
 #include <string>
 
 #include <QString>
-#include <QTextStream>
-#include <QFile>
 
 #include <SAMSON.hpp>
 

@@ -2,39 +2,52 @@
 
 
 DASHalfEdge::DASHalfEdge(const DASHalfEdge& other) {
+
 	*this = other;
+
 }
 
 DASHalfEdge& DASHalfEdge::operator=(const DASHalfEdge& other) {
+
 	if (this != &other) {
 		id_ = other.id_;
 	}
 	return *this;
+
 }
 
 DASVertex::DASVertex(const DASVertex& w) {
+
 	*this = w;
+
 }
 
 DASVertex& DASVertex::operator=(const DASVertex& other) {
+
 	if (this != &other) {
+
 		id_ = other.id_;
 		position_ = other.position_;
+
 	}
 	return *this;
+
 }
 
 /* Copy constructor for ANTVertex
 */
 DASVertex::DASVertex(DASVertex* w) {
+
 	id_ = w->id_;
 	halfEdge_ = w->halfEdge_;
 	position_ = w->position_;
+
 }
 
 /* Destructor for ANTEdge
 */
 DASEdge::~DASEdge() {
+
 	// Remove all polygons connected to the edge
 	DASPolygon* p1 = nullptr;
 	if (halfEdge_->left_ != nullptr) p1 = halfEdge_->left_;
@@ -44,14 +57,19 @@ DASEdge::~DASEdge() {
 	if (p2 != nullptr) delete p2;
 	if (halfEdge_->pair_ != nullptr) delete halfEdge_->pair_;
 	delete halfEdge_;
+
 }
 
 DASEdge::DASEdge(const DASEdge& other) {
+
 	*this = other;
+
 }
 
 DASEdge& DASEdge::operator=(const DASEdge& other) {
+
 	if (this != &other) {
+
 		// copy vertices only one vertex
 		DASVertex* v1 = new DASVertex(other.halfEdge_->source_);
 		// create half edges
@@ -59,27 +77,38 @@ DASEdge& DASEdge::operator=(const DASEdge& other) {
 		he1->source_ = v1;
 		he1->edge_ = this;
 		halfEdge_ = he1;
+
 	}
+
 	return *this;
+
 }
 
 DASPolygon::DASPolygon(const DASPolygon& p) {
+
 	*this = p;
+
 }
 
 /* Destructor for ANTPolygon
 */
 DASPolygon::~DASPolygon() {
+
 	DASHalfEdge* begin = halfEdge_;
 	DASHalfEdge* he = begin;
 	do {
+
 		he->left_ = nullptr;
 		he = he->next_;
+
 	} while (he != begin);
+
 }
 
 DASPolygon& DASPolygon::operator=(const DASPolygon& other) {
+
 	if (this != &other) {
+
 		// copy all edges and link them
 		DASHalfEdge* begin = other.halfEdge_;
 		DASHalfEdge* he = begin;
@@ -87,6 +116,7 @@ DASPolygon& DASPolygon::operator=(const DASPolygon& other) {
 		DASEdge* first_e = nullptr;
 		DASEdge* e = nullptr;
 		do {
+
 			e = new DASEdge(*(he->edge_));
 			e->halfEdge_->left_ = this;
 			if (prev_e != nullptr) {
@@ -98,36 +128,47 @@ DASPolygon& DASPolygon::operator=(const DASPolygon& other) {
 			}
 			prev_e = e;
 			he = he->next_;
+
 		} while (he != begin);
+
 		e->halfEdge_->next_ = first_e->halfEdge_;
 		first_e->halfEdge_->prev_ = e->halfEdge_;
 		halfEdge_ = first_e->halfEdge_;
+
 	}
+
 	return *this;
+
 }
 
 SBPosition3 DASPolygon::GetCenter() const {
+
 	SBPosition3 cm;
 	int c = 0;
 	DASHalfEdge* begin = halfEdge_;
 	DASHalfEdge* he = begin;
 	do {
+
 		cm += he->source_->GetSBPosition();
 		++c;
 		he = he->next_;
+
 	} while (he != begin);
 	cm /= c;
 
 	return cm;
+
 }
 
 std::vector<double> DASVertex::GetVectorCoordinates() const {
+
 	std::vector<double> coords = {
 	  position_[0].getValue() * 0.01,
 	  position_[1].getValue() * 0.01,
 	  position_[2].getValue() * 0.01,
 	};
 	return coords;
+
 }
 
 const SBPosition3& DASVertex::GetSBPosition() const {
@@ -168,14 +209,18 @@ DASPolyhedron::~DASPolyhedron() {
 	for (auto& it : originalVertices_) {
 		delete it.second;
 	}
+
 	faces_.clear();
 	edges_.clear();
 	vertices_.clear();
 	originalVertices_.clear();
+
 }
 
 DASPolyhedron& DASPolyhedron::operator=(const DASPolyhedron& p) {
+
 	if (this != &p) {
+
 		// Delete all info first
 		for (auto& it : faces_) {
 			delete it;
@@ -200,25 +245,32 @@ DASPolyhedron& DASPolyhedron::operator=(const DASPolyhedron& p) {
 		for (auto& p_vertex : p_vertices) {
 			vertices.insert(std::make_pair(p_vertex.first, p_vertex.second->GetSBPosition()));
 		}
+
 		std::map<int, std::vector<int>> faces;
 		int f_id = 0;
 		for (auto& p_face : p_faces) {
+
 			std::vector<int> vs;
 			DASHalfEdge* begin = p_face->halfEdge_;
 			DASHalfEdge* he = begin;
 			do {
+
 				vs.push_back(he->source_->id_);
 				he = he->next_;
+
 			} while (he != begin);
 			faces.insert(std::make_pair(f_id, vs));
 			++f_id;
+
 		}
 
 		BuildPolyhedron(vertices, faces);
-	}
-	return *this;
-}
 
+	}
+
+	return *this;
+
+}
 
 Vertices DASPolyhedron::GetVertices() const {
 	return vertices_;
@@ -241,15 +293,21 @@ size_t DASPolyhedron::GetNumFaces() const {
 }
 
 void DASPolyhedron::SetVertices(Vertices vertices, bool isOriginal = false) {
+
 	vertices_ = vertices;
 	if (isOriginal) {
+
 		// make a hard copy of vertices
 		for (auto& vertex : vertices) {
+
 			DASVertex* v = vertex.second;
-			auto* w = new DASVertex(v);
+			DASVertex* w = new DASVertex(v);
 			originalVertices_.insert(std::make_pair(vertex.first, w));
+
 		}
+
 	}
+
 }
 
 void DASPolyhedron::SetFaces(Faces faces) {
@@ -264,26 +322,32 @@ void DASPolyhedron::BuildPolyhedron(const std::map<int, SBPosition3>& vertices, 
 
 	//create indices for faces
 	if (faces.size() > 0) {
+
 		const auto& firstFace = faces.at(0);
 		const size_t verticesPerFace = firstFace.size();
 		indices_ = new unsigned int[verticesPerFace * faces.size()];
 
 		int k = 0;
 		for (const auto& face : faces) {
+
 			const auto& faceIndices = face.second;
 			if (faceIndices.size() == 3) {
+
 				indices_[verticesPerFace * k + 0] = faceIndices[0];
 				indices_[verticesPerFace * k + 1] = faceIndices[1];
 				indices_[verticesPerFace * k + 2] = faceIndices[2];
+
 			}
 			++k;
-		}
-	}
 
+		}
+
+	}
 
 	for (const auto& vertex : vertices) {
 		AddVertex(vertex.first, vertex.second);
 	}
+
 	// store original vertices for scaling and such
 	SetVertices(vertices_, true);
 
@@ -291,18 +355,21 @@ void DASPolyhedron::BuildPolyhedron(const std::map<int, SBPosition3>& vertices, 
 	unsigned int he_id = 0;
 	unsigned int e_id = 0;
 	for (const auto& i : faces) {
-		auto* face = new DASPolygon();
+
+		DASPolygon* face = new DASPolygon();
 		faces_.push_back(face);
 		face->id_ = i.first;
 
 		DASHalfEdge* prev = nullptr;
-		auto* first = new DASHalfEdge();
+		DASHalfEdge* first = new DASHalfEdge();
 		first->id_ = he_id;
 		++he_id;
 		const auto& v = i.second;
+
 		for (auto j = v.begin(); j != v.end(); ++j) {
+
 			DASVertex* vertex_i = vertices_.at(*j);
-			auto* he = new DASHalfEdge();
+			DASHalfEdge* he = new DASHalfEdge();
 			he->id_ = he_id;
 			++he_id;
 			he->source_ = vertex_i;
@@ -315,29 +382,37 @@ void DASPolyhedron::BuildPolyhedron(const std::map<int, SBPosition3>& vertices, 
 			if (next_i == v.end()) {
 				next_i = v.begin();
 			}
-			auto* edge = new DASEdge();
-			auto* pair = new DASHalfEdge();
+			DASEdge* edge = new DASEdge();
+			DASHalfEdge* pair = new DASHalfEdge();
 			std::pair<int, int> edge_pair = std::make_pair(*j, *next_i);
+
 			if (*j > *next_i) {
 				edge_pair = std::make_pair(*next_i, *j);
 			}
+
 			if (seen_edges.find(edge_pair) == seen_edges.end()) {
+
 				// we need to create DASEdge;
 				edge->halfEdge_ = he;
 				edge->id_ = e_id;
 				seen_edges.insert(std::make_pair(edge_pair, edge));
 				edges_.push_back(edge);
 				++e_id;
+
 			}
 			else {
+
 				edge = seen_edges.at(edge_pair);
 				pair = edge->halfEdge_;
 				he->pair_ = pair;
 				pair->pair_ = he;
 				pair->id_ = he_id;
 				++he_id;
+
 			}
+
 			he->edge_ = edge;
+
 			// add next and prev half edges
 			if (prev != nullptr) {
 				he->prev_ = prev;
@@ -347,13 +422,19 @@ void DASPolyhedron::BuildPolyhedron(const std::map<int, SBPosition3>& vertices, 
 				// save ref to first half-edge
 				first = he;
 			}
+
 			prev = he;
+
 		}
+
 		// fix first half-edge
 		face->halfEdge_ = first;
 		first->prev_ = prev;
-		prev->next_ = first;
+		if (prev)
+			prev->next_ = first;
+
 	}
+
 }
 
 bool DASPolyhedron::isPLYFile(const std::string& filename) {
@@ -390,6 +471,7 @@ void DASPolyhedron::LoadFromPLYFile(const std::string& filename) {
 
 	//initialize values
 	for (unsigned int i = 1; i < lines.size(); i++) {
+
 		std::string line = lines[i];
 
 		// Fetch number of vertices and faces
@@ -406,6 +488,7 @@ void DASPolyhedron::LoadFromPLYFile(const std::string& filename) {
 			start_faces = start_vertices + total_vertices;
 			break;
 		}
+
 	}
 
 	int currentSerialNumber = 0;
@@ -413,6 +496,7 @@ void DASPolyhedron::LoadFromPLYFile(const std::string& filename) {
 	// Fetch vertices
 	std::map<int, SBPosition3> vertices;
 	for (unsigned int i = start_vertices; i < start_faces; i++) {
+
 		std::string line = lines[i];
 		std::vector<double> coords = SplitString(line, std::string("double"), 0.1);
 		SBPosition3 coordsSB = SBPosition3();
@@ -421,6 +505,7 @@ void DASPolyhedron::LoadFromPLYFile(const std::string& filename) {
 		coordsSB[2] = SBQuantity::angstrom(coords[2]);
 		vertices.insert(std::make_pair(currentSerialNumber, coordsSB));
 		++currentSerialNumber;
+
 	}
 
 	// Fetch faces
@@ -428,6 +513,7 @@ void DASPolyhedron::LoadFromPLYFile(const std::string& filename) {
 
 	std::map<int, std::vector<int>> faces;
 	for (unsigned int i = start_faces; i < start_faces + total_faces; i++) {
+
 		std::string line = lines[i];
 
 		std::vector<int> f = SplitString(line, std::string("int"), 1);
@@ -438,6 +524,7 @@ void DASPolyhedron::LoadFromPLYFile(const std::string& filename) {
 		}
 		faces.insert(std::make_pair(currentSerialNumber, v));
 		++currentSerialNumber;
+
 	}
 
 	BuildPolyhedron(vertices, faces);
@@ -450,8 +537,10 @@ int DASPolyhedron::FetchNumber(const std::string& st, const std::string& tok) co
 	size_t tok_size = tok.length();
 	size_t pos = st.find(tok);
 	if (pos != std::string::npos) {
+
 		std::string n = st.substr(pos + tok_size);
 		num = atoi(n.c_str());
+
 	}
 
 	return num;

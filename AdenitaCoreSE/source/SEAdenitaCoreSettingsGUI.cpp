@@ -1,7 +1,6 @@
 #include "SEAdenitaCoreSettingsGUI.hpp"
 #include "ADNConfig.hpp"
 
-#include <QFileDialog>
 
 
 SEAdenitaCoreSettingsGUI::SEAdenitaCoreSettingsGUI(QWidget* parent, Qt::WindowFlags f) : QDialog(parent, f) {

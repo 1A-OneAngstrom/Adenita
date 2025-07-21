@@ -12,7 +12,6 @@
 #include <string>
 #include <iostream>
 
-#include <QFileInfo>
 #include <QFileSystemWatcher>
 
 
