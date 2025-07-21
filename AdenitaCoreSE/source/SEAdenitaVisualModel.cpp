@@ -12,7 +12,6 @@
 #include "MSVColors.hpp"
 #include "MSVDisplayHelper.hpp"
 
-#include <QOpenGLShaderProgram>
 
 //#include "SBGRenderOpenGLFunctions.hpp"
 

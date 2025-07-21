@@ -6,7 +6,6 @@
 #include "SAMSON.hpp"
 #include "SBStructuralModel.hpp"
 
-#include <QFileInfo>
 
 #include <iostream>
 #include <sstream>

@@ -23,7 +23,6 @@
 #include <filesystem>
 
 #include <QPixmap>
-#include <QTimer>
 #include <QGroupBox>
 #include <QMessageBox>
 #include <QFormLayout>
