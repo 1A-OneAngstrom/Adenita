@@ -11,8 +11,8 @@ using XOPair = std::pair < ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide> 
 
 namespace PICrossovers {
 
-	std::vector<XOPair> GetCrossovers(ADNPointer<ADNPart> part);
-	std::vector<XOPair> GetPossibleCrossovers(ADNPointer<ADNPart> part, ADNPointer<ADNNucleotide> nt, ADNNeighbors* neigh);
-	std::vector<XOPair> GetPossibleCrossovers(ADNPointer<ADNPart> part, ADNNeighbors* neigh = nullptr);
+	SB_EXPORT std::vector<XOPair> GetCrossovers(ADNPointer<ADNPart> part);
+	SB_EXPORT std::vector<XOPair> GetPossibleCrossovers(ADNPointer<ADNPart> part, ADNPointer<ADNNucleotide> nt, ADNNeighbors* neigh);
+	SB_EXPORT std::vector<XOPair> GetPossibleCrossovers(ADNPointer<ADNPart> part, ADNNeighbors* neigh = nullptr);
 
 };

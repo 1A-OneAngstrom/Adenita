@@ -53,6 +53,7 @@ std::vector<XOPair> PICrossovers::GetPossibleCrossovers(ADNPointer<ADNPart> part
 std::vector<XOPair> PICrossovers::GetPossibleCrossovers(ADNPointer<ADNPart> part, ADNNeighbors* neigh) {
 
     if (neigh == nullptr) {
+
         // create neighbors
         neigh = new ADNNeighbors();
         SEConfig& c = SEConfig::GetInstance();
@@ -61,6 +62,7 @@ std::vector<XOPair> PICrossovers::GetPossibleCrossovers(ADNPointer<ADNPart> part
         neigh->SetIncludePairs(false);
         neigh->SetFromOwnSingleStrand(true);
         neigh->InitializeNeighbors(part);
+
     }
 
     std::vector<XOPair> xos;
@@ -68,8 +70,10 @@ std::vector<XOPair> PICrossovers::GetPossibleCrossovers(ADNPointer<ADNPart> part
     // highlight neighbors of selected nucleotide
     auto nts = part->GetNucleotides();
     SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
+
         auto ntXO = GetPossibleCrossovers(part, nt, neigh);
         xos.insert(xos.end(), ntXO.begin(), ntXO.end());
+
     }
 
     return std::vector<XOPair>();

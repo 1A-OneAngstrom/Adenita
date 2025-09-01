@@ -2,8 +2,6 @@
 
 #include "ADNMixins.hpp"
 
-class ADNPart;
-
 enum class RoutingType {
 	None = 0,
 	Seamless = 1,
@@ -11,7 +9,9 @@ enum class RoutingType {
 	NonSeamless = 3
 };
 
-class DASRouter {
+class ADNPart;
+
+class SB_EXPORT DASRouter {
 
 public:
 
@@ -23,18 +23,28 @@ public:
 
 };
 
-class DASRouterNone : public DASRouter {
+class SB_EXPORT DASRouterNone : public DASRouter {
+
 	void Route(ADNPointer<ADNPart> part) {};
+
 };
 
-class DASRouterNanotubeTiles : public DASRouter {
+#if 0
+class SB_EXPORT DASRouterNanotubeTiles : public DASRouter {
+
 	void Route(ADNPointer<ADNPart> part);
+
 };
 
-class DASRouterNanotubeSeamless : public DASRouter {
+class SB_EXPORT DASRouterNanotubeSeamless : public DASRouter {
+
 	void Route(ADNPointer<ADNPart> part);
+
 };
 
-class DASRouterNanotubeNonSeamless : public DASRouter {
+class SB_EXPORT DASRouterNanotubeNonSeamless : public DASRouter {
+
 	void Route(ADNPointer<ADNPart> part);
+
 };
+#endif

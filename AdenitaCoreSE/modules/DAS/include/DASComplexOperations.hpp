@@ -18,11 +18,11 @@ namespace DASOperations {
         MergePair compStringPair;
     };
 
-    Connections PrepareStrandsForConnection(ADNPointer<ADNPart> part1, ADNPointer<ADNPart> part2, ADNPointer<ADNNucleotide> nt1, ADNPointer<ADNNucleotide> nt2);
+    SB_EXPORT Connections PrepareStrandsForConnection(ADNPointer<ADNPart> part1, ADNPointer<ADNPart> part2, ADNPointer<ADNNucleotide> nt1, ADNPointer<ADNNucleotide> nt2);
 
-    void CreateCrossover(ADNPointer<ADNPart> part1, ADNPointer<ADNPart> part2, ADNPointer<ADNNucleotide> nt1,
+    SB_EXPORT void CreateCrossover(ADNPointer<ADNPart> part1, ADNPointer<ADNPart> part2, ADNPointer<ADNNucleotide> nt1,
         ADNPointer<ADNNucleotide> nt2, bool two = false, std::string seq = "");
 
-    void AddComplementaryStrands(ADNNanorobot* nanorobot, CollectionMap<ADNNucleotide> selectedNucleotides);
+    SB_EXPORT void AddComplementaryStrands(ADNNanorobot* nanorobot, CollectionMap<ADNNucleotide> selectedNucleotides);
 
 }

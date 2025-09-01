@@ -4,7 +4,7 @@
 
 DASRouter* DASRouter::GetRouter(RoutingType t) {
 
-    DASRouter* router;
+    DASRouter* router = nullptr;
 
     if (t == RoutingType::None) {
         router = new DASRouterNone();

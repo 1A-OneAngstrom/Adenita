@@ -5,7 +5,7 @@
 SENanotubeCreatorEditorGUI::SENanotubeCreatorEditorGUI(SENanotubeCreatorEditor* editor) {
 
 	this->editor = editor;
-	ui.setupUi( this );
+	ui.setupUi(this);
 
 }
 
@@ -15,15 +15,15 @@ SENanotubeCreatorEditorGUI::~SENanotubeCreatorEditorGUI() {
 
 SENanotubeCreatorEditor* SENanotubeCreatorEditorGUI::getEditor() const { return editor; }
 
-void SENanotubeCreatorEditorGUI::loadSettings( SBGSettings *settings ) {
+void SENanotubeCreatorEditorGUI::loadSettings(SBGSettings* settings) {
 
 	if (settings == nullptr) return;
-	
+
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
 }
 
-void SENanotubeCreatorEditorGUI::saveSettings( SBGSettings *settings ) {
+void SENanotubeCreatorEditorGUI::saveSettings(SBGSettings* settings) {
 
 	if (settings == nullptr) return;
 
@@ -86,10 +86,10 @@ void SENanotubeCreatorEditorGUI::onChangeRouting() {
 
 }
 
-SBCContainerUUID SENanotubeCreatorEditorGUI::getUUID() const { return SBCContainerUUID( "23177033-1C9B-B441-1916-35EE442706CC" );}
+SBCContainerUUID SENanotubeCreatorEditorGUI::getUUID() const { return SBCContainerUUID("23177033-1C9B-B441-1916-35EE442706CC"); }
 
-QPixmap SENanotubeCreatorEditorGUI::getLogo() const { 
-	
+QPixmap SENanotubeCreatorEditorGUI::getLogo() const {
+
 	// SAMSON Element generator pro tip: this icon will be visible in the GUI title bar. 
 	// Modify it to better reflect the purpose of your editor.
 
@@ -97,12 +97,12 @@ QPixmap SENanotubeCreatorEditorGUI::getLogo() const {
 
 }
 
-QString SENanotubeCreatorEditorGUI::getName() const { 
+QString SENanotubeCreatorEditorGUI::getName() const {
 
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your editor inside SAMSON
 
-	return "DNA Nanotube Creator"; 
+	return "DNA Nanotube Creator";
 
 }
 
