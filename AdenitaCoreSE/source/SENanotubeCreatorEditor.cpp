@@ -49,11 +49,15 @@ void SENanotubeCreatorEditor::setPredefined(bool predefined, const SBQuantity::l
 }
 
 void SENanotubeCreatorEditor::setRadius(const SBQuantity::length& radius) {
+
 	this->radius = radius;
+
 }
 
 void SENanotubeCreatorEditor::setNumberOfBasePairs(int bp) {
+
 	this->numberOfBasePairs = bp;
+
 }
 
 ADNPointer<ADNPart> SENanotubeCreatorEditor::generateNanotube(bool mock) {

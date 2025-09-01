@@ -109,16 +109,16 @@ private:
 	SBPosition3													firstPosition;
 	SBPosition3													secondPosition;
 	SBPosition3													thirdPosition;
-	bool														displayFlag = false;
-	bool														isPressing = false;
-	bool														lengthSelected = false;
+	bool														displayFlag{ false };
+	bool														isPressing{ false };
+	bool														lengthSelected{ false };
 
 	ADNPointer<ADNPart>											tempPart = nullptr;
-	RoutingType													routingType = RoutingType::None;
+	RoutingType													routingType{ RoutingType::None };
 
 	//! for manual setting of base pairs and double strands
-	bool														predefinedFlag = false;
-	int															numberOfBasePairs = 0;
+	bool														predefinedFlag{ false };
+	int															numberOfBasePairs{ 0 };
 	SBQuantity::length											radius = SBQuantity::length(0.0);
 
 };
