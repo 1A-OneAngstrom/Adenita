@@ -1,5 +1,9 @@
 # About Adenita
 
+Please refer to the **updated documentation for users**: [SAMSON Documentation Center: Adenita](https://documentation.samson-connect.net/tutorials/adenita/adenita/).
+
+Below is the old original documentation left for history.
+
 Adenita is a 3D visualization and modeling toolkit for the in silico design of static and dynamic DNA nanostructures. Based on a multiscale data model, it visualizes DNA-based structures on different abstraction levels and enable users to load and create DNA origami structures and combine them with proteins.
 
 **Adenita: Interactive 3D modeling and visualization of DNA Nanostructures.** Elisa de Llano, Haichao Miao, Yasaman Ahmadi, Amanda J. Wilson, Morgan Beeby, Ivan Viola, Ivan Barisic. *Pre-print at bioRxiv (849976)*; 2019. doi: https://doi.org/10.1101/849976
