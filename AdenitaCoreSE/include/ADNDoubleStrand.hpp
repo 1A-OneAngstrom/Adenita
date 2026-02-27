@@ -22,27 +22,27 @@ public:
 	virtual void												serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const override;		///< Serializes the node
 	virtual void												unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;			///< Unserializes the node
 
-	ADNPointer<ADNPart>                                         GetPart() const;                                                        ///< Returns a pointer to the part to which this double strand belongs
+	[[nodiscard]] ADNPointer<ADNPart>                           GetPart() const;                                                        ///< Returns a pointer to the part to which this double strand belongs
 	
 	void														SetInitialTwistAngle(double angle);
-	double														GetInitialTwistAngle() const;
-	double														getInitialTwistAngle() const;
+	[[nodiscard]] double										GetInitialTwistAngle() const;
+	[[nodiscard]] double										getInitialTwistAngle() const;
 
-	int															GetLength() const;
-	int															getLength() const;
+	[[nodiscard]] int											GetLength() const;
+	[[nodiscard]] int											getLength() const;
 
-	bool														IsCircular() const;
-	bool														getCircularFlag() const;
+	[[nodiscard]] bool											IsCircular() const;
+	[[nodiscard]] bool											getCircularFlag() const;
 	void														setCircularFlag(bool b);
 
-	CollectionMap<ADNBaseSegment>								GetBaseSegments() const;
-	ADNPointer<ADNBaseSegment>									GetNthBaseSegment(int n) const;											///< Returns the base segment by position in the double strand
+	[[nodiscard]] CollectionMap<ADNBaseSegment>					GetBaseSegments() const;
+	[[nodiscard]] ADNPointer<ADNBaseSegment>					GetNthBaseSegment(int n) const;											///< Returns the base segment by position in the double strand
 
-	ADNPointer<ADNBaseSegment>									GetFirstBaseSegment() const;
-	SBNode*														getFirstBaseSegment() const;
+	[[nodiscard]] ADNPointer<ADNBaseSegment>					GetFirstBaseSegment() const;
+	[[nodiscard]] SBNode*										getFirstBaseSegment() const;
 	void														SetStart(ADNPointer<ADNBaseSegment> baseSegment);
-	ADNPointer<ADNBaseSegment>									GetLastBaseSegment() const;
-	SBNode*														getLastBaseSegment() const;
+	[[nodiscard]] ADNPointer<ADNBaseSegment>					GetLastBaseSegment() const;
+	[[nodiscard]] SBNode*										getLastBaseSegment() const;
 	void														SetEnd(ADNPointer<ADNBaseSegment> baseSegment);
 
 	void														AddBaseSegmentBeginning(ADNPointer<ADNBaseSegment> baseSegment);

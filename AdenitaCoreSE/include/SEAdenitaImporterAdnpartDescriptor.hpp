@@ -16,7 +16,7 @@ SB_CLASS_BEGIN(SEAdenitaImporterAdnpart);
 
 	SB_FACTORY_BEGIN;
 
-		SB_CONSTRUCTOR_0(SEAdenitaImporterAdnpart);
+		SB_CONSTRUCTOR_0();
 
 	SB_FACTORY_END;
 

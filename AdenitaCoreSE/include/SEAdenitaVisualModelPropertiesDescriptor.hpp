@@ -16,7 +16,7 @@ SB_CLASS_BEGIN(SEAdenitaVisualModelProperties);
 
 	SB_FACTORY_BEGIN;
 
-		SB_CONSTRUCTOR_0(SEAdenitaVisualModelProperties);
+		SB_CONSTRUCTOR_0();
 
 	SB_FACTORY_END;
 

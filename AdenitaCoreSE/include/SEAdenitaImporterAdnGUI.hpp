@@ -34,10 +34,10 @@ public:
 	/// \name Identity
 	//@{
 
-	virtual SBCContainerUUID									getUUID() const override;												///< Returns the widget UUID
-	virtual QString												getName() const override;												///< Returns the widget name (used as a title for the embedding window)
-	virtual QPixmap												getLogo() const override;												///< Returns the widget logo
-	virtual int													getFormat() const override;												///< Returns the widget format
+	[[nodiscard]] virtual SBCContainerUUID						getUUID() const override;												///< Returns the widget UUID
+	[[nodiscard]] virtual QString								getName() const override;												///< Returns the widget name (used as a title for the embedding window)
+	[[nodiscard]] virtual QPixmap								getLogo() const override;												///< Returns the widget logo
+	[[nodiscard]] virtual int									getFormat() const override;												///< Returns the widget format
 	QString														getCitation() const;													///< Returns the citation information
 
 	//@}

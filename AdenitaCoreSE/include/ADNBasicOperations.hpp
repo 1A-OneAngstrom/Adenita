@@ -14,9 +14,9 @@ struct RTDoubleStrand {
 namespace ADNBasicOperations {
 
     // Concatenate
-    SB_EXPORT ADNPointer<ADNSingleStrand> MergeSingleStrands(ADNPointer<ADNPart> part1, ADNPointer<ADNPart> part2, ADNPointer<ADNSingleStrand> first_strand, ADNPointer<ADNSingleStrand> second_strand);
-    SB_EXPORT ADNPointer<ADNDoubleStrand> MergeDoubleStrand(ADNPointer<ADNPart> part, ADNPointer<ADNDoubleStrand> first_strand, ADNPointer<ADNDoubleStrand> second_strand);
-    SB_EXPORT ADNPointer<ADNPart> MergeParts(ADNPointer<ADNPart> part1, ADNPointer<ADNPart> part2);   ///< Merges ADNPart \p part2 into ADNPart \p part1
+    SB_EXPORT [[nodiscard]] ADNPointer<ADNSingleStrand> MergeSingleStrands(ADNPointer<ADNPart> part1, ADNPointer<ADNPart> part2, ADNPointer<ADNSingleStrand> first_strand, ADNPointer<ADNSingleStrand> second_strand);
+    SB_EXPORT [[nodiscard]] ADNPointer<ADNDoubleStrand> MergeDoubleStrand(ADNPointer<ADNPart> part, ADNPointer<ADNDoubleStrand> first_strand, ADNPointer<ADNDoubleStrand> second_strand);
+    SB_EXPORT [[nodiscard]] ADNPointer<ADNPart> MergeParts(ADNPointer<ADNPart> part1, ADNPointer<ADNPart> part2);   ///< Merges ADNPart \p part2 into ADNPart \p part1
 
     // Extend
     SB_EXPORT CollectionMap<ADNNucleotide> AddNucleotidesThreePrime(ADNPointer<ADNPart> part, ADNPointer<ADNSingleStrand> ss, int number, SBVector3 dir);
@@ -61,12 +61,12 @@ namespace ADNBasicOperations {
     // Geometric operations
     SB_EXPORT void TwistDoubleHelix(ADNPointer<ADNDoubleStrand> ds, double deg);
     SB_EXPORT void CenterPart(ADNPointer<ADNPart> part);
-    SB_EXPORT SBPosition3 CalculateCenterOfMass(ADNPointer<ADNPart> part);
+    SB_EXPORT [[nodiscard]] SBPosition3 CalculateCenterOfMass(ADNPointer<ADNPart> part);
 
     // Ordering and helpers
-    SB_EXPORT std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>> OrderNucleotides(ADNPointer<ADNNucleotide> nt1, ADNPointer<ADNNucleotide> nt2);
-    SB_EXPORT std::pair<ADNNucleotide::EndType, ADNPointer<ADNBaseSegment>> GetNextBaseSegment(ADNPointer<ADNNucleotide> nt);
-    SB_EXPORT std::tuple<ADNPointer<ADNBaseSegment>, bool, bool, bool> GetBaseSegmentInfo(ADNPointer<ADNNucleotide> nt);
+    SB_EXPORT [[nodiscard]] std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>> OrderNucleotides(ADNPointer<ADNNucleotide> nt1, ADNPointer<ADNNucleotide> nt2);
+    SB_EXPORT [[nodiscard]] std::pair<ADNNucleotide::EndType, ADNPointer<ADNBaseSegment>> GetNextBaseSegment(ADNPointer<ADNNucleotide> nt);
+    SB_EXPORT [[nodiscard]] std::tuple<ADNPointer<ADNBaseSegment>, bool, bool, bool> GetBaseSegmentInfo(ADNPointer<ADNNucleotide> nt);
     SB_EXPORT void SetBackNucleotideIntoBaseSegment(ADNPointer<ADNNucleotide> nt, std::tuple<ADNPointer<ADNBaseSegment>, bool, bool, bool> info);
 
 }

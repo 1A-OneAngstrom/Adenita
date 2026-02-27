@@ -27,14 +27,14 @@ public:
 	virtual void												serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const override;		///< Serializes the node
 	virtual void												unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;			///< Unserializes the node
 
-	static std::string											getCellTypeString(CellType type);
-	std::string													getCellTypeString() const;
+	[[nodiscard]] static std::string							getCellTypeString(CellType type);
+	[[nodiscard]] std::string									getCellTypeString() const;
 
 	virtual CellType											GetCellType() const { return CellType::Undefined; }						///< Returns the cell type
 
 	virtual void												RemoveNucleotide(ADNPointer<ADNNucleotide> nt) {}
-	virtual CollectionMap<ADNNucleotide>						GetNucleotides() const { return CollectionMap<ADNNucleotide>(); }
-	unsigned int												getNumberOfNucleotides() const { return GetNucleotides().size(); }
+	[[nodiscard]] virtual CollectionMap<ADNNucleotide>			GetNucleotides() const { return CollectionMap<ADNNucleotide>(); }
+	[[nodiscard]] unsigned int									getNumberOfNucleotides() const { return GetNucleotides().size(); }
 	virtual bool												IsLeft(ADNPointer<ADNNucleotide> nt) const { return false; }
 	virtual bool												IsRight(ADNPointer<ADNNucleotide> nt) const { return false; }
 	
@@ -55,19 +55,19 @@ public:
 	void														serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const override;			///< Serializes the node
 	void														unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;				///< Unserializes the node
 
-	CellType													GetCellType() const override { return CellType::BasePair; }
+	[[nodiscard]] CellType										GetCellType() const override { return CellType::BasePair; }
 
-	ADNPointer<ADNNucleotide>									GetLeftNucleotide() const;
-	SBNode*														getLeftNucleotide() const;
+	[[nodiscard]] ADNPointer<ADNNucleotide>						GetLeftNucleotide() const;
+	[[nodiscard]] SBNode*										getLeftNucleotide() const;
 	void														SetLeftNucleotide(ADNPointer<ADNNucleotide> nt);
-	ADNPointer<ADNNucleotide>									GetRightNucleotide() const;
-	SBNode*														getRightNucleotide() const;
+	[[nodiscard]] ADNPointer<ADNNucleotide>						GetRightNucleotide() const;
+	[[nodiscard]] SBNode*										getRightNucleotide() const;
 	void														SetRightNucleotide(ADNPointer<ADNNucleotide> nt);
 	void														SetRemainingNucleotide(ADNPointer<ADNNucleotide> nt);
 	void														AddPair(ADNPointer<ADNNucleotide> left, ADNPointer<ADNNucleotide> right);
 	void														PairNucleotides();
 	void														RemoveNucleotide(ADNPointer<ADNNucleotide> nt) override;
-	CollectionMap<ADNNucleotide>								GetNucleotides() const override;
+	[[nodiscard]] CollectionMap<ADNNucleotide>					GetNucleotides() const override;
 	bool														IsLeft(ADNPointer<ADNNucleotide> nt) const override;
 	bool														IsRight(ADNPointer<ADNNucleotide> nt) const override;
 
@@ -93,7 +93,7 @@ public:
 	void														serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const override;			///< Serializes the node
 	void														unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;				///< Unserializes the node
 
-	CellType													GetCellType() const override { return CellType::SkipPair; }
+	[[nodiscard]] CellType										GetCellType() const override { return CellType::SkipPair; }
 
 	void														RemoveNucleotide(ADNPointer<ADNNucleotide> nt) override;
 
@@ -115,20 +115,20 @@ public:
 	void														serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const override;			///< Serializes the node
 	void														unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;				///< Unserializes the node
 
-	CellType													GetCellType() const override { return CellType::LoopPair; }
+	[[nodiscard]] CellType										GetCellType() const override { return CellType::LoopPair; }
 
-	ADNPointer<ADNLoop>											GetLeftLoop() const;
-	SBNode*														getLeftLoop() const;
+	[[nodiscard]] ADNPointer<ADNLoop>							GetLeftLoop() const;
+	[[nodiscard]] SBNode*										getLeftLoop() const;
 	void														SetLeftLoop(ADNPointer<ADNLoop> lp);
-	ADNPointer<ADNLoop>											GetRightLoop() const;
-	SBNode*														getRightLoop() const;
+	[[nodiscard]] ADNPointer<ADNLoop>							GetRightLoop() const;
+	[[nodiscard]] SBNode*										getRightLoop() const;
 	void														SetRightLoop(ADNPointer<ADNLoop> lp);
 
 	void														RemoveNucleotide(ADNPointer<ADNNucleotide> nt) override;
-	CollectionMap<ADNNucleotide>								GetNucleotides() const override;
+	[[nodiscard]] CollectionMap<ADNNucleotide>					GetNucleotides() const override;
 
-	bool														IsLeft(ADNPointer<ADNNucleotide> nt) const override;
-	bool														IsRight(ADNPointer<ADNNucleotide> nt) const override;
+	[[nodiscard]] bool											IsLeft(ADNPointer<ADNNucleotide> nt) const override;
+	[[nodiscard]] bool											IsRight(ADNPointer<ADNNucleotide> nt) const override;
 
 private:
 

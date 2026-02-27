@@ -27,17 +27,17 @@ const DNAPairsToString nt_pairs_names_ = boost::assign::list_of<DNAPairsToString
 /* Namespace with static functions */
 namespace ADNModel {
 
-    SB_EXPORT DNABlocks											GetComplementaryBase(DNABlocks base);
+    SB_EXPORT [[nodiscard]] DNABlocks							GetComplementaryBase(DNABlocks base);
 
-	SB_EXPORT std::string										GetResidueName(DNABlocks t, bool removePrefixD = true);
-	SB_EXPORT DNABlocks								            ResidueNameToType(const std::string& n);
-	SB_EXPORT DNABlocks								            ResidueNameToType(char n);
+	SB_EXPORT [[nodiscard]] std::string							GetResidueName(DNABlocks t, bool removePrefixD = true);
+	SB_EXPORT [[nodiscard]] DNABlocks							ResidueNameToType(const std::string& n);
+	SB_EXPORT [[nodiscard]] DNABlocks							ResidueNameToType(char n);
 
-    SB_EXPORT bool												IsAtomInBackboneByName(std::string_view name);
+    SB_EXPORT [[nodiscard]] bool								IsAtomInBackboneByName(std::string_view name);
 
-    SB_EXPORT SBElement::Type									GetElementType(const std::string& atomName);
+    SB_EXPORT [[nodiscard]] SBElement::Type						GetElementType(const std::string& atomName);
 
-    SB_EXPORT std::map<std::string, std::vector<std::string>>	GetNucleotideBonds(DNABlocks t);
+    SB_EXPORT [[nodiscard]] std::map<std::string, std::vector<std::string>>	GetNucleotideBonds(DNABlocks t);
 
     const std::vector<std::string>                              backbone_names_ = std::vector<std::string>{ "P", "OP1", "OP2", "O5'", "C5'", "C4'",
     "O4'", "C3'", "O3'", "C2'", "C1'" };

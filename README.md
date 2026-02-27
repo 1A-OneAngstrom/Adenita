@@ -40,8 +40,8 @@ Please refer to the [SAMSON Developer Guide](https://documentation.samson-connec
 
 ### Requirements
 
-- [SAMSON and SAMSON SDK](https://www.samson-connect.net/) v.8.0.0 or above
-- Qt 6.8.2 and Qt Creator
+- [SAMSON and SAMSON SDK](https://www.samson-connect.net/) v.11.0.0 or above
+- Qt 6.10.2 and Qt Creator
 - CMake version 3.15 or above
 - On Windows: Visual Studio 2022 or above. On macOS and Linux: IDE of your choice, e.g. Qt Creator.
 - Boost library (version 1.87 or above)
@@ -53,7 +53,7 @@ Please refer to the [SAMSON Developer Guide - Building a SAMSON Extension](https
 For example, to create a Visual Studio project on Windows, run the following command in the PowerShell terminal in the `build` subfolder (change the paths):
 
 ```shell
-cmake -G"Visual Studio 17" -DSAMSON_SDK_PATH="path/to/SAMSON/SDK/8.0.0" -DQT5_CMAKE_INCLUDE_DIR="path/to/Qt/6.8.2/msvc2022_64/lib/cmake" -DBOOST_PATH="path/to/boost_1_87_0"
+cmake -G"Visual Studio 18" -DSAMSON_SDK_PATH="path/to/SAMSON/SDK/11.0.0" -DQT5_CMAKE_INCLUDE_DIR="path/to/Qt/6.10.2/msvc2022_64/lib/cmake" -DBOOST_PATH="path/to/boost_1_87_0"
 ```
 
 ### Other docs

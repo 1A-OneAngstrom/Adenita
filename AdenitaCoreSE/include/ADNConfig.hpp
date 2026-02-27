@@ -51,7 +51,7 @@ public:
 	SEConfig(SEConfig const& c) = delete;
 	void														operator=(SEConfig const& c) = delete;
 
-	static SEConfig&											GetInstance();
+	[[nodiscard]] static SEConfig&								GetInstance();
 
 	// visual_model settings
 	float														min_melting_temp{ 25.0f };

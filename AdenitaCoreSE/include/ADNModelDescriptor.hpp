@@ -23,82 +23,82 @@ SB_CLASS_BEGIN(ADNAtom);
 
   SB_FACTORY_BEGIN;
 
-    SB_CONSTRUCTOR_0(ADNAtom);
+    SB_CONSTRUCTOR_0();
 
   SB_FACTORY_END;
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNAtom, Nucleotide, "Nucleotide", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(SBPosition3 const&, ADNAtom, Position, "Position", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, Nucleotide, "Nucleotide", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBPosition3 const&, Position, "Position", "Adenita");
 
-	SB_ATTRIBUTE_READ_WRITE(SBElement::Type, ADNAtom, ElementType, "Element", "Element");
-	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, ElementName, "Element name", "Element");
-	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, ElementSymbol, "Element symbol", "Element");
-	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, Period, "Period", "Element");
-	SB_ATTRIBUTE_READ_ONLY(unsigned int, ADNAtom, Group, "Group", "Element");
-    SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, Block, "Block", "Element");
-	SB_ATTRIBUTE_READ_ONLY(SBQuantity::mass, ADNAtom, AtomicWeight, "Atomic weight", "Element");
-    SB_ATTRIBUTE_READ_WRITE(SBAtom::Hybridization const&, ADNAtom, Hybridization, "Hybridization", "Element");
-    SB_ATTRIBUTE_READ_WRITE(int const&, ADNAtom, OxidationState, "Oxydation state", "Element");
-    SB_ATTRIBUTE_READ_WRITE(bool const&, ADNAtom, WaterFlag, "Water flag", "Element");
-	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, MetalSubcategoryString, "Subcategory", "Element");
+	SB_ATTRIBUTE_READ_WRITE(SBElement::Type, ElementType, "Element", "Element");
+	SB_ATTRIBUTE_READ_ONLY(std::string, ElementName, "Element name", "Element");
+	SB_ATTRIBUTE_READ_ONLY(std::string, ElementSymbol, "Element symbol", "Element");
+	SB_ATTRIBUTE_READ_ONLY(std::string, Period, "Period", "Element");
+	SB_ATTRIBUTE_READ_ONLY(unsigned int, Group, "Group", "Element");
+    SB_ATTRIBUTE_READ_ONLY(std::string, Block, "Block", "Element");
+	SB_ATTRIBUTE_READ_ONLY(SBQuantity::mass, AtomicWeight, "Atomic weight", "Element");
+    SB_ATTRIBUTE_READ_WRITE(SBAtom::Hybridization const&, Hybridization, "Hybridization", "Element");
+    SB_ATTRIBUTE_READ_WRITE(int const&, OxidationState, "Oxydation state", "Element");
+    SB_ATTRIBUTE_READ_WRITE(bool const&, WaterFlag, "Water flag", "Element");
+	SB_ATTRIBUTE_READ_ONLY(std::string, MetalSubcategoryString, "Subcategory", "Element");
 
-	SB_ATTRIBUTE_READ_WRITE(bool const&, ADNAtom, Resonance, "Resonance", "Chemistry");
-	SB_ATTRIBUTE_READ_WRITE(bool const&, ADNAtom, Aromaticity, "Aromaticity", "Chemistry");
-	SB_ATTRIBUTE_READ_ONLY(SBQuantity::dimensionless, ADNAtom, Electronegativity, "Electronegativity", "Chemistry");
+	SB_ATTRIBUTE_READ_WRITE(bool const&, Resonance, "Resonance", "Chemistry");
+	SB_ATTRIBUTE_READ_WRITE(bool const&, Aromaticity, "Aromaticity", "Chemistry");
+	SB_ATTRIBUTE_READ_ONLY(SBQuantity::dimensionless, Electronegativity, "Electronegativity", "Chemistry");
 	
-	SB_ATTRIBUTE_READ_ONLY(SBQuantity::length, ADNAtom, CovalentRadius, "Covalent radius", "Structure");
-	SB_ATTRIBUTE_READ_ONLY(SBQuantity::length, ADNAtom, VanDerWaalsRadius, "Van der Waals radius", "Structure");
-	SB_ATTRIBUTE_READ_WRITE_CLEAR(SBAtom::Geometry const&, ADNAtom, Geometry, "Geometry", "Structure");
-	SB_ATTRIBUTE_READ_WRITE(SBPosition3 const&, ADNAtom, Position, "Position", "Structure");
-	SB_ATTRIBUTE_READ_WRITE(bool, ADNAtom, MobilityFlag, "Mobile", "Structure");
+	SB_ATTRIBUTE_READ_ONLY(SBQuantity::length, CovalentRadius, "Covalent radius", "Structure");
+	SB_ATTRIBUTE_READ_ONLY(SBQuantity::length, VanDerWaalsRadius, "Van der Waals radius", "Structure");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(SBAtom::Geometry const&, Geometry, "Geometry", "Structure");
+	SB_ATTRIBUTE_READ_WRITE(SBPosition3 const&, Position, "Position", "Structure");
+	SB_ATTRIBUTE_READ_WRITE(bool, MobilityFlag, "Mobile", "Structure");
 
-	SB_ATTRIBUTE_READ_WRITE_CLEAR(const std::string&, ADNAtom, Name, "Name", "Identity");
-	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, MoleculeName, "Molecule name", "Identity");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(const std::string&, Name, "Name", "Identity");
+	SB_ATTRIBUTE_READ_ONLY(std::string, MoleculeName, "Molecule name", "Identity");
 	
-	SB_ATTRIBUTE_READ_ONLY(bool, ADNAtom, Selected, "Selected", "Node");
-	SB_ATTRIBUTE_READ_ONLY(bool, ADNAtom, Visible, "Visible", "Node");
-	SB_ATTRIBUTE_READ_WRITE(bool, ADNAtom, SelectionFlag, "Selection flag", "Node");
-	SB_ATTRIBUTE_READ_WRITE(bool, ADNAtom, VisibilityFlag, "Visibility flag", "Node");
-	SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNAtom, Parent, "Parent", "Node");
-	SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNAtom, ThisNode, "Itself", "Node");
+	SB_ATTRIBUTE_READ_ONLY(bool, Selected, "Selected", "Node");
+	SB_ATTRIBUTE_READ_ONLY(bool, Visible, "Visible", "Node");
+	SB_ATTRIBUTE_READ_WRITE(bool, SelectionFlag, "Selection flag", "Node");
+	SB_ATTRIBUTE_READ_WRITE(bool, VisibilityFlag, "Visibility flag", "Node");
+	SB_ATTRIBUTE_READ_ONLY(SBNode*, Parent, "Parent", "Node");
+	SB_ATTRIBUTE_READ_ONLY(SBNode*, ThisNode, "Itself", "Node");
 	//SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNAtom, NextNode, "Next", "Node");
 	//SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNAtom, PreviousNode, "Previous", "Node");
 
-    SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, ADNAtom, Comment, "Comment", "Other");
-    SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, ADNAtom, StatusBit, "Status bit", "Other");
+    SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, Comment, "Comment", "Other");
+    SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, StatusBit, "Status bit", "Other");
 
-	SB_ATTRIBUTE_READ_WRITE_CLEAR(const char&, ADNAtom, AltLocation, "Alt. location", "Protein");
-	SB_ATTRIBUTE_READ_WRITE_CLEAR(const char&, ADNAtom, InsertionCode, "Insertion code", "Protein");
-	SB_ATTRIBUTE_READ_WRITE_CLEAR(const int&, ADNAtom, SerialNumber, "Serial number", "Protein");
-	SB_ATTRIBUTE_READ_WRITE_CLEAR(const SBQuantity::dimensionless&, ADNAtom, Occupancy, "Occupancy", "Protein");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(const char&, AltLocation, "Alt. location", "Protein");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(const char&, InsertionCode, "Insertion code", "Protein");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(const int&, SerialNumber, "Serial number", "Protein");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(const SBQuantity::dimensionless&, Occupancy, "Occupancy", "Protein");
 
-	SB_ATTRIBUTE_READ_WRITE_CLEAR(double const&, ADNAtom, TemperatureFactor, "Temperature factor", "Protein");
-	SB_ATTRIBUTE_READ_WRITE_CLEAR(float const&, ADNAtom, PartialCharge, "Partial charge", "Protein");
-	SB_ATTRIBUTE_READ_WRITE_CLEAR(int const&, ADNAtom, FormalCharge, "Formal charge", "Protein");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(double const&, TemperatureFactor, "Temperature factor", "Protein");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(float const&, PartialCharge, "Partial charge", "Protein");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(int const&, FormalCharge, "Formal charge", "Protein");
 
-	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, SubstructureName, "Substructure name", "Protein");
-	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, SubstructureSequenceNumberString, "Substructure sequence number", "Protein");
+	SB_ATTRIBUTE_READ_ONLY(std::string, SubstructureName, "Substructure name", "Protein");
+	SB_ATTRIBUTE_READ_ONLY(std::string, SubstructureSequenceNumberString, "Substructure sequence number", "Protein");
 
-	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, ChainIDString, "Chain ID", "Protein");
-	SB_CONST_FUNCTION_0(int, ADNAtom, getChainID);
-	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, ChainName, "Chain name", "Protein");
+	SB_ATTRIBUTE_READ_ONLY(std::string, ChainIDString, "Chain ID", "Protein");
+	SB_CONST_FUNCTION_0(int, getChainID);
+	SB_ATTRIBUTE_READ_ONLY(std::string, ChainName, "Chain name", "Protein");
 
-	SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, ADNAtom, RecordType, "Record type", "Protein");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, RecordType, "Record type", "Protein");
 
-	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, ResidueName, "Residue name", "Protein");
-	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, ResidueTypeString, "Residue type", "Protein");
-	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, ResidueSequenceNumberString, "Residue sequence number", "Protein");
-	SB_CONST_FUNCTION_0(int, ADNAtom, getResidueSequenceNumber);
+	SB_ATTRIBUTE_READ_ONLY(std::string, ResidueName, "Residue name", "Protein");
+	SB_ATTRIBUTE_READ_ONLY(std::string, ResidueTypeString, "Residue type", "Protein");
+	SB_ATTRIBUTE_READ_ONLY(std::string, ResidueSequenceNumberString, "Residue sequence number", "Protein");
+	SB_CONST_FUNCTION_0(int, getResidueSequenceNumber);
 
-	SB_ATTRIBUTE_READ_ONLY(std::string, ADNAtom, SegmentName, "Segment name", "Protein");
+	SB_ATTRIBUTE_READ_ONLY(std::string, SegmentName, "Segment name", "Protein");
 
-	SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, ADNAtom, Comment, "Comment", "Other");
-	SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, ADNAtom, StatusBit, "Status bit", "Other");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, Comment, "Comment", "Other");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, StatusBit, "Status bit", "Other");
 
-	SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, ADNAtom, SYBYLType, "SYBYL type", "Typization");
-	SB_ATTRIBUTE_READ_WRITE_CLEAR(int const&, ADNAtom, CustomType, "Custom type", "Typization");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR_ARRAY(char* const&, SYBYLType, "SYBYL type", "Typization");
+	SB_ATTRIBUTE_READ_WRITE_CLEAR(int const&, CustomType, "Custom type", "Typization");
 	
   SB_INTERFACE_END;
 
@@ -112,22 +112,22 @@ SB_CLASS_BEGIN(ADNBackbone);
 
   SB_FACTORY_BEGIN;
 
-    SB_CONSTRUCTOR_0(ADNBackbone);
+    SB_CONSTRUCTOR_0();
 
   SB_FACTORY_END;
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_ONLY(std::string const &, ADNBackbone, Name, "Name", "Identity");
+    SB_ATTRIBUTE_READ_ONLY(std::string const &, Name, "Name", "Identity");
 
-    SB_ATTRIBUTE_READ_ONLY(int, ADNBackbone, NumberOfAtoms, "Number of atoms", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(int, NumberOfAtoms, "Number of atoms", "Adenita");
 
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBackbone, ThisNode, "Itself", "Node");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBackbone, Parent, "Parent", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNBackbone, Selected, "Selected", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNBackbone, SelectionFlag, "Selection Flag", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNBackbone, VisibilityFlag, "Visibility Flag", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNBackbone, Visible, "Visible", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, ThisNode, "Itself", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, Parent, "Parent", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Selected, "Selected", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, SelectionFlag, "Selection Flag", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, VisibilityFlag, "Visibility Flag", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Visible, "Visible", "Node");
 
   SB_INTERFACE_END;
 
@@ -141,22 +141,22 @@ SB_CLASS_BEGIN(ADNSidechain);
 
   SB_FACTORY_BEGIN;
 
-    SB_CONSTRUCTOR_0(ADNSidechain);
+    SB_CONSTRUCTOR_0();
 
   SB_FACTORY_END;
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_ONLY(std::string const &, ADNSidechain, Name, "Name", "Identity");
+    SB_ATTRIBUTE_READ_ONLY(std::string const &, Name, "Name", "Identity");
 
-    SB_ATTRIBUTE_READ_ONLY(int, ADNSidechain, NumberOfAtoms, "Number of atoms", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(int, NumberOfAtoms, "Number of atoms", "Adenita");
 
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNSidechain, ThisNode, "Itself", "Node");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNSidechain, Parent, "Parent", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNSidechain, Selected, "Selected", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNSidechain, SelectionFlag, "Selection Flag", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNSidechain, VisibilityFlag, "Visibility Flag", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNSidechain, Visible, "Visible", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, ThisNode, "Itself", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, Parent, "Parent", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Selected, "Selected", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, SelectionFlag, "Selection Flag", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, VisibilityFlag, "Visibility Flag", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Visible, "Visible", "Node");
 
   SB_INTERFACE_END;
 
@@ -170,31 +170,31 @@ SB_CLASS_BEGIN(ADNNucleotide);
 
   SB_FACTORY_BEGIN;
 
-    SB_CONSTRUCTOR_0(ADNNucleotide);
+    SB_CONSTRUCTOR_0();
 
   SB_FACTORY_END;
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNNucleotide, Name, "Name", "Identity");
-    SB_ATTRIBUTE_READ_WRITE_CLEAR(const int&, ADNNucleotide, StructuralID, "Residue sequence number", "Identity");
-    SB_ATTRIBUTE_READ_ONLY(DNABlocks, ADNNucleotide, NucleotideType, "Residue type", "Identity");
+    SB_ATTRIBUTE_READ_WRITE(std::string const &, Name, "Name", "Identity");
+    SB_ATTRIBUTE_READ_WRITE_CLEAR(const int&, StructuralID, "Residue sequence number", "Identity");
+    SB_ATTRIBUTE_READ_ONLY(DNABlocks, NucleotideType, "Residue type", "Identity");
 
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, SingleStrand, "Single strand", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, BaseSegment, "Base segment", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, Next, "Next nucleotide", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, Prev, "Previous nucleotide", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, Pair, "Pair nucleotide", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(std::string, ADNNucleotide, BaseSegmentTypeString, "Base segment type", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(std::string, ADNNucleotide, EndTypeString, "End type", "Adenita");
-    SB_ATTRIBUTE_READ_WRITE(std::string, ADNNucleotide, Tag, "Tag", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, SingleStrand, "Single strand", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, BaseSegment, "Base segment", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, Next, "Next nucleotide", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, Prev, "Previous nucleotide", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, Pair, "Pair nucleotide", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(std::string, BaseSegmentTypeString, "Base segment type", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(std::string, EndTypeString, "End type", "Adenita");
+    SB_ATTRIBUTE_READ_WRITE(std::string, Tag, "Tag", "Adenita");
 
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, ThisNode, "Itself", "Node");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNNucleotide, Parent, "Parent", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNNucleotide, Selected, "Selected", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNNucleotide, SelectionFlag, "Selection Flag", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNNucleotide, VisibilityFlag, "Visibility Flag", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNNucleotide, Visible, "Visible", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, ThisNode, "Itself", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, Parent, "Parent", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Selected, "Selected", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, SelectionFlag, "Selection Flag", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, VisibilityFlag, "Visibility Flag", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Visible, "Visible", "Node");
 
   SB_INTERFACE_END;
 
@@ -208,28 +208,28 @@ SB_CLASS_BEGIN(ADNSingleStrand);
 
   SB_FACTORY_BEGIN;
 
-    SB_CONSTRUCTOR_0(ADNSingleStrand);
+    SB_CONSTRUCTOR_0();
 
   SB_FACTORY_END;
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNSingleStrand, Name, "Name", "Identity");
+    SB_ATTRIBUTE_READ_WRITE(std::string const &, Name, "Name", "Identity");
 
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNSingleStrand, ScaffoldFlag, "Is scaffold", "Adenita");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNSingleStrand, CircularFlag, "Is circular", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(int, ADNSingleStrand, NumberOfNucleotides, "Nucleotides", "Adenita");
-    SB_ATTRIBUTE_READ_WRITE(std::string, ADNSingleStrand, Sequence, "Sequence", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(double, ADNSingleStrand, GCContent, "GC %", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNSingleStrand, FivePrime, "5'", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNSingleStrand, ThreePrime, "3'", "Adenita");
+    SB_ATTRIBUTE_READ_WRITE(bool, ScaffoldFlag, "Is scaffold", "Adenita");
+    SB_ATTRIBUTE_READ_WRITE(bool, CircularFlag, "Is circular", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(int, NumberOfNucleotides, "Nucleotides", "Adenita");
+    SB_ATTRIBUTE_READ_WRITE(std::string, Sequence, "Sequence", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(double, GCContent, "GC %", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, FivePrime, "5'", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, ThreePrime, "3'", "Adenita");
 
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNSingleStrand, ThisNode, "Itself", "Node");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNSingleStrand, Parent, "Parent", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNSingleStrand, Selected, "Selected", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNSingleStrand, SelectionFlag, "Selection Flag", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNSingleStrand, VisibilityFlag, "Visibility Flag", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNSingleStrand, Visible, "Visible", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, ThisNode, "Itself", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, Parent, "Parent", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Selected, "Selected", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, SelectionFlag, "Selection Flag", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, VisibilityFlag, "Visibility Flag", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Visible, "Visible", "Node");
 
   SB_INTERFACE_END;
 
@@ -243,7 +243,7 @@ SB_CLASS_BEGIN(ADNCell);
 
   SB_FACTORY_BEGIN;
 
-    SB_CONSTRUCTOR_0(ADNCell);
+    SB_CONSTRUCTOR_0();
 
   SB_FACTORY_END;
 
@@ -261,24 +261,24 @@ SB_CLASS_BEGIN(ADNBasePair);
 
   SB_FACTORY_BEGIN;
 
-    SB_CONSTRUCTOR_0(ADNBasePair);
+    SB_CONSTRUCTOR_0();
 
   SB_FACTORY_END;
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNBasePair, Name, "Name", "Identity");
-    SB_ATTRIBUTE_READ_WRITE_CLEAR(const int&, ADNBasePair, StructuralID, "Structural group ID", "Identity");
+    SB_ATTRIBUTE_READ_WRITE(std::string const &, Name, "Name", "Identity");
+    SB_ATTRIBUTE_READ_WRITE_CLEAR(const int&, StructuralID, "Structural group ID", "Identity");
 
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBasePair, LeftNucleotide, "Left", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBasePair, RightNucleotide, "Right", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, LeftNucleotide, "Left", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, RightNucleotide, "Right", "Adenita");
 
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBasePair, ThisNode, "Itself", "Node");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBasePair, Parent, "Parent", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNBasePair, Selected, "Selected", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNBasePair, SelectionFlag, "Selection Flag", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNBasePair, VisibilityFlag, "Visibility Flag", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNBasePair, Visible, "Visible", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, ThisNode, "Itself", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, Parent, "Parent", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Selected, "Selected", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, SelectionFlag, "Selection Flag", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, VisibilityFlag, "Visibility Flag", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Visible, "Visible", "Node");
 
   SB_INTERFACE_END;
 
@@ -292,7 +292,7 @@ SB_CLASS_BEGIN(ADNSkipPair);
 
   SB_FACTORY_BEGIN;
 
-    SB_CONSTRUCTOR_0(ADNSkipPair);
+    SB_CONSTRUCTOR_0();
 
   SB_FACTORY_END;
 
@@ -310,23 +310,23 @@ SB_CLASS_BEGIN(ADNLoopPair);
 
   SB_FACTORY_BEGIN;
 
-    SB_CONSTRUCTOR_0(ADNLoopPair);
+    SB_CONSTRUCTOR_0();
 
   SB_FACTORY_END;
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNLoopPair, Name, "Name", "Identity");
+    SB_ATTRIBUTE_READ_WRITE(std::string const &, Name, "Name", "Identity");
 
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNLoopPair, LeftLoop, "Left", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNLoopPair, RightLoop, "Right", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, LeftLoop, "Left", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, RightLoop, "Right", "Adenita");
 
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNLoopPair, ThisNode, "Itself", "Node");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNLoopPair, Parent, "Parent", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNLoopPair, Selected, "Selected", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNLoopPair, SelectionFlag, "Selection Flag", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNLoopPair, VisibilityFlag, "Visibility Flag", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNLoopPair, Visible, "Visible", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, ThisNode, "Itself", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, Parent, "Parent", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Selected, "Selected", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, SelectionFlag, "Selection Flag", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, VisibilityFlag, "Visibility Flag", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Visible, "Visible", "Node");
 
   SB_INTERFACE_END;
 
@@ -340,25 +340,25 @@ SB_CLASS_BEGIN(ADNLoop);
 
   SB_FACTORY_BEGIN;
 
-    SB_CONSTRUCTOR_0(ADNLoop);
+    SB_CONSTRUCTOR_0();
 
   SB_FACTORY_END;
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNLoop, Name, "Name", "Identity");
+    SB_ATTRIBUTE_READ_WRITE(std::string const &, Name, "Name", "Identity");
 
-    SB_ATTRIBUTE_READ_ONLY(int, ADNLoop, NumberOfNucleotides, "Number of nucleotides", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(std::string, ADNLoop, LoopSequence, "Sequence", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNLoop, StartNucleotide, "Start nucleotide", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNLoop, EndNucleotide, "End nucleotide", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(int, NumberOfNucleotides, "Number of nucleotides", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(std::string, LoopSequence, "Sequence", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, StartNucleotide, "Start nucleotide", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, EndNucleotide, "End nucleotide", "Adenita");
 
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNLoop, ThisNode, "Itself", "Node");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNLoop, Parent, "Parent", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNLoop, Selected, "Selected", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNLoop, SelectionFlag, "Selection Flag", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNLoop, VisibilityFlag, "Visibility Flag", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNLoop, Visible, "Visible", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, ThisNode, "Itself", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, Parent, "Parent", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Selected, "Selected", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, SelectionFlag, "Selection Flag", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, VisibilityFlag, "Visibility Flag", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Visible, "Visible", "Node");
 
   SB_INTERFACE_END;
 
@@ -372,25 +372,25 @@ SB_CLASS_BEGIN(ADNBaseSegment);
 
   SB_FACTORY_BEGIN;
 
-    SB_CONSTRUCTOR_0(ADNBaseSegment);
+    SB_CONSTRUCTOR_0();
 
   SB_FACTORY_END;
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_WRITE(std::string const&, ADNBaseSegment, Name, "Name", "Identity");
-    SB_ATTRIBUTE_READ_WRITE_CLEAR(const int&, ADNBaseSegment, StructuralID, "Structural group ID", "Identity");
+    SB_ATTRIBUTE_READ_WRITE(std::string const&, Name, "Name", "Identity");
+    SB_ATTRIBUTE_READ_WRITE_CLEAR(const int&, StructuralID, "Structural group ID", "Identity");
 
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBaseSegment, DoubleStrand, "Double strand", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(int, ADNBaseSegment, Number, "Number", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(std::string, ADNBaseSegment, CellTypeString, "Contains", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, DoubleStrand, "Double strand", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(int, Number, "Number", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(std::string, CellTypeString, "Contains", "Adenita");
 
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBaseSegment, ThisNode, "Itself", "Node");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNBaseSegment, Parent, "Parent", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNBaseSegment, Selected, "Selected", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNBaseSegment, SelectionFlag, "Selection Flag", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNBaseSegment, VisibilityFlag, "Visibility Flag", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNBaseSegment, Visible, "Visible", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, ThisNode, "Itself", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, Parent, "Parent", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Selected, "Selected", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, SelectionFlag, "Selection Flag", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, VisibilityFlag, "Visibility Flag", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Visible, "Visible", "Node");
 
   SB_INTERFACE_END;
 
@@ -404,26 +404,26 @@ SB_CLASS_BEGIN(ADNDoubleStrand);
 
   SB_FACTORY_BEGIN;
 
-    SB_CONSTRUCTOR_0(ADNDoubleStrand);
+    SB_CONSTRUCTOR_0();
 
   SB_FACTORY_END;
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNDoubleStrand, Name, "Name", "Identity");
+    SB_ATTRIBUTE_READ_WRITE(std::string const &, Name, "Name", "Identity");
 
-    SB_ATTRIBUTE_READ_ONLY(int, ADNDoubleStrand, Length, "Length", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(double, ADNDoubleStrand, InitialTwistAngle, "Helical twist offset", "Adenita");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNDoubleStrand, CircularFlag, "Is circular", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNDoubleStrand, FirstBaseSegment, "First base segment", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNDoubleStrand, LastBaseSegment, "Last base segment", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(int, Length, "Length", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(double, InitialTwistAngle, "Helical twist offset", "Adenita");
+    SB_ATTRIBUTE_READ_WRITE(bool, CircularFlag, "Is circular", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, FirstBaseSegment, "First base segment", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, LastBaseSegment, "Last base segment", "Adenita");
 
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNDoubleStrand, ThisNode, "Itself", "Node");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNDoubleStrand, Parent, "Parent", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNDoubleStrand, Selected, "Selected", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNDoubleStrand, SelectionFlag, "Selection Flag", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNDoubleStrand, VisibilityFlag, "Visibility Flag", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNDoubleStrand, Visible, "Visible", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, ThisNode, "Itself", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, Parent, "Parent", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Selected, "Selected", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, SelectionFlag, "Selection Flag", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, VisibilityFlag, "Visibility Flag", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Visible, "Visible", "Node");
 
   SB_INTERFACE_END;
 

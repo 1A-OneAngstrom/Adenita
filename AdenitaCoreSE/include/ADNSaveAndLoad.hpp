@@ -15,10 +15,10 @@
 namespace ADNLoader {
 
 	// json
-	SB_EXPORT ADNPointer<ADNPart> LoadPartFromJson(const std::string& filename);
-	SB_EXPORT ADNPointer<ADNPart> LoadPartFromJson(rapidjson::Value& val, double versionValue);
-	SB_EXPORT std::vector<ADNPointer<ADNPart>> LoadPartsFromJson(std::string filename);
-	SB_EXPORT ADNPointer<ADNPart> LoadPartFromJsonLegacy(const std::string& filename);
+	SB_EXPORT [[nodiscard]] ADNPointer<ADNPart> LoadPartFromJson(const std::string& filename);
+	SB_EXPORT [[nodiscard]] ADNPointer<ADNPart> LoadPartFromJson(rapidjson::Value& val, double versionValue);
+	SB_EXPORT [[nodiscard]] std::vector<ADNPointer<ADNPart>> LoadPartsFromJson(std::string filename);
+	SB_EXPORT [[nodiscard]] ADNPointer<ADNPart> LoadPartFromJsonLegacy(const std::string& filename);
 	SB_EXPORT void SavePartToJson(ADNPointer<ADNPart> p, const std::string& filename);
 	//! Writes a part to a string buffer for rapidjson
 	SB_EXPORT void SavePartToJson(ADNPointer<ADNPart> p, rapidjson::Writer<rapidjson::StringBuffer>& s);
@@ -28,8 +28,8 @@ namespace ADNLoader {
 	//SB_EXPORT ADNPointer<ADNPart> LoadPartFromPDB(const std::string& filename, int id = -1);
 
 	// samson
-	SB_EXPORT ADNPointer<ADNPart> GenerateModelFromDataGraph(SBNode* sn);
-	SB_EXPORT ADNPointer<ADNPart> GenerateModelFromDataGraphParametrized(SBNode* sn, const SBQuantity::length& maxCutOff, const SBQuantity::length& minCutOff, double maxAngle);
+	SB_EXPORT [[nodiscard]] ADNPointer<ADNPart> GenerateModelFromDataGraph(SBNode* sn);
+	SB_EXPORT [[nodiscard]] ADNPointer<ADNPart> GenerateModelFromDataGraphParametrized(SBNode* sn, const SBQuantity::length& maxCutOff, const SBQuantity::length& minCutOff, double maxAngle);
 
 	// oxdna
 	SB_EXPORT void OutputToOxDNA(ADNPointer<ADNPart> part, const std::string& folder, const ADNAuxiliary::OxDNAOptions& options);
@@ -68,7 +68,7 @@ namespace ADNLoader {
 
 	public:
 
-		std::pair<bool, ADNPointer<T>> Get(int idx) const {
+		[[nodiscard]] std::pair<bool, ADNPointer<T>> Get(int idx) const {
 
 			ADNPointer<T> nt = nullptr;
 			bool success = false;
@@ -82,7 +82,7 @@ namespace ADNLoader {
 
 		};
 
-		int GetIndex(ADNPointer<T> nt, int sId = -1) {
+		[[nodiscard]] int GetIndex(ADNPointer<T> nt, int sId = -1) {
 
 			int idx = -1;
 			if (pointers_.find(nt()) != pointers_.end()) {
@@ -123,7 +123,7 @@ namespace ADNLoader {
 
 		};
 
-		int GetNextKey() const {
+		[[nodiscard]] int GetNextKey() const {
 
 			int lkey = 0;
 			if (!ids_.empty()) lkey = ids_.rbegin()->first + 1;

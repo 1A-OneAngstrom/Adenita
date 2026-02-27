@@ -24,23 +24,23 @@ public:
 	virtual void												unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;			///< Unserializes the node
 
 	void														SetStart(ADNPointer<ADNNucleotide> nucleotide);							///< Set the start nucleotide
-	ADNPointer<ADNNucleotide>									GetStart() const;
-	SBNode*														getStartNucleotide() const;
+	[[nodiscard]] ADNPointer<ADNNucleotide>						GetStart() const;
+	[[nodiscard]] SBNode*										getStartNucleotide() const;
 	void														SetEnd(ADNPointer<ADNNucleotide> nucleotide);							///< Set the end nucleotide
-	ADNPointer<ADNNucleotide>									GetEnd() const;
-	SBNode*														getEndNucleotide() const;
+	[[nodiscard]] ADNPointer<ADNNucleotide>						GetEnd() const;
+	[[nodiscard]] SBNode*										getEndNucleotide() const;
 
 	void														SetBaseSegment(ADNPointer<ADNBaseSegment> baseSegment, bool setPositions = false);
 
-	std::string													getLoopSequence() const;
+	[[nodiscard]] std::string									getLoopSequence() const;
 
-	int															getNumberOfNucleotides() const;
-	CollectionMap<ADNNucleotide>								GetNucleotides() const;
+	[[nodiscard]] int											getNumberOfNucleotides() const;
+	[[nodiscard]] CollectionMap<ADNNucleotide>					GetNucleotides() const;
 
 	void														AddNucleotide(ADNPointer<ADNNucleotide> nucleotide);
 	void														RemoveNucleotide(ADNPointer<ADNNucleotide> nucleotide);
 
-	bool														IsEmpty() const;
+	[[nodiscard]] bool											IsEmpty() const;
 
 private:
 

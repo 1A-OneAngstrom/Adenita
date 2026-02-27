@@ -6,144 +6,144 @@
 
 template <class T> class SB_EXPORT ADNArray {
 public:
-  ADNArray() = default;
+    ADNArray() = default;
 
-  ADNArray(const ADNArray &obj) : ADNArray(obj.GetDim(), obj.GetNumElements()) {
-    size_t total = dim_ * num_elements_;
-    size_t i = 0;
-    auto arr = obj.GetArray();
-    for (i = 0; i < total; ++i) {
-      array_[i] = arr[i];
-    }
-  }
-
-  ADNArray(size_t dim, size_t num_elements) {
-    dim_ = dim;
-    num_elements_ = num_elements;
-    size_t total = dim * num_elements;
-    array_ = new T[total];
-  }
-
-  // For C++11: 
-  ADNArray(size_t num_elements) : ADNArray(1, num_elements) {}
-
-  ~ADNArray() {
-    delete[] array_;
-  }
-
-  ADNArray<T>& operator=(ADNArray<T> other) {
-    if (&other == this) {
-      return *this;
-    }
-    // if array has same dim and num_elements we could try to save memory
-    // here using other array space?
-    dim_ = other.GetDim();
-    num_elements_ = other.GetNumElements();
-    size_t total = dim_ * num_elements_;
-    array_ = new T[total];
-    size_t i = 0;
-    auto arr = other.GetArray();
-    for (i = 0; i < total; ++i) {
-      array_[i] = arr[i];
+    ADNArray(const ADNArray& obj) : ADNArray(obj.GetDim(), obj.GetNumElements()) {
+        size_t total = dim_ * num_elements_;
+        size_t i = 0;
+        auto arr = obj.GetArray();
+        for (i = 0; i < total; ++i) {
+            array_[i] = arr[i];
+        }
     }
 
-    return *this;
-  }
+    ADNArray(size_t dim, size_t num_elements) {
+        dim_ = dim;
+        num_elements_ = num_elements;
+        size_t total = dim * num_elements;
+        array_ = new T[total];
+    }
 
-  T& operator()(std::size_t idx, std::size_t idy) {
-    if (dim_ * idx + idy >= num_elements_*dim_) {
-      std::string pos = std::to_string(dim_ * idx + idy);
-      std::string total = std::to_string(num_elements_*dim_);
-      throw ADNArray<T>::ERROR_OUT_OF_BOUNDS;
-    }
-    return array_[dim_ * idx + idy];
-  }
+    // For C++11: 
+    ADNArray(size_t num_elements) : ADNArray(1, num_elements) {}
 
-  const T& operator()(std::size_t idx, std::size_t idy) const {
-    if (dim_ * idx + idy >= num_elements_*dim_) {
-      std::string pos = std::to_string(dim_ * idx + idy);
-      std::string total = std::to_string(num_elements_*dim_);
-      throw ADNArray<T>::ERROR_OUT_OF_BOUNDS;
+    ~ADNArray() {
+        delete[] array_;
     }
-    return array_[dim_ * idx + idy];
-  }
 
-  T& operator()(std::size_t idx) {
-    if (dim_ * idx >= num_elements_*dim_) {
-      std::string pos = std::to_string(dim_ * idx);
-      std::string total = std::to_string(num_elements_*dim_);
-      throw ADNArray<T>::ERROR_OUT_OF_BOUNDS;
-    }
-    return array_[dim_ * idx];
-  }
+    ADNArray<T>& operator=(ADNArray<T> other) {
+        if (&other == this) {
+            return *this;
+        }
+        // if array has same dim and num_elements we could try to save memory
+        // here using other array space?
+        dim_ = other.GetDim();
+        num_elements_ = other.GetNumElements();
+        size_t total = dim_ * num_elements_;
+        array_ = new T[total];
+        size_t i = 0;
+        auto arr = other.GetArray();
+        for (i = 0; i < total; ++i) {
+            array_[i] = arr[i];
+        }
 
-  const T& operator()(std::size_t idx) const {
-    if (dim_ * idx >= num_elements_*dim_) {
-      std::string pos = std::to_string(dim_ * idx);
-      std::string total = std::to_string(num_elements_*dim_);
-      throw ADNArray<T>::ERROR_OUT_OF_BOUNDS;
+        return *this;
     }
-    return array_[dim_ * idx];
-  }
 
-  T* GetArray() const { return array_; }
-  size_t GetDim() const noexcept { return dim_; }
-  size_t GetNumElements() const noexcept { return num_elements_; }
+    T& operator()(std::size_t idx, std::size_t idy) {
+        if (dim_ * idx + idy >= num_elements_ * dim_) {
+            std::string pos = std::to_string(dim_ * idx + idy);
+            std::string total = std::to_string(num_elements_ * dim_);
+            throw ADNArray<T>::ERROR_OUT_OF_BOUNDS;
+        }
+        return array_[dim_ * idx + idy];
+    }
 
-  /**
-  * Returns a row as a 1-dim ANTArray
-  * \return A 1-dim ANTArray with number of elements equal to this dim_
-  */
-  ADNArray<T> GetRow(std::size_t row) {
-    ADNArray<T> arr(dim_);
-    for (int i = 0; i < dim_; ++i) {
-      arr(i) = this->operator ()(row, i);
+    const T& operator()(std::size_t idx, std::size_t idy) const {
+        if (dim_ * idx + idy >= num_elements_ * dim_) {
+            std::string pos = std::to_string(dim_ * idx + idy);
+            std::string total = std::to_string(num_elements_ * dim_);
+            throw ADNArray<T>::ERROR_OUT_OF_BOUNDS;
+        }
+        return array_[dim_ * idx + idy];
     }
-    return arr;
-  }
 
-  /**
-  * Sets a row equal to the values contained in arr.
-  * \param the row we want to set.
-  * \param a 1-dim ANTArray with number of elements equal to the row length.
-  */
-  void SetRow(std::size_t row, ADNArray<T> arr) {
-    if (arr.GetDim() != 1 || dim_ != arr.GetNumElements()) {
-      throw ADNArray<T>::ERROR_DIMENSION_MISMATCH;
+    T& operator()(std::size_t idx) {
+        if (dim_ * idx >= num_elements_ * dim_) {
+            std::string pos = std::to_string(dim_ * idx);
+            std::string total = std::to_string(num_elements_ * dim_);
+            throw ADNArray<T>::ERROR_OUT_OF_BOUNDS;
+        }
+        return array_[dim_ * idx];
     }
-    else {
-      for (int i = 0; i < dim_; ++i) {
-        this->operator ()(row, i) = arr(i);
-      }
-    }
-  }
 
-  /**
-  * Concatenates two ANTArrays and returns one
-  */
-  static ADNArray* Concatenate(ADNArray<T> v, ADNArray<T> w) {
-    ADNArray* sol = nullptr;
-    if (v.GetDim() == w.GetDim()) {
-      sol = ADNArray(v.GetDim(), v.GetNumElements() + w.GetNumElements());
-      size_t i = 0;
-      for (i = 0; i < v.GetNumElements(); ++i) {
-        auto row = v.GetRow(i);
-        sol->SetRow(i, row);
-      }
-      for (size_t j = 0; j < w.GetNumElements(); ++j) {
-        auto row = w.GetRow(j);
-        sol->SetRow(i + j, row);
-      }
+    const T& operator()(std::size_t idx) const {
+        if (dim_ * idx >= num_elements_ * dim_) {
+            std::string pos = std::to_string(dim_ * idx);
+            std::string total = std::to_string(num_elements_ * dim_);
+            throw ADNArray<T>::ERROR_OUT_OF_BOUNDS;
+        }
+        return array_[dim_ * idx];
     }
-    else {
-      throw ADNArray<T>::ERROR_DIMENSION_MISMATCH;
+
+    [[nodiscard]] T* GetArray() const { return array_; }
+    [[nodiscard]] size_t GetDim() const noexcept { return dim_; }
+    [[nodiscard]] size_t GetNumElements() const noexcept { return num_elements_; }
+
+    /**
+    * Returns a row as a 1-dim ANTArray
+    * \return A 1-dim ANTArray with number of elements equal to this dim_
+    */
+    [[nodiscard]] ADNArray<T> GetRow(std::size_t row) {
+        ADNArray<T> arr(dim_);
+        for (int i = 0; i < dim_; ++i) {
+            arr(i) = this->operator ()(row, i);
+        }
+        return arr;
     }
-    return sol;
-  }
+
+    /**
+    * Sets a row equal to the values contained in arr.
+    * \param the row we want to set.
+    * \param a 1-dim ANTArray with number of elements equal to the row length.
+    */
+    void SetRow(std::size_t row, ADNArray<T> arr) {
+        if (arr.GetDim() != 1 || dim_ != arr.GetNumElements()) {
+            throw ADNArray<T>::ERROR_DIMENSION_MISMATCH;
+        }
+        else {
+            for (int i = 0; i < dim_; ++i) {
+                this->operator ()(row, i) = arr(i);
+            }
+        }
+    }
+
+    /**
+    * Concatenates two ANTArrays and returns one
+    */
+    [[nodiscard]] static ADNArray* Concatenate(ADNArray<T> v, ADNArray<T> w) {
+        ADNArray* sol = nullptr;
+        if (v.GetDim() == w.GetDim()) {
+            sol = ADNArray(v.GetDim(), v.GetNumElements() + w.GetNumElements());
+            size_t i = 0;
+            for (i = 0; i < v.GetNumElements(); ++i) {
+                auto row = v.GetRow(i);
+                sol->SetRow(i, row);
+            }
+            for (size_t j = 0; j < w.GetNumElements(); ++j) {
+                auto row = w.GetRow(j);
+                sol->SetRow(i + j, row);
+            }
+        }
+        else {
+            throw ADNArray<T>::ERROR_DIMENSION_MISMATCH;
+        }
+        return sol;
+    }
 
 private:
 
-  T* array_ = nullptr;
+  T* array_{ nullptr };
   size_t dim_{ 0 };
   size_t num_elements_{ 0 };
   static int ERROR_OUT_OF_BOUNDS;

@@ -22,13 +22,13 @@ SB_CLASS_BEGIN(SEAdenitaCoreSEApp);
 
 	SB_FACTORY_BEGIN;
 
-		SB_CONSTRUCTOR_0(SEAdenitaCoreSEApp);
+		SB_CONSTRUCTOR_0();
 
 	SB_FACTORY_END;
 
 	SB_INTERFACE_BEGIN;
 
-		SB_FUNCTION_3(void, SEAdenitaCoreSEApp, addPartToDocument, ADNPointer<ADNPart>, bool, SBFolder*);
+		SB_FUNCTION_3(void, addPartToDocument, ADNPointer<ADNPart>, bool, SBFolder*);
 
 	SB_INTERFACE_END;
 

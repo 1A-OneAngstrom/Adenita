@@ -283,7 +283,7 @@ bool ADNAuxiliary::ValidateSequence(const std::string& seq) {
 QString ADNAuxiliary::AdenitaCitation() {
 
 	return
-		"You can find Adenita tutorials here: <a href=\"https://edellano.github.io/Adenita-SAMSON-Edition/\">https://edellano.github.io/Adenita-SAMSON-Edition/</a><br/>"
+		"You can find <b>Adenita tutorials</b> here: <a href=\"https://documentation.samson-connect.net/tutorials/adenita/adenita/\">https://documentation.samson-connect.net/tutorials/adenita/adenita/</a><br/>"
 		"<br/>"
 		"If you use this Adenita in your work, please cite: <br/>"
 		"<br/>"
@@ -297,7 +297,9 @@ QString ADNAuxiliary::AdenitaCitation() {
 		"<br/>If you used the wireframe editor or loaded a .ply file, please do not forget to cite: <br />"
 		"[4] R. Veneziano et al. <strong>Designer nanoscale DNA assemblies programmed from the top down</strong>, "
 		"<em>Science</em>, <a href=\"https://doi.org/10.1126/science.aaf4388\">https://doi.org/10.1126/science.aaf4388</a>, June 2016 <br/>"
-		"<br/>You can also cite SAMSON:<br/>"
-		"[5] SAMSON software: <a href=\"https://samson-connect.net\">https://samson-connect.net</a>";
+		"<br/>"
+		"You can also cite SAMSON:<br/>"
+		"<br/>"
+		"[5] SAMSON: Integrative Molecular Design. <a href=\"https://www.samson-connect.net\">https://www.samson-connect.net</a>";
 
 }
