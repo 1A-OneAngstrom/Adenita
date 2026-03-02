@@ -43,25 +43,25 @@ public:
     void                                                        RegisterAtom(ADNPointer<ADNNucleotide> nt, NucleotideGroup g, ADNPointer<ADNAtom> at, bool create = false);
     void                                                        RegisterAtom(ADNPointer<ADNBaseSegment> bs, ADNPointer<ADNAtom> at, bool create = false);
 
-    unsigned int                                                GetBaseSegmentIndex(ADNPointer<ADNBaseSegment> bs) const;
+    [[nodiscard]] unsigned int                                  GetBaseSegmentIndex(ADNPointer<ADNBaseSegment> bs) const;
 
-    CollectionMap<ADNSingleStrand>                              GetSingleStrands() const;                                               ///< Return a pointer indexer of single strands of the ADNPart part
-    CollectionMap<ADNDoubleStrand>                              GetDoubleStrands() const;                                               ///< Return a pointer indexer of double strands of the ADNPart part
-    CollectionMap<ADNBaseSegment>                               GetBaseSegments(CellType celltype = CellType::ALL) const;
-    CollectionMap<ADNSingleStrand>                              GetScaffolds() const;                                                   ///< Return the scaffolds of the ADNPart part
-    CollectionMap<ADNNucleotide>                                GetNucleotides(CellType celltype = CellType::ALL) const;
-    CollectionMap<ADNAtom>                                      GetAtoms() const;
+    [[nodiscard]] CollectionMap<ADNSingleStrand>                GetSingleStrands() const;                                               ///< Return a pointer indexer of single strands of the ADNPart part
+    [[nodiscard]] CollectionMap<ADNDoubleStrand>                GetDoubleStrands() const;                                               ///< Return a pointer indexer of double strands of the ADNPart part
+    [[nodiscard]] CollectionMap<ADNBaseSegment>                 GetBaseSegments(CellType celltype = CellType::ALL) const;
+    [[nodiscard]] CollectionMap<ADNSingleStrand>                GetScaffolds() const;                                                   ///< Return the scaffolds of the ADNPart part
+    [[nodiscard]] CollectionMap<ADNNucleotide>                  GetNucleotides(CellType celltype = CellType::ALL) const;
+    [[nodiscard]] CollectionMap<ADNAtom>                        GetAtoms() const;
 
-    int                                                         GetNumberOfDoubleStrands() const;
-    int                                                         getNumberOfDoubleStrands() const;
-    int                                                         GetNumberOfSingleStrands() const;
-    int                                                         getNumberOfSingleStrands() const;
-    int                                                         GetNumberOfNucleotides() const;
-    int                                                         getNumberOfNucleotides() const;
-    int                                                         GetNumberOfAtoms() const;
-    int                                                         getNumberOfAtoms() const;
-    int                                                         GetNumberOfBaseSegments() const;
-    int                                                         getNumberOfBaseSegments() const;
+    [[nodiscard]] int                                           GetNumberOfDoubleStrands() const;
+    [[nodiscard]] int                                           getNumberOfDoubleStrands() const;
+    [[nodiscard]] int                                           GetNumberOfSingleStrands() const;
+    [[nodiscard]] int                                           getNumberOfSingleStrands() const;
+    [[nodiscard]] int                                           GetNumberOfNucleotides() const;
+    [[nodiscard]] int                                           getNumberOfNucleotides() const;
+    [[nodiscard]] int                                           GetNumberOfAtoms() const;
+    [[nodiscard]] int                                           getNumberOfAtoms() const;
+    [[nodiscard]] int                                           GetNumberOfBaseSegments() const;
+    [[nodiscard]] int                                           getNumberOfBaseSegments() const;
 
     void                                                        DeregisterSingleStrand(ADNPointer<ADNSingleStrand> ss, bool removeFromParent = true, bool removeFromIndex = true);
     void                                                        DeregisterNucleotide(ADNPointer<ADNNucleotide> nt, bool removeFromSs = true, bool removeFromBs = true, bool removeFromIndex = true);
@@ -72,7 +72,7 @@ public:
     bool                                                        isLoadedViaSAMSON() const noexcept;
     void                                                        setLoadedViaSAMSON(bool l);
 
-    const SBIAPosition3&                                        GetBoundingBox() const;
+    [[nodiscard]] const SBIAPosition3&                          GetBoundingBox() const;
     void                                                        ResetBoundingBox();
 
 private:

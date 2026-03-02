@@ -23,36 +23,36 @@ public:
 	void                                                        RegisterPart(ADNPointer<ADNPart> part);                                 ///< Adds the ADNPart \p part to the internal part indexer
 	void                                                        DeregisterPart(ADNPointer<ADNPart> part);                               ///< Deletes the ADNPart \p part from the internal part indexer
 
-    int                                                         GetNumberOfParts() const;                                               ///< Returns the number of parts
-    int                                                         GetNumberOfDoubleStrands() const;                                       ///< Returns the number of double strands
-    int                                                         GetNumberOfBaseSegments() const;                                        ///< Returns the number of base segments
-    int                                                         GetNumberOfSingleStrands() const;                                       ///< Returns the number of single strands
-    int                                                         GetNumberOfNucleotides() const;                                         ///< Returns the number of nucleotides
+    [[nodiscard]] int                                           GetNumberOfParts() const;                                               ///< Returns the number of parts
+    [[nodiscard]] int                                           GetNumberOfDoubleStrands() const;                                       ///< Returns the number of double strands
+    [[nodiscard]] int                                           GetNumberOfBaseSegments() const;                                        ///< Returns the number of base segments
+    [[nodiscard]] int                                           GetNumberOfSingleStrands() const;                                       ///< Returns the number of single strands
+    [[nodiscard]] int                                           GetNumberOfNucleotides() const;                                         ///< Returns the number of nucleotides
 
-    CollectionMap<ADNPart>                                      GetParts() const;                                                       ///< Returns all the registered ADNPart
+    [[nodiscard]] CollectionMap<ADNPart>                        GetParts() const;                                                       ///< Returns all the registered ADNPart
     
-    CollectionMap<ADNSingleStrand>                              GetSingleStrands() const;                                               ///< Returns all the registered ADNSingleStrand
+    [[nodiscard]] CollectionMap<ADNSingleStrand>                GetSingleStrands() const;                                               ///< Returns all the registered ADNSingleStrand
 
-    CollectionMap<ADNPart>                                      GetSelectedParts() const;                                               ///< Returns all currently selected ADNPart
-    CollectionMap<ADNSingleStrand>                              GetSelectedSingleStrands() const;                                       ///< Returns all currently selected ADNSingleStrand
-    CollectionMap<ADNDoubleStrand>                              GetSelectedDoubleStrands() const;                                       ///< Returns all currently selected ADNDoubleStrand
-    CollectionMap<ADNBaseSegment>                               GetSelectedBaseSegmentsFromNucleotides() const;                         ///< Returns all currently selected ADNBaseSegment 
-    CollectionMap<ADNNucleotide>                                GetSelectedNucleotides() const;                                         ///< Returns all currently selected ADNNucleotides
+    [[nodiscard]] CollectionMap<ADNPart>                        GetSelectedParts() const;                                               ///< Returns all currently selected ADNPart
+    [[nodiscard]] CollectionMap<ADNSingleStrand>                GetSelectedSingleStrands() const;                                       ///< Returns all currently selected ADNSingleStrand
+    [[nodiscard]] CollectionMap<ADNDoubleStrand>                GetSelectedDoubleStrands() const;                                       ///< Returns all currently selected ADNDoubleStrand
+    [[nodiscard]] CollectionMap<ADNBaseSegment>                 GetSelectedBaseSegmentsFromNucleotides() const;                         ///< Returns all currently selected ADNBaseSegment 
+    [[nodiscard]] CollectionMap<ADNNucleotide>                  GetSelectedNucleotides() const;                                         ///< Returns all currently selected ADNNucleotides
     
-    CollectionMap<SBAtom>                                       GetHighlightedAtoms() const;                                            ///< Returns all currently highlighted SBAtoms
-    CollectionMap<ADNNucleotide>                                GetHighlightedNucleotides() const;                                      ///< Returns all currently highlighted ADNNucleotides
-    CollectionMap<ADNBaseSegment>                               GetHighlightedBaseSegmentsFromNucleotides() const;                      ///< Returns all currently highlighted ADNBaseSegments from Nucleotides
-    CollectionMap<ADNBaseSegment>                               GetHighlightedBaseSegments() const;                                     ///< Returns all currently highlighted ADNBaseSegments
-    CollectionMap<ADNDoubleStrand>                              GetHighlightedDoubleStrands() const;                                    ///< Returns all currently highlighted ADNDoubleStrand
+    [[nodiscard]] CollectionMap<SBAtom>                         GetHighlightedAtoms() const;                                            ///< Returns all currently highlighted SBAtoms
+    [[nodiscard]] CollectionMap<ADNNucleotide>                  GetHighlightedNucleotides() const;                                      ///< Returns all currently highlighted ADNNucleotides
+    [[nodiscard]] CollectionMap<ADNBaseSegment>                 GetHighlightedBaseSegmentsFromNucleotides() const;                      ///< Returns all currently highlighted ADNBaseSegments from Nucleotides
+    [[nodiscard]] CollectionMap<ADNBaseSegment>                 GetHighlightedBaseSegments() const;                                     ///< Returns all currently highlighted ADNBaseSegments
+    [[nodiscard]] CollectionMap<ADNDoubleStrand>                GetHighlightedDoubleStrands() const;                                    ///< Returns all currently highlighted ADNDoubleStrand
     
-    CollectionMap<ADNConformation>                              GetConformations() const;                                               ///< Return all conformations
+    [[nodiscard]] CollectionMap<ADNConformation>                GetConformations() const;                                               ///< Return all conformations
     
     void                                                        RegisterConformation(ADNPointer<ADNConformation> conformation);         ///< Register a conformation
 
-    SBPosition3                                                 GetNucleotideBackbonePosition(ADNPointer<ADNConformation> conformation, ADNPointer<ADNNucleotide> nucleotide) const;  ///< Return the position of the backbone of the nucleotide \p nucleotide in the conformation \p conformation
-    SBPosition3                                                 GetNucleotideSideChainPosition(ADNPointer<ADNConformation> conformation, ADNPointer<ADNNucleotide> nucleotide) const; ///< Return the position of the side chain of the nucleotide \p nucleotide in the conformation \p conformation
+    [[nodiscard]] SBPosition3                                   GetNucleotideBackbonePosition(ADNPointer<ADNConformation> conformation, ADNPointer<ADNNucleotide> nucleotide) const;  ///< Return the position of the backbone of the nucleotide \p nucleotide in the conformation \p conformation
+    [[nodiscard]] SBPosition3                                   GetNucleotideSideChainPosition(ADNPointer<ADNConformation> conformation, ADNPointer<ADNNucleotide> nucleotide) const; ///< Return the position of the side chain of the nucleotide \p nucleotide in the conformation \p conformation
 
-    SBIAPosition3                                               GetBoundingBox(CollectionMap<ADNPart> parts) const;                     ///< bounding box
+    [[nodiscard]] SBIAPosition3                                 GetBoundingBox(CollectionMap<ADNPart> parts) const;                     ///< bounding box
 
 private:
 
@@ -63,6 +63,6 @@ private:
     CollectionMap<ADNConformation>                              conformationsIndex_;
 #endif
 
-    unsigned int                                                partId_ = 1;                                                            ///< part id only for naming
+    unsigned int                                                partId_{ 1 };                                                            ///< part id only for naming
 
 };

@@ -17,7 +17,7 @@ SB_CLASS_BEGIN(SETwistHelixEditor);
 
 	SB_FACTORY_BEGIN;
 
-		SB_CONSTRUCTOR_0(SETwistHelixEditor);
+		SB_CONSTRUCTOR_0();
 
 	SB_FACTORY_END;
 

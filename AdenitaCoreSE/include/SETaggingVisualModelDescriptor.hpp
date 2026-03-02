@@ -16,8 +16,8 @@ SB_CLASS_BEGIN(SETaggingVisualModel);
 
 	SB_FACTORY_BEGIN;
 
-		SB_CONSTRUCTOR_0(SETaggingVisualModel);
-		SB_CONSTRUCTOR_1(SETaggingVisualModel, const SBNodeIndexer&);
+		SB_CONSTRUCTOR_0();
+		SB_CONSTRUCTOR_1(const SBNodeIndexer&);
 
 	SB_FACTORY_END;
 

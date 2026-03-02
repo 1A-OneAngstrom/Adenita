@@ -16,7 +16,7 @@ SB_CLASS_BEGIN(SETaggingVisualModelProperties);
 
 	SB_FACTORY_BEGIN;
 
-		SB_CONSTRUCTOR_0(SETaggingVisualModelProperties);
+		SB_CONSTRUCTOR_0();
 
 	SB_FACTORY_END;
 

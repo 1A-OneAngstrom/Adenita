@@ -38,13 +38,13 @@ public:
 	/// \name Identity
 	//@{
 
-	virtual SBCContainerUUID									getUUID() const override;												///< Returns the widget UUID
-	virtual QString												getName() const override;												///< Returns the widget name (used as a title for the embedding window)
-	virtual QString												getDescription() const override;										///< Returns the menu item text
-	virtual QPixmap												getLogo() const override;												///< Returns the widget logo
-	virtual int													getFormat() const override;												///< Returns the widget format
-	virtual QKeySequence										getShortcut() const override;											///< Returns the shortcut
-	virtual QString												getToolTip() const override;											///< Returns the tool tip
+	[[nodiscard]] virtual SBCContainerUUID						getUUID() const override;												///< Returns the widget UUID
+	[[nodiscard]] virtual QString								getName() const override;												///< Returns the widget name (used as a title for the embedding window)
+	[[nodiscard]] virtual QString								getDescription() const override;										///< Returns the menu item text
+	[[nodiscard]] virtual QPixmap								getLogo() const override;												///< Returns the widget logo
+	[[nodiscard]] virtual int									getFormat() const override;												///< Returns the widget format
+	[[nodiscard]] virtual QKeySequence							getShortcut() const override;											///< Returns the shortcut
+	[[nodiscard]] virtual QString								getToolTip() const override;											///< Returns the tool tip
 
 	//@}
 

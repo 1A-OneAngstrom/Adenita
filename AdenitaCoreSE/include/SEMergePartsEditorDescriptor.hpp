@@ -17,7 +17,7 @@ SB_CLASS_BEGIN(SEMergePartsEditor);
 
 	SB_FACTORY_BEGIN;
 
-		SB_CONSTRUCTOR_0(SEMergePartsEditor);
+		SB_CONSTRUCTOR_0();
 
 	SB_FACTORY_END;
 

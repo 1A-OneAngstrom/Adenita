@@ -37,18 +37,18 @@ public:
 	/// \name App
 	//@{
 
-	SEAdenitaCoreSEApp*											getApp() const;															///< Returns a pointer to the app
+	[[nodiscard]] SEAdenitaCoreSEApp*							getApp() const;															///< Returns a pointer to the app
 
 	//@}
 
 	/// \name Identity
 	//@{
 
-	virtual SBCContainerUUID									getUUID() const override;												///< Returns the widget UUID
-	virtual QString												getName() const override;												///< Returns the widget name (used as a title for the embedding window)
-	virtual QPixmap												getLogo() const override;												///< Returns the widget logo
-	virtual int													getFormat() const override;												///< Returns the widget format
-	virtual QString												getCitation() const override;											///< Returns the citation information
+	[[nodiscard]] virtual SBCContainerUUID						getUUID() const override;												///< Returns the widget UUID
+	[[nodiscard]] virtual QString								getName() const override;												///< Returns the widget name (used as a title for the embedding window)
+	[[nodiscard]] virtual QPixmap								getLogo() const override;												///< Returns the widget logo
+	[[nodiscard]] virtual int									getFormat() const override;												///< Returns the widget format
+	[[nodiscard]] virtual QString								getCitation() const override;											///< Returns the citation information
 
 	//@}
 
@@ -62,9 +62,9 @@ public:
 
 	//@}
 
-	static std::string											getScaffoldFilename();													///< Returns the selected scaffold
+	[[nodiscard]] static std::string							getScaffoldFilename();													///< Returns the selected scaffold
 
-	static std::string											isCadnanoJsonFormat(QString filename);
+	[[nodiscard]] static std::string							isCadnanoJsonFormat(QString filename);
 
 	void														clearHighlightEditor();
 
@@ -137,17 +137,17 @@ private:
 	std::vector<QToolButton*>									creatorsButtons_;
 	std::vector<QPushButton*>									debugButtons_;
 
-	std::vector<QToolButton*>									getMenuButtons();
-	std::vector<QToolButton*>									getEditSequencesButtons();
-	std::vector<QToolButton*>									getModelingButtons();
-	std::vector<QToolButton*>									getCreatorsButtons();
-	std::vector<QPushButton*>									getDebugButtons();
+	[[nodiscard]] std::vector<QToolButton*>						getMenuButtons();
+	[[nodiscard]] std::vector<QToolButton*>						getEditSequencesButtons();
+	[[nodiscard]] std::vector<QToolButton*>						getModelingButtons();
+	[[nodiscard]] std::vector<QToolButton*>						getCreatorsButtons();
+	[[nodiscard]] std::vector<QPushButton*>						getDebugButtons();
 
 	static void													setToolButtonStyleSheet(QToolButton* button);
 
 	Ui::SEAdenitaCoreSEAppGUIClass								ui;
 
-	QToolButton*												highlightedEditorButton_ = nullptr;
+	QToolButton*												highlightedEditorButton_{ nullptr };
 
 	QString														workingDirectory = QString();
 

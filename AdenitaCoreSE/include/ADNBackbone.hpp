@@ -23,10 +23,10 @@ public:
 
 	bool														addAtom(ADNPointer<ADNAtom> atom);
 	bool														deleteAtom(ADNPointer<ADNAtom> atom);
-	CollectionMap<ADNAtom>										GetAtoms() const;
-	int															getNumberOfAtoms() const;
+	[[nodiscard]] CollectionMap<ADNAtom>						GetAtoms() const;
+	[[nodiscard]] int											getNumberOfAtoms() const;
 
-	ADNPointer<ADNNucleotide>									GetNucleotide() const;
+	[[nodiscard]] ADNPointer<ADNNucleotide>						GetNucleotide() const;
 
 };
 

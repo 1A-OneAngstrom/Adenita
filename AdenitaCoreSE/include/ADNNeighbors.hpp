@@ -30,9 +30,9 @@ public:
 	ADNNeighbors();
 	~ADNNeighbors() = default;
 
-	ADNNeighborNt* GetPINucleotide(ADNPointer<ADNNucleotide> nt) const;
-	std::vector<ADNNeighborNt*> GetNeighbors(ADNNeighborNt* nt) const;
-	CollectionMap<ADNNucleotide> GetNeighbors(ADNPointer<ADNNucleotide> nt) const;
+	[[nodiscard]] ADNNeighborNt* GetPINucleotide(ADNPointer<ADNNucleotide> nt) const;
+	[[nodiscard]] std::vector<ADNNeighborNt*> GetNeighbors(ADNNeighborNt* nt) const;
+	[[nodiscard]] CollectionMap<ADNNucleotide> GetNeighbors(ADNPointer<ADNNucleotide> nt) const;
 
 	void SetFromOwnSingleStrand(bool b);
 	void SetIncludePairs(bool b);

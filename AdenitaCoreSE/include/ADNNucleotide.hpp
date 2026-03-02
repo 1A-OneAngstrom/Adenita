@@ -35,67 +35,67 @@ public:
 	virtual void												unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;			///< Unserializes the node
 
 	void														setNucleotideType(DNABlocks t);
-	DNABlocks													getNucleotideType() const;
+	[[nodiscard]] DNABlocks										getNucleotideType() const;
 
-	std::string													getNucleotideTypeString() const;
-	std::string													getOneLetterNucleotideTypeString() const;
+	[[nodiscard]] std::string									getNucleotideTypeString() const;
+	[[nodiscard]] std::string									getOneLetterNucleotideTypeString() const;
 
 	void														SetPair(ADNPointer<ADNNucleotide> nucleotide);
-	ADNPointer<ADNNucleotide>									GetPair() const;														///< Return a nucleotide's pair
-	SBNode*														getPair() const;
+	[[nodiscard]] ADNPointer<ADNNucleotide>						GetPair() const;														///< Return a nucleotide's pair
+	[[nodiscard]] SBNode*										getPair() const;
 	void														disconnectPair(ADNPointer<ADNNucleotide> nucleotide);					///< Disconnects a pairing to the nucleotide \p nucleotide
 	void														disconnectPair();														///< Disconnects a pairing between this nucleotide and its pair nucleotide
 
-	ADNPointer<ADNNucleotide>									GetPrev(bool checkCircular = false) const;								///< Return the nucleotide previous on the single strand
-	SBNode*														getPrev() const;
-	ADNPointer<ADNNucleotide>									GetNext(bool checkCircular = false) const;								///< Return the nucleotide next on the single strand
-	SBNode*														getNext() const;
-	ADNPointer<ADNSingleStrand>									GetStrand() const;
-	SBNode*														getSingleStrand() const;
+	[[nodiscard]] ADNPointer<ADNNucleotide>						GetPrev(bool checkCircular = false) const;								///< Return the nucleotide previous on the single strand
+	[[nodiscard]] SBNode*										getPrev() const;
+	[[nodiscard]] ADNPointer<ADNNucleotide>						GetNext(bool checkCircular = false) const;								///< Return the nucleotide next on the single strand
+	[[nodiscard]] SBNode*										getNext() const;
+	[[nodiscard]] ADNPointer<ADNSingleStrand>					GetStrand() const;
+	[[nodiscard]] SBNode*										getSingleStrand() const;
 
 	void														SetBaseSegment(ADNPointer<ADNBaseSegment> bs);
-	ADNPointer<ADNBaseSegment>									GetBaseSegment() const;
-	SBNode*														getBaseSegment() const;
-	std::string													getBaseSegmentTypeString() const;
+	[[nodiscard]] ADNPointer<ADNBaseSegment>					GetBaseSegment() const;
+	[[nodiscard]] SBNode*										getBaseSegment() const;
+	[[nodiscard]] std::string									getBaseSegmentTypeString() const;
 
-	ADNPointer<ADNDoubleStrand>                                 GetDoubleStrand() const;												///< Return the double strands to which the nucleotide belongs
+	[[nodiscard]] ADNPointer<ADNDoubleStrand>					GetDoubleStrand() const;												///< Return the double strands to which the nucleotide belongs
 
-	std::string													getEndTypeString() const;
-	ADNNucleotide::EndType										getEndType() const;														///< Return if the nucleotide is 5', 3', neither or both
+	[[nodiscard]] std::string									getEndTypeString() const;
+	[[nodiscard]] ADNNucleotide::EndType						getEndType() const;														///< Return if the nucleotide is 5', 3', neither or both
 	void														setEndType(ADNNucleotide::EndType type);
-	bool														isEndTypeNucleotide() const;
+	[[nodiscard]] bool											isEndTypeNucleotide() const;
 
 	void														Init();
-	ADNPointer<ADNBackbone>										GetBackbone() const;
-	ADNPointer<ADNSidechain>									GetSidechain() const;
+	[[nodiscard]] ADNPointer<ADNBackbone>						GetBackbone() const;
+	[[nodiscard]] ADNPointer<ADNSidechain>						GetSidechain() const;
 
 	void														SetSidechainPosition(const Position3D& pos);
-	const Position3D&											GetSidechainPosition() const;											///< Return the position of the sidechain of a nucleotide
+	[[nodiscard]] const Position3D&								GetSidechainPosition() const;											///< Return the position of the sidechain of a nucleotide
 	void														SetBackbonePosition(const Position3D& pos);
-	const Position3D&											GetBackbonePosition() const;											///< Return the position of the backbone of a nucleotide
+	[[nodiscard]] const Position3D&								GetBackbonePosition() const;											///< Return the position of the backbone of a nucleotide
 
 	// overload position to retrieve it from bb and sc
-	Position3D													GetPosition() const;													///< Return the position of a nucleotide
+	[[nodiscard]] Position3D									GetPosition() const;													///< Return the position of a nucleotide
 
 	void														addAtom(NucleotideGroup g, ADNPointer<ADNAtom> a);
 	void														deleteAtom(NucleotideGroup g, ADNPointer<ADNAtom> a);
-	CollectionMap<ADNAtom>										GetAtoms() const;
+	[[nodiscard]] CollectionMap<ADNAtom>						GetAtoms() const;
 	int															getNumberOfAtoms() const;
-	CollectionMap<ADNAtom>										GetAtomsByName(const std::string& name) const;
+	[[nodiscard]] CollectionMap<ADNAtom>						GetAtomsByName(const std::string& name) const;
 	void														HideCenterAtoms();														///< Hides center "mock" atom
-	ADNPointer<ADNAtom>											GetBackboneCenterAtom() const;
-	ADNPointer<ADNAtom>											GetSidechainCenterAtom() const;
+	[[nodiscard]] ADNPointer<ADNAtom>							GetBackboneCenterAtom() const;
+	[[nodiscard]] ADNPointer<ADNAtom>							GetSidechainCenterAtom() const;
 
 	// Local base is always the standard basis
-	ublas::matrix<double>										GetGlobalBasisTransformation() const;
-	bool														GlobalBaseIsSet() const;
+	[[nodiscard]] ublas::matrix<double>							GetGlobalBasisTransformation() const;
+	[[nodiscard]] bool											GlobalBaseIsSet() const;
 
 	//! check where in the base segment is the nucleotide located
-	bool														IsLeft();
-	bool														IsRight();
+	[[nodiscard]] bool											IsLeft();
+	[[nodiscard]] bool											IsRight();
 
 	//! tagging
-	std::string													getTag() const;
+	[[nodiscard]] std::string									getTag() const;
 	void														setTag(std::string t);
 	bool														hasTag() const;
 

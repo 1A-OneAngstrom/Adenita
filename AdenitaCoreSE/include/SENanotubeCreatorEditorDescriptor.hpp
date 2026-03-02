@@ -16,7 +16,7 @@ SB_CLASS_BEGIN(SENanotubeCreatorEditor);
 
 	SB_FACTORY_BEGIN;
 
-		SB_CONSTRUCTOR_0(SENanotubeCreatorEditor);
+		SB_CONSTRUCTOR_0();
 
 	SB_FACTORY_END;
 

@@ -75,7 +75,7 @@ public:
     Positionable& operator=(const Positionable& other);
 
     void SetPosition(const ublas::vector<double>& pos);
-    const ublas::vector<double>& GetPosition() const;
+    [[nodiscard]] const ublas::vector<double>& GetPosition() const;
 
 private:
 
@@ -97,9 +97,9 @@ public:
     PositionableSB& operator=(const PositionableSB& other);
 
     void SetPosition(const Position3D& pos);
-    const Position3D& GetPosition() const;
+    [[nodiscard]] const Position3D& GetPosition() const;
 
-    ADNPointer<ADNAtom> GetCenterAtom() const;
+    [[nodiscard]] ADNPointer<ADNAtom> GetCenterAtom() const;
     void SetCenterAtom(ADNPointer<ADNAtom> centerAtom);
     void HideCenterAtom();
 
@@ -121,7 +121,7 @@ public:
     Identifiable& operator=(const Identifiable& other);
 
     void SetId(int id) noexcept;
-    int GetId() const noexcept;
+    [[nodiscard]] int GetId() const noexcept;
 
 private:
 
@@ -143,9 +143,9 @@ public:
     void SetE1(const ublas::vector<double>& e1);
     void SetE2(const ublas::vector<double>& e2);
     void SetE3(const ublas::vector<double>& e3);
-    const ublas::vector<double>& GetE1() const;
-    const ublas::vector<double>& GetE2() const;
-    const ublas::vector<double>& GetE3() const;
+    [[nodiscard]] const ublas::vector<double>& GetE1() const;
+    [[nodiscard]] const ublas::vector<double>& GetE2() const;
+    [[nodiscard]] const ublas::vector<double>& GetE3() const;
 
 private:
 
@@ -168,10 +168,10 @@ public:
     Collection<T>& operator=(const Collection<T>& other);
 
     void AddElement(ADNPointer<T> elem, int id = -1);
-    const CollectionMap<T>& GetCollection() const;
+    [[nodiscard]] const CollectionMap<T>& GetCollection() const;
     void DeleteElement(int id);
-    int GetLastKey() const;
-    ADNPointer<T> GetElement(int id) const;
+    [[nodiscard]] int GetLastKey() const;
+    [[nodiscard]] ADNPointer<T> GetElement(int id) const;
 
 private:
 

@@ -23,31 +23,31 @@ public:
 	virtual void												unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;			///< Unserializes the node
 
 	void														SetNumber(int n);
-	int															GetNumber() const;
+	[[nodiscard]] int											GetNumber() const;
 	void														setNumber(int n);
-	int															getNumber() const;
+	[[nodiscard]] int											getNumber() const;
 
-	ADNPointer<ADNBaseSegment>									GetPrev(bool checkCircular = false) const;
-	ADNPointer<ADNBaseSegment>									GetNext(bool checkCircular = false) const;
+	[[nodiscard]] ADNPointer<ADNBaseSegment>					GetPrev(bool checkCircular = false) const;
+	[[nodiscard]] ADNPointer<ADNBaseSegment>					GetNext(bool checkCircular = false) const;
 	
-	bool														IsEnd() const;															///< True if it's the first or last base segment
-	bool														IsFirst() const;														///< True if it's the first base segment
-	bool														IsLast() const;															///< True if it's the first base segment
+	[[nodiscard]] bool											IsEnd() const;															///< True if it's the first or last base segment
+	[[nodiscard]] bool											IsFirst() const;														///< True if it's the first base segment
+	[[nodiscard]] bool											IsLast() const;															///< True if it's the first base segment
 
-	ADNPointer<ADNDoubleStrand>									GetDoubleStrand() const;
-	SBNode*														getDoubleStrand() const;
-	unsigned int												getNumberOfNucleotides() const;
-	CollectionMap<ADNNucleotide>								GetNucleotides() const;
+	[[nodiscard]] ADNPointer<ADNDoubleStrand>					GetDoubleStrand() const;
+	[[nodiscard]] SBNode*										getDoubleStrand() const;
+	[[nodiscard]] unsigned int									getNumberOfNucleotides() const;
+	[[nodiscard]] CollectionMap<ADNNucleotide>					GetNucleotides() const;
 	void														RemoveNucleotide(ADNPointer<ADNNucleotide> nt);
 
-	void														SetCell(ADNCell* c);  // we use raw pointers so subclassing will work
-	ADNPointer<ADNCell>											GetCell() const;
-	CellType													GetCellType() const;
-	std::string													getCellTypeString() const;
+	[[nodiscard]] void											SetCell(ADNCell* c);  // we use raw pointers so subclassing will work
+	[[nodiscard]] ADNPointer<ADNCell>							GetCell() const;
+	[[nodiscard]] CellType										GetCellType() const;
+	[[nodiscard]] std::string									getCellTypeString() const;
 
 	//! check if left or right in the base segment
-	bool														IsLeft(ADNPointer<ADNNucleotide> nt) const;
-	bool														IsRight(ADNPointer<ADNNucleotide> nt) const;
+	[[nodiscard]] bool											IsLeft(ADNPointer<ADNNucleotide> nt) const;
+	[[nodiscard]] bool											IsRight(ADNPointer<ADNNucleotide> nt) const;
 
 private:
 

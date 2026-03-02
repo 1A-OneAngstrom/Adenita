@@ -16,71 +16,71 @@ SB_CLASS_BEGIN(SEAdenitaVisualModel);
 
 	SB_FACTORY_BEGIN;
 
-		SB_CONSTRUCTOR_0(SEAdenitaVisualModel);
-		SB_CONSTRUCTOR_1(SEAdenitaVisualModel, const SBNodeIndexer&);
+		SB_CONSTRUCTOR_0();
+		SB_CONSTRUCTOR_1(const SBNodeIndexer&);
 
 	SB_FACTORY_END;
 
 	SB_INTERFACE_BEGIN;
 	
-		SB_ATTRIBUTE_READ_WRITE(const std::string&, SEAdenitaVisualModel, Name, "Name", "Identity");
+		SB_ATTRIBUTE_READ_WRITE(const std::string&, Name, "Name", "Identity");
 
-		SB_ATTRIBUTE_READ_ONLY(bool, SEAdenitaVisualModel, Selected, "Selected", "Node");
-		SB_ATTRIBUTE_READ_ONLY(bool, SEAdenitaVisualModel, Visible, "Visible", "Node");
-		SB_ATTRIBUTE_READ_WRITE(bool, SEAdenitaVisualModel, SelectionFlag, "Selection flag", "Node");
-		SB_ATTRIBUTE_READ_WRITE(bool, SEAdenitaVisualModel, VisibilityFlag, "Visibility flag", "Node");
-		SB_ATTRIBUTE_READ_ONLY(SBNode*, SEAdenitaVisualModel, Parent, "Parent", "Node");
-		SB_ATTRIBUTE_READ_ONLY(SBNode*, SEAdenitaVisualModel, ThisNode, "Itself", "Node");
-		SB_ATTRIBUTE_READ_ONLY(SBNode*, SEAdenitaVisualModel, NextNode, "Next", "Node");
-		SB_ATTRIBUTE_READ_ONLY(SBNode*, SEAdenitaVisualModel, PreviousNode, "Previous", "Node");
+		SB_ATTRIBUTE_READ_ONLY(bool, Selected, "Selected", "Node");
+		SB_ATTRIBUTE_READ_ONLY(bool, Visible, "Visible", "Node");
+		SB_ATTRIBUTE_READ_WRITE(bool, SelectionFlag, "Selection flag", "Node");
+		SB_ATTRIBUTE_READ_WRITE(bool, VisibilityFlag, "Visibility flag", "Node");
+		SB_ATTRIBUTE_READ_ONLY(SBNode*, Parent, "Parent", "Node");
+		SB_ATTRIBUTE_READ_ONLY(SBNode*, ThisNode, "Itself", "Node");
+		SB_ATTRIBUTE_READ_ONLY(SBNode*, NextNode, "Next", "Node");
+		SB_ATTRIBUTE_READ_ONLY(SBNode*, PreviousNode, "Previous", "Node");
 
-		SB_ATTRIBUTE_READ_WRITE_RESET_RANGE(float, SEAdenitaVisualModel, Scale, "Scale", "Properties");
-		SB_ATTRIBUTE_READ_WRITE_LIST(SEAdenitaVisualModel, DiscreteScale, "Scale (discrete)", "Properties");
+		SB_ATTRIBUTE_READ_WRITE_RESET_RANGE(float, Scale, "Scale", "Properties");
+		SB_ATTRIBUTE_READ_WRITE_LIST(DiscreteScale, "Scale (discrete)", "Properties");
 
-		SB_ATTRIBUTE_READ_WRITE_RESET_RANGE(float, SEAdenitaVisualModel, Dimension, "Dimension", "Properties");
-		SB_ATTRIBUTE_READ_WRITE_LIST(SEAdenitaVisualModel, DiscreteDimension, "Dimension (discrete)", "Properties");
+		SB_ATTRIBUTE_READ_WRITE_RESET_RANGE(float, Dimension, "Dimension", "Properties");
+		SB_ATTRIBUTE_READ_WRITE_LIST(DiscreteDimension, "Dimension (discrete)", "Properties");
 
-		SB_ATTRIBUTE_READ_WRITE_RESET_RANGE(double, SEAdenitaVisualModel, Visibility, "Visibility", "Properties");
+		SB_ATTRIBUTE_READ_WRITE_RESET_RANGE(double, Visibility, "Visibility", "Properties");
 
-		SB_ATTRIBUTE_READ_WRITE_LIST(SEAdenitaVisualModel, Highlight, "Highlight", "Highlight options");
+		SB_ATTRIBUTE_READ_WRITE_LIST(Highlight, "Highlight", "Highlight options");
 
-		SB_ATTRIBUTE_BEGIN(SBAttribute::Access::ReadWrite, SBAttribute::Type::Scalar, bool, SEAdenitaVisualModel, NotScaffold, "Not scaffold", "Highlight options");
-			SB_ATTRIBUTE_GET(bool, SEAdenitaVisualModel, getNotScaffold);
-			SB_ATTRIBUTE_SET(bool, SEAdenitaVisualModel, setNotScaffold);
-			SB_ATTRIBUTE_DEFAULT(bool, SEAdenitaVisualModel, getDefaultNotScaffold);
-			SB_ATTRIBUTE_ENABLED_FLAG(SEAdenitaVisualModel, getEnabledFlagForHighlightAttributes);
+		SB_ATTRIBUTE_BEGIN(SBAttribute::Access::ReadWrite, SBAttribute::Type::Scalar, bool, NotScaffold, "Not scaffold", "Highlight options");
+			SB_ATTRIBUTE_GET(bool, getNotScaffold);
+			SB_ATTRIBUTE_SET(bool, setNotScaffold);
+			SB_ATTRIBUTE_DEFAULT(bool, getDefaultNotScaffold);
+			SB_ATTRIBUTE_ENABLED_FLAG(getEnabledFlagForHighlightAttributes);
 		SB_ATTRIBUTE_END;
 		
-		SB_ATTRIBUTE_BEGIN(SBAttribute::Access::ReadWrite, SBAttribute::Type::Scalar, bool, SEAdenitaVisualModel, NotWithinRange, "Not within the range", "Highlight options");
-			SB_ATTRIBUTE_GET(bool, SEAdenitaVisualModel, getNotWithinRange);
-			SB_ATTRIBUTE_SET(bool, SEAdenitaVisualModel, setNotWithinRange);
-			SB_ATTRIBUTE_DEFAULT(bool, SEAdenitaVisualModel, getDefaultNotWithinRange);
-			SB_ATTRIBUTE_ENABLED_FLAG(SEAdenitaVisualModel, getEnabledFlagForHighlightAttributes);
+		SB_ATTRIBUTE_BEGIN(SBAttribute::Access::ReadWrite, SBAttribute::Type::Scalar, bool, NotWithinRange, "Not within the range", "Highlight options");
+			SB_ATTRIBUTE_GET(bool, getNotWithinRange);
+			SB_ATTRIBUTE_SET(bool, setNotWithinRange);
+			SB_ATTRIBUTE_DEFAULT(bool, getDefaultNotWithinRange);
+			SB_ATTRIBUTE_ENABLED_FLAG(getEnabledFlagForHighlightAttributes);
 		SB_ATTRIBUTE_END;
 
-		SB_ATTRIBUTE_BEGIN(SBAttribute::Access::ReadWrite, SBAttribute::Type::Scalar, unsigned int, SEAdenitaVisualModel, HighlightMinLength, "Min length (nts)", "Highlight options");
-			SB_ATTRIBUTE_GET(unsigned int, SEAdenitaVisualModel, getHighlightMinLength);
-			SB_ATTRIBUTE_SET(unsigned int, SEAdenitaVisualModel, setHighlightMinLength);
-			SB_ATTRIBUTE_ENABLED_FLAG(SEAdenitaVisualModel, getEnabledFlagForHighlightAttributes);
+		SB_ATTRIBUTE_BEGIN(SBAttribute::Access::ReadWrite, SBAttribute::Type::Scalar, unsigned int, HighlightMinLength, "Min length (nts)", "Highlight options");
+			SB_ATTRIBUTE_GET(unsigned int, getHighlightMinLength);
+			SB_ATTRIBUTE_SET(unsigned int, setHighlightMinLength);
+			SB_ATTRIBUTE_ENABLED_FLAG(getEnabledFlagForHighlightAttributes);
 		SB_ATTRIBUTE_END;
 		
-		SB_ATTRIBUTE_BEGIN(SBAttribute::Access::ReadWrite, SBAttribute::Type::Scalar, unsigned int, SEAdenitaVisualModel, HighlightMaxLength, "Max length (nts)", "Highlight options");
-			SB_ATTRIBUTE_GET(unsigned int, SEAdenitaVisualModel, getHighlightMaxLength);
-			SB_ATTRIBUTE_SET(unsigned int, SEAdenitaVisualModel, setHighlightMaxLength);
-			SB_ATTRIBUTE_ENABLED_FLAG(SEAdenitaVisualModel, getEnabledFlagForHighlightAttributes);
+		SB_ATTRIBUTE_BEGIN(SBAttribute::Access::ReadWrite, SBAttribute::Type::Scalar, unsigned int, HighlightMaxLength, "Max length (nts)", "Highlight options");
+			SB_ATTRIBUTE_GET(unsigned int, getHighlightMaxLength);
+			SB_ATTRIBUTE_SET(unsigned int, setHighlightMaxLength);
+			SB_ATTRIBUTE_ENABLED_FLAG(getEnabledFlagForHighlightAttributes);
 		SB_ATTRIBUTE_END;
 
-		SB_ATTRIBUTE_READ_WRITE_LIST(SEAdenitaVisualModel, ColorType, "Color type", "Colorization");
-		SB_ATTRIBUTE_READ_WRITE_LIST(SEAdenitaVisualModel, PropertyColorScheme, "Property color scheme", "Colorization");
+		SB_ATTRIBUTE_READ_WRITE_LIST(ColorType, "Color type", "Colorization");
+		SB_ATTRIBUTE_READ_WRITE_LIST(PropertyColorScheme, "Property color scheme", "Colorization");
 
-		SB_ATTRIBUTE_READ_WRITE_LIST(SEAdenitaVisualModel, SingleStrandColors, "Single strand colors", "Colorization");
-		SB_ATTRIBUTE_READ_WRITE_LIST(SEAdenitaVisualModel, NucleotideColors, "Nucleotide colors", "Colorization");
-		SB_ATTRIBUTE_READ_WRITE_LIST(SEAdenitaVisualModel, DoubleStrandColors, "Double strand colors", "Colorization");
+		SB_ATTRIBUTE_READ_WRITE_LIST(SingleStrandColors, "Single strand colors", "Colorization");
+		SB_ATTRIBUTE_READ_WRITE_LIST(NucleotideColors, "Nucleotide colors", "Colorization");
+		SB_ATTRIBUTE_READ_WRITE_LIST(DoubleStrandColors, "Double strand colors", "Colorization");
 
-		SB_ATTRIBUTE_READ_WRITE(bool, SEAdenitaVisualModel, ShowBasePairingFlag, "Show base pairing", "Properties");
+		SB_ATTRIBUTE_READ_WRITE(bool, ShowBasePairingFlag, "Show base pairing", "Properties");
 
-		SB_ATTRIBUTE_PUSH_BUTTON(SEAdenitaVisualModel, "Update", "Update", "Display", update);
-		SB_ATTRIBUTE_READ_WRITE_RESET_RANGE_SLIDER(unsigned int, SEAdenitaVisualModel, Transparency, "Transparency", "Display");
+		SB_ATTRIBUTE_PUSH_BUTTON("Update", "Update", "Display", update);
+		SB_ATTRIBUTE_READ_WRITE_RESET_RANGE_SLIDER(unsigned int, Transparency, "Transparency", "Display");
 		//SB_ATTRIBUTE_READ_ONLY(SBDDataGraphNodeMaterial*, SEAdenitaVisualModel, Material, "Material", "Display");
 
 	SB_INTERFACE_END;

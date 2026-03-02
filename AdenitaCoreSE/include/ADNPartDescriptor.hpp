@@ -18,26 +18,26 @@ SB_CLASS_BEGIN(ADNPart);
 
   SB_FACTORY_BEGIN;
 
-    SB_CONSTRUCTOR_0(ADNPart);
+    SB_CONSTRUCTOR_0();
 
   SB_FACTORY_END;
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_ONLY(int, ADNPart, NumberOfAtoms, "Number of atoms", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(int, ADNPart, NumberOfNucleotides, "Number of nucleotides", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(int, ADNPart, NumberOfSingleStrands, "Number of single strands", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(int, ADNPart, NumberOfBaseSegments, "Number of base segments", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(int, ADNPart, NumberOfDoubleStrands, "Number of double strands", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(int, NumberOfAtoms, "Number of atoms", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(int, NumberOfNucleotides, "Number of nucleotides", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(int, NumberOfSingleStrands, "Number of single strands", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(int, NumberOfBaseSegments, "Number of base segments", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(int, NumberOfDoubleStrands, "Number of double strands", "Adenita");
     
-    SB_ATTRIBUTE_READ_WRITE(std::string const &, ADNPart, Name, "Name", "Identity");
+    SB_ATTRIBUTE_READ_WRITE(std::string const &, Name, "Name", "Identity");
 
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNPart, ThisNode, "Itself", "Node");
-    SB_ATTRIBUTE_READ_ONLY(SBNode*, ADNPart, Parent, "Parent", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNPart, Selected, "Selected", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNPart, SelectionFlag, "Selection Flag", "Node");
-    SB_ATTRIBUTE_READ_WRITE(bool, ADNPart, VisibilityFlag, "Visibility Flag", "Node");
-    SB_ATTRIBUTE_READ_ONLY(bool, ADNPart, Visible, "Visible", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, ThisNode, "Itself", "Node");
+    SB_ATTRIBUTE_READ_ONLY(SBNode*, Parent, "Parent", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Selected, "Selected", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, SelectionFlag, "Selection Flag", "Node");
+    SB_ATTRIBUTE_READ_WRITE(bool, VisibilityFlag, "Visibility Flag", "Node");
+    SB_ATTRIBUTE_READ_ONLY(bool, Visible, "Visible", "Node");
 
   SB_INTERFACE_END;
 
