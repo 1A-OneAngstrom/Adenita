@@ -84,7 +84,7 @@ namespace ADNAuxiliary {
         OxDNASimulationType simType_;
         OxDNABackend backend_;
         bool debug_{ false };
-        unsigned int steps_{ 0 };
+        unsigned int steps_{ 0u };
         std::string temp_;
         double saltConcentration_{ 0.0 };
         double mdTimeStep_{ 0.0 };
@@ -99,7 +99,7 @@ namespace ADNAuxiliary {
     //SB_EXPORT [[nodiscard]] char getBaseSymbol(SBNode* node);
     SB_EXPORT [[nodiscard]] char getBaseSymbol(const std::string& name);
     SB_EXPORT [[nodiscard]] char getBaseSymbol(size_t numAtoms);
-    SB_EXPORT [[nodiscard]] void getHeatMapColor(double val, double min, double max, int* color);
+    SB_EXPORT void getHeatMapColor(double val, double min, double max, int* color);
 
     SB_EXPORT [[nodiscard]] std::string UblasVectorToString(const ublas::vector<double>& vec);
     SB_EXPORT [[nodiscard]] std::string VectorToString(const std::vector<int>& vec);

@@ -40,7 +40,7 @@ public:
 	[[nodiscard]] CollectionMap<ADNNucleotide>					GetNucleotides() const;
 	void														RemoveNucleotide(ADNPointer<ADNNucleotide> nt);
 
-	[[nodiscard]] void											SetCell(ADNCell* c);  // we use raw pointers so subclassing will work
+	void														SetCell(ADNCell* c);  // we use raw pointers so subclassing will work
 	[[nodiscard]] ADNPointer<ADNCell>							GetCell() const;
 	[[nodiscard]] CellType										GetCellType() const;
 	[[nodiscard]] std::string									getCellTypeString() const;

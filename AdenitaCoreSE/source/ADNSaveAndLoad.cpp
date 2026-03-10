@@ -1047,13 +1047,15 @@ void ADNLoader::SaveNanorobotToJson(ADNNanorobot* nr, const std::string& filenam
 	QIODevice::OpenModeFlag mode = QIODevice::WriteOnly;
 
 	QFile file(QString::fromStdString(filename));
-	file.open(mode);
+	if (file.open(mode)) {
 
-	QTextStream out(&file);
+		QTextStream out(&file);
 
-	out << s.GetString();
+		out << s.GetString();
 
-	file.close();
+		file.close();
+
+	}
 
 }
 
@@ -1676,7 +1678,7 @@ void ADNLoader::OutputToCanDo(const CollectionMap<ADNSingleStrand>& singleStrand
 		int pairIdx = -1;
 		if (pairNt != nullptr) pairIdx = nucleotidesId[pairNt];
 
-		// six subfields separated by commas, which are the serial number (1, 2, …, n_nt), id, up, down, across, and seq
+		// six subfields separated by commas, which are the serial number (1, 2, ï¿½, n_nt), id, up, down, across, and seq
 		std::string line = std::to_string(idx) + "," + std::to_string(idx) + "," + std::to_string(prevIdx) + "," + std::to_string(nextIdx) + "," + std::to_string(pairIdx) + "," + nt->getOneLetterNucleotideTypeString();
 		file << line << std::endl;
 
@@ -2048,12 +2050,14 @@ void ADNLoader::SavePartToJson(ADNPointer<ADNPart> p, const std::string& filenam
 	QIODevice::OpenModeFlag mode = QIODevice::WriteOnly;
 
 	QFile file(QString::fromStdString(filename));
-	file.open(mode);
+	if (file.open(mode)) {
 
-	QTextStream out(&file);
+		QTextStream out(&file);
 
-	out << s.GetString();
+		out << s.GetString();
 
-	file.close();
+		file.close();
+
+	}
 
 }

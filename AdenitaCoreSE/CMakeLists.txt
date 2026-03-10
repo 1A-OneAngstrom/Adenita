@@ -1,80 +1,106 @@
 SET ( PROJECT_FOLDER_NAME AdenitaCoreSE )
-SET ( PROJECT_PATH ${ELEMENT_NAME} )
-SET ( OUTPUT_NAME "SE${PROJECT_FOLDER_NAME}" )
-ADD_DEFINITIONS( -DELEMENT_NAME=\"${OUTPUT_NAME}\" )
- 
 SET( OUTPUT_UUID DDA2A078-1AB6-96BA-0D14-EE1717632D7A )
-SET( OUTPUT_UUID-VAR \"${OUTPUT_UUID}\" )
-ADD_DEFINITIONS( -DSB_ELEMENT_UUID=${OUTPUT_UUID-VAR} )
 
-MESSAGE ( "-- ++ CREATING PROJECT OR MAKEFILE ---> ${OUTPUT_UUID} : ${OUTPUT_NAME}" )
+set(PROJECT_PATH ${ELEMENT_NAME})
+set(OUTPUT_NAME "SE${PROJECT_FOLDER_NAME}")
 
-FILE ( GLOB_RECURSE ${OUTPUT_UUID}_DAS_headers modules/DAS/include/*.hpp )
-FILE ( GLOB_RECURSE ${OUTPUT_UUID}_MSV_headers modules/MSV/include/*.hpp )
-FILE ( GLOB_RECURSE ${OUTPUT_UUID}_PI_headers modules/PI/include/*.hpp )
-FILE ( GLOB_RECURSE ${OUTPUT_UUID}_DAS_sources modules/DAS/source/*.cpp )
-FILE ( GLOB_RECURSE ${OUTPUT_UUID}_MSV_sources modules/MSV/source/*.cpp )
-FILE ( GLOB_RECURSE ${OUTPUT_UUID}_PI_sources modules/PI/source/*.cpp )
-FILE ( GLOB_RECURSE ${OUTPUT_UUID}_headers include/*.hpp )
-FILE ( GLOB_RECURSE ${OUTPUT_UUID}_sources source/*.cpp )
-FILE ( GLOB_RECURSE ${OUTPUT_UUID}_resources resource/*.qrc )
-FILE ( GLOB_RECURSE ${OUTPUT_UUID}_form form/*.ui )
+message (STATUS "CREATING PROJECT OR MAKEFILE ${OUTPUT_UUID} : ${OUTPUT_NAME}")
 
-FILE( GLOB_RECURSE ${OUTPUT_UUID}_ts resource/translations/*.ts )
+file(GLOB_RECURSE ${OUTPUT_UUID}_headers CONFIGURE_DEPENDS include/*.hpp)
+file(GLOB_RECURSE ${OUTPUT_UUID}_sources CONFIGURE_DEPENDS source/*.cpp)
+file(GLOB_RECURSE ${OUTPUT_UUID}_resources CONFIGURE_DEPENDS resource/*.qrc)
+file(GLOB_RECURSE ${OUTPUT_UUID}_form CONFIGURE_DEPENDS form/*.ui)
+file(GLOB_RECURSE ${OUTPUT_UUID}_ts CONFIGURE_DEPENDS resource/translations/*.ts)
 
-INCLUDE_DIRECTORIES ( include )
-INCLUDE_DIRECTORIES ( external/rapidjson/include )
-INCLUDE_DIRECTORIES ( modules/DAS/include )
-INCLUDE_DIRECTORIES ( modules/MSV/include )
-INCLUDE_DIRECTORIES ( modules/PI/include )
-INCLUDE_DIRECTORIES ( ${CMAKE_CURRENT_BINARY_DIR} )
+file(GLOB_RECURSE ${OUTPUT_UUID}_DAS_headers modules/DAS/include/*.hpp)
+file(GLOB_RECURSE ${OUTPUT_UUID}_MSV_headers modules/MSV/include/*.hpp)
+file(GLOB_RECURSE ${OUTPUT_UUID}_PI_headers modules/PI/include/*.hpp)
+file(GLOB_RECURSE ${OUTPUT_UUID}_DAS_sources modules/DAS/source/*.cpp)
+file(GLOB_RECURSE ${OUTPUT_UUID}_MSV_sources modules/MSV/source/*.cpp)
+file(GLOB_RECURSE ${OUTPUT_UUID}_PI_sources modules/PI/source/*.cpp)
 
-IF(QT_WRAP_CPP)
+add_library(${OUTPUT_NAME} SHARED)
 
-	QT5_WRAP_CPP( ${OUTPUT_UUID}_MOC_GENERATED ${${OUTPUT_UUID}_headersToMOC} )
+target_sources(${OUTPUT_NAME}
+  PRIVATE
+    ${${OUTPUT_UUID}_headers}
+    ${${OUTPUT_UUID}_sources}
+    ${${OUTPUT_UUID}_resources}
+    ${${OUTPUT_UUID}_form}
+	${${OUTPUT_UUID}_DAS_headers}
+	${${OUTPUT_UUID}_MSV_headers}
+	${${OUTPUT_UUID}_PI_headers}
+	${${OUTPUT_UUID}_DAS_sources}
+	${${OUTPUT_UUID}_MSV_sources}
+	${${OUTPUT_UUID}_PI_sources}
+)
 
-ENDIF(QT_WRAP_CPP)
+target_compile_definitions(${OUTPUT_NAME}
+  PRIVATE
+    ELEMENT_NAME="${OUTPUT_NAME}"
+    SB_ELEMENT_UUID="${OUTPUT_UUID}"
+)
 
-QT5_WRAP_UI( ${OUTPUT_UUID}_UI_GENERATED ${${OUTPUT_UUID}_form} )
+target_include_directories(${OUTPUT_NAME}
+  PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  PRIVATE
+	"${CMAKE_CURRENT_BINARY_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/external/rapidjson/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/modules/DAS/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/modules/MSV/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/modules/PI/include"
+)
 
-QT5_ADD_RESOURCES( ${OUTPUT_UUID}_RCC_GENERATED ${${OUTPUT_UUID}_resources} )
+# Qt6 use auto tools
+set_target_properties(${OUTPUT_NAME} PROPERTIES
+  AUTOMOC ON
+  AUTOUIC ON
+  AUTORCC ON
+  AUTOUIC_SEARCH_PATHS
+    "${CMAKE_CURRENT_SOURCE_DIR}/form"
+)
 
-QT5_ADD_TRANSLATION( ${OUTPUT_UUID}_QM  ${${OUTPUT_UUID}_ts} )
+# Qt6 translations
+if(${OUTPUT_UUID}_ts)
+  qt6_add_translations(${OUTPUT_NAME}
+    TS_FILES ${${OUTPUT_UUID}_ts}
+    QM_FILES_OUTPUT_VARIABLE ${OUTPUT_UUID}_QM
+ )
+endif()
 
-SOURCE_GROUP ( include FILES ${${OUTPUT_UUID}_headers} )
-SOURCE_GROUP ( source FILES ${${OUTPUT_UUID}_sources} )
-SOURCE_GROUP ( include/DAS FILES ${${OUTPUT_UUID}_DAS_headers} )
-SOURCE_GROUP ( include/MSV FILES ${${OUTPUT_UUID}_MSV_headers} )
-SOURCE_GROUP ( include/PI FILES ${${OUTPUT_UUID}_PI_headers} )
-SOURCE_GROUP ( source/DAS FILES ${${OUTPUT_UUID}_DAS_sources} )
-SOURCE_GROUP ( source/MSV FILES ${${OUTPUT_UUID}_MSV_sources} )
-SOURCE_GROUP ( source/PI FILES ${${OUTPUT_UUID}_PI_sources} )
-SOURCE_GROUP ( resource FILES ${${OUTPUT_UUID}_resources} )
-SOURCE_GROUP ( form FILES ${${OUTPUT_UUID}_form} )
-SOURCE_GROUP ( translationFiles FILES ${${PROJECT_FOLDER_NAME}_QM} ${${OUTPUT_UUID}_ts} )
-SOURCE_GROUP ( GeneratedFiles FILES ${${OUTPUT_UUID}_MOC_GENERATED} ${${OUTPUT_UUID}_UI_GENERATED} ${${OUTPUT_UUID}_RCC_GENERATED} )
+source_group(include FILES ${${OUTPUT_UUID}_headers})
+source_group(source FILES ${${OUTPUT_UUID}_sources})
+source_group(resource FILES ${${OUTPUT_UUID}_resources})
+source_group(form FILES ${${OUTPUT_UUID}_form})
+source_group(translationFiles FILES ${${OUTPUT_UUID}_ts} ${${OUTPUT_UUID}_QM})
+source_group(include/DAS FILES ${${OUTPUT_UUID}_DAS_headers})
+source_group(include/MSV FILES ${${OUTPUT_UUID}_MSV_headers})
+source_group(include/PI FILES ${${OUTPUT_UUID}_PI_headers})
+source_group(source/DAS FILES ${${OUTPUT_UUID}_DAS_sources})
+source_group(source/MSV FILES ${${OUTPUT_UUID}_MSV_sources})
+source_group(source/PI FILES ${${OUTPUT_UUID}_PI_sources})
 
 
 ####################################################
 
-ADD_LIBRARY ( ${OUTPUT_NAME} SHARED ${${OUTPUT_UUID}_headers} ${${OUTPUT_UUID}_sources} ${${OUTPUT_UUID}_DAS_headers} ${${OUTPUT_UUID}_DAS_sources} ${${OUTPUT_UUID}_MSV_headers} ${${OUTPUT_UUID}_MSV_sources} ${${OUTPUT_UUID}_PI_headers} ${${OUTPUT_UUID}_PI_sources} ${${OUTPUT_UUID}_MOC_GENERATED} ${${OUTPUT_UUID}_UI_GENERATED} ${${OUTPUT_UUID}_RCC_GENERATED} ${${OUTPUT_UUID}_QM} )
+target_link_libraries (${OUTPUT_NAME}
+  PRIVATE
+    ${QT_LIBRARIES}
+    ${OPENGL_LIBRARY}
+    ${SAMSON_SDK_LIBRARIES}
+)
 
-TARGET_LINK_LIBRARIES (${OUTPUT_NAME}
-						${QT_LIBRARIES}
-						${OPENGL_LIBRARY}
-						${SAMSON_SDK_LIBRARIES}
-						)
-						
-SET_TARGET_PROPERTIES(${OUTPUT_NAME} PROPERTIES OUTPUT_NAME ${OUTPUT_UUID})		
-						
-IF( UNIX ) 
-	SET_TARGET_PROPERTIES ( ${OUTPUT_NAME} PROPERTIES PREFIX "" )
-ENDIF( UNIX ) 
+set_target_properties(${OUTPUT_NAME} PROPERTIES OUTPUT_NAME ${OUTPUT_UUID})
 
-SET_PROPERTY ( TARGET ${OUTPUT_NAME} PROPERTY FOLDER "Elements" )
+if(UNIX)
+  set_target_properties (${OUTPUT_NAME} PROPERTIES PREFIX "")
+endif(UNIX)
 
-SAMSON_INSTALL_ELEMENT_DIRECTORY( data/ ${OUTPUT_UUID}/Data )
-SAMSON_INSTALL_ELEMENT_DIRECTORY( resource/ ${OUTPUT_UUID}/Resource )
-SAMSON_INSTALL_ELEMENT_DIRECTORY( doc/ ${OUTPUT_UUID}/Documentation )
+set_property(TARGET ${OUTPUT_NAME} PROPERTY FOLDER "Elements")
 
-SAMSON_INSTALL_ELEMENT ( ${OUTPUT_NAME} ${OUTPUT_UUID} )
+SAMSON_INSTALL_ELEMENT_DIRECTORY(data/ ${OUTPUT_UUID}/Data)
+SAMSON_INSTALL_ELEMENT_DIRECTORY(resource/ ${OUTPUT_UUID}/Resource)
+SAMSON_INSTALL_ELEMENT_DIRECTORY(doc/ ${OUTPUT_UUID}/Documentation)
+
+SAMSON_INSTALL_ELEMENT (${OUTPUT_NAME} ${OUTPUT_UUID})
