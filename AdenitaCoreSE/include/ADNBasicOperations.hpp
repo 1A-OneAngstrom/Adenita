@@ -14,7 +14,7 @@ struct RTDoubleStrand {
 namespace ADNBasicOperations {
 
     // Concatenate
-    SB_EXPORT [[nodiscard]] ADNPointer<ADNSingleStrand> MergeSingleStrands(ADNPointer<ADNPart> part1, ADNPointer<ADNPart> part2, ADNPointer<ADNSingleStrand> first_strand, ADNPointer<ADNSingleStrand> second_strand);
+    SB_EXPORT ADNPointer<ADNSingleStrand> MergeSingleStrands(ADNPointer<ADNPart> part1, ADNPointer<ADNPart> part2, ADNPointer<ADNSingleStrand> first_strand, ADNPointer<ADNSingleStrand> second_strand);
     SB_EXPORT [[nodiscard]] ADNPointer<ADNDoubleStrand> MergeDoubleStrand(ADNPointer<ADNPart> part, ADNPointer<ADNDoubleStrand> first_strand, ADNPointer<ADNDoubleStrand> second_strand);
     SB_EXPORT [[nodiscard]] ADNPointer<ADNPart> MergeParts(ADNPointer<ADNPart> part1, ADNPointer<ADNPart> part2);   ///< Merges ADNPart \p part2 into ADNPart \p part1
 
