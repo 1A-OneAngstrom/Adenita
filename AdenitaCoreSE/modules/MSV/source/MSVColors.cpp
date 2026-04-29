@@ -338,7 +338,7 @@ ADNArray<float> MSVColors::GetMaterialColor(SBNode* node) const {
     SBNodeMaterial* material = node->getMaterial();
     if (material) {
 
-        float* matColor = new float[4];
+        float matColor[4]{};
         material->getColorScheme()->getColor(matColor, node);
         color(0) = matColor[0];
         color(1) = matColor[1];
