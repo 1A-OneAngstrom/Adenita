@@ -124,6 +124,7 @@ if(${OUTPUT_UUID}_tests)
   target_include_directories(${ADENITA_STANDALONE_TEST_TARGET}
     PRIVATE
       "${CMAKE_CURRENT_SOURCE_DIR}/include"
+      "${CMAKE_CURRENT_SOURCE_DIR}/external/rapidjson/include"
       "${SAMSON_INCLUDE_PATH}"
   )
 

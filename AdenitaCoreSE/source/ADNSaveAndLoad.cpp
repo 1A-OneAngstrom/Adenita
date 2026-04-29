@@ -1,5 +1,7 @@
 #include "ADNSaveAndLoad.hpp"
 
+#include "ADNJsonValidation.hpp"
+
 #include "SBBackbone.hpp"
 #include "SBSideChain.hpp"
 
@@ -32,9 +34,22 @@ SBPointer<ADNPart> ADNLoader::LoadPartFromJson(const std::string& filename) {
 	rapidjson::Document d;
 	d.ParseStream(is);
 
+	if (d.HasParseError() || !d.IsObject()) {
+
+		fclose(fp);
+		return nullptr;
+
+	}
+
 	// check for save version
 	double versionValue = 0.0;
 	if (rapidjson::Value* version = rapidjson::Pointer("/version").Get(d)) {
+		if (!version->IsNumber()) {
+
+			fclose(fp);
+			return nullptr;
+
+		}
 		versionValue = version->GetDouble();
 	}
 
@@ -42,6 +57,13 @@ SBPointer<ADNPart> ADNLoader::LoadPartFromJson(const std::string& filename) {
 
 		fclose(fp);
 		return LoadPartFromJsonLegacy(filename);
+
+	}
+
+	if (!ADNLoader::JsonValidation::isValidModernPart(d, versionValue)) {
+
+		fclose(fp);
+		return nullptr;
 
 	}
 
@@ -64,6 +86,8 @@ static void print_json_value(const rapidjson::Value& value) {
 }
 
 SBPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value& val, double versionValue) {
+
+	if (!ADNLoader::JsonValidation::isValidModernPart(val, versionValue)) return nullptr;
 
 	SBPointer<ADNPart> part = new ADNPart();
 
@@ -343,13 +367,33 @@ std::vector<SBPointer<ADNPart>> ADNLoader::LoadPartsFromJson(std::string filenam
 	rapidjson::Document d;
 	d.ParseStream(is);
 
+	if (d.HasParseError() || !d.IsObject()) {
+
+		fclose(fp);
+		return parts;
+
+	}
+
 	// check for save version
 	double versionValue = 0.0;
 	if (rapidjson::Value* version = rapidjson::Pointer("/version").Get(d)) {
+		if (!version->IsNumber()) {
+
+			fclose(fp);
+			return parts;
+
+		}
 		versionValue = version->GetDouble();
 	}
 
 	if (versionValue < 0.4) {
+
+		fclose(fp);
+		return parts;
+
+	}
+
+	if (!ADNLoader::JsonValidation::isValidPartsDocument(d, versionValue)) {
 
 		fclose(fp);
 		return parts;
@@ -390,17 +434,28 @@ SBPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filename
 
 	if (fp == nullptr) return nullptr;
 
-	SBPointer<ADNPart> part = new ADNPart();
-
 	char readBuffer[131072];
 	rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
 	rapidjson::Document d;
 	d.ParseStream(is);
 
+	if (d.HasParseError() || !d.IsObject()) {
+
+		fclose(fp);
+		return nullptr;
+
+	}
+
 	// check for save version
 	double versionValue = 0.0;
 	if (rapidjson::Value* version = rapidjson::Pointer("/version").Get(d)) {
 
+		if (!version->IsNumber()) {
+
+			fclose(fp);
+			return nullptr;
+
+		}
 		versionValue = version->GetDouble();
 
 	}
@@ -410,9 +465,18 @@ SBPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filename
 		std::string msg = "Format is too old and can't be loaded with the current Adenita version";
 		ADNLogger::LogError(msg);
 
-		return part;
+		return nullptr;
 
 	}
+
+	if (!ADNLoader::JsonValidation::isValidLegacyPart(d, versionValue)) {
+
+		fclose(fp);
+		return nullptr;
+
+	}
+
+	SBPointer<ADNPart> part = new ADNPart();
 
 	std::string name = d["name"].GetString();
 	part->setName(name);

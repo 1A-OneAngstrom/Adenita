@@ -9,6 +9,9 @@
 #include <vector>
 
 #include "ADNArray.hpp"
+#include "ADNJsonValidation.hpp"
+
+#include "rapidjson/document.h"
 
 namespace {
 
@@ -82,6 +85,14 @@ void requireThrowsIntAt(const std::string& name,
 #define requireTrue(name, condition, message) requireTrueAt((name), (condition), (message), __FILE__, __LINE__, __func__)
 #define requireEqual(name, actual, expected) requireEqualAt((name), (actual), (expected), __FILE__, __LINE__, __func__)
 #define requireThrowsInt(name, callable, expectedValue) requireThrowsIntAt((name), (callable), (expectedValue), __FILE__, __LINE__, __func__)
+
+rapidjson::Document parseJson(const char* json) {
+
+	rapidjson::Document document;
+	document.Parse(json);
+	return document;
+
+}
 
 struct TrackedValue {
 	TrackedValue() { ++liveCount; }
@@ -298,6 +309,252 @@ void testConcatenate() {
 
 }
 
+void testModernJsonValidation() {
+
+	auto valid = parseJson(R"json({
+		"version": 0.5,
+		"name": "valid part",
+		"singleStrands": {
+			"1": {
+				"chainName": "strand",
+				"isScaffold": true,
+				"fivePrimeId": 10,
+				"nucleotides": {
+					"10": {
+						"type": "A",
+						"position": "0,0,0",
+						"backboneCenter": "0,0,0",
+						"sidechainCenter": "0,0,0",
+						"e1": "1,0,0",
+						"e2": "0,1,0",
+						"e3": "0,0,1",
+						"tag": "",
+						"next": -1,
+						"prev": -1,
+						"pair": -1
+					}
+				}
+			}
+		},
+		"doubleStrands": {
+			"2": {
+				"initialTwistAngle": 0.0,
+				"firstBaseSegment": 20,
+				"lastBaseSegment": 20,
+				"bases": {
+					"20": {
+						"position": "0,0,0",
+						"e1": "1,0,0",
+						"e2": "0,1,0",
+						"e3": "0,0,1",
+						"number": 0,
+						"cell": {
+							"type": 0,
+							"left": 10,
+							"right": -1
+						},
+						"next": -1,
+						"previous": -1
+					}
+				}
+			}
+		}
+	})json");
+
+	requireTrue("valid modern json", ADNLoader::JsonValidation::isValidModernPart(valid, 0.5), "Expected valid modern part JSON.");
+
+	auto missingName = parseJson(R"json({
+		"version": 0.5,
+		"singleStrands": {},
+		"doubleStrands": {}
+	})json");
+	requireTrue("modern json missing name", !ADNLoader::JsonValidation::isValidModernPart(missingName, 0.5), "Expected missing name to be rejected.");
+
+	auto malformedNucleotide = parseJson(R"json({
+		"version": 0.5,
+		"name": "invalid part",
+		"singleStrands": {
+			"1": {
+				"chainName": "strand",
+				"isScaffold": true,
+				"fivePrimeId": 10,
+				"nucleotides": {
+					"10": {
+						"position": "0,0,0",
+						"backboneCenter": "0,0,0",
+						"sidechainCenter": "0,0,0",
+						"e1": "1,0,0",
+						"e2": "0,1,0",
+						"e3": "0,0,1",
+						"tag": "",
+						"next": -1,
+						"prev": -1,
+						"pair": -1
+					}
+				}
+			}
+		},
+		"doubleStrands": {}
+	})json");
+	requireTrue("modern json malformed nucleotide", !ADNLoader::JsonValidation::isValidModernPart(malformedNucleotide, 0.5), "Expected malformed nucleotide to be rejected.");
+
+	auto invalidVector = parseJson(R"json({
+		"version": 0.5,
+		"name": "invalid vector",
+		"singleStrands": {
+			"1": {
+				"chainName": "strand",
+				"isScaffold": true,
+				"fivePrimeId": 10,
+				"nucleotides": {
+					"10": {
+						"type": "A",
+						"position": "0,0",
+						"backboneCenter": "0,0,0",
+						"sidechainCenter": "0,0,0",
+						"e1": "1,0,0",
+						"e2": "0,1,0",
+						"e3": "0,0,1",
+						"tag": "",
+						"next": -1,
+						"prev": -1,
+						"pair": -1
+					}
+				}
+			}
+		},
+		"doubleStrands": {}
+	})json");
+	requireTrue("modern json invalid vector", !ADNLoader::JsonValidation::isValidModernPart(invalidVector, 0.5), "Expected invalid vector string to be rejected.");
+
+	auto validParts = parseJson(R"json({
+		"version": 0.5,
+		"parts": {
+			"part0": {
+				"name": "valid part",
+				"singleStrands": {},
+				"doubleStrands": {}
+			}
+		}
+	})json");
+	requireTrue("valid parts json", ADNLoader::JsonValidation::isValidPartsDocument(validParts, 0.5), "Expected valid parts document.");
+
+}
+
+void testLegacyJsonValidation() {
+
+	auto validLegacy = parseJson(R"json({
+		"version": 0.3,
+		"name": "legacy part",
+		"strands": {
+			"0": {
+				"id": 1,
+				"chainName": "strand",
+				"isScaffold": true,
+				"fivePrimeId": 10,
+				"nucleotides": {
+					"0": {
+						"id": 10,
+						"type": "A",
+						"e1": "1,0,0",
+						"e2": "0,1,0",
+						"e3": "0,0,1",
+						"position": "0,0,0",
+						"backboneCenter": "0,0,0",
+						"sidechainCenter": "0,0,0",
+						"next": -1,
+						"prev": -1,
+						"pair": {
+							"strandId": -1,
+							"pairId": -1
+						}
+					}
+				}
+			}
+		},
+		"doubleStrands": {
+			"0": {
+				"id": 2,
+				"initialTwistAngle": 0.0,
+				"size": 1,
+				"bsStartId": 20
+			}
+		},
+		"joints": {
+			"0": {
+				"id": 30,
+				"position": "0,0,0"
+			}
+		},
+		"bases": {
+			"0": {
+				"double_strand": 2,
+				"source": 30,
+				"target": 30,
+				"number": 0,
+				"normal": "0,1,0",
+				"direction": "0,0,1",
+				"u": "1,0,0",
+				"cell": {
+					"type": 0,
+					"left": {
+						"strand_id": 1,
+						"nt_id": 10
+					},
+					"right": {
+						"strand_id": -1,
+						"nt_id": -1
+					}
+				}
+			}
+		}
+	})json");
+
+	requireTrue("valid legacy json", ADNLoader::JsonValidation::isValidLegacyPart(validLegacy, 0.3), "Expected valid legacy part JSON.");
+
+	auto missingVersion = parseJson(R"json({
+		"name": "legacy part",
+		"strands": {},
+		"doubleStrands": {},
+		"joints": {},
+		"bases": {}
+	})json");
+	requireTrue("legacy json missing version", !ADNLoader::JsonValidation::isValidLegacyPart(missingVersion, 0.0), "Expected missing version to be rejected.");
+
+	auto malformedPair = parseJson(R"json({
+		"version": 0.3,
+		"name": "legacy part",
+		"strands": {
+			"0": {
+				"id": 1,
+				"chainName": "strand",
+				"isScaffold": true,
+				"fivePrimeId": 10,
+				"nucleotides": {
+					"0": {
+						"id": 10,
+						"type": "A",
+						"e1": "1,0,0",
+						"e2": "0,1,0",
+						"e3": "0,0,1",
+						"position": "0,0,0",
+						"backboneCenter": "0,0,0",
+						"sidechainCenter": "0,0,0",
+						"next": -1,
+						"prev": -1,
+						"pair": {}
+					}
+				}
+			}
+		},
+		"doubleStrands": {},
+		"joints": {},
+		"bases": {}
+	})json");
+	requireTrue("legacy json malformed pair", !ADNLoader::JsonValidation::isValidLegacyPart(malformedPair, 0.3), "Expected malformed legacy pair to be rejected.");
+
+}
+
 } // namespace
 
 int main() {
@@ -310,6 +567,8 @@ int main() {
 	testRows();
 	testExceptions();
 	testConcatenate();
+	testModernJsonValidation();
+	testLegacyJsonValidation();
 
 	if (!failures.empty()) {
 		for (const auto& failure : failures)
