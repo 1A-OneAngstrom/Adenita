@@ -83,18 +83,33 @@ ThermodynamicParameters PIPrimer3::ExecuteNtthal(std::string leftSequence, std::
     arguments << "-dv" << QString::number(dv);
     arguments << "-dna_conc" << QString::number(oligo_conc);
 
-    QProcess* myProcess = new QProcess();
-    myProcess->setWorkingDirectory(workingDirectory);
-    myProcess->start(program, arguments);
-    myProcess->waitForFinished();
+    constexpr int startTimeoutMs = 5000;
+    constexpr int finishTimeoutMs = 30000;
+    constexpr int killTimeoutMs = 3000;
 
-    QByteArray standardOutput = myProcess->readAllStandardOutput();
+    QProcess process;
+    process.setWorkingDirectory(workingDirectory);
+    process.start(program, arguments);
+
+    if (!process.waitForStarted(startTimeoutMs)) return res;
+
+    if (!process.waitForFinished(finishTimeoutMs)) {
+
+        process.kill();
+        process.waitForFinished(killTimeoutMs);
+        return res;
+
+    }
+
+    if (process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0) return res;
+
+    QByteArray standardOutput = process.readAllStandardOutput();
 
     //qDebug() << "workingDirectory: " << workingDirectory;
     //qDebug() << "program:          " << program;
     //qDebug() << "arguments:        " << arguments;
     //qDebug() << "standardOutput:   " << standardOutput;
-    //qDebug() << "standardError:    " << myProcess->readAllStandardError();
+    //qDebug() << "standardError:    " << process.readAllStandardError();
 
     // output example:
     // Calculated thermodynamical parameters for dimer:\tdS = -68.9269\tdH = -24400\tdG = -3022.33\tt = -37.8822\r\nSEQ\t    \r\nSEQ\tTCGG\r\nSTR\tAGCC\r\nSTR\t    \r\n
