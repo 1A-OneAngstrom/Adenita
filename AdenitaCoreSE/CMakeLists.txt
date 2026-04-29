@@ -19,6 +19,10 @@ file(GLOB_RECURSE ${OUTPUT_UUID}_DAS_sources modules/DAS/source/*.cpp)
 file(GLOB_RECURSE ${OUTPUT_UUID}_MSV_sources modules/MSV/source/*.cpp)
 file(GLOB_RECURSE ${OUTPUT_UUID}_PI_sources modules/PI/source/*.cpp)
 
+set(${OUTPUT_UUID}_tests
+  tests/AdenitaStandaloneTests.cpp
+)
+
 add_library(${OUTPUT_NAME} SHARED)
 
 target_sources(${OUTPUT_NAME}
@@ -80,6 +84,7 @@ source_group(include/PI FILES ${${OUTPUT_UUID}_PI_headers})
 source_group(source/DAS FILES ${${OUTPUT_UUID}_DAS_sources})
 source_group(source/MSV FILES ${${OUTPUT_UUID}_MSV_sources})
 source_group(source/PI FILES ${${OUTPUT_UUID}_PI_sources})
+source_group(tests FILES ${${OUTPUT_UUID}_tests})
 
 
 ####################################################
@@ -104,3 +109,28 @@ SAMSON_INSTALL_ELEMENT_DIRECTORY(resource/ ${OUTPUT_UUID}/Resource)
 SAMSON_INSTALL_ELEMENT_DIRECTORY(doc/ ${OUTPUT_UUID}/Documentation)
 
 SAMSON_INSTALL_ELEMENT (${OUTPUT_NAME} ${OUTPUT_UUID})
+
+if(${OUTPUT_UUID}_tests)
+  enable_testing()
+
+  set(ADENITA_STANDALONE_TEST_TARGET ${OUTPUT_NAME}StandaloneTests)
+
+  add_executable(${ADENITA_STANDALONE_TEST_TARGET})
+  target_sources(${ADENITA_STANDALONE_TEST_TARGET}
+    PRIVATE
+      ${${OUTPUT_UUID}_tests}
+  )
+
+  target_include_directories(${ADENITA_STANDALONE_TEST_TARGET}
+    PRIVATE
+      "${CMAKE_CURRENT_SOURCE_DIR}/include"
+      "${SAMSON_INCLUDE_PATH}"
+  )
+
+  set_property(TARGET ${ADENITA_STANDALONE_TEST_TARGET} PROPERTY FOLDER "Elements/Tests")
+
+  add_test(
+    NAME ${OUTPUT_NAME}.Standalone
+    COMMAND $<TARGET_FILE:${ADENITA_STANDALONE_TEST_TARGET}>
+  )
+endif()

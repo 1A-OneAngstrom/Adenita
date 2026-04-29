@@ -244,4 +244,6 @@ ENDIF (Boost_FOUND)
 # SAMSON Extension folders #
 ############################
 
+enable_testing()
+
 ADD_SUBDIRECTORY( AdenitaCoreSE )
