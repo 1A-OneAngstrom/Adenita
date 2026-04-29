@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -82,6 +83,39 @@ void requireThrowsIntAt(const std::string& name,
 #define requireEqual(name, actual, expected) requireEqualAt((name), (actual), (expected), __FILE__, __LINE__, __func__)
 #define requireThrowsInt(name, callable, expectedValue) requireThrowsIntAt((name), (callable), (expectedValue), __FILE__, __LINE__, __func__)
 
+struct TrackedValue {
+	TrackedValue() { ++liveCount; }
+	TrackedValue(const TrackedValue& other) : value(other.value) { ++liveCount; }
+	TrackedValue(TrackedValue&& other) noexcept : value(other.value) { ++liveCount; }
+
+	~TrackedValue() {
+		--liveCount;
+		++destructedCount;
+	}
+
+	TrackedValue& operator=(const TrackedValue& other) {
+		value = other.value;
+		return *this;
+	}
+
+	TrackedValue& operator=(TrackedValue&& other) noexcept {
+		value = other.value;
+		return *this;
+	}
+
+	static void resetCounters() {
+		liveCount = 0;
+		destructedCount = 0;
+	}
+
+	int value{ 0 };
+	static int liveCount;
+	static int destructedCount;
+};
+
+int TrackedValue::liveCount = 0;
+int TrackedValue::destructedCount = 0;
+
 void testConstructionAndAccess() {
 
 	ADNArray<int> values(3, 2);
@@ -139,6 +173,60 @@ void testAssignmentCopiesValues() {
 
 }
 
+void testAssignmentReleasesPreviousStorage() {
+
+	TrackedValue::resetCounters();
+
+	{
+		ADNArray<TrackedValue> source(3);
+		source(0).value = 1;
+		source(1).value = 2;
+		source(2).value = 3;
+
+		ADNArray<TrackedValue> assigned(2);
+		assigned(0).value = 10;
+		assigned(1).value = 20;
+
+		assigned = source;
+
+		requireEqual("tracked assignment dimension", assigned.GetDim(), static_cast<std::size_t>(1));
+		requireEqual("tracked assignment element count", assigned.GetNumElements(), static_cast<std::size_t>(3));
+		requireEqual("tracked assignment copied first value", assigned(0).value, 1);
+		requireEqual("tracked assignment copied last value", assigned(2).value, 3);
+
+		assigned = assigned;
+
+		requireEqual("tracked self assignment first value", assigned(0).value, 1);
+		requireEqual("tracked self assignment last value", assigned(2).value, 3);
+	}
+
+	requireEqual("tracked assignment released all values", TrackedValue::liveCount, 0);
+	requireTrue("tracked assignment destructed values", TrackedValue::destructedCount > 0, "Expected tracked values to be destructed.");
+
+}
+
+void testMoveSemantics() {
+
+	ADNArray<int> source(2, 2);
+	source(0, 0) = 1;
+	source(0, 1) = 2;
+	source(1, 0) = 3;
+	source(1, 1) = 4;
+
+	ADNArray<int> moved(std::move(source));
+	requireEqual("move constructor dimension", moved.GetDim(), static_cast<std::size_t>(2));
+	requireEqual("move constructor element count", moved.GetNumElements(), static_cast<std::size_t>(2));
+	requireEqual("move constructor copied value", moved(1, 1), 4);
+
+	ADNArray<int> assigned(1);
+	assigned(0) = 9;
+	assigned = std::move(moved);
+	requireEqual("move assignment dimension", assigned.GetDim(), static_cast<std::size_t>(2));
+	requireEqual("move assignment element count", assigned.GetNumElements(), static_cast<std::size_t>(2));
+	requireEqual("move assignment copied value", assigned(0, 1), 2);
+
+}
+
 void testRows() {
 
 	ADNArray<int> values(3, 2);
@@ -181,6 +269,35 @@ void testExceptions() {
 
 }
 
+void testConcatenate() {
+
+	ADNArray<int> left(2, 2);
+	left(0, 0) = 1;
+	left(0, 1) = 2;
+	left(1, 0) = 3;
+	left(1, 1) = 4;
+
+	ADNArray<int> right(2, 1);
+	right(0, 0) = 5;
+	right(0, 1) = 6;
+
+	std::unique_ptr<ADNArray<int>> combined(ADNArray<int>::Concatenate(left, right));
+	requireEqual("concatenate dimension", combined->GetDim(), static_cast<std::size_t>(2));
+	requireEqual("concatenate element count", combined->GetNumElements(), static_cast<std::size_t>(3));
+	requireEqual("concatenate left first value", (*combined)(0, 0), 1);
+	requireEqual("concatenate left last value", (*combined)(1, 1), 4);
+	requireEqual("concatenate right first value", (*combined)(2, 0), 5);
+	requireEqual("concatenate right last value", (*combined)(2, 1), 6);
+
+	const int dimensionMismatch = 31;
+	ADNArray<int> mismatch(3, 1);
+	auto concatenateMismatch = [&left, &mismatch]() {
+		std::unique_ptr<ADNArray<int>> ignored(ADNArray<int>::Concatenate(left, mismatch));
+	};
+	requireThrowsInt("concatenate dimension mismatch", concatenateMismatch, dimensionMismatch);
+
+}
+
 } // namespace
 
 int main() {
@@ -188,8 +305,11 @@ int main() {
 	testConstructionAndAccess();
 	testCopyConstructorDeepCopy();
 	testAssignmentCopiesValues();
+	testAssignmentReleasesPreviousStorage();
+	testMoveSemantics();
 	testRows();
 	testExceptions();
+	testConcatenate();
 
 	if (!failures.empty()) {
 		for (const auto& failure : failures)
