@@ -1,0 +1,41 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "win_x64_qt6.10.2",
+            "generator": "Visual Studio 18 2026",
+            "binaryDir": "${sourceDir}/build_win_x64_qt6.10.2",
+            "cacheVariables": {
+                "QT6_DIR": "C:/Qt/6.10.2/msvc2022_64",
+                "QT_CMAKE_INCLUDE_DIR": "C:/Qt/6.10.2/msvc2022_64/lib/cmake",
+                "QT5_CMAKE_INCLUDE_DIR": "C:/Qt/6.10.2/msvc2022_64/lib/cmake",
+                "Boost_DIR": "C:/local/boost_1_87_0/lib64-msvc-14.3/cmake/Boost-1.87.0",
+                "Boost_USE_STATIC_LIBS": "ON",
+                "Boost_USE_STATIC_RUNTIME": "OFF",
+				"CMAKE_PRESET_NAME": "win_x64_qt6.10.2",
+                "CMAKE_CXX_FLAGS": "/W3 /EHsc",
+                "CMAKE_COMPILE_WARNING_AS_ERROR": "OFF",
+                "SAMSON_SDK_PATH": "<PATH_TO_SAMSON>/SDK/11.0.1"
+            },
+            "environment": {
+                "PATH": "C:/Qt/6.10.2/msvc2022_64/bin;%PATH%"
+            }
+        }
+		
+    ],
+
+    "buildPresets": [
+        {
+            "name": "build_win_x64_qt6.10.2_release",
+            "configurePreset": "win_x64_qt6.10.2",
+            "configuration": "Release",
+            "targets": ["INSTALL"]
+        },
+        {
+            "name": "build_win_x64_qt6.10.2_debug",
+            "configurePreset": "win_x64_qt6.10.2",
+            "configuration": "Debug",
+            "targets": ["INSTALL"]
+        }
+    ]
+}
