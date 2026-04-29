@@ -34,23 +34,23 @@ public:
     virtual void                                                serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const override;		///< Serializes the node
     virtual void                                                unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;			///< Unserializes the node
 
-    void                                                        RegisterDoubleStrand(ADNPointer<ADNDoubleStrand> ds);   ///< Adds a double strand to the part
-    void                                                        RegisterBaseSegmentEnd(ADNPointer<ADNDoubleStrand> ds, ADNPointer<ADNBaseSegment> bs, bool addToDs = true);
-    void                                                        RegisterSingleStrand(ADNPointer<ADNSingleStrand> ss);   ///< Adds a single strand to the part
-    void                                                        RegisterNucleotideThreePrime(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nt, bool addToSs = true);
-    void                                                        RegisterNucleotideFivePrime(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nt, bool addToSs = true);
-    void                                                        RegisterNucleotide(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nt, ADNPointer<ADNNucleotide> ntNext, bool addToSs = true);
-    void                                                        RegisterAtom(ADNPointer<ADNNucleotide> nt, NucleotideGroup g, ADNPointer<ADNAtom> at, bool create = false);
-    void                                                        RegisterAtom(ADNPointer<ADNBaseSegment> bs, ADNPointer<ADNAtom> at, bool create = false);
+    void                                                        RegisterDoubleStrand(SBPointer<ADNDoubleStrand> ds);   ///< Adds a double strand to the part
+    void                                                        RegisterBaseSegmentEnd(SBPointer<ADNDoubleStrand> ds, SBPointer<ADNBaseSegment> bs, bool addToDs = true);
+    void                                                        RegisterSingleStrand(SBPointer<ADNSingleStrand> ss);   ///< Adds a single strand to the part
+    void                                                        RegisterNucleotideThreePrime(SBPointer<ADNSingleStrand> ss, SBPointer<ADNNucleotide> nt, bool addToSs = true);
+    void                                                        RegisterNucleotideFivePrime(SBPointer<ADNSingleStrand> ss, SBPointer<ADNNucleotide> nt, bool addToSs = true);
+    void                                                        RegisterNucleotide(SBPointer<ADNSingleStrand> ss, SBPointer<ADNNucleotide> nt, SBPointer<ADNNucleotide> ntNext, bool addToSs = true);
+    void                                                        RegisterAtom(SBPointer<ADNNucleotide> nt, NucleotideGroup g, SBPointer<ADNAtom> at, bool create = false);
+    void                                                        RegisterAtom(SBPointer<ADNBaseSegment> bs, SBPointer<ADNAtom> at, bool create = false);
 
-    [[nodiscard]] unsigned int                                  GetBaseSegmentIndex(ADNPointer<ADNBaseSegment> bs) const;
+    [[nodiscard]] unsigned int                                  GetBaseSegmentIndex(SBPointer<ADNBaseSegment> bs) const;
 
-    [[nodiscard]] CollectionMap<ADNSingleStrand>                GetSingleStrands() const;                                               ///< Return a pointer indexer of single strands of the ADNPart part
-    [[nodiscard]] CollectionMap<ADNDoubleStrand>                GetDoubleStrands() const;                                               ///< Return a pointer indexer of double strands of the ADNPart part
-    [[nodiscard]] CollectionMap<ADNBaseSegment>                 GetBaseSegments(CellType celltype = CellType::ALL) const;
-    [[nodiscard]] CollectionMap<ADNSingleStrand>                GetScaffolds() const;                                                   ///< Return the scaffolds of the ADNPart part
-    [[nodiscard]] CollectionMap<ADNNucleotide>                  GetNucleotides(CellType celltype = CellType::ALL) const;
-    [[nodiscard]] CollectionMap<ADNAtom>                        GetAtoms() const;
+    [[nodiscard]] SBPointerIndexer<ADNSingleStrand>                GetSingleStrands() const;                                               ///< Return a pointer indexer of single strands of the ADNPart part
+    [[nodiscard]] SBPointerIndexer<ADNDoubleStrand>                GetDoubleStrands() const;                                               ///< Return a pointer indexer of double strands of the ADNPart part
+    [[nodiscard]] SBPointerIndexer<ADNBaseSegment>                 GetBaseSegments(CellType celltype = CellType::ALL) const;
+    [[nodiscard]] SBPointerIndexer<ADNSingleStrand>                GetScaffolds() const;                                                   ///< Return the scaffolds of the ADNPart part
+    [[nodiscard]] SBPointerIndexer<ADNNucleotide>                  GetNucleotides(CellType celltype = CellType::ALL) const;
+    [[nodiscard]] SBPointerIndexer<ADNAtom>                        GetAtoms() const;
 
     [[nodiscard]] int                                           GetNumberOfDoubleStrands() const;
     [[nodiscard]] int                                           getNumberOfDoubleStrands() const;
@@ -63,11 +63,11 @@ public:
     [[nodiscard]] int                                           GetNumberOfBaseSegments() const;
     [[nodiscard]] int                                           getNumberOfBaseSegments() const;
 
-    void                                                        DeregisterSingleStrand(ADNPointer<ADNSingleStrand> ss, bool removeFromParent = true, bool removeFromIndex = true);
-    void                                                        DeregisterNucleotide(ADNPointer<ADNNucleotide> nt, bool removeFromSs = true, bool removeFromBs = true, bool removeFromIndex = true);
-    void                                                        DeregisterDoubleStrand(ADNPointer<ADNDoubleStrand> ds, bool removeFromParent = true, bool removeFromIndex = true);
-    void                                                        DeregisterBaseSegment(ADNPointer<ADNBaseSegment> bs, bool removeFromDs = true, bool removeFromIndex = true);
-    void                                                        DeregisterAtom(ADNPointer<ADNAtom> atom, bool removeFromAtom = true);
+    void                                                        DeregisterSingleStrand(SBPointer<ADNSingleStrand> ss, bool removeFromParent = true, bool removeFromIndex = true);
+    void                                                        DeregisterNucleotide(SBPointer<ADNNucleotide> nt, bool removeFromSs = true, bool removeFromBs = true, bool removeFromIndex = true);
+    void                                                        DeregisterDoubleStrand(SBPointer<ADNDoubleStrand> ds, bool removeFromParent = true, bool removeFromIndex = true);
+    void                                                        DeregisterBaseSegment(SBPointer<ADNBaseSegment> bs, bool removeFromDs = true, bool removeFromIndex = true);
+    void                                                        DeregisterAtom(SBPointer<ADNAtom> atom, bool removeFromAtom = true);
 
     bool                                                        isLoadedViaSAMSON() const noexcept;
     void                                                        setLoadedViaSAMSON(bool l);
@@ -79,15 +79,15 @@ private:
 
     // inside these pointers ids are unique
 #if ADENITA_ADNPART_REGISTER_ATOMS
-    CollectionMap<ADNAtom>                                      atomsIndex_;
+    SBPointerIndexer<ADNAtom>                                      atomsIndex_;
 #endif
 #if ADENITA_ADNPART_REGISTER_NUCLEOTIDES
-    CollectionMap<ADNNucleotide>                                nucleotidesIndex_;
+    SBPointerIndexer<ADNNucleotide>                                nucleotidesIndex_;
 #endif
-    CollectionMap<ADNBaseSegment>                               baseSegmentsIndex_;
+    SBPointerIndexer<ADNBaseSegment>                               baseSegmentsIndex_;
 #if ADENITA_ADNPART_REGISTER_STRANDS
-    CollectionMap<ADNSingleStrand>                              singleStrandsIndex_;
-    CollectionMap<ADNDoubleStrand>                              doubleStrandsIndex_;
+    SBPointerIndexer<ADNSingleStrand>                              singleStrandsIndex_;
+    SBPointerIndexer<ADNDoubleStrand>                              doubleStrandsIndex_;
 #endif
 
     bool                                                        loadedViaSAMSONFlag{ false };
@@ -97,8 +97,8 @@ private:
     unsigned int                                                singleStrandId_{ 1 };
     unsigned int                                                doubleStrandId_{ 1 };
 
-    void                                                        SetBoundingBox(ADNPointer<ADNNucleotide> newNt);
-    void                                                        SetBoundingBox(ADNPointer<ADNBaseSegment> newBs);
+    void                                                        SetBoundingBox(SBPointer<ADNNucleotide> newNt);
+    void                                                        SetBoundingBox(SBPointer<ADNBaseSegment> newBs);
     void                                                        InitBoundingBox();
 
     SBIAPosition3                                               boundingBox;

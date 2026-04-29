@@ -92,8 +92,8 @@ public:
 
 	struct Element {
 		int type = -1;
-		ADNPointer<ADNSingleStrand> ss;
-		ADNPointer<ADNDoubleStrand> ds;
+		SBPointer<ADNSingleStrand> ss;
+		SBPointer<ADNDoubleStrand> ds;
 
 		std::string GetName() const {
 			std::string n = "";
@@ -105,7 +105,7 @@ public:
 		}
 	};
 
-	std::map<int, ADNPointer<ADNPart>>							getPartsList();
+	std::map<int, SBPointer<ADNPart>>							getPartsList();
 	std::map<int, Element>										getElementsList();
 
 	bool														mergeParts(int idx, int jdx);
@@ -116,7 +116,7 @@ public:
 
 private:
 
-	std::map<int, ADNPointer<ADNPart>>							mapOfParts;
+	std::map<int, SBPointer<ADNPart>>							mapOfParts;
 	std::map<int, Element>										mapOfElements;
 
 };

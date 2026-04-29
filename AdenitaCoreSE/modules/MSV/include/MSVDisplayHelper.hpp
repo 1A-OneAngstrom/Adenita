@@ -31,13 +31,13 @@ namespace ADNDisplayHelper {
     SB_EXPORT void displayPlane(/*const SBVector3& vec, const SBPosition3& shift*/);
     SB_EXPORT void displayOrthoPlane(const SBVector3& vec, const SBPosition3& shift);
     SB_EXPORT void displaySphere(const SBPosition3& pos, float radius, ADNArray<float> color);
-    SB_EXPORT void displayBasePairConnection(ADNPointer<ADNNucleotide> nt);
-    SB_EXPORT void displayBaseVectors(ADNPointer<ADNNucleotide> nt, const SBPosition3& pos);
+    SB_EXPORT void displayBasePairConnection(SBPointer<ADNNucleotide> nt);
+    SB_EXPORT void displayBaseVectors(SBPointer<ADNNucleotide> nt, const SBPosition3& pos);
     SB_EXPORT void displayText(const SBPosition3& pos, const std::string& text = "");
     SB_EXPORT void displayTextBottomLeft(const std::string& text = "");
     SB_EXPORT void displayTriangleMesh(DASPolyhedron* polyhedron);
 
-    SB_EXPORT void displayPart(ADNPointer<ADNPart> part, float basePairRadius = 1000.0f, float opaqueness = 0.5f);        ///< Display only the top scales of a part
+    SB_EXPORT void displayPart(SBPointer<ADNPart> part, float basePairRadius = 1000.0f, float opaqueness = 0.5f);        ///< Display only the top scales of a part
     SB_EXPORT void displayGoldSphere(const SBNodeIndexer& goldAtoms);
 
 };

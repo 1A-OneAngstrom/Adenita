@@ -24,7 +24,7 @@ SEMergePartsEditor::~SEMergePartsEditor() {
 
 SEMergePartsEditorGUI* SEMergePartsEditor::getPropertyWidget() const { return static_cast<SEMergePartsEditorGUI*>(propertyWidget); }
 
-std::map<int, ADNPointer<ADNPart>> SEMergePartsEditor::getPartsList() {
+std::map<int, SBPointer<ADNPart>> SEMergePartsEditor::getPartsList() {
 
 	mapOfParts.clear();
 	int lastId = 0;
@@ -32,7 +32,7 @@ std::map<int, ADNPointer<ADNPart>> SEMergePartsEditor::getPartsList() {
 	auto nr = SEAdenitaCoreSEApp::getAdenitaApp()->GetNanorobot();
 	auto parts = nr->GetParts();
 
-	SB_FOR(ADNPointer<ADNPart> p, parts) {
+	SB_FOR(SBPointer<ADNPart> p, parts) {
 
 		++lastId; // the 0-th element in the comboBox is None
 		mapOfParts.insert(std::make_pair(lastId, p));
@@ -50,10 +50,10 @@ std::map<int, SEMergePartsEditor::Element> SEMergePartsEditor::getElementsList()
 
 	auto nr = SEAdenitaCoreSEApp::getAdenitaApp()->GetNanorobot();
 	auto parts = nr->GetParts();
-	SB_FOR(ADNPointer<ADNPart> part, parts) {
+	SB_FOR(SBPointer<ADNPart> part, parts) {
 
 		auto dss = part->GetDoubleStrands();
-		SB_FOR(ADNPointer<ADNDoubleStrand> ds, dss) {
+		SB_FOR(SBPointer<ADNDoubleStrand> ds, dss) {
 
 			++lastId; // the 0-th element in the comboBox is None
 			SEMergePartsEditor::Element el;
@@ -63,7 +63,7 @@ std::map<int, SEMergePartsEditor::Element> SEMergePartsEditor::getElementsList()
 
 		}
 		auto sss = part->GetSingleStrands();
-		SB_FOR(ADNPointer<ADNSingleStrand> ss, sss) {
+		SB_FOR(SBPointer<ADNSingleStrand> ss, sss) {
 
 			++lastId; // the 0-th element in the comboBox is None
 			SEMergePartsEditor::Element el;
@@ -112,8 +112,8 @@ bool SEMergePartsEditor::mergeParts(int idx, int jdx) {
 	auto app = SEAdenitaCoreSEApp::getAdenitaApp();
 	app->SetMod(true);
 
-	ADNPointer<ADNPart> p1 = nullptr;
-	ADNPointer<ADNPart> p2 = nullptr;
+	SBPointer<ADNPart> p1 = nullptr;
+	SBPointer<ADNPart> p2 = nullptr;
 	if (mapOfParts.find(idx) != mapOfParts.end()) p1 = mapOfParts.at(idx);
 	if (mapOfParts.find(jdx) != mapOfParts.end()) p2 = mapOfParts.at(jdx);
 
@@ -140,7 +140,7 @@ bool SEMergePartsEditor::moveElement(int edx, int pdx) {
 	auto app = SEAdenitaCoreSEApp::getAdenitaApp();
 	app->SetMod(true);
 
-	ADNPointer<ADNPart> p = nullptr;
+	SBPointer<ADNPart> p = nullptr;
 	if (mapOfParts.find(pdx) != mapOfParts.end()) p = mapOfParts.at(pdx);
 	SEMergePartsEditor::Element el;
 	if (mapOfElements.find(edx) != mapOfElements.end()) el = mapOfElements.at(edx);

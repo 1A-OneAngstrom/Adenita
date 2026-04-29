@@ -41,11 +41,11 @@ void SELatticeCreatorEditor::setMaxZBasePairs(int val) {
 	maxZBasePairs = val;
 }
 
-ADNPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*/) {
+SBPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*/) {
 
 	//ADNLogger& logger = ADNLogger::GetLogger();
 
-	ADNPointer<ADNPart> part = nullptr;
+	SBPointer<ADNPart> part = nullptr;
 
 	const SBPosition3 currentPos = secondPosition - firstPosition;
 
@@ -134,7 +134,7 @@ ADNPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*
 
 }
 
-void SELatticeCreatorEditor::sendPartToAdenita(ADNPointer<ADNPart> lattice) {
+void SELatticeCreatorEditor::sendPartToAdenita(SBPointer<ADNPart> lattice) {
 
 	if (lattice != nullptr) {
 
@@ -427,7 +427,7 @@ void SELatticeCreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
 
 		heightSelected = true;
 		
-		ADNPointer<ADNPart> part = generateLattice();
+		SBPointer<ADNPart> part = generateLattice();
 		sendPartToAdenita(part);
 
 		//SAMSON::getActiveCamera()->rightView();

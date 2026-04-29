@@ -19,7 +19,7 @@
 
 typedef std::map<int, std::vector<double>> BasePositions;
 typedef std::map<DASEdge*, BasePositions> SequencePositions;
-typedef std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>> NtPair;
+typedef std::pair<SBPointer<ADNNucleotide>, SBPointer<ADNNucleotide>> NtPair;
 
 class SB_EXPORT DASBackToTheAtom {
 
@@ -33,37 +33,37 @@ public:
      * double strand using the BaseSegment position information.
      * \param The double strand whose nucleotides need to be set.
      */
-    void SetDoubleStrandPositions(ADNPointer<ADNDoubleStrand> ds);
-    void SetNucleotidesPositions(ADNPointer<ADNPart> part);
+    void SetDoubleStrandPositions(SBPointer<ADNDoubleStrand> ds);
+    void SetNucleotidesPositions(SBPointer<ADNPart> part);
 
-    static void SetPositionLoopNucleotides(ADNPointer<ADNBaseSegment> bs);
+    static void SetPositionLoopNucleotides(SBPointer<ADNBaseSegment> bs);
 
-    void GenerateAllAtomModel(ADNPointer<ADNPart> origami, bool createFlag = false);
+    void GenerateAllAtomModel(SBPointer<ADNPart> origami, bool createFlag = false);
 
-    void CheckDistances(ADNPointer<ADNPart> part) const;
+    void CheckDistances(SBPointer<ADNPart> part) const;
 
-    void PopulateWithMockAtoms(ADNPointer<ADNPart> origami, bool positionsFromNucleotide = false, bool createAtoms = false);
+    void PopulateWithMockAtoms(SBPointer<ADNPart> origami, bool positionsFromNucleotide = false, bool createAtoms = false);
 
     //! Set the backbone and sidechain position of the nucleotides of a base segment
     /*!
       \param The nucleotide we want to untwist
       \param Whether to also untwist the pair
     */
-    void SetNucleotidePosition(ADNPointer<ADNBaseSegment> bs, bool set_pair = false);
+    void SetNucleotidePosition(SBPointer<ADNBaseSegment> bs, bool set_pair = false);
     //! Untwist the nucleotides of a base segment (remove the helix turn)
     /*!
       \param The base segment
       \param Whether to also untwist the pair
     */
-    void UntwistNucleotidesPosition(ADNPointer<ADNBaseSegment> bs);
+    void UntwistNucleotidesPosition(SBPointer<ADNBaseSegment> bs);
 
     //! Sets the positions of a collection of nucleotides, meant to be called after modifications
-    void SetPositionsForNewNucleotides(ADNPointer<ADNPart> part, CollectionMap<ADNNucleotide> nts);
+    void SetPositionsForNewNucleotides(SBPointer<ADNPart> part, SBPointerIndexer<ADNNucleotide> nts);
 
-    //void SetAllAtomsPositions(ADNPointer<ADNPart> origami);
+    //void SetAllAtomsPositions(SBPointer<ADNPart> origami);
     // for cadnano
-    /*void SetAllAtomsPositions2D(ADNPointer<ADNPart> origami);
-    void SetAllAtomsPositions1D(ADNPointer<ADNPart> origami);*/
+    /*void SetAllAtomsPositions2D(SBPointer<ADNPart> origami);
+    void SetAllAtomsPositions1D(SBPointer<ADNPart> origami);*/
 
     /**
      * Rotates a nucleotide along base-pair plane (defined by nt->e3_).
@@ -71,7 +71,7 @@ public:
      * \param the amount of degrees
      * \param wether to also rotate the pair
      */
-     //void RotateNucleotide(ADNPointer<ADNNucleotide> nt, double angle, bool set_pair);
+     //void RotateNucleotide(SBPointer<ADNNucleotide> nt, double angle, bool set_pair);
 
      /**
       * Loads a nucleotide or base pair into SAMSON for testing purposes
@@ -80,10 +80,10 @@ public:
 
 private:
 
-    ADNPointer<ADNNucleotide> da_;
-    ADNPointer<ADNNucleotide> dt_;
-    ADNPointer<ADNNucleotide> dg_;
-    ADNPointer<ADNNucleotide> dc_;
+    SBPointer<ADNNucleotide> da_;
+    SBPointer<ADNNucleotide> dt_;
+    SBPointer<ADNNucleotide> dg_;
+    SBPointer<ADNNucleotide> dc_;
     NtPair da_dt_;
     NtPair dt_da_;
     NtPair dc_dg_;
@@ -99,7 +99,7 @@ private:
      *  \param a string with the location of the PDB.
      *  \return a nucleotide object.
      */
-    static ADNPointer<ADNNucleotide> ParsePDB(const std::string& source);
+    static SBPointer<ADNNucleotide> ParsePDB(const std::string& source);
 
     /** Parses a base pair PDB file.
      *  \param a string with the location of the PDB.
@@ -107,36 +107,36 @@ private:
      */
     static NtPair ParseBasePairPDB(const std::string& source);
 
-    static void PositionLoopNucleotides(ADNPointer<ADNLoop> loop, SBPosition3 bsPositionPrev, SBPosition3 bsPositionNext);
-    static void PositionLoopNucleotidesQBezier(ADNPointer<ADNLoop> loop, SBPosition3 bsPositionPrev, SBPosition3 bsPositionNext, SBVector3 bsPrevE3, SBVector3 bsNextE3);
+    static void PositionLoopNucleotides(SBPointer<ADNLoop> loop, SBPosition3 bsPositionPrev, SBPosition3 bsPositionNext);
+    static void PositionLoopNucleotidesQBezier(SBPointer<ADNLoop> loop, SBPosition3 bsPositionPrev, SBPosition3 bsPositionNext, SBVector3 bsPrevE3, SBVector3 bsNextE3);
 
-    void PopulateNucleotideWithAllAtoms(ADNPointer<ADNPart> origami, ADNPointer<ADNNucleotide> nt, bool createFlag = false);
-    static void CreateBonds(ADNPointer<ADNPart> origami, bool createFlag = false);
-    void FindAtomsPositions(ADNPointer<ADNNucleotide> nt);
+    void PopulateNucleotideWithAllAtoms(SBPointer<ADNPart> origami, SBPointer<ADNNucleotide> nt, bool createFlag = false);
+    static void CreateBonds(SBPointer<ADNPart> origami, bool createFlag = false);
+    void FindAtomsPositions(SBPointer<ADNNucleotide> nt);
 
     //! Untwist the nucleotide (remove the helix turn)
     /*!
     \param The nucleotide we want to untwist
     \param Whether to also untwist the pair
     */
-    void UntwistNucleotidePosition(ADNPointer<ADNNucleotide> nt);
+    void UntwistNucleotidePosition(SBPointer<ADNNucleotide> nt);
 
     //! Create positions matrix from a NtPair, every row in the matrix is the position of one atom
     static ublas::matrix<double> CreatePositionsMatrix(NtPair pair);
 
     //! Select the ideal NtPair corresponding to a pair
-    NtPair GetIdealBasePairNucleotides(ADNPointer<ADNNucleotide> nt_l, ADNPointer<ADNNucleotide> nt_r) const;
+    NtPair GetIdealBasePairNucleotides(SBPointer<ADNNucleotide> nt_l, SBPointer<ADNNucleotide> nt_r) const;
     NtPair GetIdealBasePairNucleotides(DNABlocks nt_l, DNABlocks nt_r) const;
 
     //! If not defined, set a local basis for the base segment and return it as a matrix
-    static ublas::matrix<double> CalculateBaseSegmentBasis(ADNPointer<ADNBaseSegment> bs);
+    static ublas::matrix<double> CalculateBaseSegmentBasis(SBPointer<ADNBaseSegment> bs);
     /*!
      * Calculate the center of mass of backbone and sidechain w.r.t. atom coordinates
      *  \param the nucleotide
      *  \return tuple with center values. first is total c.o.m., second is backbone, third is sidechain.
      */
-    static std::tuple<SBPosition3, SBPosition3, SBPosition3> CalculateCenters(ADNPointer<ADNNucleotide> nt);
-    static std::tuple<SBPosition3, SBPosition3, SBPosition3> CalculateCentersOfMass(ADNPointer<ADNNucleotide> nt);
+    static std::tuple<SBPosition3, SBPosition3, SBPosition3> CalculateCenters(SBPointer<ADNNucleotide> nt);
+    static std::tuple<SBPosition3, SBPosition3, SBPosition3> CalculateCentersOfMass(SBPointer<ADNNucleotide> nt);
     /*!
      * Generate a SBPosition from a ublas vector assuming picometers -> angstrom conversion
      */
@@ -147,7 +147,7 @@ private:
     static void SetReferenceFrame(NtPair pair);
     /** Sets the positions of a list of atoms according to a matrix positions
     */
-    static int SetAtomsPositions(CollectionMap<ADNAtom> atoms, ublas::matrix<double> new_positions, int r_id);
+    static int SetAtomsPositions(SBPointerIndexer<ADNAtom> atoms, ublas::matrix<double> new_positions, int r_id);
 
 };
 

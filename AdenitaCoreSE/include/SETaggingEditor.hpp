@@ -97,7 +97,7 @@ public:
 	//@{
 
 	SETaggingEditorGUI*											getPropertyWidget() const;												///< Returns the property widget of the editor
-	ADNPointer<ADNNucleotide>									GetHighlightedNucleotide() const;
+	SBPointer<ADNNucleotide>									GetHighlightedNucleotide() const;
 
 	//@}
 

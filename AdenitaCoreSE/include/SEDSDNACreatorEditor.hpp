@@ -103,12 +103,12 @@ public:
 
 private:
 
-	ADNPointer<ADNPart>											generateStrand(bool mock = false);
-	ADNPointer<ADNPart>											generateCircularStrand(bool mock = false);
+	SBPointer<ADNPart>											generateStrand(bool mock = false);
+	SBPointer<ADNPart>											generateCircularStrand(bool mock = false);
 	void														displayStrand();
 	void														displayBox();
-	void														sendPartToAdenita(ADNPointer<ADNPart> nanotube);
-	void														setSequence(ADNPointer<ADNPart> nanotube);
+	void														sendPartToAdenita(SBPointer<ADNPart> nanotube);
+	void														setSequence(SBPointer<ADNPart> nanotube);
 	SBPosition3													getSnappedPosition(const SBPosition3& currentPosition);
 
 	void														resetData();
@@ -121,7 +121,7 @@ private:
 	bool														isPressing = false;
 	DASCreatorEditors::UIData									positionData;
 	bool														displayFlag = false;
-	ADNPointer<ADNPart>											tempPart = nullptr;
+	SBPointer<ADNPart>											tempPart = nullptr;
 	bool														showBoxFlag = false;
 	SBQuantity::length											boxHeight = SBQuantity::length(0.0);
 	SBQuantity::length											boxWidth = SBQuantity::length(0.0);

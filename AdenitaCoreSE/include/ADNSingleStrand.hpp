@@ -15,7 +15,7 @@ public:
 
     ADNSingleStrand() : SBChain() {}
     //ADNSingleStrand(int numNts);
-    //ADNSingleStrand(std::vector<ADNPointer<ADNNucleotide>> nts);
+    //ADNSingleStrand(std::vector<SBPointer<ADNNucleotide>> nts);
     ADNSingleStrand(const ADNSingleStrand& other);
     ~ADNSingleStrand() = default;
 
@@ -24,16 +24,16 @@ public:
     virtual void												serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const override;		///< Serializes the node
     virtual void												unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;			///< Unserializes the node
 
-    [[nodiscard]] ADNPointer<ADNPart>                           GetPart() const;                                                        ///< Returns a pointer to the part to which this single strand belongs
+    [[nodiscard]] SBPointer<ADNPart>                           GetPart() const;                                                        ///< Returns a pointer to the part to which this single strand belongs
 
-    [[nodiscard]] ADNPointer<ADNNucleotide>                     GetFivePrime() const;                                                   ///< Returns the five prime nucleotide of the single strand
+    [[nodiscard]] SBPointer<ADNNucleotide>                     GetFivePrime() const;                                                   ///< Returns the five prime nucleotide of the single strand
     [[nodiscard]] SBNode*                                       getFivePrime() const;                                                   ///< Returns the five prime nucleotide of the single strand
-    [[nodiscard]] ADNPointer<ADNNucleotide>                     GetThreePrime() const;                                                  ///< Returns the three prime nucleotide of the single strand
+    [[nodiscard]] SBPointer<ADNNucleotide>                     GetThreePrime() const;                                                  ///< Returns the three prime nucleotide of the single strand
     [[nodiscard]] SBNode*                                       getThreePrime() const;                                                  ///< Returns the three prime nucleotide of the single strand
 
     // if using these functions, make sure nucleotides are properly added
-    void                                                        SetFivePrime(ADNPointer<ADNNucleotide> nucleotide);
-    void                                                        SetThreePrime(ADNPointer<ADNNucleotide> nucleotide);
+    void                                                        SetFivePrime(SBPointer<ADNNucleotide> nucleotide);
+    void                                                        SetThreePrime(SBPointer<ADNNucleotide> nucleotide);
 
     [[nodiscard]] bool                                          IsScaffold() const;                                                     ///< Returns whether a single strand is a scaffold
     [[nodiscard]] bool                                          getScaffoldFlag() const;
@@ -43,14 +43,14 @@ public:
     [[nodiscard]] bool                                          getCircularFlag() const;
     void                                                        setCircularFlag(bool b);
 
-    [[nodiscard]] CollectionMap<ADNNucleotide>                  GetNucleotides() const;                                                 ///< Returns the nucleotides of the single strand
+    [[nodiscard]] SBPointerIndexer<ADNNucleotide>                  GetNucleotides() const;                                                 ///< Returns the nucleotides of the single strand
     [[nodiscard]] int                                           getNumberOfNucleotides() const;
 
-    void                                                        AddNucleotideThreePrime(ADNPointer<ADNNucleotide> nucleotide);          ///< Adds the nucleotide to the three prime end
-    void                                                        AddNucleotideFivePrime(ADNPointer<ADNNucleotide> nucleotide);           ///< Adds the nucleotide to the five prime end
-    void                                                        AddNucleotide(ADNPointer<ADNNucleotide> nucleotide, ADNPointer<ADNNucleotide> nextNucleotide);  ///< add nucleotide at any position
+    void                                                        AddNucleotideThreePrime(SBPointer<ADNNucleotide> nucleotide);          ///< Adds the nucleotide to the three prime end
+    void                                                        AddNucleotideFivePrime(SBPointer<ADNNucleotide> nucleotide);           ///< Adds the nucleotide to the five prime end
+    void                                                        AddNucleotide(SBPointer<ADNNucleotide> nucleotide, SBPointer<ADNNucleotide> nextNucleotide);  ///< add nucleotide at any position
 
-    void                                                        ShiftStart(ADNPointer<ADNNucleotide> nucleotide, bool shiftSeq = false);///< Shift start of the strand to the selected nucleotide and sequence.
+    void                                                        ShiftStart(SBPointer<ADNNucleotide> nucleotide, bool shiftSeq = false);///< Shift start of the strand to the selected nucleotide and sequence.
 
     [[nodiscard]] std::string                                   GetSequence() const;
     [[nodiscard]] std::string                                   getSequence() const;
@@ -68,8 +68,8 @@ private:
     bool                                                        scaffoldFlag{ false };
     bool                                                        circularFlag{ false };
 
-    ADNPointer<ADNNucleotide>                                   fivePrimeNucleotide{ nullptr };
-    ADNPointer<ADNNucleotide>                                   threePrimeNucleotide{ nullptr };
+    SBPointer<ADNNucleotide>                                   fivePrimeNucleotide{ nullptr };
+    SBPointer<ADNNucleotide>                                   threePrimeNucleotide{ nullptr };
 
 };
 

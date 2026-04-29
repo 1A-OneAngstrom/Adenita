@@ -27,31 +27,31 @@ public:
 	void														setNumber(int n);
 	[[nodiscard]] int											getNumber() const;
 
-	[[nodiscard]] ADNPointer<ADNBaseSegment>					GetPrev(bool checkCircular = false) const;
-	[[nodiscard]] ADNPointer<ADNBaseSegment>					GetNext(bool checkCircular = false) const;
+	[[nodiscard]] SBPointer<ADNBaseSegment>					GetPrev(bool checkCircular = false) const;
+	[[nodiscard]] SBPointer<ADNBaseSegment>					GetNext(bool checkCircular = false) const;
 	
 	[[nodiscard]] bool											IsEnd() const;															///< True if it's the first or last base segment
 	[[nodiscard]] bool											IsFirst() const;														///< True if it's the first base segment
 	[[nodiscard]] bool											IsLast() const;															///< True if it's the first base segment
 
-	[[nodiscard]] ADNPointer<ADNDoubleStrand>					GetDoubleStrand() const;
+	[[nodiscard]] SBPointer<ADNDoubleStrand>					GetDoubleStrand() const;
 	[[nodiscard]] SBNode*										getDoubleStrand() const;
 	[[nodiscard]] unsigned int									getNumberOfNucleotides() const;
-	[[nodiscard]] CollectionMap<ADNNucleotide>					GetNucleotides() const;
-	void														RemoveNucleotide(ADNPointer<ADNNucleotide> nt);
+	[[nodiscard]] SBPointerIndexer<ADNNucleotide>					GetNucleotides() const;
+	void														RemoveNucleotide(SBPointer<ADNNucleotide> nt);
 
 	void														SetCell(ADNCell* c);  // we use raw pointers so subclassing will work
-	[[nodiscard]] ADNPointer<ADNCell>							GetCell() const;
+	[[nodiscard]] SBPointer<ADNCell>							GetCell() const;
 	[[nodiscard]] CellType										GetCellType() const;
 	[[nodiscard]] std::string									getCellTypeString() const;
 
 	//! check if left or right in the base segment
-	[[nodiscard]] bool											IsLeft(ADNPointer<ADNNucleotide> nt) const;
-	[[nodiscard]] bool											IsRight(ADNPointer<ADNNucleotide> nt) const;
+	[[nodiscard]] bool											IsLeft(SBPointer<ADNNucleotide> nt) const;
+	[[nodiscard]] bool											IsRight(SBPointer<ADNNucleotide> nt) const;
 
 private:
 
-	ADNPointer<ADNCell>											cell_{ nullptr };
+	SBPointer<ADNCell>											cell_{ nullptr };
 	int															number_{ -1 };  // number of the base in the double strand
 
 };

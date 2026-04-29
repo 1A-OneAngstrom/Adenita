@@ -77,27 +77,27 @@ PositionableSB& PositionableSB::operator=(const PositionableSB& other) {
 
 }
 
-void PositionableSB::SetPosition(const Position3D& pos) {
+void PositionableSB::SetPosition(const SBPosition3& pos) {
 
     if (centerAtom_.isValid())
         centerAtom_->setPosition(pos);
 
 }
 
-const Position3D& PositionableSB::GetPosition() const {
+const SBPosition3& PositionableSB::GetPosition() const {
 
     if (centerAtom_.isValid())
         return centerAtom_->getPosition();
     else
-        return Position3D::zero;
+        return SBPosition3::zero;
 
 }
 
-ADNPointer<ADNAtom> PositionableSB::GetCenterAtom() const {
+SBPointer<ADNAtom> PositionableSB::GetCenterAtom() const {
     return centerAtom_;
 }
 
-void PositionableSB::SetCenterAtom(ADNPointer<ADNAtom> centerAtom) {
+void PositionableSB::SetCenterAtom(SBPointer<ADNAtom> centerAtom) {
     this->centerAtom_ = centerAtom;
 }
 

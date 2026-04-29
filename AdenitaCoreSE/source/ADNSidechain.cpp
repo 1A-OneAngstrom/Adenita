@@ -30,7 +30,7 @@ void ADNSidechain::serialize(SBCSerializer* serializer, const SBNodeIndexer& nod
 
     SBSideChain::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
-    ADNPointer<ADNAtom> at = GetCenterAtom();
+    SBPointer<ADNAtom> at = GetCenterAtom();
     serializer->writeUnsignedIntElement("centerAtom", nodeIndexer.getIndex(at()));
 
 }
@@ -40,18 +40,18 @@ void ADNSidechain::unserialize(SBCSerializer* serializer, const SBNodeIndexer& n
     SBSideChain::unserialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
     unsigned int idx = serializer->readUnsignedIntElement();
-    ADNPointer<ADNAtom> at = (ADNAtom*)nodeIndexer.getNode(idx);
+    SBPointer<ADNAtom> at = (ADNAtom*)nodeIndexer.getNode(idx);
     SetCenterAtom(at);
 
 }
 
-bool ADNSidechain::addAtom(ADNPointer<ADNAtom> atom) {
+bool ADNSidechain::addAtom(SBPointer<ADNAtom> atom) {
 
     return addChild(atom());
 
 }
 
-bool ADNSidechain::deleteAtom(ADNPointer<ADNAtom> atom) {
+bool ADNSidechain::deleteAtom(SBPointer<ADNAtom> atom) {
 
     return removeChild(atom());
 
@@ -67,9 +67,9 @@ int ADNSidechain::getNumberOfAtoms() const {
 
 }
 
-CollectionMap<ADNAtom> ADNSidechain::GetAtoms() const {
+SBPointerIndexer<ADNAtom> ADNSidechain::GetAtoms() const {
 
-    CollectionMap<ADNAtom> atomList;
+    SBPointerIndexer<ADNAtom> atomList;
 
 #if 1
     SBNodeIndexer nodeIndexer;
@@ -94,11 +94,11 @@ CollectionMap<ADNAtom> ADNSidechain::GetAtoms() const {
 
 }
 
-ADNPointer<ADNNucleotide> ADNSidechain::GetNucleotide() const {
+SBPointer<ADNNucleotide> ADNSidechain::GetNucleotide() const {
 
     if (SBNode* parent = getParent())
         if (parent->getType() == SBNode::Residue) //if (parent->getProxy()->getName() == "ADNNucleotide")
-            return ADNPointer<ADNNucleotide>(static_cast<ADNNucleotide*>(getParent()));
+            return SBPointer<ADNNucleotide>(static_cast<ADNNucleotide*>(getParent()));
 
     return nullptr;
 

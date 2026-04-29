@@ -34,11 +34,11 @@ void SEWireframeEditor::setWireframeType(DASCreator::EditorType type) {
 
 }
 
-ADNPointer<ADNPart> SEWireframeEditor::generateCuboid(const SBPosition3& currentPosition, bool mock /*= false*/) {
+SBPointer<ADNPart> SEWireframeEditor::generateCuboid(const SBPosition3& currentPosition, bool mock /*= false*/) {
 
 	SEConfig& config = SEConfig::GetInstance();
 
-	ADNPointer<ADNPart> part = nullptr;
+	SBPointer<ADNPart> part = nullptr;
 
 	int zSize = 31;
 
@@ -163,12 +163,12 @@ ADNPointer<ADNPart> SEWireframeEditor::generateCuboid(const SBPosition3& current
 
 }
 
-ADNPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock) {
+SBPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock) {
 
 	auto radius = (positionData.SecondPosition - positionData.FirstPosition).norm();
 	unsigned int numNucleotides = 0;
 
-	ADNPointer<ADNPart> part = nullptr;
+	SBPointer<ADNPart> part = nullptr;
 	std::string filename = std::string();
 
 	std::string partName = "";
@@ -318,7 +318,7 @@ ADNPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock) {
 
 }
 
-void SEWireframeEditor::sendPartToAdenita(ADNPointer<ADNPart> part) {
+void SEWireframeEditor::sendPartToAdenita(SBPointer<ADNPart> part) {
 
 	if (part != nullptr) {
 
@@ -329,9 +329,9 @@ void SEWireframeEditor::sendPartToAdenita(ADNPointer<ADNPart> part) {
 
 }
 
-ADNPointer<ADNPart> SEWireframeEditor::createMockDaedalusWireframe(DASPolyhedron& polyhedron, int min_edge_length) {
+SBPointer<ADNPart> SEWireframeEditor::createMockDaedalusWireframe(DASPolyhedron& polyhedron, int min_edge_length) {
 
-	ADNPointer<ADNPart> mock = new ADNPart();
+	SBPointer<ADNPart> mock = new ADNPart();
 
 	DASDaedalus* alg = new DASDaedalus();
 	alg->SetMinEdgeLength(min_edge_length);
@@ -649,7 +649,7 @@ void SEWireframeEditor::mouseReleaseEvent(QMouseEvent* event) {
 
 				//SAMSON::beginHolding("Add cuboid");
 
-				ADNPointer<ADNPart> part = generateCuboid(positionData.ThirdPosition);
+				SBPointer<ADNPart> part = generateCuboid(positionData.ThirdPosition);
 				sendPartToAdenita(part);
 
 				//SAMSON::endHolding();
@@ -668,7 +668,7 @@ void SEWireframeEditor::mouseReleaseEvent(QMouseEvent* event) {
 
 				//SAMSON::beginHolding("Add wireframe");
 
-				ADNPointer<ADNPart> part = generateWireframe();
+				SBPointer<ADNPart> part = generateWireframe();
 				sendPartToAdenita(part);
 
 				//SAMSON::endHolding();

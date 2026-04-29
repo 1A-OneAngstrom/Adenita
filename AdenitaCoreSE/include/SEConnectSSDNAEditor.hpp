@@ -133,7 +133,7 @@ protected:
 private:
 
 	bool														displayFlag = false;
-	ADNPointer<ADNNucleotide>									selectedStartNucleotide = nullptr;
+	SBPointer<ADNNucleotide>									selectedStartNucleotide = nullptr;
 
 	ConnectionMode												connectionMode = ConnectionMode::Single;
 	std::string													sequence = "";

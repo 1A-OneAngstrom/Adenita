@@ -191,8 +191,8 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 	auto nr = getApp()->GetNanorobot();
 	auto parts = nr->GetParts();
 	int i = 0;
-	std::map<int, ADNPointer<ADNPart>> indexParts;
-	SB_FOR(ADNPointer<ADNPart> p, parts) {
+	std::map<int, SBPointer<ADNPart>> indexParts;
+	SB_FOR(SBPointer<ADNPart> p, parts) {
 
 		std::string n = p->getName();
 		typeSelection->insertItem(i, QString::fromStdString(n));
@@ -241,7 +241,7 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 		const auto val = typeSelection->currentIndex();
 		const QString eType = exportType->currentText();
 
-		CollectionMap<ADNPart> selectedParts;
+		SBPointerIndexer<ADNPart> selectedParts;
 
 		if (val == sel_idx) {
 
@@ -250,7 +250,7 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 		}
 		else if (val != all_idx) {
 
-			ADNPointer<ADNPart> part = indexParts.at(val);
+			SBPointer<ADNPart> part = indexParts.at(val);
 			selectedParts.addReferenceTarget(part());
 
 		}
@@ -363,8 +363,8 @@ void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 	auto nr = getApp()->GetNanorobot();
 	auto parts = nr->GetParts();
 	int i = 0;
-	std::map<int, ADNPointer<ADNPart>> indexParts;
-	SB_FOR(ADNPointer<ADNPart> part, parts) {
+	std::map<int, SBPointer<ADNPart>> indexParts;
+	SB_FOR(SBPointer<ADNPart> part, parts) {
 
 		std::string n = part->getName();
 		typeSelection->insertItem(i, QString::fromStdString(n));
@@ -403,7 +403,7 @@ void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 	if (dialog->exec() == QDialog::Accepted) {
 
 		auto val = typeSelection->currentIndex();
-		ADNPointer<ADNPart> part = nullptr;
+		SBPointer<ADNPart> part = nullptr;
 		if (val == sel_idx) {
 			part = nr->GetSelectedParts()[0];
 		}
@@ -966,7 +966,7 @@ void SEAdenitaCoreSEAppGUI::onGenerateAtomicModel() {
 	if (parts.size()) {
 
 		unsigned int nSelectedParts = 0;
-		SB_FOR(ADNPointer<ADNPart> part, parts)
+		SB_FOR(SBPointer<ADNPart> part, parts)
 			if (part->getSelectionFlag()) ++nSelectedParts;
 
 		const bool addToAll = (nSelectedParts == 0);
@@ -983,7 +983,7 @@ void SEAdenitaCoreSEAppGUI::onGenerateAtomicModel() {
 
 		SAMSON::beginHolding("Add atomic model");
 
-		SB_FOR(ADNPointer<ADNPart> part, parts) {
+		SB_FOR(SBPointer<ADNPart> part, parts) {
 
 			if (!addToAll && !part->getSelectionFlag()) continue;
 
@@ -1071,7 +1071,7 @@ void SEAdenitaCoreSEAppGUI::checkForLoadedParts() {
 
 	SB_FOR(SBNode * node, nodeIndexer) {
 
-		ADNPointer<ADNPart> part = static_cast<ADNPart*>(node);
+		SBPointer<ADNPart> part = static_cast<ADNPart*>(node);
 		adenita->AddLoadedPartToNanorobot(part);
 
 	}

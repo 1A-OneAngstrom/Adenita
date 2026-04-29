@@ -98,9 +98,9 @@ public:
 
 private:
 
-	ADNPointer<ADNPart>											generateCuboid(const SBPosition3& currentPosition, bool mock = false);
-	ADNPointer<ADNPart>											generateWireframe(bool mock = false);
-	void														sendPartToAdenita(ADNPointer<ADNPart> part);
+	SBPointer<ADNPart>											generateCuboid(const SBPosition3& currentPosition, bool mock = false);
+	SBPointer<ADNPart>											generateWireframe(bool mock = false);
+	void														sendPartToAdenita(SBPointer<ADNPart> part);
 
 	//! Creates a ADNPart containing only the high-level model (double strands) of a daedalus wireframe design
 	/*!
@@ -108,13 +108,13 @@ private:
 	\param position of the center of the model
 	\param minimum edge length
 	*/
-	ADNPointer<ADNPart>											createMockDaedalusWireframe(DASPolyhedron& polyhedron, int min_edge_length);
+	SBPointer<ADNPart>											createMockDaedalusWireframe(DASPolyhedron& polyhedron, int min_edge_length);
 
 	bool														isPressing = false;
 
 	DASCreatorEditors::UIData									positionData;
 	bool														displayFlag = false;
-	ADNPointer<ADNPart>											tempPart = nullptr;
+	SBPointer<ADNPart>											tempPart = nullptr;
 	DASCreator::EditorType										wireframeType = DASCreator::EditorType::Tetrahedron;
 
 };

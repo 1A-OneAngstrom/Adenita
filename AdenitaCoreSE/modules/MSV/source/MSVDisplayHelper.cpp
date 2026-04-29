@@ -686,7 +686,7 @@ void ADNDisplayHelper::displaySphere(const SBPosition3& pos, float radius, ADNAr
 
 }
 
-void ADNDisplayHelper::displayBasePairConnection(ADNPointer<ADNNucleotide> nt) {
+void ADNDisplayHelper::displayBasePairConnection(SBPointer<ADNNucleotide> nt) {
 
     auto pair = nt->GetPair();
 
@@ -708,7 +708,7 @@ void ADNDisplayHelper::displayBasePairConnection(ADNPointer<ADNNucleotide> nt) {
 
 }
 
-void ADNDisplayHelper::displayBaseVectors(ADNPointer<ADNNucleotide> nt, const SBPosition3& pos) {
+void ADNDisplayHelper::displayBaseVectors(SBPointer<ADNNucleotide> nt, const SBPosition3& pos) {
 
     SBVector3 e1 = SBVector3(nt->GetE1()[0], nt->GetE1()[1], nt->GetE1()[2]);
     SBVector3 e2 = SBVector3(nt->GetE2()[0], nt->GetE2()[1], nt->GetE2()[2]);
@@ -813,7 +813,7 @@ void ADNDisplayHelper::displayTriangleMesh(DASPolyhedron* p) {
 
 }
 
-void ADNDisplayHelper::displayPart(ADNPointer<ADNPart> part, float basePairRadius, float opaqueness) {
+void ADNDisplayHelper::displayPart(SBPointer<ADNPart> part, float basePairRadius, float opaqueness) {
 
     const SEConfig& config = SEConfig::GetInstance();
 

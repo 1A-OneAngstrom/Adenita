@@ -33,19 +33,19 @@ std::string PIBindingRegion::getStatusString() const {
 
 }
 
-void PIBindingRegion::SetLastNt(ADNPointer<ADNNucleotide> nt) {
+void PIBindingRegion::SetLastNt(SBPointer<ADNNucleotide> nt) {
     lastNt_ = nt;
 }
 
-void PIBindingRegion::SetFirstNt(ADNPointer<ADNNucleotide> nt) {
+void PIBindingRegion::SetFirstNt(SBPointer<ADNNucleotide> nt) {
     firstNt_ = nt;
 }
 
-ADNPointer<ADNPart> PIBindingRegion::GetPart() const {
+SBPointer<ADNPart> PIBindingRegion::GetPart() const {
     return part_;
 }
 
-void PIBindingRegion::SetPart(ADNPointer<ADNPart> part) {
+void PIBindingRegion::SetPart(SBPointer<ADNPart> part) {
     part_ = part;
 }
 

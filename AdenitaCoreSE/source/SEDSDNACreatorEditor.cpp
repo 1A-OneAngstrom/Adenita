@@ -77,7 +77,7 @@ SBPosition3 SEDSDNACreatorEditor::getSnappedPosition(const SBPosition3& currentP
 
 }
 
-ADNPointer<ADNPart> SEDSDNACreatorEditor::generateStrand(bool mock) {
+SBPointer<ADNPart> SEDSDNACreatorEditor::generateStrand(bool mock) {
 
 	auto length = (positionData.SecondPosition - positionData.FirstPosition).norm();
 	auto numNucleotides = numberOfNucleotides;
@@ -88,7 +88,7 @@ ADNPointer<ADNPart> SEDSDNACreatorEditor::generateStrand(bool mock) {
 	}
 	// if (manualFlag) we already have the number of nucleotides, we just need a direction
 
-	ADNPointer<ADNPart> part = nullptr;
+	SBPointer<ADNPart> part = nullptr;
 
 	if (numNucleotides > 0) {
 
@@ -115,9 +115,9 @@ ADNPointer<ADNPart> SEDSDNACreatorEditor::generateStrand(bool mock) {
 
 }
 
-ADNPointer<ADNPart> SEDSDNACreatorEditor::generateCircularStrand(bool mock) {
+SBPointer<ADNPart> SEDSDNACreatorEditor::generateCircularStrand(bool mock) {
 
-	ADNPointer<ADNPart> part = nullptr;
+	SBPointer<ADNPart> part = nullptr;
 
 	//auto radius = (positionData.SecondPosition - positionData.FirstPosition).norm();
 	const double pi = atan(1) * 4;
@@ -195,7 +195,7 @@ void SEDSDNACreatorEditor::displayBox() {
 
 }
 
-void SEDSDNACreatorEditor::sendPartToAdenita(ADNPointer<ADNPart> nanotube) {
+void SEDSDNACreatorEditor::sendPartToAdenita(SBPointer<ADNPart> nanotube) {
 
 	if (nanotube != nullptr) {
 
@@ -208,16 +208,16 @@ void SEDSDNACreatorEditor::sendPartToAdenita(ADNPointer<ADNPart> nanotube) {
 
 }
 
-void SEDSDNACreatorEditor::setSequence(ADNPointer<ADNPart> nanotube) {
+void SEDSDNACreatorEditor::setSequence(SBPointer<ADNPart> nanotube) {
 
 	if (sequenceFlag) {
 
 		auto singleStrands = nanotube->GetSingleStrands();
-		ADNPointer<ADNSingleStrand> singleStrand = nullptr;
-		SB_FOR(ADNPointer<ADNSingleStrand> currentSingleStrand, singleStrands) {
+		SBPointer<ADNSingleStrand> singleStrand = nullptr;
+		SB_FOR(SBPointer<ADNSingleStrand> currentSingleStrand, singleStrands) {
 
-			ADNPointer<ADNNucleotide> fPrime = currentSingleStrand->GetFivePrime();
-			ADNPointer<ADNBaseSegment> bs = fPrime->GetBaseSegment();
+			SBPointer<ADNNucleotide> fPrime = currentSingleStrand->GetFivePrime();
+			SBPointer<ADNBaseSegment> bs = fPrime->GetBaseSegment();
 			const SBPosition3& pos = bs->GetPosition();
 			if (pos == positionData.FirstPosition) {
 
@@ -498,7 +498,7 @@ void SEDSDNACreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
 
 			//SAMSON::beginHolding("Add DNA strands");
 
-			ADNPointer<ADNPart> part = nullptr;
+			SBPointer<ADNPart> part = nullptr;
 			if (!circularStrandsMode) part = generateStrand();
 			else part = generateCircularStrand();
 

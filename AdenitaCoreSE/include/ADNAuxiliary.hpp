@@ -18,7 +18,7 @@
 
 namespace ublas = boost::numeric::ublas;
 
-using Position3D = SBPosition3;
+using SBPosition3 = SBPosition3;
 
 namespace ADNAuxiliary {
 
@@ -103,19 +103,19 @@ namespace ADNAuxiliary {
 
     SB_EXPORT [[nodiscard]] std::string UblasVectorToString(const ublas::vector<double>& vec);
     SB_EXPORT [[nodiscard]] std::string VectorToString(const std::vector<int>& vec);
-    SB_EXPORT [[nodiscard]] std::string SBPositionToString(const Position3D& pos);
+    SB_EXPORT [[nodiscard]] std::string SBPositionToString(const SBPosition3& pos);
     SB_EXPORT [[nodiscard]] std::string SBVector3ToString(const SBVector3& vec);
 
     SB_EXPORT [[nodiscard]] ublas::vector<double> StringToUblasVector(const std::string& vec);
-    SB_EXPORT [[nodiscard]] Position3D StringToSBPosition(const std::string& vec);
+    SB_EXPORT [[nodiscard]] SBPosition3 StringToSBPosition(const std::string& vec);
     SB_EXPORT [[nodiscard]] SBVector3 StringToSBVector(const std::string& vec);
     SB_EXPORT [[nodiscard]] std::vector<int> StringToVector(const std::string& vec);
 
-    SB_EXPORT [[nodiscard]] Position3D UblasVectorToSBPosition(const ublas::vector<double>& pos);
+    SB_EXPORT [[nodiscard]] SBPosition3 UblasVectorToSBPosition(const ublas::vector<double>& pos);
     SB_EXPORT [[nodiscard]] SBVector3 UblasVectorToSBVector(const ublas::vector<double>& pos);
     SB_EXPORT [[nodiscard]] ublas::vector<double> SBVectorToUblasVector(const SBVector3& v);
-    SB_EXPORT [[nodiscard]] ublas::vector<double> SBPositionToUblas(const Position3D& pos);
-    SB_EXPORT [[nodiscard]] std::vector<double> SBPositionToVector(const Position3D& pos);
+    SB_EXPORT [[nodiscard]] ublas::vector<double> SBPositionToUblas(const SBPosition3& pos);
+    SB_EXPORT [[nodiscard]] std::vector<double> SBPositionToVector(const SBPosition3& pos);
 
     /*! Converts a 3D std::vector<double> to SBPosition3
         (in nanometers)

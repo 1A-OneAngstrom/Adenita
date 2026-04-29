@@ -89,7 +89,7 @@ void ADNAuxiliary::getHeatMapColor(double val, double min, double max, int* colo
 
 }
 
-std::string ADNAuxiliary::SBPositionToString(const Position3D& position) {
+std::string ADNAuxiliary::SBPositionToString(const SBPosition3& position) {
 	std::string x = std::to_string(position[0].getValue());
 	std::string y = std::to_string(position[1].getValue());
 	std::string z = std::to_string(position[2].getValue());
@@ -140,7 +140,7 @@ std::string ADNAuxiliary::VectorToString(const std::vector<int>& vec) {
 	return st_pos;
 }
 
-Position3D ADNAuxiliary::StringToSBPosition(const std::string& position) {
+SBPosition3 ADNAuxiliary::StringToSBPosition(const std::string& position) {
 	std::vector<std::string> stringArray;
 	std::size_t pos = 0;
 	std::size_t found;
@@ -210,8 +210,8 @@ std::vector<int> ADNAuxiliary::StringToVector(const std::string& vec) {
 	return uVec;
 }
 
-Position3D ADNAuxiliary::UblasVectorToSBPosition(const ublas::vector<double>& pos) {
-	Position3D sbPos;
+SBPosition3 ADNAuxiliary::UblasVectorToSBPosition(const ublas::vector<double>& pos) {
+	SBPosition3 sbPos;
 	sbPos[0] = SBQuantity::picometer(pos[0]);
 	sbPos[1] = SBQuantity::picometer(pos[1]);
 	sbPos[2] = SBQuantity::picometer(pos[2]);
@@ -237,7 +237,7 @@ ublas::vector<double> ADNAuxiliary::SBVectorToUblasVector(const SBVector3& v) {
 	return w;
 }
 
-ublas::vector<double> ADNAuxiliary::SBPositionToUblas(const Position3D& pos) {
+ublas::vector<double> ADNAuxiliary::SBPositionToUblas(const SBPosition3& pos) {
 	ublas::vector<double> v = ublas::vector<double>(3, 0.0);
 	v[0] = pos[0].getValue();
 	v[1] = pos[1].getValue();
@@ -245,7 +245,7 @@ ublas::vector<double> ADNAuxiliary::SBPositionToUblas(const Position3D& pos) {
 	return v;
 }
 
-std::vector<double> ADNAuxiliary::SBPositionToVector(const Position3D& pos) {
+std::vector<double> ADNAuxiliary::SBPositionToVector(const SBPosition3& pos) {
 	std::vector<double> v(3);
 	v[0] = pos[0].getValue();
 	v[1] = pos[1].getValue();

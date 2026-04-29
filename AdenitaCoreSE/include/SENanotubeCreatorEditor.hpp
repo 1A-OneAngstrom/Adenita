@@ -101,9 +101,9 @@ public:
 
 private:
 
-	ADNPointer<ADNPart>											generateNanotube(bool mock = false);
+	SBPointer<ADNPart>											generateNanotube(bool mock = false);
 
-	void														sendPartToAdenita(ADNPointer<ADNPart> nanotube);
+	void														sendPartToAdenita(SBPointer<ADNPart> nanotube);
 	void														updateGUI(SBQuantity::length radius, int numBp, bool clear = false);
 
 	SBPosition3													firstPosition;
@@ -113,7 +113,7 @@ private:
 	bool														isPressing{ false };
 	bool														lengthSelected{ false };
 
-	ADNPointer<ADNPart>											tempPart = nullptr;
+	SBPointer<ADNPart>											tempPart = nullptr;
 	RoutingType													routingType{ RoutingType::None };
 
 	//! for manual setting of base pairs and double strands

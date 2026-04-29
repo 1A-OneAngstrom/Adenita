@@ -19,32 +19,32 @@ public:
 	~DASRouter() = default;
 
 	static DASRouter* GetRouter(RoutingType t);
-	virtual void Route(ADNPointer<ADNPart> part) = 0;
+	virtual void Route(SBPointer<ADNPart> part) = 0;
 
 };
 
 class SB_EXPORT DASRouterNone : public DASRouter {
 
-	void Route(ADNPointer<ADNPart> part) {};
+	void Route(SBPointer<ADNPart> part) {};
 
 };
 
 #if 0
 class SB_EXPORT DASRouterNanotubeTiles : public DASRouter {
 
-	void Route(ADNPointer<ADNPart> part);
+	void Route(SBPointer<ADNPart> part);
 
 };
 
 class SB_EXPORT DASRouterNanotubeSeamless : public DASRouter {
 
-	void Route(ADNPointer<ADNPart> part);
+	void Route(SBPointer<ADNPart> part);
 
 };
 
 class SB_EXPORT DASRouterNanotubeNonSeamless : public DASRouter {
 
-	void Route(ADNPointer<ADNPart> part);
+	void Route(SBPointer<ADNPart> part);
 
 };
 #endif

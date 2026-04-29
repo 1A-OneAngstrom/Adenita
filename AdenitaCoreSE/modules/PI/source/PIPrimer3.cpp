@@ -7,14 +7,14 @@
 
 #include <QProcess>
 
-CollectionMap<PIBindingRegion> PIPrimer3::GetBindingRegions() const {
+SBPointerIndexer<PIBindingRegion> PIPrimer3::GetBindingRegions() const {
 
-    CollectionMap<PIBindingRegion> regions;
+    SBPointerIndexer<PIBindingRegion> regions;
 
     for (auto it = regionsMap_.begin(); it != regionsMap_.end(); ++it) {
 
-        CollectionMap<PIBindingRegion> regs = it->second;
-        SB_FOR(ADNPointer<PIBindingRegion> r, regs) {
+        SBPointerIndexer<PIBindingRegion> regs = it->second;
+        SB_FOR(SBPointer<PIBindingRegion> r, regs) {
 
             if (r != nullptr)
                 regions.addReferenceTarget(r());
@@ -34,9 +34,9 @@ PIPrimer3& PIPrimer3::GetInstance() {
 
 }
 
-CollectionMap<PIBindingRegion> PIPrimer3::GetBindingRegions(ADNPointer<ADNPart> p) const {
+SBPointerIndexer<PIBindingRegion> PIPrimer3::GetBindingRegions(SBPointer<ADNPart> p) const {
 
-    CollectionMap<PIBindingRegion> regions;
+    SBPointerIndexer<PIBindingRegion> regions;
     if (regionsMap_.find(p()) != regionsMap_.end()) {
 
         regions = regionsMap_.at(p());
@@ -47,10 +47,10 @@ CollectionMap<PIBindingRegion> PIPrimer3::GetBindingRegions(ADNPointer<ADNPart> 
 
 }
 
-void PIPrimer3::DeleteBindingRegions(ADNPointer<ADNPart> p) {
+void PIPrimer3::DeleteBindingRegions(SBPointer<ADNPart> p) {
 
     auto regions = GetBindingRegions(p);
-    SB_FOR(ADNPointer<PIBindingRegion> r, regions) {
+    SB_FOR(SBPointer<PIBindingRegion> r, regions) {
         
         if (r != nullptr)
             r->UnregisterBindingRegion();
@@ -137,11 +137,11 @@ ThermodynamicParameters PIPrimer3::ExecuteNtthal(std::string leftSequence, std::
 
 }
 
-void PIPrimer3::Calculate(ADNPointer<ADNPart> p, int oligo_conc, int mv, int dv) const {
+void PIPrimer3::Calculate(SBPointer<ADNPart> p, int oligo_conc, int mv, int dv) const {
 
     auto regions = GetBindingRegions(p);
 
-    SB_FOR(ADNPointer<PIBindingRegion> r, regions) if (r != nullptr) {
+    SB_FOR(SBPointer<PIBindingRegion> r, regions) if (r != nullptr) {
 
         auto seqs = r->GetSequences();
         ThermodynamicParameters res = ExecuteNtthal(seqs.first, seqs.second, oligo_conc, mv, dv);
@@ -151,7 +151,7 @@ void PIPrimer3::Calculate(ADNPointer<ADNPart> p, int oligo_conc, int mv, int dv)
 
 }
 
-void PIPrimer3::UpdateBindingRegions(ADNPointer<ADNPart> p) {
+void PIPrimer3::UpdateBindingRegions(SBPointer<ADNPart> p) {
 
     if (regionsMap_.find(p()) != regionsMap_.end()) {
 
@@ -160,14 +160,14 @@ void PIPrimer3::UpdateBindingRegions(ADNPointer<ADNPart> p) {
     }
     else {
 
-        regionsMap_.insert(std::make_pair(p(), CollectionMap<PIBindingRegion>()));
+        regionsMap_.insert(std::make_pair(p(), SBPointerIndexer<PIBindingRegion>()));
 
     }
 
     auto singleStrands = p->GetSingleStrands();
 
-    std::vector<ADNPointer<ADNNucleotide>> added_nt;
-    ADNPointer<ADNNucleotide> firstNt;
+    std::vector<SBPointer<ADNNucleotide>> added_nt;
+    SBPointer<ADNNucleotide> firstNt;
     unsigned int numRegions = 0;
 
     SAMSON::beginHolding("Update binding regions");
@@ -177,9 +177,9 @@ void PIPrimer3::UpdateBindingRegions(ADNPointer<ADNPart> p) {
     bindingRegionsFolder->create();
     SAMSON::getActiveDocument()->addChild(bindingRegionsFolder);
 
-    SB_FOR(ADNPointer<ADNSingleStrand> ss, singleStrands) if (ss != nullptr) {
+    SB_FOR(SBPointer<ADNSingleStrand> ss, singleStrands) if (ss != nullptr) {
 
-        ADNPointer<ADNNucleotide> nt = ss->GetFivePrime();
+        SBPointer<ADNNucleotide> nt = ss->GetFivePrime();
 
         int regionSize = 0;
 
@@ -225,7 +225,7 @@ void PIPrimer3::UpdateBindingRegions(ADNPointer<ADNPart> p) {
 
                     regionSize = 0;
                     const std::string name = "Binding region " + std::to_string(numRegions);
-                    ADNPointer<PIBindingRegion> region = new PIBindingRegion(name, nodeIndexer);
+                    SBPointer<PIBindingRegion> region = new PIBindingRegion(name, nodeIndexer);
                     region->SetPart(p);
                     region->RegisterBindingRegion(bindingRegionsFolder);
                     regionsMap_[p()].addReferenceTarget(region());

@@ -198,9 +198,9 @@ void DASCadnano::ParseCadnanoLegacy(rapidjson::Document& d) {
 
 }
 
-ADNPointer<ADNPart> DASCadnano::CreateCadnanoModel() {
+SBPointer<ADNPart> DASCadnano::CreateCadnanoModel() {
 
-	ADNPointer<ADNPart> part = new ADNPart();
+	SBPointer<ADNPart> part = new ADNPart();
 
 	CreateEdgeMap(part);
 	ADNLogger::LogDebug(std::string("Cadnano module > Double strands created"));
@@ -218,7 +218,7 @@ ADNPointer<ADNPart> DASCadnano::CreateCadnanoModel() {
 
 }
 
-void DASCadnano::CreateEdgeMap(ADNPointer<ADNPart> part) {
+void DASCadnano::CreateEdgeMap(SBPointer<ADNPart> part) {
 
 	const auto& tubes = vGrid_.vDoubleStrands_;
 
@@ -230,7 +230,7 @@ void DASCadnano::CreateEdgeMap(ADNPointer<ADNPart> part) {
 		const int length = tube.endPos_ - tube.initPos_ + 1;
 		const SBVector3 dir = (endPos - initPos).normalizedVersion();
 
-		std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> positions;
+		std::map<std::pair<int, int>, SBPointer<ADNBaseSegment>> positions;
 		if (cellBsMap_.find(vs) != cellBsMap_.end()) positions = cellBsMap_.at(vs);
 
 		SEConfig& config = SEConfig::GetInstance();
@@ -241,7 +241,7 @@ void DASCadnano::CreateEdgeMap(ADNPointer<ADNPart> part) {
 		if (json_.lType_ == LatticeType::Square) initAng = 7 * ADNConstants::BP_ROT;
 
 		// every tube is a double strand
-		ADNPointer<ADNDoubleStrand> ds = new ADNDoubleStrand();
+		SBPointer<ADNDoubleStrand> ds = new ADNDoubleStrand();
 		part->RegisterDoubleStrand(ds);
 		bool firstBs = true;
 		ds->SetInitialTwistAngle(initAng);
@@ -263,7 +263,7 @@ void DASCadnano::CreateEdgeMap(ADNPointer<ADNPart> part) {
 				double factor = 1.0;
 				if ((vs->row_ + vs->col_) % 2 == 0) factor = -1.0;
 
-				ADNPointer<ADNBaseSegment> bs = new ADNBaseSegment();
+				SBPointer<ADNBaseSegment> bs = new ADNBaseSegment();
 				if (skip) {
 					bs->SetCell(new ADNSkipPair());
 					--bs_number;
@@ -294,7 +294,7 @@ void DASCadnano::CreateEdgeMap(ADNPointer<ADNPart> part) {
 
 }
 
-void DASCadnano::CreateScaffold(ADNPointer<ADNPart> part) {
+void DASCadnano::CreateScaffold(SBPointer<ADNPart> part) {
 
 	for (auto& p : json_.scaffoldStartPositions_) {
 
@@ -303,7 +303,7 @@ void DASCadnano::CreateScaffold(ADNPointer<ADNPart> part) {
 		int startVstrandPos = p.second;
 
 		//create the scaffold strand
-		ADNPointer<ADNSingleStrand> scaff = new ADNSingleStrand();
+		SBPointer<ADNSingleStrand> scaff = new ADNSingleStrand();
 		scaff->setName("Scaffold");
 		scaff->setScaffoldFlag(true);
 		part->RegisterSingleStrand(scaff);
@@ -316,7 +316,7 @@ void DASCadnano::CreateScaffold(ADNPointer<ADNPart> part) {
 
 }
 
-void DASCadnano::CreateStaples(ADNPointer<ADNPart> part) {
+void DASCadnano::CreateStaples(SBPointer<ADNPart> part) {
 
 	//find number of staples and their starting points
 	std::vector<vec2> stapleStarts = json_.stapleStarts_;  //vstrand id and position on vstrand
@@ -333,9 +333,9 @@ void DASCadnano::CreateStaples(ADNPointer<ADNPart> part) {
 		int z = curStapleStart.n1;
 		vec4 curVstrandElem = vstrands[vStrandId].stap_[z];
 
-		std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> bs_positions = cellBsMap_.at(&vstrands[vStrandId]);
+		std::map<std::pair<int, int>, SBPointer<ADNBaseSegment>> bs_positions = cellBsMap_.at(&vstrands[vStrandId]);
 
-		ADNPointer<ADNSingleStrand> staple = new ADNSingleStrand();
+		SBPointer<ADNSingleStrand> staple = new ADNSingleStrand();
 		staple->setName("Staple " + std::to_string(sid));
 		staple->setStructuralID(sid);
 		++sid;
@@ -349,7 +349,7 @@ void DASCadnano::CreateStaples(ADNPointer<ADNPart> part) {
 
 }
 
-void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNPart> part, bool scaf) {
+void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, SBPointer<ADNSingleStrand> ss, SBPointer<ADNPart> part, bool scaf) {
 
 	if (part == nullptr) return;
 
@@ -365,7 +365,7 @@ void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPoi
 
 	while (true) {
 
-		std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> bs_positions = cellBsMap_.at(&json_.vstrands_[vStrandId]);
+		std::map<std::pair<int, int>, SBPointer<ADNBaseSegment>> bs_positions = cellBsMap_.at(&json_.vstrands_[vStrandId]);
 
 		if (vstrands[vStrandId].skips_[z] != -1) {
 
@@ -378,7 +378,7 @@ void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPoi
 			for (int k = 0; k <= max_iter; k++) {
 
 				//add loop
-				ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
+				SBPointer<ADNNucleotide> nt = new ADNNucleotide();
 				nt->Init();
 				part->RegisterNucleotideThreePrime(ss, nt);
 				ntPositions_.insert(std::make_pair(nt(), count));
@@ -389,7 +389,7 @@ void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPoi
 				// fetch base segment
 				int p = 0;
 				if (k > 0) p = 1;
-				ADNPointer<ADNBaseSegment> bs = nullptr;
+				SBPointer<ADNBaseSegment> bs = nullptr;
 				std::pair<int, int> key = std::make_pair(z, p);
 				if (bs_positions.find(key) != bs_positions.end()) {
 					bs = bs_positions.at(key);
@@ -399,10 +399,10 @@ void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPoi
 				if (k == 0) {
 
 					// even for a loop nfirst base is always BasePair
-					ADNPointer<ADNCell> c = bs->GetCell();
+					SBPointer<ADNCell> c = bs->GetCell();
 					if (c != nullptr && c->GetCellType() == CellType::BasePair) {
 
-						ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(c());
+						SBPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(c());
 						if (left) bp->SetLeftNucleotide(nt);
 						else bp->SetRightNucleotide(nt);
 
@@ -421,11 +421,11 @@ void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPoi
 				else {
 
 					// We have a loop
-					ADNPointer<ADNCell> c = bs->GetCell();
+					SBPointer<ADNCell> c = bs->GetCell();
 					if (c != nullptr && c->GetCellType() == CellType::LoopPair) {
 
-						ADNPointer<ADNLoopPair> lp = static_cast<ADNLoopPair*>(c());
-						ADNPointer<ADNLoop> loop;
+						SBPointer<ADNLoopPair> lp = static_cast<ADNLoopPair*>(c());
+						SBPointer<ADNLoop> loop;
 						if (left) loop = lp->GetLeftLoop();
 						else loop = lp->GetRightLoop();
 
@@ -485,7 +485,7 @@ void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPoi
 
 }
 
-void DASCadnano::CreateConformations(ADNPointer<ADNPart> part) {
+void DASCadnano::CreateConformations(SBPointer<ADNPart> part) {
 
 	const std::string name = part->getName();
 	SBNodeIndexer nodeIndexer;
@@ -505,17 +505,17 @@ void DASCadnano::CreateConformations(ADNPointer<ADNPart> part) {
 
 		Vstrand* vs = it->first;
 		int vStrandId = vs->num_;
-		std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> values = it->second;
+		std::map<std::pair<int, int>, SBPointer<ADNBaseSegment>> values = it->second;
 
 		for (auto jt = values.begin(); jt != values.end(); ++jt) {
 
 			std::pair<int, int> bsNumAndLoop = jt->first;
-			ADNPointer<ADNBaseSegment> bs = jt->second;
+			SBPointer<ADNBaseSegment> bs = jt->second;
 			int z = bsNumAndLoop.first;
 			auto nts = bs->GetNucleotides();
-			SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
+			SB_FOR(SBPointer<ADNNucleotide> nt, nts) {
 
-				ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
+				SBPointer<ADNSingleStrand> ss = nt->GetStrand();
 				SBPosition3 pos2D = vGrid_.GetGridCellPos2D(vStrandId, z, ss->IsScaffold());
 				SBPosition3 pos1D = vGrid_.GetGridCellPos1D(ssId_[ss()], ntPositions_[nt()]);
 				center3D += nt->GetPosition();
@@ -543,17 +543,17 @@ void DASCadnano::CreateConformations(ADNPointer<ADNPart> part) {
 
 		Vstrand* vs = it->first;
 		int vStrandId = vs->num_;
-		std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>> values = it->second;
+		std::map<std::pair<int, int>, SBPointer<ADNBaseSegment>> values = it->second;
 
 		for (auto jt = values.begin(); jt != values.end(); ++jt) {
 
 			std::pair<int, int> bsNumAndLoop = jt->first;
-			ADNPointer<ADNBaseSegment> bs = jt->second;
+			SBPointer<ADNBaseSegment> bs = jt->second;
 			int z = bsNumAndLoop.first;
 			auto nts = bs->GetNucleotides();
-			SB_FOR(ADNPointer<ADNNucleotide> nt, nts) {
+			SB_FOR(SBPointer<ADNNucleotide> nt, nts) {
 
-				ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
+				SBPointer<ADNSingleStrand> ss = nt->GetStrand();
 				SBPosition3 pos2D = vGrid_.GetGridCellPos2D(vStrandId, z, ss->IsScaffold());
 				SBPosition3 pos1D = vGrid_.GetGridCellPos1D(ssId_[ss()], ntPositions_[nt()]);
 				pos2D = pos2D - center2D + center3D;
@@ -562,7 +562,7 @@ void DASCadnano::CreateConformations(ADNPointer<ADNPart> part) {
 				if (nt->GetBackbone() != nullptr) {
 
 					auto ats = nt->GetBackbone()->GetAtoms();
-					SB_FOR(ADNPointer<ADNAtom> at, ats) {
+					SB_FOR(SBPointer<ADNAtom> at, ats) {
 						conformation2D_->setPosition(at(), pos2D);
 						conformation1D_->setPosition(at(), pos1D);
 					}
@@ -572,7 +572,7 @@ void DASCadnano::CreateConformations(ADNPointer<ADNPart> part) {
 				if (nt->GetSidechain() != nullptr) {
 
 					auto ats = nt->GetSidechain()->GetAtoms();
-					SB_FOR(ADNPointer<ADNAtom> at, ats) {
+					SB_FOR(SBPointer<ADNAtom> at, ats) {
 						conformation2D_->setPosition(at(), pos2D);
 						conformation1D_->setPosition(at(), pos1D);
 					}
@@ -587,19 +587,19 @@ void DASCadnano::CreateConformations(ADNPointer<ADNPart> part) {
 
 }
 
-ADNPointer<ADNConformation> DASCadnano::Get3DConformation() {
+SBPointer<ADNConformation> DASCadnano::Get3DConformation() {
 	return conformation3D_;
 }
 
-ADNPointer<ADNConformation> DASCadnano::Get2DConformation() {
+SBPointer<ADNConformation> DASCadnano::Get2DConformation() {
 	return conformation2D_;
 }
 
-ADNPointer<ADNConformation> DASCadnano::Get1DConformation() {
+SBPointer<ADNConformation> DASCadnano::Get1DConformation() {
 	return conformation1D_;
 }
 
-ADNPointer<ADNPart> DASCadnano::CreateCadnanoPart(std::string file) {
+SBPointer<ADNPart> DASCadnano::CreateCadnanoPart(std::string file) {
 
 	ParseJSON(file);
 	ADNLogger::LogDebug(std::string("Cadnano design parsed"));
@@ -628,7 +628,7 @@ bool DASCadnano::IsThereBase(vec4 data) {
 
 }
 
-void DASCadnano::AddSingleStrandToMap(ADNPointer<ADNSingleStrand> ss) {
+void DASCadnano::AddSingleStrandToMap(SBPointer<ADNSingleStrand> ss) {
 
 	int key = lastKey + 1;
 	ssId_.insert(std::make_pair(ss(), key));

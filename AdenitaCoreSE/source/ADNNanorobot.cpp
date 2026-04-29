@@ -20,15 +20,15 @@ ADNNanorobot & ADNNanorobot::operator=(const ADNNanorobot& other) {
 
 }
 
-CollectionMap<ADNSingleStrand> ADNNanorobot::GetSingleStrands() const {
+SBPointerIndexer<ADNSingleStrand> ADNNanorobot::GetSingleStrands() const {
 
-    CollectionMap<ADNSingleStrand> singleStrands;
+    SBPointerIndexer<ADNSingleStrand> singleStrands;
 
 #if ADENITA_NANOROBOT_REGISTER_PARTS
-    SB_FOR(ADNPointer<ADNPart> p, partsIndex_) {
+    SB_FOR(SBPointer<ADNPart> p, partsIndex_) {
 
         auto pSingleStrands = p->GetSingleStrands();
-        SB_FOR(ADNPointer<ADNSingleStrand> ss, pSingleStrands)
+        SB_FOR(SBPointer<ADNSingleStrand> ss, pSingleStrands)
             singleStrands.addReferenceTarget(ss());
 
     }
@@ -50,7 +50,7 @@ CollectionMap<ADNSingleStrand> ADNNanorobot::GetSingleStrands() const {
 
 }
 
-void ADNNanorobot::RegisterPart(ADNPointer<ADNPart> part) {
+void ADNNanorobot::RegisterPart(SBPointer<ADNPart> part) {
 
     if (part->getName().empty()) {
 
@@ -64,7 +64,7 @@ void ADNNanorobot::RegisterPart(ADNPointer<ADNPart> part) {
 #endif
 }
 
-void ADNNanorobot::DeregisterPart(ADNPointer<ADNPart> part) {
+void ADNNanorobot::DeregisterPart(SBPointer<ADNPart> part) {
 #if ADENITA_NANOROBOT_REGISTER_PARTS
     partsIndex_.removeReferenceTarget(part());
 #endif
@@ -75,7 +75,7 @@ int ADNNanorobot::GetNumberOfDoubleStrands() const {
     auto parts = GetParts();
     int count = 0;
 
-    SB_FOR (ADNPointer<ADNPart> part, parts)
+    SB_FOR (SBPointer<ADNPart> part, parts)
         count += part->GetNumberOfDoubleStrands();
 
     return count;
@@ -87,7 +87,7 @@ int ADNNanorobot::GetNumberOfBaseSegments() const {
     auto parts = GetParts();
     int count = 0;
 
-    SB_FOR(ADNPointer<ADNPart> part, parts)
+    SB_FOR(SBPointer<ADNPart> part, parts)
         count += part->GetNumberOfBaseSegments();
 
     return count;
@@ -99,7 +99,7 @@ int ADNNanorobot::GetNumberOfSingleStrands() const {
     auto parts = GetParts();
     int count = 0;
 
-    SB_FOR(ADNPointer<ADNPart> part, parts)
+    SB_FOR(SBPointer<ADNPart> part, parts)
         count += part->GetNumberOfSingleStrands();
 
     return count;
@@ -111,19 +111,19 @@ int ADNNanorobot::GetNumberOfNucleotides() const {
     auto parts = GetParts();
     int count = 0;
 
-    SB_FOR(ADNPointer<ADNPart> part, parts)
+    SB_FOR(SBPointer<ADNPart> part, parts)
         count += part->GetNumberOfNucleotides();
 
     return count;
 
 }
 
-CollectionMap<ADNPart> ADNNanorobot::GetParts() const {
+SBPointerIndexer<ADNPart> ADNNanorobot::GetParts() const {
 
 #if ADENITA_NANOROBOT_REGISTER_PARTS
     return partsIndex_;
 #else
-    CollectionMap<ADNPart> parts;
+    SBPointerIndexer<ADNPart> parts;
 
     SBNodeIndexer structuralModelIndexer;
     SAMSON::getActiveDocument()->getNodes(structuralModelIndexer, SBNode::StructuralModel);
@@ -157,9 +157,9 @@ int ADNNanorobot::GetNumberOfParts() const {
 
 }
 
-CollectionMap<ADNNucleotide> ADNNanorobot::GetSelectedNucleotides() const {
+SBPointerIndexer<ADNNucleotide> ADNNanorobot::GetSelectedNucleotides() const {
 
-    CollectionMap<ADNNucleotide> nucleotideIndexer;
+    SBPointerIndexer<ADNNucleotide> nucleotideIndexer;
 
     SBNodeIndexer residueIndexer;
     SAMSON::getActiveDocument()->getNodes(residueIndexer, SBNode::Residue);
@@ -169,7 +169,7 @@ CollectionMap<ADNNucleotide> ADNNanorobot::GetSelectedNucleotides() const {
 
     SB_FOR(SBNode* node, nodeIndexer) {
 
-        ADNPointer<ADNNucleotide> nucleotide = static_cast<ADNNucleotide*>(node);
+        SBPointer<ADNNucleotide> nucleotide = static_cast<ADNNucleotide*>(node);
         nucleotideIndexer.addReferenceTarget(nucleotide());
 
     }
@@ -178,9 +178,9 @@ CollectionMap<ADNNucleotide> ADNNanorobot::GetSelectedNucleotides() const {
 
 }
 
-CollectionMap<ADNPart> ADNNanorobot::GetSelectedParts() const {
+SBPointerIndexer<ADNPart> ADNNanorobot::GetSelectedParts() const {
 
-    CollectionMap<ADNPart> partIndexer;
+    SBPointerIndexer<ADNPart> partIndexer;
 
     SBNodeIndexer structuralModelIndexer;
     SAMSON::getActiveDocument()->getNodes(structuralModelIndexer, SBNode::StructuralModel);
@@ -191,7 +191,7 @@ CollectionMap<ADNPart> ADNNanorobot::GetSelectedParts() const {
 
     SB_FOR(SBNode* node, nodeIndexer) {
 
-        ADNPointer<ADNPart> part = static_cast<ADNPart*>(node);
+        SBPointer<ADNPart> part = static_cast<ADNPart*>(node);
         partIndexer.addReferenceTarget(part());
 
     }
@@ -200,9 +200,9 @@ CollectionMap<ADNPart> ADNNanorobot::GetSelectedParts() const {
 
 }
 
-CollectionMap<SBAtom> ADNNanorobot::GetHighlightedAtoms() const {
+SBPointerIndexer<SBAtom> ADNNanorobot::GetHighlightedAtoms() const {
 
-    CollectionMap<SBAtom> atoms;
+    SBPointerIndexer<SBAtom> atoms;
 
     SBNodeIndexer atomIndexer;
     SAMSON::getActiveDocument()->getNodes(atomIndexer, SBNode::Atom);
@@ -210,7 +210,7 @@ CollectionMap<SBAtom> ADNNanorobot::GetHighlightedAtoms() const {
     SB_FOR(SBNode* node, atomIndexer) {
         if (node->isHighlighted()) {
 
-            ADNPointer<SBAtom> a = static_cast<SBAtom*>(node);
+            SBPointer<SBAtom> a = static_cast<SBAtom*>(node);
             atoms.addReferenceTarget(a());
 
         }
@@ -220,9 +220,9 @@ CollectionMap<SBAtom> ADNNanorobot::GetHighlightedAtoms() const {
 
 }
 
-CollectionMap<ADNNucleotide> ADNNanorobot::GetHighlightedNucleotides() const {
+SBPointerIndexer<ADNNucleotide> ADNNanorobot::GetHighlightedNucleotides() const {
 
-    CollectionMap<ADNNucleotide> nucleotideIndexer;
+    SBPointerIndexer<ADNNucleotide> nucleotideIndexer;
 
     SBNodeIndexer residueIndexer;
     SAMSON::getActiveDocument()->getNodes(residueIndexer, SBNode::Residue);
@@ -232,7 +232,7 @@ CollectionMap<ADNNucleotide> ADNNanorobot::GetHighlightedNucleotides() const {
 
     SB_FOR(SBNode* node, nodeIndexer) {
 
-        ADNPointer<ADNNucleotide> nucleotide = static_cast<ADNNucleotide*>(node);
+        SBPointer<ADNNucleotide> nucleotide = static_cast<ADNNucleotide*>(node);
         nucleotideIndexer.addReferenceTarget(nucleotide());
 
     }
@@ -241,18 +241,18 @@ CollectionMap<ADNNucleotide> ADNNanorobot::GetHighlightedNucleotides() const {
 
 }
 
-CollectionMap<ADNBaseSegment> ADNNanorobot::GetSelectedBaseSegmentsFromNucleotides() const {
+SBPointerIndexer<ADNBaseSegment> ADNNanorobot::GetSelectedBaseSegmentsFromNucleotides() const {
 
-    CollectionMap<ADNBaseSegment> baseSegmentIndexer;
+    SBPointerIndexer<ADNBaseSegment> baseSegmentIndexer;
 
 #if 1
     auto nucleotideIndexer = GetSelectedNucleotides();
 
-    std::vector<ADNPointer<ADNBaseSegment>> added;
+    std::vector<SBPointer<ADNBaseSegment>> added;
 
-    SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotideIndexer) {
+    SB_FOR(SBPointer<ADNNucleotide> nt, nucleotideIndexer) {
 
-        ADNPointer<ADNBaseSegment> bs = nt->GetBaseSegment();
+        SBPointer<ADNBaseSegment> bs = nt->GetBaseSegment();
         if (std::find(added.begin(), added.end(), bs) == added.end()) {
 
             baseSegmentIndexer.addReferenceTarget(bs());
@@ -270,7 +270,7 @@ CollectionMap<ADNBaseSegment> ADNNanorobot::GetSelectedBaseSegmentsFromNucleotid
 
     SB_FOR(SBNode* node, nodeIndexer) {
 
-        ADNPointer<ADNBaseSegment> bs = static_cast<ADNBaseSegment*>(node);
+        SBPointer<ADNBaseSegment> bs = static_cast<ADNBaseSegment*>(node);
         baseSegmentIndexer.addReferenceTarget(bs());
 
     }
@@ -280,9 +280,9 @@ CollectionMap<ADNBaseSegment> ADNNanorobot::GetSelectedBaseSegmentsFromNucleotid
 
 }
 
-CollectionMap<ADNSingleStrand> ADNNanorobot::GetSelectedSingleStrands() const {
+SBPointerIndexer<ADNSingleStrand> ADNNanorobot::GetSelectedSingleStrands() const {
 
-    CollectionMap<ADNSingleStrand> singleStrandIndexer;
+    SBPointerIndexer<ADNSingleStrand> singleStrandIndexer;
 
     SBNodeIndexer chainIndexer;
     SAMSON::getActiveDocument()->getNodes(chainIndexer, SBNode::Chain);
@@ -292,7 +292,7 @@ CollectionMap<ADNSingleStrand> ADNNanorobot::GetSelectedSingleStrands() const {
 
     SB_FOR(SBNode* node, nodeIndexer) {
 
-        ADNPointer<ADNSingleStrand> ss = static_cast<ADNSingleStrand*>(node);
+        SBPointer<ADNSingleStrand> ss = static_cast<ADNSingleStrand*>(node);
         singleStrandIndexer.addReferenceTarget(ss());
 
     }
@@ -301,9 +301,9 @@ CollectionMap<ADNSingleStrand> ADNNanorobot::GetSelectedSingleStrands() const {
 
 }
 
-CollectionMap<ADNDoubleStrand> ADNNanorobot::GetSelectedDoubleStrands() const {
+SBPointerIndexer<ADNDoubleStrand> ADNNanorobot::GetSelectedDoubleStrands() const {
 
-    CollectionMap<ADNDoubleStrand> doubleStrandIndexer;
+    SBPointerIndexer<ADNDoubleStrand> doubleStrandIndexer;
 
     SBNodeIndexer structuralGroupIndexer;
     SAMSON::getActiveDocument()->getNodes(structuralGroupIndexer, SBNode::StructuralGroup);
@@ -313,7 +313,7 @@ CollectionMap<ADNDoubleStrand> ADNNanorobot::GetSelectedDoubleStrands() const {
 
     SB_FOR(SBNode* node, nodeIndexer) {
 
-        ADNPointer<ADNDoubleStrand> ds = static_cast<ADNDoubleStrand*>(node);
+        SBPointer<ADNDoubleStrand> ds = static_cast<ADNDoubleStrand*>(node);
         doubleStrandIndexer.addReferenceTarget(ds());
 
     }
@@ -322,16 +322,16 @@ CollectionMap<ADNDoubleStrand> ADNNanorobot::GetSelectedDoubleStrands() const {
 
 }
 
-CollectionMap<ADNDoubleStrand> ADNNanorobot::GetHighlightedDoubleStrands() const {
+SBPointerIndexer<ADNDoubleStrand> ADNNanorobot::GetHighlightedDoubleStrands() const {
 
-    CollectionMap<ADNDoubleStrand> doubleStrands;
+    SBPointerIndexer<ADNDoubleStrand> doubleStrands;
 
     SBNodeIndexer nodeIndexer;
     SAMSON::getActiveDocument()->getNodes(nodeIndexer, SBNode::IsHighlighted() && (SBNode::GetClass() == std::string("ADNDoubleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
     SB_FOR(SBNode* node, nodeIndexer) {
 
-        ADNPointer<ADNDoubleStrand> ds = static_cast<ADNDoubleStrand*>(node);
+        SBPointer<ADNDoubleStrand> ds = static_cast<ADNDoubleStrand*>(node);
         doubleStrands.addReferenceTarget(ds());
 
     }
@@ -341,14 +341,14 @@ CollectionMap<ADNDoubleStrand> ADNNanorobot::GetHighlightedDoubleStrands() const
 }
 
 /*!
-\return A CollectionMap with all conformations
+\return A SBPointerIndexer with all conformations
 */
-CollectionMap<ADNConformation> ADNNanorobot::GetConformations() const {
+SBPointerIndexer<ADNConformation> ADNNanorobot::GetConformations() const {
 
 #if ADENITA_NANOROBOT_REGISTER_CONFORMATIONS
     return conformationsIndex_;
 #else
-    CollectionMap<ADNConformation> conformationIndexer;
+    SBPointerIndexer<ADNConformation> conformationIndexer;
 
     SBNodeIndexer auxIndexer;
     SAMSON::getActiveDocument()->getNodes(auxIndexer, SBNode::Conformation);
@@ -373,18 +373,18 @@ CollectionMap<ADNConformation> ADNNanorobot::GetConformations() const {
 
 #if 0
 /*!
-\param A ADNPointer to a ADNPart
-\return A CollectionMap with all conformations belonging to a given ADNPart
+\param A SBPointer to a ADNPart
+\return A SBPointerIndexer with all conformations belonging to a given ADNPart
 */
-CollectionMap<ADNConformation> ADNNanorobot::GetConformations(ADNPointer<ADNPart> part) {
+SBPointerIndexer<ADNConformation> ADNNanorobot::GetConformations(SBPointer<ADNPart> part) {
 
-    CollectionMap<ADNConformation> confs;
-    SB_FOR(ADNPointer<ADNConformation> conf, conformationsIndex_) {
+    SBPointerIndexer<ADNConformation> confs;
+    SB_FOR(SBPointer<ADNConformation> conf, conformationsIndex_) {
 
         // TODO: fix this implementation
         // conformations are in the document or in the folder, but not in the ADNPart (SM)
         auto parent = conf->getParent();
-        ADNPointer<ADNPart> p = static_cast<ADNPart*>(parent);
+        SBPointer<ADNPart> p = static_cast<ADNPart*>(parent);
         if (p == part) confs.addReferenceTarget(conf());
 
     }
@@ -396,9 +396,9 @@ CollectionMap<ADNConformation> ADNNanorobot::GetConformations(ADNPointer<ADNPart
 
 /*!
 \param A ADNPart to which the conformation belongs to
-\param A ADNPointer to a ADNConformation
+\param A SBPointer to a ADNConformation
 */
-void ADNNanorobot::RegisterConformation(ADNPointer<ADNConformation> conformation) {
+void ADNNanorobot::RegisterConformation(SBPointer<ADNConformation> conformation) {
 #if ADENITA_NANOROBOT_REGISTER_CONFORMATIONS
     conformationsIndex_.addReferenceTarget(conformation());
 #endif
@@ -406,10 +406,10 @@ void ADNNanorobot::RegisterConformation(ADNPointer<ADNConformation> conformation
 
 /*!
 \param The conformation
-\param a ADNPointer to the nucleotide
+\param a SBPointer to the nucleotide
 \return The position of the backbone of the nucleotide in that conformation
 */
-SBPosition3 ADNNanorobot::GetNucleotideBackbonePosition(ADNPointer<ADNConformation> conformation, ADNPointer<ADNNucleotide> nucleotide) const {
+SBPosition3 ADNNanorobot::GetNucleotideBackbonePosition(SBPointer<ADNConformation> conformation, SBPointer<ADNNucleotide> nucleotide) const {
 
     SBPosition3 pos;
     auto at = nucleotide->GetBackboneCenterAtom();
@@ -420,10 +420,10 @@ SBPosition3 ADNNanorobot::GetNucleotideBackbonePosition(ADNPointer<ADNConformati
 
 /*!
 \param The conformation
-\param a ADNPointer to the nucleotide
+\param a SBPointer to the nucleotide
 \return The position of the side chain of the nucleotide in that conformation
 */
-SBPosition3 ADNNanorobot::GetNucleotideSideChainPosition(ADNPointer<ADNConformation> conformation, ADNPointer<ADNNucleotide> nucleotide) const {
+SBPosition3 ADNNanorobot::GetNucleotideSideChainPosition(SBPointer<ADNConformation> conformation, SBPointer<ADNNucleotide> nucleotide) const {
 
     SBPosition3 pos;
     auto at = nucleotide->GetSidechainCenterAtom();
@@ -432,17 +432,17 @@ SBPosition3 ADNNanorobot::GetNucleotideSideChainPosition(ADNPointer<ADNConformat
 
 }
 
-CollectionMap<ADNBaseSegment> ADNNanorobot::GetHighlightedBaseSegmentsFromNucleotides() const {
+SBPointerIndexer<ADNBaseSegment> ADNNanorobot::GetHighlightedBaseSegmentsFromNucleotides() const {
 
-    CollectionMap<ADNBaseSegment> baseSegmentIndexer;
+    SBPointerIndexer<ADNBaseSegment> baseSegmentIndexer;
 
     auto nucleotideIndexer = GetHighlightedNucleotides();
 
-    std::vector<ADNPointer<ADNBaseSegment>> added;
+    std::vector<SBPointer<ADNBaseSegment>> added;
 
-    SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotideIndexer) {
+    SB_FOR(SBPointer<ADNNucleotide> nt, nucleotideIndexer) {
 
-        ADNPointer<ADNBaseSegment> bs = nt->GetBaseSegment();
+        SBPointer<ADNBaseSegment> bs = nt->GetBaseSegment();
         if (std::find(added.begin(), added.end(), bs) == added.end()) {
 
             baseSegmentIndexer.addReferenceTarget(bs());
@@ -456,9 +456,9 @@ CollectionMap<ADNBaseSegment> ADNNanorobot::GetHighlightedBaseSegmentsFromNucleo
 
 }
 
-CollectionMap<ADNBaseSegment> ADNNanorobot::GetHighlightedBaseSegments() const {
+SBPointerIndexer<ADNBaseSegment> ADNNanorobot::GetHighlightedBaseSegments() const {
 
-    CollectionMap<ADNBaseSegment> baseSegmentIndexer;
+    SBPointerIndexer<ADNBaseSegment> baseSegmentIndexer;
 
     SBNodeIndexer structuralGroupIndexer;
     SAMSON::getActiveDocument()->getNodes(structuralGroupIndexer, SBNode::StructuralGroup);
@@ -468,7 +468,7 @@ CollectionMap<ADNBaseSegment> ADNNanorobot::GetHighlightedBaseSegments() const {
 
     SB_FOR(SBNode* node, nodeIndexer) {
 
-        ADNPointer<ADNBaseSegment> bs = static_cast<ADNBaseSegment*>(node);
+        SBPointer<ADNBaseSegment> bs = static_cast<ADNBaseSegment*>(node);
         baseSegmentIndexer.addReferenceTarget(bs());
 
     }
@@ -477,7 +477,7 @@ CollectionMap<ADNBaseSegment> ADNNanorobot::GetHighlightedBaseSegments() const {
 
 }
 
-SBIAPosition3 ADNNanorobot::GetBoundingBox(CollectionMap<ADNPart> parts) const {
+SBIAPosition3 ADNNanorobot::GetBoundingBox(SBPointerIndexer<ADNPart> parts) const {
 
     auto maxVal = SBQuantity::picometer(std::numeric_limits<double>::max()); 
     auto bb = SBIAPosition3(maxVal, -maxVal, maxVal, -maxVal, maxVal, -maxVal);

@@ -55,11 +55,11 @@ public:
 	bool														loadPart(const QString& filename, SBDDocumentFolder* preferredFolder = nullptr);
 	void														loadParts(const QString& filename, SBDDocumentFolder* preferredFolder = nullptr);
 
-	void														SaveFile(QString filename, ADNPointer<ADNPart> part = nullptr);
+	void														SaveFile(QString filename, SBPointer<ADNPart> part = nullptr);
 	void														LoadPartWithDaedalus(QString filename, int minEdgeSize);
 	bool														importFromCadnano(const QString& filename, SBDDocumentFolder* preferredFolder = nullptr);
-	void														ExportToOxDNA(QString folder, ADNAuxiliary::OxDNAOptions options, CollectionMap<ADNPart> parts);
-	void														ExportToSequenceList(QString filename, CollectionMap<ADNPart> parts);
+	void														ExportToOxDNA(QString folder, ADNAuxiliary::OxDNAOptions options, SBPointerIndexer<ADNPart> parts);
+	void														ExportToSequenceList(QString filename, SBPointerIndexer<ADNPart> parts);
 
 	//@}
 
@@ -86,11 +86,11 @@ public:
 	// Modifications
 
 	void														BreakSingleStrand(bool fivePrimeMode = false);
-	void														TwistDoubleHelix(CollectionMap<ADNDoubleStrand> dss, double angle);
+	void														TwistDoubleHelix(SBPointerIndexer<ADNDoubleStrand> dss, double angle);
 	bool														CalculateBindingRegions(int oligoConc, int monovalentConc, int divalentConc);
-	void														MergeComponents(ADNPointer<ADNPart> p1, ADNPointer<ADNPart> p2);
-	void														MoveDoubleStrand(ADNPointer<ADNDoubleStrand> ds, ADNPointer<ADNPart> p);
-	void														MoveSingleStrand(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNPart> p);
+	void														MergeComponents(SBPointer<ADNPart> p1, SBPointer<ADNPart> p2);
+	void														MoveDoubleStrand(SBPointer<ADNDoubleStrand> ds, SBPointer<ADNPart> p);
+	void														MoveSingleStrand(SBPointer<ADNSingleStrand> ss, SBPointer<ADNPart> p);
 	void														CreateBasePair();
 
 	// Debug
@@ -126,9 +126,9 @@ public:
 
 	// Adding things to data graph
 
-	void														addPartToDocument(ADNPointer<ADNPart> part, bool positionsData = false, SBFolder* preferredFolder = nullptr);
-	void														addConformationToDocument(ADNPointer<ADNConformation> conf, SBFolder* preferredFolder = nullptr);
-	void														AddLoadedPartToNanorobot(ADNPointer<ADNPart> part);
+	void														addPartToDocument(SBPointer<ADNPart> part, bool positionsData = false, SBFolder* preferredFolder = nullptr);
+	void														addConformationToDocument(SBPointer<ADNConformation> conf, SBFolder* preferredFolder = nullptr);
+	void														AddLoadedPartToNanorobot(SBPointer<ADNPart> part);
 
 	virtual void												keyPressEvent(QKeyEvent* event);
 
@@ -136,7 +136,7 @@ public:
 
 private:
 
-	void														ConnectStructuralSignalSlots(ADNPointer<ADNPart> part);
+	void														ConnectStructuralSignalSlots(SBPointer<ADNPart> part);
 
 	std::map<SBDocument*, ADNNanorobot*>						nanorobotMap;
 

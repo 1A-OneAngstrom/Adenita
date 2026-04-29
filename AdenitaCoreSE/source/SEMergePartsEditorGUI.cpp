@@ -57,7 +57,7 @@ void SEMergePartsEditorGUI::updatePartsList() {
 
 	for (auto& pair : indexParts) {
 
-		ADNPointer<ADNPart> part = pair.second;
+		SBPointer<ADNPart> part = pair.second;
 		std::string n = part->getName();
 		ui.comboBoxMergeComponent1->insertItem(pair.first, QString::fromStdString(n));
 		ui.comboBoxMergeComponent2->insertItem(pair.first, QString::fromStdString(n));
