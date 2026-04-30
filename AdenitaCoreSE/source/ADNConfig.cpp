@@ -324,7 +324,7 @@ void SEConfig::loadConfig() {
 
 	configFileWatcher_.addPath(DEFAULT_CONFIGPATH.c_str());
 
-	QObject::connect(&configFileWatcher_, SIGNAL(fileChanged(const QString &)), this, SLOT(updateConfig()));
+	QObject::connect(&configFileWatcher_, &QFileSystemWatcher::fileChanged, this, &SEConfig::updateConfig);
 
 }
 
@@ -372,7 +372,7 @@ void SEConfig::loadDebugConfig() {
 
     debugConfigFileWatcher_.addPath(DEBUG_CONFIGPATH.c_str());
 
-    QObject::connect(&debugConfigFileWatcher_, SIGNAL(fileChanged(const QString &)), this, SLOT(updateDebugConfig()));
+    QObject::connect(&debugConfigFileWatcher_, &QFileSystemWatcher::fileChanged, this, &SEConfig::updateDebugConfig);
 
 }
 

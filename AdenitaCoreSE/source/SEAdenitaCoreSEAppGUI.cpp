@@ -218,8 +218,8 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 	buttonBox->addButton(acceptButton, QDialogButtonBox::ActionRole);
 	buttonBox->addButton(cancelButton, QDialogButtonBox::ActionRole);
 
-	QObject::connect(cancelButton, SIGNAL(released()), dialog, SLOT(close()));
-	QObject::connect(acceptButton, SIGNAL(released()), dialog, SLOT(accept()));
+	QObject::connect(cancelButton, &QPushButton::released, dialog, &QDialog::close);
+	QObject::connect(acceptButton, &QPushButton::released, dialog, &QDialog::accept);
 
 	QGridLayout* mainLayout = new QGridLayout;
 	mainLayout->setSizeConstraint(QLayout::SetFixedSize);
@@ -313,8 +313,8 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 			bttBox->addButton(accButton, QDialogButtonBox::ActionRole);
 			bttBox->addButton(cButton, QDialogButtonBox::ActionRole);
 
-			QObject::connect(cButton, SIGNAL(released()), dialogOxDNA, SLOT(close()));
-			QObject::connect(accButton, SIGNAL(released()), dialogOxDNA, SLOT(accept()));
+			QObject::connect(cButton, &QPushButton::released, dialogOxDNA, &QDialog::close);
+			QObject::connect(accButton, &QPushButton::released, dialogOxDNA, &QDialog::accept);
 
 			oxDNALayout->addRow(info);
 			oxDNALayout->addRow(QString("Box size X (nm)"), boxX);
@@ -383,8 +383,8 @@ void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 	buttonBox->addButton(acceptButton, QDialogButtonBox::ActionRole);
 	buttonBox->addButton(cancelButton, QDialogButtonBox::ActionRole);
 
-	QObject::connect(cancelButton, SIGNAL(released()), dialog, SLOT(close()));
-	QObject::connect(acceptButton, SIGNAL(released()), dialog, SLOT(accept()));
+	QObject::connect(cancelButton, &QPushButton::released, dialog, &QDialog::close);
+	QObject::connect(acceptButton, &QPushButton::released, dialog, &QDialog::accept);
 
 	QGridLayout* mainLayout = new QGridLayout;
 	mainLayout->setSizeConstraint(QLayout::SetFixedSize);
@@ -475,8 +475,8 @@ void SEAdenitaCoreSEAppGUI::onCatenanes() {
 	buttonBox_->addButton(acceptButton, QDialogButtonBox::ActionRole);
 	buttonBox_->addButton(cancelButton, QDialogButtonBox::ActionRole);
 
-	QObject::connect(cancelButton, SIGNAL(released()), dialog, SLOT(reject()));
-	QObject::connect(acceptButton, SIGNAL(released()), dialog, SLOT(accept()));
+	QObject::connect(cancelButton, &QPushButton::released, dialog, &QDialog::reject);
+	QObject::connect(acceptButton, &QPushButton::released, dialog, &QDialog::accept);
 
 	QGridLayout* mainLayout = new QGridLayout;
 	mainLayout->setSizeConstraint(QLayout::SetFixedSize);
@@ -545,8 +545,8 @@ void SEAdenitaCoreSEAppGUI::onKinetoplast() {
 	buttonBox_->addButton(acceptButton, QDialogButtonBox::ActionRole);
 	buttonBox_->addButton(cancelButton, QDialogButtonBox::ActionRole);
 
-	QObject::connect(cancelButton, SIGNAL(released()), dialog, SLOT(reject()));
-	QObject::connect(acceptButton, SIGNAL(released()), dialog, SLOT(accept()));
+	QObject::connect(cancelButton, &QPushButton::released, dialog, &QDialog::reject);
+	QObject::connect(acceptButton, &QPushButton::released, dialog, &QDialog::accept);
 
 	QGridLayout* mainLayout = new QGridLayout();
 	mainLayout->setSizeConstraint(QLayout::SetFixedSize);
@@ -625,8 +625,8 @@ void SEAdenitaCoreSEAppGUI::onCalculateBindingProperties() {
 
 	QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, &dialog);
 	form.addRow(&buttonBox);
-	QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
-	QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
+	QObject::connect(&buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+	QObject::connect(&buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
 
 	// make it a SAMSON dialog
 	SBGWindow* dialogWindow = SAMSON::addDialog(&dialog, "Adenita: Calculate Binding Properties", SBGWindow::NoOptions);
@@ -783,8 +783,8 @@ void SEAdenitaCoreSEAppGUI::onGenerateSequence() {
 	QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, &dialog);
 	form.addRow(&buttonBox);
 
-	QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
-	QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
+	QObject::connect(&buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+	QObject::connect(&buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
 
 	// make it a SAMSON dialog
 	SBGWindow* dialogWindow = SAMSON::addDialog(&dialog, "Adenita: Generate Sequence", SBGWindow::NoOptions);
