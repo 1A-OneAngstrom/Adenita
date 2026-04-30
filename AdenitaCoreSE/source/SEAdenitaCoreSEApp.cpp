@@ -662,8 +662,26 @@ void SEAdenitaCoreSEApp::FromDataGraph(bool resetVisualModel) {
 void SEAdenitaCoreSEApp::HighlightXOs() {
 
 	auto parts = GetNanorobot()->GetParts();
+	if (parts.size() == 0) return;
 
-	SB_FOR(SBPointer<ADNPart> p, parts) PICrossovers::GetCrossovers(p);
+	SAMSON::beginHolding("Select crossovers");
+
+	SAMSON::getActiveDocument()->clearSelection();
+
+	SB_FOR(SBPointer<ADNPart> p, parts) {
+		
+		auto xos = PICrossovers::GetCrossovers(p);
+
+		for (const auto& p : xos) {
+
+			if (p.first.isValid()) p.first->setSelectionFlag(true);
+			if (p.second.isValid()) p.second->setSelectionFlag(true);
+
+		}
+
+	}
+
+	SAMSON::endHolding();
 
 	SEAdenitaCoreSEApp::resetVisualModel();
 
@@ -672,8 +690,15 @@ void SEAdenitaCoreSEApp::HighlightXOs() {
 void SEAdenitaCoreSEApp::HighlightPosXOs() {
 
 	auto parts = GetNanorobot()->GetParts();
+	if (parts.size() == 0) return;
+
+	SAMSON::beginHolding("Select possible crossovers");
+
+	SAMSON::getActiveDocument()->clearSelection();
 
 	SB_FOR(SBPointer<ADNPart> p, parts) PICrossovers::GetPossibleCrossovers(p);
+
+	SAMSON::endHolding();
 
 	SEAdenitaCoreSEApp::resetVisualModel();
 

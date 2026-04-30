@@ -8,8 +8,10 @@ ADNNeighborNt* ADNNeighbors::GetPINucleotide(SBPointer<ADNNucleotide> nt) const 
     ADNNeighborNt* piNt = nullptr;
 
     for (const auto& p : ntIndices_) {
+
         piNt = p.second;
         if (piNt->GetNucleotide() == nt) break;
+
     }
 
     return piNt;
@@ -27,9 +29,11 @@ std::vector<ADNNeighborNt*> ADNNeighbors::GetNeighbors(ADNNeighborNt* nt) const 
         const unsigned int sz = numNeighborsList_[idx];
 
         for (unsigned int i = 0; i < sz; ++i) {
+
             unsigned int neighborIdx = neighborList_[pos + i];
             ADNNeighborNt* nt = ntIndices_.at(neighborIdx);
             neighbors.push_back(nt);
+
         }
 
     }
@@ -49,9 +53,11 @@ SBPointerIndexer<ADNNucleotide> ADNNeighbors::GetNeighbors(SBPointer<ADNNucleoti
     const unsigned int sz = numNeighborsList_[idx];
 
     for (unsigned int i = 0; i < sz; ++i) {
+
         unsigned int neighborIdx = neighborList_[pos + i];
         ADNNeighborNt* nt = ntIndices_.at(neighborIdx);
         neighbors.addReferenceTarget(nt->GetNucleotide()());
+
     }
 
     return neighbors;

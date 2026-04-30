@@ -11,13 +11,15 @@ std::vector<XOPair> PICrossovers::GetCrossovers(SBPointer<ADNPart> part) {
 
     SB_FOR(SBPointer<ADNNucleotide> nt, nucleotides) {
 
+        if (!nt.isValid()) continue;
+
         SBPointer<ADNBaseSegment> bs = nt->GetBaseSegment();
         if (!bs.isValid()) continue;
         SBPointer<ADNDoubleStrand> ds1 = bs->GetDoubleStrand();
         if (!ds1.isValid()) continue;
 
         SBPointer<ADNNucleotide> next = nt->GetNext();
-        if (next != nullptr) {
+        if (next.isValid()) {
 
             SBPointer<ADNDoubleStrand> ds2 = next->GetBaseSegment()->GetDoubleStrand();
             if (ds1 != ds2) {
@@ -38,10 +40,10 @@ std::vector<XOPair> PICrossovers::GetCrossovers(SBPointer<ADNPart> part) {
 
 }
 
-std::vector<XOPair> PICrossovers::GetPossibleCrossovers(SBPointer<ADNPart> part, SBPointer<ADNNucleotide> nt, ADNNeighbors* neigh) {
+std::vector<XOPair> PICrossovers::GetPossibleCrossovers(SBPointer<ADNPart> part, SBPointer<ADNNucleotide> nt, ADNNeighbors& neigh) {
 
     // highlight neighbors of selected nucleotide
-    auto ntNeighbors = neigh->GetNeighbors(nt);
+    auto ntNeighbors = neigh.GetNeighbors(nt);
     SB_FOR(SBPointer<ADNNucleotide> ntN, ntNeighbors) {
         ntN->setSelectionFlag(true);
     }
@@ -50,20 +52,16 @@ std::vector<XOPair> PICrossovers::GetPossibleCrossovers(SBPointer<ADNPart> part,
 
 }
 
-std::vector<XOPair> PICrossovers::GetPossibleCrossovers(SBPointer<ADNPart> part, ADNNeighbors* neigh) {
+std::vector<XOPair> PICrossovers::GetPossibleCrossovers(SBPointer<ADNPart> part) {
 
-    if (neigh == nullptr) {
-
-        // create neighbors
-        neigh = new ADNNeighbors();
-        SEConfig& c = SEConfig::GetInstance();
-        neigh->SetMaxCutOff(SBQuantity::nanometer(c.debugOptions.maxCutOff));
-        neigh->SetMinCutOff(SBQuantity::nanometer(c.debugOptions.minCutOff));
-        neigh->SetIncludePairs(false);
-        neigh->SetFromOwnSingleStrand(true);
-        neigh->InitializeNeighbors(part);
-
-    }
+    // create neighbors
+    ADNNeighbors neigh;
+    SEConfig& c = SEConfig::GetInstance();
+    neigh.SetMaxCutOff(SBQuantity::nanometer(c.debugOptions.maxCutOff));
+    neigh.SetMinCutOff(SBQuantity::nanometer(c.debugOptions.minCutOff));
+    neigh.SetIncludePairs(false);
+    neigh.SetFromOwnSingleStrand(true);
+    neigh.InitializeNeighbors(part);
 
     std::vector<XOPair> xos;
 
@@ -72,7 +70,8 @@ std::vector<XOPair> PICrossovers::GetPossibleCrossovers(SBPointer<ADNPart> part,
     SB_FOR(SBPointer<ADNNucleotide> nt, nts) {
 
         auto ntXO = GetPossibleCrossovers(part, nt, neigh);
-        xos.insert(xos.end(), ntXO.begin(), ntXO.end());
+        if (ntXO.size())
+            xos.insert(xos.end(), ntXO.begin(), ntXO.end());
 
     }
 
