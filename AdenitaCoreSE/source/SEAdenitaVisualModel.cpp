@@ -347,12 +347,10 @@ void SEAdenitaVisualModel::init() {
 
 	const SEConfig& config = SEConfig::GetInstance();
 
-	MSVColors* regularColors = new MSVColors();
-	MSVColors* meltTempColors = new MSVColors();
-	MSVColors* gibbsColors = new MSVColors();
-	colors_[ColorType::REGULAR] = regularColors;
-	colors_[ColorType::MELTTEMP] = meltTempColors;
-	colors_[ColorType::GIBBS] = gibbsColors;
+	colors_.clear();
+	colors_.emplace(ColorType::REGULAR, MSVColors());
+	colors_.emplace(ColorType::MELTTEMP, MSVColors());
+	colors_.emplace(ColorType::GIBBS, MSVColors());
 
 	//setup the display properties
 	nucleotideEColor_ = ADNArray<float>(4);
@@ -1515,7 +1513,7 @@ std::string	SEAdenitaVisualModel::getSingleStrandColorsItemText(const int index)
 }
 void		SEAdenitaVisualModel::setSingleStrandColorsCurrentIndex(const int index) {
 
-	auto regularColors = colors_[ColorType::REGULAR];
+	auto regularColors = &colors_.at(ColorType::REGULAR);
 
 	if (index == 0) {
 
@@ -1706,7 +1704,7 @@ void		SEAdenitaVisualModel::setNucleotideColorsCurrentIndex(const int index) {
 
 	this->nucleotideColorSchemeCurrentIndex = index;
 
-	auto regularColors = colors_[ColorType::REGULAR];
+	auto regularColors = &colors_.at(ColorType::REGULAR);
 
 	if (index == 0) {
 
@@ -1818,7 +1816,7 @@ void		SEAdenitaVisualModel::setDoubleStrandColorsCurrentIndex(const int index) {
 
 	this->doubleStrandColorsCurrentIndex = index;
 
-	auto regularColors = colors_[ColorType::REGULAR];
+	auto regularColors = &colors_.at(ColorType::REGULAR);
 
 	if (index == 0) {
 
@@ -2060,8 +2058,8 @@ void SEAdenitaVisualModel::changePropertyColors(const int propertyIdx, const int
 
 	if (this->curColorType_ == ColorType::MELTTEMP || this->curColorType_ == ColorType::GIBBS) {
 
-		MSVColors* meltingTempColors = colors_.at(ColorType::MELTTEMP);
-		MSVColors* gibbsColors = colors_.at(ColorType::GIBBS);
+		MSVColors* meltingTempColors = &colors_.at(ColorType::MELTTEMP);
+		MSVColors* gibbsColors = &colors_.at(ColorType::GIBBS);
 
 		const SEConfig& config = SEConfig::GetInstance();
 		const auto& p = PIPrimer3::GetInstance();
@@ -2259,7 +2257,7 @@ void SEAdenitaVisualModel::prepareNucleotides() {
 
 	auto parts = nanorobot_->GetParts();
 
-	MSVColors* curColors = colors_[curColorType_];
+	MSVColors* curColors = &colors_.at(curColorType_);
 
 	SBNodeMaterial* material = getMaterial();
 
@@ -2343,7 +2341,7 @@ void SEAdenitaVisualModel::prepareSingleStrands() {
 	const SEConfig& config = SEConfig::GetInstance();
 	auto parts = nanorobot_->GetParts();
 
-	MSVColors* curColors = colors_[curColorType_];
+	MSVColors* curColors = &colors_.at(curColorType_);
 
 	SB_FOR(auto part, parts) {
 
@@ -2412,7 +2410,7 @@ void SEAdenitaVisualModel::prepareDoubleStrands() {
 
 	auto parts = nanorobot_->GetParts();
 
-	MSVColors* curColors = colors_[curColorType_];
+	MSVColors* curColors = &colors_.at(curColorType_);
 	positionsDS_ = ADNArray<float>(3, nPositionsDS_);
 	radiiVDS_ = ADNArray<float>(nPositionsDS_);
 	flagsDS_ = ADNArray<unsigned int>(nPositionsDS_);
@@ -2626,7 +2624,7 @@ void SEAdenitaVisualModel::displayBasePairConnections(SBNode::RenderingPass rend
 
 	const SEConfig& config = SEConfig::GetInstance();
 
-	auto baseColors = colors_.at(ColorType::REGULAR);
+	auto baseColors = &colors_.at(ColorType::REGULAR);
 	auto parts = nanorobot_->GetParts();
 
 	unsigned int numPairedNucleotides = 0;
@@ -2898,7 +2896,7 @@ void SEAdenitaVisualModel::prepareAtoms() {
 	if (!nanorobot_) return;
 
 	const SEConfig& config = SEConfig::GetInstance();
-	MSVColors* curColors = colors_[curColorType_];
+	MSVColors* curColors = &colors_.at(curColorType_);
 
 	auto parts = nanorobot_->GetParts();
 
