@@ -1728,6 +1728,22 @@ void ADNLoader::OutputToCanDo(const SBPointerIndexer<ADNSingleStrand>& singleStr
 	}
 
 	file << "dnaTop,id,up,down,across,seq" << std::endl;
+	const auto getNucleotideId = [&nucleotidesId](ADNNucleotide* nucleotide, const std::string& relation) {
+
+		if (nucleotide == nullptr) return -1;
+
+		const auto it = nucleotidesId.find(nucleotide);
+		if (it == nucleotidesId.end()) {
+
+			ADNLogger::LogError("CanDo export omitted a non-exported " + relation + " nucleotide reference.");
+			return -1;
+
+		}
+
+		return it->second;
+
+	};
+
 	for (const auto& p : nucleotidesId) {
 
 		const int idx = p.second;
@@ -1735,58 +1751,70 @@ void ADNLoader::OutputToCanDo(const SBPointerIndexer<ADNSingleStrand>& singleStr
 		ADNNucleotide* prevNt = nt->GetPrev(true)();
 		ADNNucleotide* nextNt = nt->GetNext(true)();
 		ADNNucleotide* pairNt = nt->GetPair()();
-		int prevIdx = -1;
-		if (prevNt != nullptr) prevIdx = nucleotidesId[prevNt];
-		int nextIdx = -1;
-		if (nextNt != nullptr) nextIdx = nucleotidesId[nextNt];
-		int pairIdx = -1;
-		if (pairNt != nullptr) pairIdx = nucleotidesId[pairNt];
+		const int prevIdx = getNucleotideId(prevNt, "previous");
+		const int nextIdx = getNucleotideId(nextNt, "next");
+		const int pairIdx = getNucleotideId(pairNt, "paired");
 
-		// six subfields separated by commas, which are the serial number (1, 2, �, n_nt), id, up, down, across, and seq
+		// six subfields separated by commas, which are the serial number (1, 2, ..., n_nt), id, up, down, across, and seq
 		std::string line = std::to_string(idx) + "," + std::to_string(idx) + "," + std::to_string(prevIdx) + "," + std::to_string(nextIdx) + "," + std::to_string(pairIdx) + "," + nt->getOneLetterNucleotideTypeString();
 		file << line << std::endl;
 
 	}
 	file << std::endl;
 
-	file << "dNode,\"e0(1)\",\"e0(2)\",\"e0(3)\"" << std::endl;
+	std::vector<std::string> dNodes;
 	std::vector<std::string> triads;
 	std::vector<std::string> basePairs;
-	int bsId = 1;
+	int basePairId = 1;
 	for (const SBPointerIndexer<ADNBaseSegment>& baseSegments : baseSegmentsVector) {
 
 		SB_FOR(SBPointer<ADNBaseSegment> bs, baseSegments) {
 
-			// four subfields separated by commas, which are the serial number (1, 2, ..., n_bp) of the basepair and the Cartesian coordinates e0 of the center of the reference frame
+			if (bs->GetCellType() != CellType::BasePair) continue;
 
+			auto cell = bs->GetCell();
+			if (cell == nullptr) {
+
+				ADNLogger::LogError(std::string("Skipping CanDo base pair with no cell."));
+				continue;
+
+			}
+
+			SBPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(cell());
+			const int id1 = getNucleotideId(bp->GetLeftNucleotide()(), "base-pair left");
+			const int id2 = getNucleotideId(bp->GetRightNucleotide()(), "base-pair right");
+			if (id1 == -1 || id2 == -1) {
+
+				ADNLogger::LogError(std::string("Skipping CanDo base-pair geometry for an incomplete or non-exported base pair."));
+				continue;
+
+			}
+
+			// four subfields separated by commas, which are the serial number (1, 2, ..., n_bp) of the basepair and the Cartesian coordinates e0 of the center of the reference frame
 			const auto& pos = bs->GetPosition();
-			const std::string line = std::to_string(bsId) + "," + std::to_string(pos[0].getValue() / 1000.0) + "," + std::to_string(pos[1].getValue() / 1000.0) + "," + std::to_string(pos[2].getValue() / 1000.0);
-			file << line << std::endl;
+			const std::string line = std::to_string(basePairId) + "," + std::to_string(pos[0].getValue() / 1000.0) + "," + std::to_string(pos[1].getValue() / 1000.0) + "," + std::to_string(pos[2].getValue() / 1000.0);
+			dNodes.push_back(line);
 
 			const auto& e3 = bs->GetE3();
 			const auto e2 = -1.0 * bs->GetE2();
 			const auto e1 = ADNVectorMath::CrossProduct(e2, e3);
-			std::string t = std::to_string(bsId) + ","
+			std::string t = std::to_string(basePairId) + ","
 				+ std::to_string(e1[0]) + "," + std::to_string(e1[1]) + "," + std::to_string(e1[2]) + ","
 				+ std::to_string(e2[0]) + "," + std::to_string(e2[1]) + "," + std::to_string(e2[2]) + ","
 				+ std::to_string(e3[0]) + "," + std::to_string(e3[1]) + "," + std::to_string(e3[2]);
 			triads.push_back(t);
 
-			auto cell = bs->GetCell();
-			if (bs->GetCellType() == CellType::BasePair) {
-
-				SBPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(cell());
-				const int id1 = nucleotidesId[bp->GetLeftNucleotide()()];
-				const int id2 = nucleotidesId[bp->GetRightNucleotide()()];
-				std::string s = std::to_string(bsId) + "," + std::to_string(id1) + "," + std::to_string(id2);
-				basePairs.push_back(s);
-
-			}
-
-			++bsId;
+			std::string s = std::to_string(basePairId) + "," + std::to_string(id1) + "," + std::to_string(id2);
+			basePairs.push_back(s);
+			++basePairId;
 
 		}
 
+	}
+
+	file << "dNode,\"e0(1)\",\"e0(2)\",\"e0(3)\"" << std::endl;
+	for (const auto& s : dNodes) {
+		file << s << std::endl;
 	}
 	file << std::endl;
 
