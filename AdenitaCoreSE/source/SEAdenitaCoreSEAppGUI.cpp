@@ -356,75 +356,56 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 
 void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 
-	QDialog* dialog = new QDialog();
-
-	QComboBox* typeSelection = new QComboBox();
-
 	auto nr = getApp()->GetNanorobot();
+
+	QStringList itemList;
+	std::vector<SBPointer<ADNPart>> indexParts;
+
+	// add a selected part, if it is only one
+	auto selectedParts = nr->GetSelectedParts();
+	if (selectedParts.size() > 1) {
+
+		SAMSON::informUser("Adenita: Save selection", "Found multiple pre-selected components.\nPlease select a single component to save.");
+		return;
+
+	}
+	const bool hasSelectedComponent = selectedParts.size() > 0;
+	if (hasSelectedComponent) {
+		
+		itemList.push_back("Selected component");
+		indexParts.push_back(selectedParts[0]);
+
+	}
+
+	// add all parts
 	auto parts = nr->GetParts();
-	int i = 0;
-	std::map<int, SBPointer<ADNPart>> indexParts;
 	SB_FOR(SBPointer<ADNPart> part, parts) {
 
-		std::string n = part->getName();
-		typeSelection->insertItem(i, QString::fromStdString(n));
-		indexParts.insert(std::make_pair(i, part));
-		++i;
+		itemList.push_back(QString::fromStdString(part->getName()));
+		indexParts.push_back(part);
 
 	}
-	typeSelection->insertItem(i, QString::fromStdString("Selected Component"));
-	const int sel_idx = i;
 
-	QPushButton* acceptButton = new QPushButton(tr("Save"));
-	acceptButton->setDefault(true);
-	QPushButton* cancelButton = new QPushButton(tr("Cancel"));
+	int val = 0;
+	if (SAMSON::getItemFromUser("Adenita: Export design", val, "", itemList)) {
 
-	QDialogButtonBox* buttonBox = new QDialogButtonBox(Qt::Horizontal);
-	buttonBox->addButton(acceptButton, QDialogButtonBox::ActionRole);
-	buttonBox->addButton(cancelButton, QDialogButtonBox::ActionRole);
+		SBPointer<ADNPart> part = indexParts.at(val);
 
-	QObject::connect(cancelButton, &QPushButton::released, dialog, &QDialog::close);
-	QObject::connect(acceptButton, &QPushButton::released, dialog, &QDialog::accept);
+		if (part != nullptr) {
 
-	QGridLayout* mainLayout = new QGridLayout;
-	mainLayout->setSizeConstraint(QLayout::SetFixedSize);
-	mainLayout->addWidget(typeSelection, 0, 0);
-	mainLayout->addWidget(buttonBox, 1, 0);
+			QString filename;
+			if (SBGWindowDialog::getSaveFileNameFromUser(tr("Save a part"), filename, QString(), tr("Adenita part (*.adnpart)"))) {
 
-	dialog->setLayout(mainLayout);
-	//dialog->setWindowTitle(tr("Export design"));
+				QFileInfo fileInfo(filename);
+				workingDirectory = fileInfo.absolutePath();	// get the absolute path to the filename
+				const bool overwrite = !fileInfo.exists() || SAMSON::askUser("Save a part", "The file already exists. Do you want to overwrite it?");
+				if (overwrite && !filename.isEmpty()) getApp()->SaveFile(filename, part);
 
-	// make it a SAMSON dialog
-	SBGWindow* dialogWindow = SAMSON::addDialog(dialog, "Adenita: Export design", SBGWindow::NoOptions);
-	dialogWindow->QWidget::setWindowFlags(dialogWindow->QWidget::windowFlags() | Qt::WindowStaysOnTopHint);
-	dialogWindow->setWindowModality(Qt::ApplicationModal);
-	dialogWindow->show();
-
-	if (dialog->exec() == QDialog::Accepted) {
-
-		auto val = typeSelection->currentIndex();
-		SBPointer<ADNPart> part = nullptr;
-		if (val == sel_idx) {
-			part = nr->GetSelectedParts()[0];
-		}
-		else {
-			part = indexParts.at(val);
-		}
-
-		QString filename;// = QFileDialog::getSaveFileName(this, tr("Save a part"), QDir::currentPath(), tr("Adenita part (*.adnpart)"));
-		if (SBGWindowDialog::getSaveFileNameFromUser(tr("Save a part"), filename, QString(), tr("Adenita part (*.adnpart)"))) {
-
-			QFileInfo fileInfo(filename);
-			workingDirectory = fileInfo.absolutePath();	// get the absolute path to the filename
-			if (fileInfo.exists()) if (!SAMSON::askUser("Save a part", "The file already exists. Do you want to overwrite it?")) return;
-
-			if (!filename.isEmpty()) getApp()->SaveFile(filename, part);
+			}
 
 		}
 
 	}
-
-	dialogWindow->deleteLater();
 
 }
 
