@@ -15,7 +15,16 @@
 #include "ADNConfigFileIO.hpp"
 #include "ADNConfigJson.hpp"
 #include "ADNJsonValidation.hpp"
+#include "ADNPart.hpp"
 #include "ADNScaffoldReader.hpp"
+#include "SBCHeapExport.hpp"
+
+namespace ADNLoader {
+
+	SB_EXPORT void BuildTopScales(SBPointer<ADNPart> part);
+	SB_EXPORT void BuildTopScalesParametrized(SBPointer<ADNPart> part, const SBQuantity::length& maxCutOff, const SBQuantity::length& minCutOff, double maxAngle);
+
+}
 
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
@@ -114,6 +123,55 @@ std::string serializeJson(const rapidjson::Document& document) {
 std::filesystem::path temporaryConfigPath(const std::string& filename) {
 
 	return std::filesystem::temp_directory_path() / filename;
+
+}
+
+ublas::vector<double> vector3(double x, double y, double z) {
+
+	ublas::vector<double> value(3);
+	value[0] = x;
+	value[1] = y;
+	value[2] = z;
+	return value;
+
+}
+
+SBPointer<ADNNucleotide> createSyntheticNucleotide(DNABlocks type,
+	double x,
+	double y,
+	double z,
+	const ublas::vector<double>& e2) {
+
+	SBPointer<ADNNucleotide> nucleotide = new ADNNucleotide();
+	nucleotide->Init();
+	const SBPosition3 sbPosition = SBPosition3(SBQuantity::nanometer(x), SBQuantity::nanometer(y), SBQuantity::nanometer(z));
+	nucleotide->setNucleotideType(type);
+	nucleotide->SetBackbonePosition(sbPosition);
+	nucleotide->SetSidechainPosition(sbPosition);
+	nucleotide->SetE1(vector3(0.0, 1.0, 0.0));
+	nucleotide->SetE2(e2);
+	nucleotide->SetE3(vector3(0.0, 0.0, 1.0));
+	return nucleotide;
+
+}
+
+SBPointer<ADNPart> createPartWithBrokenTopScaleLinks(double pairedX) {
+
+	SBPointer<ADNPart> part = new ADNPart();
+	SBPointer<ADNSingleStrand> strand = new ADNSingleStrand();
+	SBPointer<ADNSingleStrand> pairedStrand = new ADNSingleStrand();
+	SBPointer<ADNNucleotide> nucleotide = createSyntheticNucleotide(SBResidue::ResidueType::DA, 0.0, 0.0, 0.0, vector3(1.0, 0.0, 0.0));
+	SBPointer<ADNNucleotide> pairedNucleotide = createSyntheticNucleotide(SBResidue::ResidueType::DT, pairedX, 0.0, 0.0, vector3(-1.0, 0.0, 0.0));
+
+	part->RegisterSingleStrand(strand);
+	part->RegisterSingleStrand(pairedStrand);
+	part->RegisterNucleotideThreePrime(strand, nucleotide);
+	part->RegisterNucleotideThreePrime(pairedStrand, pairedNucleotide);
+
+	nucleotide->setEndType(ADNNucleotide::EndType::NotEnd);
+	pairedNucleotide->setEndType(ADNNucleotide::EndType::NotEnd);
+
+	return part;
 
 }
 
@@ -725,6 +783,33 @@ void testLegacyJsonValidation() {
 
 }
 
+void testBuildTopScalesHandlesBrokenNucleotideLinks() {
+
+	SBPointer<ADNPart> part = createPartWithBrokenTopScaleLinks(1.0);
+
+	ADNLoader::BuildTopScales(part);
+
+	requireTrue("build top scales handles broken nucleotide links",
+		part->GetNumberOfBaseSegments() > 0,
+		"Expected top-scale construction to complete and create base segments.");
+
+}
+
+void testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks() {
+
+	SBPointer<ADNPart> part = createPartWithBrokenTopScaleLinks(-1.0);
+
+	ADNLoader::BuildTopScalesParametrized(part,
+		SBQuantity::nanometer(1.2),
+		SBQuantity::nanometer(0.0),
+		49.0);
+
+	requireTrue("build top scales parametrized handles broken nucleotide links",
+		part->GetNumberOfBaseSegments() > 0,
+		"Expected parametrized top-scale construction to complete and create base segments.");
+
+}
+
 } // namespace
 
 int main() {
@@ -745,6 +830,8 @@ int main() {
 	testConcatenate();
 	testModernJsonValidation();
 	testLegacyJsonValidation();
+	testBuildTopScalesHandlesBrokenNucleotideLinks();
+	testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks();
 
 	if (!failures.empty()) {
 		for (const auto& failure : failures)

@@ -119,6 +119,7 @@ if(${OUTPUT_UUID}_tests)
   target_sources(${ADENITA_STANDALONE_TEST_TARGET}
     PRIVATE
       ${${OUTPUT_UUID}_tests}
+      include/ADNConfig.hpp
   )
 
   target_include_directories(${ADENITA_STANDALONE_TEST_TARGET}
@@ -128,7 +129,15 @@ if(${OUTPUT_UUID}_tests)
       "${SAMSON_INCLUDE_PATH}"
   )
 
+  target_link_libraries(${ADENITA_STANDALONE_TEST_TARGET}
+    PRIVATE
+      ${OUTPUT_NAME}
+      ${QT_LIBRARIES}
+      ${SAMSON_SDK_LIBRARIES}
+  )
+
   set_property(TARGET ${ADENITA_STANDALONE_TEST_TARGET} PROPERTY FOLDER "Elements/Tests")
+  set_target_properties(${ADENITA_STANDALONE_TEST_TARGET} PROPERTIES AUTOMOC ON)
 
   add_test(
     NAME ${OUTPUT_NAME}.Standalone

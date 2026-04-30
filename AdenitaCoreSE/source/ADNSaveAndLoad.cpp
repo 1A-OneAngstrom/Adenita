@@ -1,6 +1,7 @@
 #include "ADNSaveAndLoad.hpp"
 
 #include "ADNJsonValidation.hpp"
+#include "ADNLogger.hpp"
 
 #include "SBBackbone.hpp"
 #include "SBSideChain.hpp"
@@ -82,6 +83,76 @@ static void print_json_value(const rapidjson::Value& value) {
 	value.Accept(writer);
 
 	std::cout << buffer.GetString() << std::endl;
+
+}
+
+namespace {
+
+bool hasThreePrimeEndMetadata(ADNNucleotide::EndType endType) {
+
+	return endType == ADNNucleotide::EndType::ThreePrime ||
+		endType == ADNNucleotide::EndType::FiveAndThreePrime;
+
+}
+
+bool hasFivePrimeEndMetadata(ADNNucleotide::EndType endType) {
+
+	return endType == ADNNucleotide::EndType::FivePrime ||
+		endType == ADNNucleotide::EndType::FiveAndThreePrime;
+
+}
+
+void logBrokenTopScaleTopology(const std::string& relation, SBPointer<ADNNucleotide> nucleotide) {
+
+	ADNLogger::LogError("Top-scale construction found a nucleotide marked as " +
+		nucleotide->getEndTypeString() + " with no " + relation + " link.");
+
+}
+
+bool shouldBreakTopScaleDoubleStrand(SBPointer<ADNNucleotide> nt,
+	SBPointer<ADNNucleotide> pair,
+	const ublas::vector<double>& e3,
+	double turningThreshold) {
+
+	bool breakDs = false;
+
+	const SBPointer<ADNNucleotide> ntNext = nt->GetNext();
+	if (ntNext != nullptr) {
+
+		const auto& e3Next = ntNext->GetE3();
+		const auto theta = ublas::inner_prod(e3, e3Next);
+		if (theta < turningThreshold) breakDs = true;
+
+	}
+	else if (!hasThreePrimeEndMetadata(nt->getEndType())) {
+
+		logBrokenTopScaleTopology("next", nt);
+		breakDs = true;
+
+	}
+
+	if (pair != nullptr) {
+
+		const SBPointer<ADNNucleotide> pairPrev = pair->GetPrev();
+		if (pairPrev != nullptr) {
+
+			const auto& e3Prev = pairPrev->GetE3();
+			const auto theta = ublas::inner_prod(pair->GetE3(), e3Prev);
+			if (theta < turningThreshold) breakDs = true;
+
+		}
+		else if (!hasFivePrimeEndMetadata(pair->getEndType())) {
+
+			logBrokenTopScaleTopology("previous", pair);
+			breakDs = true;
+
+		}
+
+	}
+
+	return breakDs;
+
+}
 
 }
 
@@ -1930,31 +2001,8 @@ void ADNLoader::BuildTopScalesParametrized(SBPointer<ADNPart> part, const SBQuan
 			}
 			part->RegisterBaseSegmentEnd(ds, bs);
 
-			bool breakDs = false;
-			double turningThreshold = 0.0;
-			//if (pair == nullptr && nt->GetEnd() != NotEnd) breakDs = true;
-			//else if (pair != nullptr && nt->GetEnd() == ThreePrime && pair->GetEnd() == FivePrime) breakDs = true;
-			if (nt->getEndType() != ADNNucleotide::EndType::ThreePrime) {
-
-				// if huge change in directionality, make new strand
-				SBPointer<ADNNucleotide> ntNext = nt->GetNext();
-				const auto& e3Next = ntNext->GetE3();
-				const auto theta = ublas::inner_prod(e3, e3Next);
-				if (theta < 0.9) {
-					int test = 1;
-				}
-				if (theta < turningThreshold) breakDs = true;
-
-			}
-			if (pair != nullptr && pair->getEndType() != ADNNucleotide::EndType::FivePrime) {
-
-				// if huge change in directionality, make new strand
-				SBPointer<ADNNucleotide> pairPrev = pair->GetPrev();
-				const auto& e3Prev = pairPrev->GetE3();
-				const auto theta = ublas::inner_prod(pair->GetE3(), e3Prev);
-				if (theta < turningThreshold) breakDs = true;
-
-			}
+			const double turningThreshold = 0.0;
+			const bool breakDs = shouldBreakTopScaleDoubleStrand(nt, pair, e3, turningThreshold);
 
 			if (breakDs) ds = nullptr;
 
@@ -2063,31 +2111,8 @@ void ADNLoader::BuildTopScales(SBPointer<ADNPart> part) {
 			}
 			part->RegisterBaseSegmentEnd(ds, bs);
 
-			bool breakDs = false;
-			double turningThreshold = 0.0;
-			//if (pair == nullptr && nt->GetEnd() != NotEnd) breakDs = true;
-			//else if (pair != nullptr && nt->GetEnd() == ThreePrime && pair->GetEnd() == FivePrime) breakDs = true;
-			if (nt->getEndType() != ADNNucleotide::EndType::ThreePrime) {
-
-				// if huge change in directionality, make new strand
-				SBPointer<ADNNucleotide> ntNext = nt->GetNext();
-				const auto& e3Next = ntNext->GetE3();
-				const auto theta = ublas::inner_prod(e3, e3Next);
-				if (theta < 0.9) {
-					int test = 1;
-				}
-				if (theta < turningThreshold) breakDs = true;
-
-			}
-			if (pair != nullptr && pair->getEndType() != ADNNucleotide::EndType::FivePrime) {
-
-				// if huge change in directionality, make new strand
-				SBPointer<ADNNucleotide> pairPrev = pair->GetPrev();
-				const auto& e3Prev = pairPrev->GetE3();
-				const auto theta = ublas::inner_prod(pair->GetE3(), e3Prev);
-				if (theta < turningThreshold) breakDs = true;
-
-			}
+			const double turningThreshold = 0.0;
+			const bool breakDs = shouldBreakTopScaleDoubleStrand(nt, pair, e3, turningThreshold);
 
 			if (breakDs) ds = nullptr;
 
