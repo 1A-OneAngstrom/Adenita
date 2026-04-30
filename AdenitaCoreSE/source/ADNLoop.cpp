@@ -3,6 +3,7 @@
 #include "ADNNucleotide.hpp"
 #include "ADNModel.hpp"
 
+#include <unordered_set>
 
 void ADNLoop::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber, const SBVersionNumber& classVersionNumber) const {
 
@@ -91,15 +92,25 @@ SBNode* ADNLoop::getEndNucleotide() const {
 std::string ADNLoop::getLoopSequence() const {
 
     std::string seq = "";
+    if (startNucleotide == nullptr || endNucleotide == nullptr) return seq;
+
+    std::unordered_set<const ADNNucleotide*> visitedNucleotides;
     SBPointer<ADNNucleotide> currentNucleotide = startNucleotide;
-    while (currentNucleotide != nullptr && currentNucleotide != endNucleotide->GetNext()) {
+    while (currentNucleotide != nullptr) {
+
+        if (!visitedNucleotides.insert(currentNucleotide()).second)
+            return "";
 
         seq += currentNucleotide->getOneLetterNucleotideTypeString();
+
+        if (currentNucleotide == endNucleotide)
+            return seq;
+
         currentNucleotide = currentNucleotide->GetNext();
 
     }
 
-    return seq;
+    return "";
 
 }
 

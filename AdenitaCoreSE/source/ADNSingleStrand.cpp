@@ -300,16 +300,22 @@ std::string ADNSingleStrand::GetSequenceWithTags() const {
 double ADNSingleStrand::GetGCContent() const {
 
     double gcCont = 0.0;
+    unsigned int numNucleotides = 0;
     auto nucleotides = GetNucleotides();
 
     SB_FOR(SBPointer<ADNNucleotide> nt, nucleotides) {
+
+        if (nt == nullptr) continue;
+        ++numNucleotides;
 
         if (nt->getNucleotideType() == DNABlocks::DC || nt->getNucleotideType() == DNABlocks::DG)
             gcCont += 1.0;
 
     }
 
-    gcCont /= nucleotides.size();
+    if (numNucleotides == 0) return 0.0;
+
+    gcCont /= numNucleotides;
     return gcCont * 100.0;
 
 }
