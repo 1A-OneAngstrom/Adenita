@@ -9,10 +9,13 @@
 #include <vector>
 
 #include "ADNArray.hpp"
+#include "ADNConfigJson.hpp"
 #include "ADNJsonValidation.hpp"
 #include "ADNScaffoldReader.hpp"
 
 #include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 
 namespace {
 
@@ -92,6 +95,15 @@ rapidjson::Document parseJson(const char* json) {
 	rapidjson::Document document;
 	document.Parse(json);
 	return document;
+
+}
+
+std::string serializeJson(const rapidjson::Document& document) {
+
+	rapidjson::StringBuffer buffer;
+	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+	document.Accept(writer);
+	return buffer.GetString();
 
 }
 
@@ -313,6 +325,59 @@ void testScaffoldReaderAcceptsMissingInitialHeader() {
 	requireEqual("scaffold reader accepts missing initial header",
 		ADNScaffoldReader::readScaffoldLines(lines),
 		std::string("ACGTNN"));
+
+}
+
+void testConfigJsonStringMemberCopiesAddedValue() {
+
+	rapidjson::Document document;
+	document.SetObject();
+
+	std::string ntthalPath = "C:/tools/ntthal/" + std::string(128, 'a') + ".exe";
+	const std::string expected = ntthalPath;
+
+	ADNConfigJson::setStringMember(document, "ntthal", ntthalPath);
+
+	for (char& c : ntthalPath)
+		c = 'z';
+
+	requireEqual("config json copied added string member",
+		std::string(document["ntthal"].GetString()),
+		expected);
+
+	const std::string serialized = serializeJson(document);
+	requireTrue("config json serializes added string member",
+		serialized.find(expected) != std::string::npos,
+		"Expected serialized JSON to contain the copied string value.");
+
+}
+
+void testConfigJsonStringMemberCopiesUpdatedValue() {
+
+	rapidjson::Document document;
+	document.SetObject();
+
+	ADNConfigJson::setStringMember(document, "scaffCustomFilename", std::string("initial.fasta"));
+
+	std::string scaffoldPath = "C:/scaffolds/" + std::string(128, 'c') + ".fasta";
+	const std::string expected = scaffoldPath;
+
+	ADNConfigJson::setStringMember(document, "scaffCustomFilename", scaffoldPath);
+
+	for (char& c : scaffoldPath)
+		c = 'x';
+
+	requireEqual("config json copied updated string member",
+		std::string(document["scaffCustomFilename"].GetString()),
+		expected);
+	requireEqual("config json updated existing member count",
+		document.MemberCount(),
+		static_cast<rapidjson::SizeType>(1));
+
+	const std::string serialized = serializeJson(document);
+	requireTrue("config json serializes updated string member",
+		serialized.find(expected) != std::string::npos,
+		"Expected serialized JSON to contain the copied string value.");
 
 }
 
@@ -604,6 +669,8 @@ int main() {
 	testExceptions();
 	testScaffoldReaderSkipsBlankLinesAndHeaders();
 	testScaffoldReaderAcceptsMissingInitialHeader();
+	testConfigJsonStringMemberCopiesAddedValue();
+	testConfigJsonStringMemberCopiesUpdatedValue();
 	testConcatenate();
 	testModernJsonValidation();
 	testLegacyJsonValidation();

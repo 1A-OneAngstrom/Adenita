@@ -1,4 +1,5 @@
 #include "ADNConfig.hpp"
+#include "ADNConfigJson.hpp"
 #include "rapidjson/filewritestream.h"
 #include <filesystem>
 
@@ -97,14 +98,7 @@ void SEConfig::setInterpolateDimensions(bool b) {
 void SEConfig::setNtthalExe(const std::string& filename, bool write) {
 
     ntthal = filename;
-    if (setting_.FindMember("ntthal") != setting_.MemberEnd()) {
-        setting_["ntthal"].SetString(filename.c_str(), filename.size());
-    }
-    else {
-        Val v;
-        v.SetString(filename.c_str(), filename.size());
-        setting_.AddMember("ntthal", v, setting_.GetAllocator());
-    }
+    ADNConfigJson::setStringMember(setting_, "ntthal", filename);
     if (write) writeDocumentToJson();
 
 }
@@ -127,14 +121,7 @@ void SEConfig::setScaffType(int typ) {
 void SEConfig::setScaffCustomFilename(const std::string& filename, bool write) {
 
     scaffCustomFilename = filename;
-    if (setting_.FindMember("scaffCustomFilename") != setting_.MemberEnd()) {
-        setting_["scaffCustomFilename"].SetString(filename.c_str(), filename.size());
-    }
-    else {
-        Val v;
-        v.SetString(filename.c_str(), filename.size());
-        setting_.AddMember("scaffCustomFilename", v, setting_.GetAllocator());
-    }
+    ADNConfigJson::setStringMember(setting_, "scaffCustomFilename", filename);
     if (write) writeDocumentToJson();
 
 }
