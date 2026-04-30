@@ -3,12 +3,16 @@
 
 #include <cstddef>
 #include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
+#include <system_error>
 #include <vector>
 
 #include "ADNArray.hpp"
+#include "ADNConfigFileIO.hpp"
 #include "ADNConfigJson.hpp"
 #include "ADNJsonValidation.hpp"
 #include "ADNScaffoldReader.hpp"
@@ -104,6 +108,12 @@ std::string serializeJson(const rapidjson::Document& document) {
 	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 	document.Accept(writer);
 	return buffer.GetString();
+
+}
+
+std::filesystem::path temporaryConfigPath(const std::string& filename) {
+
+	return std::filesystem::temp_directory_path() / filename;
 
 }
 
@@ -378,6 +388,65 @@ void testConfigJsonStringMemberCopiesUpdatedValue() {
 	requireTrue("config json serializes updated string member",
 		serialized.find(expected) != std::string::npos,
 		"Expected serialized JSON to contain the copied string value.");
+
+}
+
+void testConfigFileIoClosesWrittenAndReadFiles() {
+
+	const std::filesystem::path path = temporaryConfigPath("adenita_config_file_io_round_trip.json");
+	std::error_code errorCode;
+	std::filesystem::remove(path, errorCode);
+
+	rapidjson::Document document;
+	document.SetObject();
+	ADNConfigJson::setStringMember(document, "ntthal", std::string("C:/tools/ntthal.exe"));
+
+	requireTrue("config file io writes document",
+		ADNConfigFileIO::writeDocumentToFile(path.string(), document),
+		"Expected JSON document write to succeed.");
+
+	rapidjson::Document readDocument;
+	requireTrue("config file io reads document",
+		ADNConfigFileIO::readDocumentFromFile(path.string(), readDocument),
+		"Expected JSON document read to succeed.");
+	requireEqual("config file io round trips string",
+		std::string(readDocument["ntthal"].GetString()),
+		std::string("C:/tools/ntthal.exe"));
+
+	errorCode.clear();
+	const bool removed = std::filesystem::remove(path, errorCode);
+	requireTrue("config file io closes file handles",
+		removed && !errorCode,
+		"Expected the temporary file to be removable after read and write.");
+
+}
+
+void testConfigFileIoReportsFailuresAndClosesInvalidReads() {
+
+	rapidjson::Document document;
+	document.SetObject();
+
+	const std::filesystem::path directoryPath = std::filesystem::temp_directory_path();
+	requireTrue("config file io reports write open failure",
+		!ADNConfigFileIO::writeDocumentToFile(directoryPath.string(), document),
+		"Expected writing to a directory path to fail.");
+
+	const std::filesystem::path path = temporaryConfigPath("adenita_config_file_io_invalid.json");
+	{
+		std::ofstream invalidJson(path);
+		invalidJson << "{ invalid json";
+	}
+
+	rapidjson::Document readDocument;
+	requireTrue("config file io reports invalid read",
+		!ADNConfigFileIO::readDocumentFromFile(path.string(), readDocument),
+		"Expected invalid JSON to be rejected.");
+
+	std::error_code errorCode;
+	const bool removed = std::filesystem::remove(path, errorCode);
+	requireTrue("config file io closes invalid read handle",
+		removed && !errorCode,
+		"Expected the invalid JSON file to be removable after read failure.");
 
 }
 
@@ -671,6 +740,8 @@ int main() {
 	testScaffoldReaderAcceptsMissingInitialHeader();
 	testConfigJsonStringMemberCopiesAddedValue();
 	testConfigJsonStringMemberCopiesUpdatedValue();
+	testConfigFileIoClosesWrittenAndReadFiles();
+	testConfigFileIoReportsFailuresAndClosesInvalidReads();
 	testConcatenate();
 	testModernJsonValidation();
 	testLegacyJsonValidation();

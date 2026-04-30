@@ -1,7 +1,19 @@
 #include "ADNConfig.hpp"
+#include "ADNConfigFileIO.hpp"
 #include "ADNConfigJson.hpp"
-#include "rapidjson/filewritestream.h"
 #include <filesystem>
+
+namespace {
+
+	void ensureWatched(QFileSystemWatcher& watcher, const std::string& path) {
+
+		const QString watchedPath = QString::fromStdString(path);
+		if (QFileInfo::exists(watchedPath) && !watcher.files().contains(watchedPath))
+			watcher.addPath(watchedPath);
+
+	}
+
+} // namespace
 
 SEConfig & SEConfig::GetInstance() {
 
@@ -163,12 +175,7 @@ void SEConfig::setUseAtomicDetailsFlag(bool b) {
 
 void SEConfig::updateDebugConfig() {
 
-    FILE* fp = fopen(DEBUG_CONFIGPATH.c_str(), "rb");
-    if (fp != NULL) {
-
-        char readBuffer[65536];
-        rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-        debugSetting_.ParseStream(is);
+	if (ADNConfigFileIO::readDocumentFromFile(DEBUG_CONFIGPATH, debugSetting_)) {
 
         if (debugSetting_.FindMember("min_cutoff") != debugSetting_.MemberEnd())
             debugOptions.minCutOff = debugSetting_["min_cutoff"].GetDouble();
@@ -192,6 +199,8 @@ void SEConfig::updateDebugConfig() {
             debugOptions.customInt = debugSetting_["custom_int"].GetInt();
 
     }
+
+	ensureWatched(debugConfigFileWatcher_, DEBUG_CONFIGPATH);
 
 }
 
@@ -289,13 +298,13 @@ void SEConfig::loadConfig() {
 		writer.Bool(auto_set_scaffold_sequence);
 
 		writer.Key("scaffCustomFilename");
-		writer.String(scaffCustomFilename.c_str(), scaffCustomFilename.size());
+		writer.String(scaffCustomFilename.c_str(), static_cast<rapidjson::SizeType>(scaffCustomFilename.size()));
 
 		writer.Key("scaffType");
 		writer.Int(scaffType);
 
 		writer.Key("ntthal");
-		writer.String(ntthal.c_str(), ntthal.size());
+		writer.String(ntthal.c_str(), static_cast<rapidjson::SizeType>(ntthal.size()));
 
 		writer.Key("custom_mesh_model");
 		writer.Bool(custom_mesh_model);
@@ -303,13 +312,15 @@ void SEConfig::loadConfig() {
 		writer.EndObject();
 
 		std::ofstream out(std::filesystem::u8path(DEFAULT_CONFIGPATH));
-		out << s.GetString();
-		out.close();
+		if (out)
+			out << s.GetString();
+		else
+			SB_WARNING("[Adenita] Could not create config file: " + DEFAULT_CONFIGPATH);
 	}
 
 	updateConfig();
 
-	configFileWatcher_.addPath(DEFAULT_CONFIGPATH.c_str());
+	ensureWatched(configFileWatcher_, DEFAULT_CONFIGPATH);
 
 	QObject::connect(&configFileWatcher_, &QFileSystemWatcher::fileChanged, this, &SEConfig::updateConfig);
 
@@ -350,14 +361,16 @@ void SEConfig::loadDebugConfig() {
         writer.EndObject();
 
         std::ofstream out(std::filesystem::u8path(DEBUG_CONFIGPATH));
-        out << s.GetString();
-        out.close();
+        if (out)
+            out << s.GetString();
+        else
+            SB_WARNING("[Adenita] Could not create debug config file: " + DEBUG_CONFIGPATH);
 
     }
 
     updateDebugConfig();
 
-    debugConfigFileWatcher_.addPath(DEBUG_CONFIGPATH.c_str());
+    ensureWatched(debugConfigFileWatcher_, DEBUG_CONFIGPATH);
 
     QObject::connect(&debugConfigFileWatcher_, &QFileSystemWatcher::fileChanged, this, &SEConfig::updateDebugConfig);
 
@@ -365,11 +378,7 @@ void SEConfig::loadDebugConfig() {
 
 void SEConfig::updateConfig() {
 
-  FILE* fp = fopen(DEFAULT_CONFIGPATH.c_str(), "rb");
-  if (fp != NULL) {
-    char readBuffer[65536];
-	rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    setting_.ParseStream(is);
+  if (ADNConfigFileIO::readDocumentFromFile(DEFAULT_CONFIGPATH, setting_)) {
 
     if (setting_.FindMember("show_overlay") != setting_.MemberEnd()) {
       show_overlay = setting_["show_overlay"].GetBool();
@@ -524,6 +533,8 @@ void SEConfig::updateConfig() {
     }
   }
 
+  ensureWatched(configFileWatcher_, DEFAULT_CONFIGPATH);
+
 }
 
 void SEConfig::writeDoubleArray(rapidjson::Writer<rapidjson::StringBuffer> & writer, std::string key, double * arr, int length) const {
@@ -551,11 +562,7 @@ void SEConfig::readFloatArray(Val& val, float* arr, int length) {
 
 void SEConfig::writeDocumentToJson() const {
 
-    FILE* fp = fopen(DEFAULT_CONFIGPATH.c_str(), "wb"); // non-Windows use "w"
-    char writeBuffer[65536];
-    rapidjson::FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
-    rapidjson::Writer<rapidjson::FileWriteStream> writer(os);
-    setting_.Accept(writer);
-    fclose(fp);
+    if (!ADNConfigFileIO::writeDocumentToFile(DEFAULT_CONFIGPATH, setting_))
+        SB_WARNING("[Adenita] Could not write config file: " + DEFAULT_CONFIGPATH);
 
 }
