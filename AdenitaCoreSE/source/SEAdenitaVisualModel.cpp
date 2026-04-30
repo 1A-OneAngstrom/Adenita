@@ -432,16 +432,24 @@ void SEAdenitaVisualModel::update() {
 
 	auto parts = nanorobot_->GetParts();
 
-	SB_FOR(auto part, parts) part->connectBaseSignalToSlot(this, SB_SLOT(&SEAdenitaVisualModel::onBaseEvent));
+	SB_FOR(auto part, parts) {
+		
+		if (!part->baseSignalIsConnectedToSlot(this, SB_SLOT(&SEAdenitaVisualModel::onBaseEvent)))
+			part->connectBaseSignalToSlot(this, SB_SLOT(&SEAdenitaVisualModel::onBaseEvent));
 
-	SB_FOR(auto part, parts)
+	}
+
+	SB_FOR(auto part, parts) {
+		
 		if (!part->structuralSignalIsConnectedToSlot(this, SB_SLOT(&SEAdenitaVisualModel::onStructuralEvent)))
 			part->connectStructuralSignalToSlot(this, SB_SLOT(&SEAdenitaVisualModel::onStructuralEvent));
+
+	}
 
 	SBDocument* document = getDocument();
 	if (!document) document = SAMSON::getActiveDocument();
 
-	if (document) if (!document->documentSignalIsConnectedToSlot(this, SB_SLOT(&SEAdenitaVisualModel::onDocumentEvent)))
+	if (document && !document->documentSignalIsConnectedToSlot(this, SB_SLOT(&SEAdenitaVisualModel::onDocumentEvent)))
 		document->connectDocumentSignalToSlot(this, SB_SLOT(&SEAdenitaVisualModel::onDocumentEvent));
 
 	initDisplayIndices();
