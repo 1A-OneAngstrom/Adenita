@@ -260,45 +260,45 @@ SBPointerIndexer<ADNNucleotide> ADNPart::GetNucleotides(CellType cellType) const
 
 }
 
-int ADNPart::GetNumberOfNucleotides() const {
+unsigned int ADNPart::GetNumberOfNucleotides() const {
     
 #if ADENITA_ADNPART_REGISTER_NUCLEOTIDES
-    return static_cast<int>(GetNucleotides().size());
+    return GetNucleotides().size();
 #else
     return countNodes((SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 #endif
 
 }
 
-int ADNPart::getNumberOfNucleotides() const {
+unsigned int ADNPart::getNumberOfNucleotides() const {
     return GetNumberOfNucleotides();
 }
 
-int ADNPart::GetNumberOfAtoms() const {
+unsigned int ADNPart::GetNumberOfAtoms() const {
 
 #if ADENITA_ADNPART_REGISTER_ATOMS
-    return static_cast<int>(GetAtoms().size());
+    return GetAtoms().size();
 #else
     return countNodes((SBNode::GetClass() == std::string("ADNAtom")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 #endif
 
 }
 
-int ADNPart::getNumberOfAtoms() const {
+unsigned int ADNPart::getNumberOfAtoms() const {
     return GetNumberOfAtoms();
 }
 
-int ADNPart::GetNumberOfBaseSegments() const {
+unsigned int ADNPart::GetNumberOfBaseSegments() const {
 
 #if 0//ADENITA_ADNPART_REGISTER_BASESEGMENTS
-    return static_cast<int>(GetBaseSegments().size());
+    return GetBaseSegments().size();
 #else
     return countNodes((SBNode::GetClass() == std::string("ADNBaseSegment")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 #endif
 
 }
 
-int ADNPart::getNumberOfBaseSegments() const {
+unsigned int ADNPart::getNumberOfBaseSegments() const {
     return GetNumberOfBaseSegments();
 }
 
@@ -353,31 +353,31 @@ SBPointerIndexer<ADNAtom> ADNPart::GetAtoms() const {
 
 }
 
-int ADNPart::GetNumberOfDoubleStrands() const {
+unsigned int ADNPart::GetNumberOfDoubleStrands() const {
 
 #if ADENITA_ADNPART_REGISTER_STRANDS
-    return static_cast<int>(GetDoubleStrands().size());
+    return GetDoubleStrands().size();
 #else
     return countNodes((SBNode::GetClass() == std::string("ADNDoubleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 #endif
 
 }
 
-int ADNPart::getNumberOfDoubleStrands() const {
+unsigned int ADNPart::getNumberOfDoubleStrands() const {
     return GetNumberOfDoubleStrands();
 }
 
-int ADNPart::GetNumberOfSingleStrands() const {
+unsigned int ADNPart::GetNumberOfSingleStrands() const {
 
 #if ADENITA_ADNPART_REGISTER_STRANDS
-    return static_cast<int>(GetSingleStrands().size());
+    return GetSingleStrands().size();
 #else
     return countNodes((SBNode::GetClass() == std::string("ADNSingleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 #endif
 
 }
 
-int ADNPart::getNumberOfSingleStrands() const {
+unsigned int ADNPart::getNumberOfSingleStrands() const {
     return GetNumberOfSingleStrands();
 }
 

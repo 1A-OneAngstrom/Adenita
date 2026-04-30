@@ -511,9 +511,9 @@ void SEAdenitaVisualModel::initNucleotidesAndSingleStrands(bool createIndex /* =
 
 	if (!nanorobot_) return;
 
-	const int nSingleStrands = nanorobot_->GetNumberOfSingleStrands();
+	const unsigned int nSingleStrands = nanorobot_->GetNumberOfSingleStrands();
 	const unsigned int nPositions = nanorobot_->GetNumberOfNucleotides();
-	const unsigned int nCylinders = boost::numeric_cast<unsigned int>(nPositions - nSingleStrands);
+	const unsigned int nCylinders = (nPositions > nSingleStrands ? nPositions - nSingleStrands : 0);
 
 	nPositionsNt_ = nPositions;
 	nCylindersNt_ = nCylinders;
@@ -652,8 +652,8 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 	SBDocument* document = getDocument();
 	if (!document) document = SAMSON::getActiveDocument();
 
-	const int numberOfSingleStrandsUsingSAMSON = document->countNodes((SBNode::GetClass() == std::string("ADNSingleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
-	int numberOfSingleStrandsInAllParts = 0;
+	const unsigned int numberOfSingleStrandsUsingSAMSON = document->countNodes((SBNode::GetClass() == std::string("ADNSingleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+	unsigned int numberOfSingleStrandsInAllParts = 0;
 	SB_FOR(auto part, parts) if (part) numberOfSingleStrandsInAllParts += part->GetSingleStrands().size();
 	if (singleStrands.size() != numberOfSingleStrandsInAllParts || numberOfSingleStrandsUsingSAMSON != numberOfSingleStrandsInAllParts) {
 
@@ -664,8 +664,8 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 
 	// check the correspondence of the number of nucleotides
 
-	const int numberOfNucleotidesUsingSAMSON = document->countNodes((SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
-	const int numberOfNucleotidesInNanorobot = nanorobot_->GetNumberOfNucleotides();
+	const unsigned int numberOfNucleotidesUsingSAMSON = document->countNodes((SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+	const unsigned int numberOfNucleotidesInNanorobot = nanorobot_->GetNumberOfNucleotides();
 	if (numberOfNucleotidesUsingSAMSON != numberOfNucleotidesInNanorobot) {
 
 		std::cerr << "[Adenita] ERROR: The number of nucleotides in nanorobot does not correspond to their number in the data graph. " <<
@@ -674,7 +674,7 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 	}
 
 	const unsigned int nPositions = nanorobot_->GetNumberOfNucleotides();
-	const unsigned int nCylinders = boost::numeric_cast<unsigned int>(nPositions - singleStrands.size());
+	const unsigned int nCylinders = (nPositions > singleStrands.size() ? nPositions - singleStrands.size() : 0);
 
 	ADNArray<unsigned int> indices = ADNArray<unsigned int>(nCylinders * 2);
 
@@ -757,7 +757,7 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getBaseSegmentIndices() {
 	const unsigned int nDs = bsMap_.size();
 
 	const unsigned int nPositions = nanorobot_->GetNumberOfBaseSegments();
-	const unsigned int nCylinders = boost::numeric_cast<unsigned int>(nPositions - nDs);
+	const unsigned int nCylinders = (nPositions > nDs ? nPositions - nDs : 0);
 
 	ADNArray<unsigned int> indices = ADNArray<unsigned int>(nCylinders * 2);
 

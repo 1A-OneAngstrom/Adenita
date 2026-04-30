@@ -70,10 +70,10 @@ void ADNNanorobot::DeregisterPart(SBPointer<ADNPart> part) {
 #endif
 }
 
-int ADNNanorobot::GetNumberOfDoubleStrands() const {
+unsigned int ADNNanorobot::GetNumberOfDoubleStrands() const {
 
     auto parts = GetParts();
-    int count = 0;
+    unsigned int count = 0;
 
     SB_FOR (SBPointer<ADNPart> part, parts)
         count += part->GetNumberOfDoubleStrands();
@@ -82,10 +82,10 @@ int ADNNanorobot::GetNumberOfDoubleStrands() const {
 
 }
 
-int ADNNanorobot::GetNumberOfBaseSegments() const {
+unsigned int ADNNanorobot::GetNumberOfBaseSegments() const {
 
     auto parts = GetParts();
-    int count = 0;
+    unsigned int count = 0;
 
     SB_FOR(SBPointer<ADNPart> part, parts)
         count += part->GetNumberOfBaseSegments();
@@ -94,10 +94,10 @@ int ADNNanorobot::GetNumberOfBaseSegments() const {
 
 }
 
-int ADNNanorobot::GetNumberOfSingleStrands() const {
+unsigned int ADNNanorobot::GetNumberOfSingleStrands() const {
 
     auto parts = GetParts();
-    int count = 0;
+    unsigned int count = 0;
 
     SB_FOR(SBPointer<ADNPart> part, parts)
         count += part->GetNumberOfSingleStrands();
@@ -106,10 +106,10 @@ int ADNNanorobot::GetNumberOfSingleStrands() const {
 
 }
 
-int ADNNanorobot::GetNumberOfNucleotides() const {
+unsigned int ADNNanorobot::GetNumberOfNucleotides() const {
 
     auto parts = GetParts();
-    int count = 0;
+    unsigned int count = 0;
 
     SB_FOR(SBPointer<ADNPart> part, parts)
         count += part->GetNumberOfNucleotides();
@@ -140,7 +140,7 @@ SBPointerIndexer<ADNPart> ADNNanorobot::GetParts() const {
 
 }
 
-int ADNNanorobot::GetNumberOfParts() const {
+unsigned int ADNNanorobot::GetNumberOfParts() const {
 
 #if ADENITA_NANOROBOT_REGISTER_PARTS
     return partsIndex_.size();

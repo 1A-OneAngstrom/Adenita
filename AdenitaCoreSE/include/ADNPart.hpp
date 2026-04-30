@@ -45,23 +45,23 @@ public:
 
     [[nodiscard]] unsigned int                                  GetBaseSegmentIndex(SBPointer<ADNBaseSegment> bs) const;
 
-    [[nodiscard]] SBPointerIndexer<ADNSingleStrand>                GetSingleStrands() const;                                               ///< Return a pointer indexer of single strands of the ADNPart part
-    [[nodiscard]] SBPointerIndexer<ADNDoubleStrand>                GetDoubleStrands() const;                                               ///< Return a pointer indexer of double strands of the ADNPart part
-    [[nodiscard]] SBPointerIndexer<ADNBaseSegment>                 GetBaseSegments(CellType celltype = CellType::ALL) const;
-    [[nodiscard]] SBPointerIndexer<ADNSingleStrand>                GetScaffolds() const;                                                   ///< Return the scaffolds of the ADNPart part
-    [[nodiscard]] SBPointerIndexer<ADNNucleotide>                  GetNucleotides(CellType celltype = CellType::ALL) const;
-    [[nodiscard]] SBPointerIndexer<ADNAtom>                        GetAtoms() const;
+    [[nodiscard]] SBPointerIndexer<ADNSingleStrand>             GetSingleStrands() const;                                               ///< Return a pointer indexer of single strands of the ADNPart part
+    [[nodiscard]] SBPointerIndexer<ADNDoubleStrand>             GetDoubleStrands() const;                                               ///< Return a pointer indexer of double strands of the ADNPart part
+    [[nodiscard]] SBPointerIndexer<ADNBaseSegment>              GetBaseSegments(CellType celltype = CellType::ALL) const;
+    [[nodiscard]] SBPointerIndexer<ADNSingleStrand>             GetScaffolds() const;                                                   ///< Return the scaffolds of the ADNPart part
+    [[nodiscard]] SBPointerIndexer<ADNNucleotide>               GetNucleotides(CellType celltype = CellType::ALL) const;
+    [[nodiscard]] SBPointerIndexer<ADNAtom>                     GetAtoms() const;
 
-    [[nodiscard]] int                                           GetNumberOfDoubleStrands() const;
-    [[nodiscard]] int                                           getNumberOfDoubleStrands() const;
-    [[nodiscard]] int                                           GetNumberOfSingleStrands() const;
-    [[nodiscard]] int                                           getNumberOfSingleStrands() const;
-    [[nodiscard]] int                                           GetNumberOfNucleotides() const;
-    [[nodiscard]] int                                           getNumberOfNucleotides() const;
-    [[nodiscard]] int                                           GetNumberOfAtoms() const;
-    [[nodiscard]] int                                           getNumberOfAtoms() const;
-    [[nodiscard]] int                                           GetNumberOfBaseSegments() const;
-    [[nodiscard]] int                                           getNumberOfBaseSegments() const;
+    [[nodiscard]] unsigned int                                  GetNumberOfDoubleStrands() const;
+    [[nodiscard]] unsigned int                                  getNumberOfDoubleStrands() const;
+    [[nodiscard]] unsigned int                                  GetNumberOfSingleStrands() const;
+    [[nodiscard]] unsigned int                                  getNumberOfSingleStrands() const;
+    [[nodiscard]] unsigned int                                  GetNumberOfNucleotides() const;
+    [[nodiscard]] unsigned int                                  getNumberOfNucleotides() const;
+    [[nodiscard]] unsigned int                                  GetNumberOfAtoms() const;
+    [[nodiscard]] unsigned int                                  getNumberOfAtoms() const;
+    [[nodiscard]] unsigned int                                  GetNumberOfBaseSegments() const;
+    [[nodiscard]] unsigned int                                  getNumberOfBaseSegments() const;
 
     void                                                        DeregisterSingleStrand(SBPointer<ADNSingleStrand> ss, bool removeFromParent = true, bool removeFromIndex = true);
     void                                                        DeregisterNucleotide(SBPointer<ADNNucleotide> nt, bool removeFromSs = true, bool removeFromBs = true, bool removeFromIndex = true);
