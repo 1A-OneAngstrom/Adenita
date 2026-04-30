@@ -32,7 +32,7 @@
 // (for example when a new class is added, when the version number changes, to describe categories more precisely, etc.)
 
 SB_ELEMENT_DESCRIPTION("Modeling and Visualization of DNA Nanostructures");
-SB_ELEMENT_DOCUMENTATION("Resource/Documentation/doc.html");
+SB_ELEMENT_DOCUMENTATION("https://documentation.samson-connect.net/tutorials/adenita/adenita/");
 SB_ELEMENT_VERSION_NUMBER("0.21.0");
 
 SB_ELEMENT_CLASSES_BEGIN;
