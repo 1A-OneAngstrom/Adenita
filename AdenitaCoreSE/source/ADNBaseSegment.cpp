@@ -2,6 +2,85 @@
 #include "ADNAtom.hpp"
 #include "ADNDoubleStrand.hpp"
 
+#include <stdexcept>
+#include <string>
+
+namespace {
+
+constexpr unsigned int InvalidNodeIndex = static_cast<unsigned int>(-1);
+
+bool isAdenitaNode(SBNode* node, const std::string& className) {
+
+    if (node == nullptr) return false;
+    auto proxy = node->getProxy();
+    return proxy != nullptr &&
+        proxy->getName() == className &&
+        proxy->getElementUUID() == SBUUID(SB_ELEMENT_UUID);
+
+}
+
+bool isAdenitaCellNode(SBNode* node) {
+
+    if (node == nullptr) return false;
+    auto proxy = node->getProxy();
+    if (proxy == nullptr || proxy->getElementUUID() != SBUUID(SB_ELEMENT_UUID)) return false;
+
+    const std::string className = proxy->getName();
+    return className == "ADNCell" ||
+        className == "ADNBasePair" ||
+        className == "ADNSkipPair" ||
+        className == "ADNLoopPair";
+
+}
+
+SBNode* getSerializedNode(const SBNodeIndexer& nodeIndexer, unsigned int index, const std::string& description) {
+
+    if (index == InvalidNodeIndex) return nullptr;
+    if (index >= nodeIndexer.size())
+        throw std::runtime_error("Invalid Adenita serialized " + description + " node index.");
+
+    SBNode* node = nodeIndexer.getNode(index);
+    if (node == nullptr)
+        throw std::runtime_error("Missing Adenita serialized " + description + " node.");
+
+    return node;
+
+}
+
+template <typename T>
+SBPointer<T> getSerializedAdenitaNode(const SBNodeIndexer& nodeIndexer, unsigned int index, const std::string& className) {
+
+    SBNode* node = getSerializedNode(nodeIndexer, index, className);
+    if (node == nullptr) return nullptr;
+
+    if (!isAdenitaNode(node, className))
+        throw std::runtime_error("Unexpected Adenita serialized node type for " + className + ".");
+
+    T* typedNode = dynamic_cast<T*>(node);
+    if (typedNode == nullptr)
+        throw std::runtime_error("Failed to cast Adenita serialized node to " + className + ".");
+
+    return typedNode;
+
+}
+
+SBPointer<ADNCell> getSerializedAdenitaCell(const SBNodeIndexer& nodeIndexer, unsigned int index) {
+
+    SBNode* node = getSerializedNode(nodeIndexer, index, "ADNCell");
+    if (node == nullptr) return nullptr;
+
+    if (!isAdenitaCellNode(node))
+        throw std::runtime_error("Unexpected Adenita serialized node type for ADNCell.");
+
+    ADNCell* cell = dynamic_cast<ADNCell*>(node);
+    if (cell == nullptr)
+        throw std::runtime_error("Failed to cast Adenita serialized node to ADNCell.");
+
+    return cell;
+
+}
+
+}
 
 ADNBaseSegment::ADNBaseSegment(CellType cellType) : PositionableSB(), Orientable(), SBStructuralGroup() {
 
@@ -85,7 +164,7 @@ void ADNBaseSegment::unserialize(SBCSerializer* serializer, const SBNodeIndexer&
     SBStructuralGroup::unserialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
     unsigned int idx = serializer->readUnsignedIntElement();
-    SBPointer<ADNAtom> atom = (ADNAtom*)nodeIndexer.getNode(idx);
+    SBPointer<ADNAtom> atom = getSerializedAdenitaNode<ADNAtom>(nodeIndexer, idx, "ADNAtom");
     SetCenterAtom(atom);
     //double x = serializer->readDoubleElement();
     //double y = serializer->readDoubleElement();
@@ -127,8 +206,7 @@ void ADNBaseSegment::unserialize(SBCSerializer* serializer, const SBNodeIndexer&
     serializer->readEndElement();
 
     SetNumber(serializer->readIntElement());
-    SBNode* cNode = nodeIndexer.getNode(serializer->readUnsignedIntElement());
-    SBPointer<ADNCell> cell = static_cast<ADNCell*>(cNode);
+    SBPointer<ADNCell> cell = getSerializedAdenitaCell(nodeIndexer, serializer->readUnsignedIntElement());
     SetCell(cell());
 
 }
@@ -151,7 +229,10 @@ int ADNBaseSegment::getNumber() const {
 
 SBPointer<ADNBaseSegment> ADNBaseSegment::GetPrev(bool checkCircular) const {
 
-    SBPointer<ADNBaseSegment> p = static_cast<ADNBaseSegment*>(getPreviousStructuralNode());
+    SBPointer<ADNBaseSegment> p;
+    if (SBNode* previous = getPreviousStructuralNode())
+        if (isAdenitaNode(previous, "ADNBaseSegment"))
+            p = dynamic_cast<ADNBaseSegment*>(previous);
 
     if (checkCircular) {
 
@@ -171,7 +252,10 @@ SBPointer<ADNBaseSegment> ADNBaseSegment::GetPrev(bool checkCircular) const {
 
 SBPointer<ADNBaseSegment> ADNBaseSegment::GetNext(bool checkCircular) const {
 
-    SBPointer<ADNBaseSegment> p = static_cast<ADNBaseSegment*>(getNextStructuralNode());
+    SBPointer<ADNBaseSegment> p;
+    if (SBNode* next = getNextStructuralNode())
+        if (isAdenitaNode(next, "ADNBaseSegment"))
+            p = dynamic_cast<ADNBaseSegment*>(next);
 
     if (checkCircular) {
 
@@ -217,8 +301,10 @@ bool ADNBaseSegment::IsLast() const {
 
 SBPointer<ADNDoubleStrand> ADNBaseSegment::GetDoubleStrand() const {
 
-    auto p = static_cast<ADNDoubleStrand*>(getParent());
-    return SBPointer<ADNDoubleStrand>(p);
+    SBNode* parent = getParent();
+    if (!isAdenitaNode(parent, "ADNDoubleStrand")) return nullptr;
+
+    return SBPointer<ADNDoubleStrand>(dynamic_cast<ADNDoubleStrand*>(parent));
 
 }
 
