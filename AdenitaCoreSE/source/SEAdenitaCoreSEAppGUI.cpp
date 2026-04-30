@@ -1305,14 +1305,14 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getMenuButtons() {
 		btnSettings->setAutoRaise(true);
 		menuButtons_.push_back(btnSettings);
 
-		QObject::connect(btnLoad, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onLoadFile, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnSaveSelection, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSaveSelection, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnSaveAll, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSaveAll, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnSettings, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSettings, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnExport, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onExport, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnExportCanDo, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onExportToCanDo, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnResetVisualModel, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onResetVisualModel, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnCenterOnAllModels, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCenterOnAllModels, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnLoad, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onLoadFile, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnSaveSelection, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onSaveSelection, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnSaveAll, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onSaveAll, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnSettings, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onSettings, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnExport, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onExport, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnExportCanDo, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onExportToCanDo, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnResetVisualModel, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onResetVisualModel, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnCenterOnAllModels, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onCenterOnAllModels, Qt::ConnectionType::UniqueConnection);
 
 		//change icons
 		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
@@ -1406,11 +1406,11 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getEditSequencesButtons() {
 		btnTaggingEditor->setAutoRaise(true);
 		editSequencesButtons_.push_back(btnTaggingEditor);
 
-		QObject::connect(btnSetScaff, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSetScaffold, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnGenerateSequence, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onGenerateSequence, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnCalculateBindingProperties, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCalculateBindingProperties, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnSetStart, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSetStartNucleotide, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnTaggingEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onTaggingEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnSetScaff, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onSetScaffold, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnGenerateSequence, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onGenerateSequence, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnCalculateBindingProperties, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onCalculateBindingProperties, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnSetStart, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onSetStartNucleotide, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnTaggingEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onTaggingEditor, Qt::ConnectionType::UniqueConnection);
 
 		//change icons
 		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
@@ -1509,12 +1509,12 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		btnTwisterEditor->setAutoRaise(true);
 		modelingButtons_.push_back(btnTwisterEditor);
 
-		QObject::connect(btnBreakEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onBreakEditor, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnConnectEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onConnectEditor, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnDeleteEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onDeleteEditor, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnTwisterEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onTwisterEditor, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnDNATwisterEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onDNATwistEditor, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnMergePartsEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onMergePartsEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnBreakEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onBreakEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnConnectEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onConnectEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnDeleteEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onDeleteEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnTwisterEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onTwisterEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnDNATwisterEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onDNATwistEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnMergePartsEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onMergePartsEditor, Qt::ConnectionType::UniqueConnection);
 
 		//change icons
 		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
@@ -1614,12 +1614,12 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getCreatorsButtons() {
 		btnGenerateAtomicModel->setAutoRaise(true);
 		creatorsButtons_.push_back(btnGenerateAtomicModel);
 
-		QObject::connect(btnCreateBasePair, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCreateBasePair, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnDsDNACreatorEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCreateStrandEditor, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnNanotubeCreator, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onNanotubeCreatorEditor, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnLatticeCreatorEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onLatticeCreatorEditor, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnWireframeEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onWireframeEditor, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnGenerateAtomicModel, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onGenerateAtomicModel, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnCreateBasePair, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onCreateBasePair, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnDsDNACreatorEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onCreateStrandEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnNanotubeCreator, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onNanotubeCreatorEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnLatticeCreatorEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onLatticeCreatorEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnWireframeEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onWireframeEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnGenerateAtomicModel, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onGenerateAtomicModel, Qt::ConnectionType::UniqueConnection);
 
 		//change icons
 		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
