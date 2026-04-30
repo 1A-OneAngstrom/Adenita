@@ -10,6 +10,7 @@
 
 #include "ADNArray.hpp"
 #include "ADNJsonValidation.hpp"
+#include "ADNScaffoldReader.hpp"
 
 #include "rapidjson/document.h"
 
@@ -277,6 +278,41 @@ void testExceptions() {
 	ADNArray<int> invalidRow(2, 1);
 	auto setInvalidRow = [&values, &invalidRow]() { values.SetRow(0, invalidRow); };
 	requireThrowsInt("set row dimension mismatch", setInvalidRow, dimensionMismatch);
+
+}
+
+void testScaffoldReaderSkipsBlankLinesAndHeaders() {
+
+	const std::vector<std::string> lines{
+		"",
+		">first scaffold",
+		"ACG",
+		"",
+		">second scaffold",
+		"tnn",
+		"   ",
+		"  gca  "
+	};
+
+	requireEqual("scaffold reader skips blank lines and headers",
+		ADNScaffoldReader::readScaffoldLines(lines),
+		std::string("ACGTNNGCA"));
+
+}
+
+void testScaffoldReaderAcceptsMissingInitialHeader() {
+
+	const std::vector<std::string> lines{
+		"AC",
+		"GT",
+		">later header",
+		"not-a-sequence",
+		"NN"
+	};
+
+	requireEqual("scaffold reader accepts missing initial header",
+		ADNScaffoldReader::readScaffoldLines(lines),
+		std::string("ACGTNN"));
 
 }
 
@@ -566,6 +602,8 @@ int main() {
 	testMoveSemantics();
 	testRows();
 	testExceptions();
+	testScaffoldReaderSkipsBlankLinesAndHeaders();
+	testScaffoldReaderAcceptsMissingInitialHeader();
 	testConcatenate();
 	testModernJsonValidation();
 	testLegacyJsonValidation();

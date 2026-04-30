@@ -3,6 +3,7 @@
 #include "SEAdenitaVisualModel.hpp"
 #include "SEAdenitaVisualModelProperties.hpp"
 
+#include "ADNScaffoldReader.hpp"
 #include "PICrossovers.hpp"
 #include "DASAlgorithms.hpp"
 
@@ -1037,13 +1038,7 @@ std::string SEAdenitaCoreSEApp::readScaffoldFilename(const std::string& filename
 		std::vector<std::string> lines;
 		SBIFileReader::getFileLines(filename, lines);
 
-		for (unsigned int i = 1; i < lines.size(); i++) {
-
-			std::string line = lines[i];
-			if (line[0] != '>')
-				seq.append(line);
-
-		}
+		seq = ADNScaffoldReader::readScaffoldLines(lines);
 
 	}
 
