@@ -750,7 +750,7 @@ void ADNDisplayHelper::displayTriangleMesh(DASPolyhedron* p) {
     float* colorData = new float[4 * nVertices];
     unsigned int* flagData = new unsigned int[nVertices];
     float* normalData = new float[3 * nVertices];
-    unsigned int* indexData = p->GetIndices();
+    unsigned int* indexData = p->GetIndices();  // `p` owns indices, so we should not delete them
 
     for (unsigned int i = 0; i < nVertices; i++) {
 
@@ -766,9 +766,9 @@ void ADNDisplayHelper::displayTriangleMesh(DASPolyhedron* p) {
         flagData[i] = 0;
 
         //normal
-        int idx1 = indexData[3 * i + 0];
-        int idx2 = indexData[3 * i + 1];
-        int idx3 = indexData[3 * i + 2];
+        const int idx1 = indexData[3 * i + 0];
+        const int idx2 = indexData[3 * i + 1];
+        const int idx3 = indexData[3 * i + 2];
 
         ublas::vector<double> posA(3);
         posA[0] = vertexPositions[3 * idx1 + 0];
@@ -809,7 +809,6 @@ void ADNDisplayHelper::displayTriangleMesh(DASPolyhedron* p) {
     delete[] colorData;
     delete[] flagData;
     delete[] normalData;
-    delete[] indexData;
 
 }
 

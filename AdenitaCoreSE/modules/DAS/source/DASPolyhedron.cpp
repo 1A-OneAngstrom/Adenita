@@ -190,6 +190,9 @@ DASPolyhedron::DASPolyhedron(const DASPolyhedron& p) {
 /* Destructor */
 DASPolyhedron::~DASPolyhedron() {
 
+	delete indices_;
+	indices_ = nullptr;
+
 	// Delete all Faces - std::vector<ANTPolygon*>;
 	for (auto& it : faces_) {
 		delete it;
