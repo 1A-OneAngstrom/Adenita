@@ -137,6 +137,8 @@ public:
 private:
 
 	void														ConnectStructuralSignalSlots(SBPointer<ADNPart> part);
+	void														RemoveNanorobot(SBDocument* document);
+	void														ClearNanorobots();
 
 	std::map<SBDocument*, ADNNanorobot*>						nanorobotMap;
 

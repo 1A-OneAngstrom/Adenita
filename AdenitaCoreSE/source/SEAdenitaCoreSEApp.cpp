@@ -28,6 +28,9 @@ SEAdenitaCoreSEApp::~SEAdenitaCoreSEApp() {
 
 	getGUI()->saveDefaultSettings();
 	delete getGUI();
+	ClearNanorobots();
+
+	if (adenitaApp == this) adenitaApp = nullptr;
 
 }
 
@@ -118,10 +121,10 @@ void SEAdenitaCoreSEApp::LoadPartWithDaedalus(QString filename, int minEdgeSize)
 	SAMSON::setStatusMessage(QString("Loading ") + filename);
 
 	// Apply algorithm
-	DASDaedalus* alg = new DASDaedalus();
-	alg->SetMinEdgeLength(minEdgeSize);
+	DASDaedalus alg;
+	alg.SetMinEdgeLength(minEdgeSize);
 	std::string seq = "";
-	auto part = alg->ApplyAlgorithm(seq, filename.toStdString());
+	auto part = alg.ApplyAlgorithm(seq, filename.toStdString());
 
 	if (part == nullptr) return;
 
@@ -848,8 +851,22 @@ void SEAdenitaCoreSEApp::CreateBasePair() {
 
 void SEAdenitaCoreSEApp::onDocumentEvent(SBDocumentEvent* documentEvent) {
 
+	if (documentEvent == nullptr) return;
+
 	const SBDocumentEvent::Type eventType = documentEvent->getType();
 	SBNode* node = documentEvent->getAuxiliaryNode();
+
+	if (eventType == SBDocumentEvent::DocumentCloseBegin ||
+		eventType == SBDocumentEvent::DocumentCloseEnd ||
+		eventType == SBDocumentEvent::DocumentRemoved) {
+
+		if (documentEvent->getSender() && documentEvent->getSender()->getType() == SBNode::Document)
+			RemoveNanorobot(dynamic_cast<SBDocument*>(documentEvent->getSender()));
+		if (node && node->getType() == SBNode::Document)
+			RemoveNanorobot(dynamic_cast<SBDocument*>(node));
+
+	}
+
 	if (!node) return;
 	if (node->getProxy()->getElementUUID() != SBUUID(SB_ELEMENT_UUID)) return;
 
@@ -1017,6 +1034,8 @@ void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* structuralEvent) {
 
 void SEAdenitaCoreSEApp::ConnectToDocument(SBDocument* doc) {
 
+	if (doc == nullptr) return;
+
 	if (doc->documentSignalIsConnectedToSlot(this, SB_SLOT(&SEAdenitaCoreSEApp::onDocumentEvent)) == false)
 		doc->connectDocumentSignalToSlot(this, SB_SLOT(&SEAdenitaCoreSEApp::onDocumentEvent));
 
@@ -1030,28 +1049,50 @@ void SEAdenitaCoreSEApp::ConnectToDocument() {
 
 ADNNanorobot* SEAdenitaCoreSEApp::GetNanorobot() {
 
-	return getNanorobot(SAMSON::getActiveDocument());
+	SBDocument* document = SAMSON::getActiveDocument();
+	if (document == nullptr) return nullptr;
+
+	return getNanorobot(document);
 
 }
 
 ADNNanorobot* SEAdenitaCoreSEApp::getNanorobot(SBDocument* document) {
 
-	ADNNanorobot* nanorobot = nullptr;
+	if (document == nullptr) return nullptr;
 
 	if (nanorobotMap.find(document) == nanorobotMap.end()) {
 
 		// create new nanorobot for this document
-		nanorobot = new ADNNanorobot();
-		nanorobotMap.insert(std::make_pair(document, nanorobot));
-
-	}
-	else {
-
-		nanorobot = nanorobotMap.at(document);
+		nanorobotMap.insert(std::make_pair(document, new ADNNanorobot()));
+		ConnectToDocument(document);
 
 	}
 
-	return nanorobot;
+	return nanorobotMap.at(document);
+
+}
+
+void SEAdenitaCoreSEApp::RemoveNanorobot(SBDocument* document) {
+
+	if (document == nullptr) return;
+
+	auto it = nanorobotMap.find(document);
+	if (it == nanorobotMap.end()) return;
+
+	if (document->documentSignalIsConnectedToSlot(this, SB_SLOT(&SEAdenitaCoreSEApp::onDocumentEvent)))
+		document->disconnectDocumentSignalFromSlot(this, SB_SLOT(&SEAdenitaCoreSEApp::onDocumentEvent));
+
+	delete it->second;
+	nanorobotMap.erase(it);
+
+}
+
+void SEAdenitaCoreSEApp::ClearNanorobots() {
+
+	for (auto& entry : nanorobotMap)
+		delete entry.second;
+
+	nanorobotMap.clear();
 
 }
 
