@@ -6,56 +6,7 @@
 #include "ADNSingleStrand.hpp"
 #include "ADNDoubleStrand.hpp"
 #include "ADNModel.hpp"
-
-#include <stdexcept>
-#include <string>
-
-namespace {
-
-constexpr unsigned int InvalidNodeIndex = static_cast<unsigned int>(-1);
-
-bool isAdenitaNode(SBNode* node, const std::string& className) {
-
-	if (node == nullptr) return false;
-	auto proxy = node->getProxy();
-	return proxy != nullptr &&
-		proxy->getName() == className &&
-		proxy->getElementUUID() == SBUUID(SB_ELEMENT_UUID);
-
-}
-
-SBNode* getSerializedNode(const SBNodeIndexer& nodeIndexer, unsigned int index, const std::string& description) {
-
-	if (index == InvalidNodeIndex) return nullptr;
-	if (index >= nodeIndexer.size())
-		throw std::runtime_error("Invalid Adenita serialized " + description + " node index.");
-
-	SBNode* node = nodeIndexer.getNode(index);
-	if (node == nullptr)
-		throw std::runtime_error("Missing Adenita serialized " + description + " node.");
-
-	return node;
-
-}
-
-template <typename T>
-SBPointer<T> getSerializedAdenitaNode(const SBNodeIndexer& nodeIndexer, unsigned int index, const std::string& className) {
-
-	SBNode* node = getSerializedNode(nodeIndexer, index, className);
-	if (node == nullptr) return nullptr;
-
-	if (!isAdenitaNode(node, className))
-		throw std::runtime_error("Unexpected Adenita serialized node type for " + className + ".");
-
-	T* typedNode = dynamic_cast<T*>(node);
-	if (typedNode == nullptr)
-		throw std::runtime_error("Failed to cast Adenita serialized node to " + className + ".");
-
-	return typedNode;
-
-}
-
-}
+#include "ADNNodeValidation.hpp"
 
 ADNNucleotide::ADNNucleotide(const ADNNucleotide& other) : PositionableSB(other), SBResidue(other), Orientable(other) {
 
@@ -174,8 +125,8 @@ void ADNNucleotide::unserialize(SBCSerializer* serializer, const SBNodeIndexer& 
 
 	unsigned int pIdx = serializer->readUnsignedIntElement();
 	unsigned int bsIdx = serializer->readUnsignedIntElement();
-	SBPointer<ADNNucleotide> p = getSerializedAdenitaNode<ADNNucleotide>(nodeIndexer, pIdx, "ADNNucleotide");
-	SBPointer<ADNBaseSegment> bs = getSerializedAdenitaNode<ADNBaseSegment>(nodeIndexer, bsIdx, "ADNBaseSegment");
+	SBPointer<ADNNucleotide> p = ADNNodeValidation::GetSerializedAdenitaNode<ADNNucleotide>(nodeIndexer, pIdx, "ADNNucleotide");
+	SBPointer<ADNBaseSegment> bs = ADNNodeValidation::GetSerializedAdenitaNode<ADNBaseSegment>(nodeIndexer, bsIdx, "ADNBaseSegment");
 	SetPair(p);
 	SetBaseSegment(bs);
 
@@ -255,7 +206,7 @@ SBPointer<ADNNucleotide> ADNNucleotide::GetPrev(bool checkCircular) const {
 	SBPointer<ADNNucleotide> p;
 
 	if (SBResidue* prevResidue = getPreviousNucleicAcid())
-		if (isAdenitaNode(prevResidue, "ADNNucleotide"))
+		if (ADNNodeValidation::IsAdenitaNode(prevResidue, "ADNNucleotide"))
 			p = dynamic_cast<ADNNucleotide*>(prevResidue);
 
 	if (checkCircular) {
@@ -280,7 +231,7 @@ SBPointer<ADNNucleotide> ADNNucleotide::GetNext(bool checkCircular) const {
 	SBPointer<ADNNucleotide> p;
 
 	if (SBResidue* nextResidue = getNextNucleicAcid())
-		if (isAdenitaNode(nextResidue, "ADNNucleotide"))
+		if (ADNNodeValidation::IsAdenitaNode(nextResidue, "ADNNucleotide"))
 			p = dynamic_cast<ADNNucleotide*>(nextResidue);
 
 	if (checkCircular) {
@@ -305,7 +256,7 @@ SBPointer<ADNSingleStrand> ADNNucleotide::GetStrand() const {
 	//check: if (parent->getProxy()->getUUID() == SBUUID("8EB118A4-A8BF-19F5-5171-C68582AC6262"))
 
 	SBNode* parent = getParent();
-	if (!isAdenitaNode(parent, "ADNSingleStrand")) return nullptr;
+	if (!ADNNodeValidation::IsAdenitaNode(parent, "ADNSingleStrand")) return nullptr;
 
 	return SBPointer<ADNSingleStrand>(dynamic_cast<ADNSingleStrand*>(parent));
 
@@ -553,7 +504,7 @@ SBPointer<ADNBackbone> ADNNucleotide::GetBackbone() const {
 	SBBackbone* backbone = getBackbone();
 	if (!backbone) return nullptr;
 
-	if (!isAdenitaNode(backbone, "ADNBackbone")) return nullptr;
+	if (!ADNNodeValidation::IsAdenitaNode(backbone, "ADNBackbone")) return nullptr;
 	return SBPointer<ADNBackbone>(dynamic_cast<ADNBackbone*>(backbone));
 
 }
@@ -563,7 +514,7 @@ SBPointer<ADNSidechain> ADNNucleotide::GetSidechain() const {
 	SBSideChain* sideChain = getSideChain();
 	if (!sideChain) return nullptr;
 
-	if (!isAdenitaNode(sideChain, "ADNSidechain")) return nullptr;
+	if (!ADNNodeValidation::IsAdenitaNode(sideChain, "ADNSidechain")) return nullptr;
 	return SBPointer<ADNSidechain>(dynamic_cast<ADNSidechain*>(sideChain));
 
 }

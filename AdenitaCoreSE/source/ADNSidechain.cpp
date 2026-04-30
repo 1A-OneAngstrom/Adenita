@@ -2,46 +2,7 @@
 #include "ADNNucleotide.hpp"
 #include "ADNAtom.hpp"
 #include "ADNModel.hpp"
-
-#include <stdexcept>
-#include <string>
-
-namespace {
-
-constexpr unsigned int InvalidNodeIndex = static_cast<unsigned int>(-1);
-
-bool isAdenitaNode(SBNode* node, const std::string& className) {
-
-    if (node == nullptr) return false;
-    auto proxy = node->getProxy();
-    return proxy != nullptr &&
-        proxy->getName() == className &&
-        proxy->getElementUUID() == SBUUID(SB_ELEMENT_UUID);
-
-}
-
-SBPointer<ADNAtom> getSerializedAtom(const SBNodeIndexer& nodeIndexer, unsigned int index) {
-
-    if (index == InvalidNodeIndex) return nullptr;
-    if (index >= nodeIndexer.size())
-        throw std::runtime_error("Invalid Adenita serialized ADNAtom node index.");
-
-    SBNode* node = nodeIndexer.getNode(index);
-    if (node == nullptr)
-        throw std::runtime_error("Missing Adenita serialized ADNAtom node.");
-
-    if (!isAdenitaNode(node, "ADNAtom"))
-        throw std::runtime_error("Unexpected Adenita serialized node type for ADNAtom.");
-
-    ADNAtom* atom = dynamic_cast<ADNAtom*>(node);
-    if (atom == nullptr)
-        throw std::runtime_error("Failed to cast Adenita serialized node to ADNAtom.");
-
-    return atom;
-
-}
-
-}
+#include "ADNNodeValidation.hpp"
 
 ADNSidechain::ADNSidechain() : PositionableSB(), SBSideChain() {
 
@@ -79,7 +40,7 @@ void ADNSidechain::unserialize(SBCSerializer* serializer, const SBNodeIndexer& n
     SBSideChain::unserialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
     unsigned int idx = serializer->readUnsignedIntElement();
-    SBPointer<ADNAtom> at = getSerializedAtom(nodeIndexer, idx);
+    SBPointer<ADNAtom> at = ADNNodeValidation::GetSerializedAdenitaNode<ADNAtom>(nodeIndexer, idx, "ADNAtom");
     SetCenterAtom(at);
 
 }
@@ -136,7 +97,7 @@ SBPointerIndexer<ADNAtom> ADNSidechain::GetAtoms() const {
 SBPointer<ADNNucleotide> ADNSidechain::GetNucleotide() const {
 
     if (SBNode* parent = getParent())
-        if (isAdenitaNode(parent, "ADNNucleotide"))
+        if (ADNNodeValidation::IsAdenitaNode(parent, "ADNNucleotide"))
             return SBPointer<ADNNucleotide>(dynamic_cast<ADNNucleotide*>(parent));
 
     return nullptr;
