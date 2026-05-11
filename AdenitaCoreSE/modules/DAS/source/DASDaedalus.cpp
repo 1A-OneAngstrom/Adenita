@@ -2,13 +2,32 @@
 
 #include <filesystem>
 
+namespace {
+
+void DeleteLinkGraph(LinkList& linkGraph) {
+
+	for (DOTLink* link : linkGraph)
+		delete link;
+
+	linkGraph.clear();
+
+}
+
+void DeleteNodes(NodeList& nodes) {
+
+	for (auto& nodeEntry : nodes)
+		delete nodeEntry.second;
+
+	nodes.clear();
+
+}
+
+}
+
 DASDaedalus::~DASDaedalus() {
 
-	for (auto& l : linkGraph_) {
-		delete l;
-	}
-	linkGraph_.clear();
-	nodes_.clear();
+	DeleteLinkGraph(linkGraph_);
+	DeleteNodes(nodes_);
 	firstBasesHe_.clear();
 	chains_.clear();
 	positionsBBSC_.clear();
@@ -165,6 +184,7 @@ DirectedGraph DASDaedalus::GenerateDirectedGraph(const UndirectedGraph& u_graph,
 		}
 	}
 
+	DeleteLinkGraph(linkGraph_);
 	linkGraph_ = link_graph;
 	return d_graph;
 }
@@ -342,6 +362,8 @@ void DASDaedalus::AddPseudoNodes(DASPolyhedron& figure) {
 			}
 		}
 	}
+	DeleteLinkGraph(linkGraph_);
+	DeleteNodes(nodes_);
 	nodes_ = new_nodes;
 	linkGraph_ = new_link_list;
 }
@@ -850,7 +872,11 @@ void DASDaedalus::AddNode(DOTNode* node) {
 
 void DASDaedalus::RemoveLink(DOTLink* link) {
 
-	linkGraph_.erase(std::find(linkGraph_.begin(), linkGraph_.end(), link));
+	auto it = std::find(linkGraph_.begin(), linkGraph_.end(), link);
+	if (it == linkGraph_.end()) return;
+
+	linkGraph_.erase(it);
+	delete link;
 
 }
 
@@ -877,13 +903,11 @@ DOTNode* DASDaedalus::GetNodeById(int id) const {
 
 DOTLink* DASDaedalus::GetLinkByNodes(DOTNode* v, DOTNode* w) const {
 
-	DOTLink* link = new DOTLink();
 	for (auto lit = linkGraph_.begin(); lit != linkGraph_.end(); ++lit) {
 
 		if ((*lit)->source_ == v && (*lit)->target_ == w) {
 
-			link = *lit;
-			break;
+			return *lit;
 
 		}
 
@@ -891,8 +915,7 @@ DOTLink* DASDaedalus::GetLinkByNodes(DOTNode* v, DOTNode* w) const {
 
 			if ((*lit)->source_ == w && (*lit)->target_ == v) {
 
-				link = *lit;
-				break;
+				return *lit;
 
 			}
 
@@ -900,7 +923,7 @@ DOTLink* DASDaedalus::GetLinkByNodes(DOTNode* v, DOTNode* w) const {
 
 	}
 
-	return link;
+	return nullptr;
 
 }
 
@@ -1398,22 +1421,19 @@ DOTLink::DOTLink(const DOTLink& other) {
 
 DOTLink::~DOTLink() {
 
-	delete source_;
-	delete target_;
-
 }
 
 DOTLink& DOTLink::operator=(const DOTLink& other) {
 	if (this != &other) {
 		id_ = other.id_;
+		source_ = other.source_;
+		target_ = other.target_;
 		halfEdge_ = other.halfEdge_;
 		directed_ = other.directed_;
 		split_ = other.split_;
 		firstBase_ = other.firstBase_;
 		lastBase_ = other.lastBase_;
 		bp_ = other.bp_;
-		source_ = new DOTNode(*other.source_);
-		target_ = new DOTNode(*other.target_);
 	}
 	return *this;
 }

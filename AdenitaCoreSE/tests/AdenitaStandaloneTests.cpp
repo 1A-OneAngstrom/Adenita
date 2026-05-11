@@ -12,11 +12,13 @@
 #include <vector>
 
 #include "ADNArray.hpp"
+#include "ADNConfig.hpp"
 #include "ADNConfigFileIO.hpp"
 #include "ADNConfigJson.hpp"
 #include "ADNJsonValidation.hpp"
 #include "ADNPart.hpp"
 #include "ADNScaffoldReader.hpp"
+#include "DASDaedalus.hpp"
 #include "SBCHeapExport.hpp"
 
 namespace ADNLoader {
@@ -123,6 +125,12 @@ std::string serializeJson(const rapidjson::Document& document) {
 std::filesystem::path temporaryConfigPath(const std::string& filename) {
 
 	return std::filesystem::temp_directory_path() / filename;
+
+}
+
+std::filesystem::path repoDataPath(const std::string& filename) {
+
+	return std::filesystem::path(__FILE__).parent_path().parent_path() / "data" / filename;
 
 }
 
@@ -810,6 +818,43 @@ void testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks() {
 
 }
 
+void testDaedalusPlyRegressionDoesNotCrashOnTeardown() {
+
+	const std::filesystem::path path = repoDataPath("01_tetrahedron.ply");
+	requireTrue("daedalus regression ply file created",
+		std::filesystem::exists(path),
+		"Expected the bundled tetrahedron PLY fixture to exist.");
+	requireTrue("daedalus regression ply file recognized",
+		DASPolyhedron::isPLYFile(path.string()),
+		"Expected the bundled tetrahedron PLY fixture to be recognized as valid.");
+
+	SEConfig& config = SEConfig::GetInstance();
+	const bool originalCustomMeshModel = config.custom_mesh_model;
+	config.custom_mesh_model = false;
+
+	SBPointer<ADNPart> part = nullptr;
+	{
+		DASDaedalus alg;
+		part = alg.ApplyAlgorithm("", path.string(), true);
+		requireTrue("daedalus regression generated part",
+			part != nullptr,
+			"Expected Daedalus to create a part from the regression tetrahedron mesh.");
+	}
+
+	config.custom_mesh_model = originalCustomMeshModel;
+
+	requireTrue("daedalus regression kept generated part alive",
+		part != nullptr,
+		"Expected the generated part to outlive the temporary DASDaedalus instance.");
+	requireTrue("daedalus regression created base segments",
+		part != nullptr && part->GetNumberOfBaseSegments() > 0,
+		"Expected the generated part to contain base segments.");
+	requireTrue("daedalus regression created single strands",
+		part != nullptr && part->GetNumberOfSingleStrands() > 0,
+		"Expected the generated part to contain strands.");
+
+}
+
 } // namespace
 
 int main() {
@@ -832,6 +877,7 @@ int main() {
 	testLegacyJsonValidation();
 	testBuildTopScalesHandlesBrokenNucleotideLinks();
 	testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks();
+	testDaedalusPlyRegressionDoesNotCrashOnTeardown();
 
 	if (!failures.empty()) {
 		for (const auto& failure : failures)

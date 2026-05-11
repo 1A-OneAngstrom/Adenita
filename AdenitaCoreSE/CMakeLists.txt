@@ -142,6 +142,7 @@ if(${OUTPUT_UUID}_tests)
     PRIVATE
       "${CMAKE_CURRENT_SOURCE_DIR}/include"
       "${CMAKE_CURRENT_SOURCE_DIR}/external/rapidjson/include"
+      "${CMAKE_CURRENT_SOURCE_DIR}/modules/DAS/include"
       "${SAMSON_INCLUDE_PATH}"
   )
 
