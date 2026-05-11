@@ -25,14 +25,14 @@ SB_CLASS_BEGIN(SEAdenitaVisualModel);
 	
 		SB_ATTRIBUTE_READ_WRITE(const std::string&, Name, "Name", "Identity");
 
-		SB_ATTRIBUTE_READ_ONLY(bool, Selected, "Selected", "Node");
-		SB_ATTRIBUTE_READ_ONLY(bool, Visible, "Visible", "Node");
-		SB_ATTRIBUTE_READ_WRITE(bool, SelectionFlag, "Selection flag", "Node");
-		SB_ATTRIBUTE_READ_WRITE(bool, VisibilityFlag, "Visibility flag", "Node");
-		SB_ATTRIBUTE_READ_ONLY(SBNode*, Parent, "Parent", "Node");
-		SB_ATTRIBUTE_READ_ONLY(SBNode*, ThisNode, "Itself", "Node");
-		SB_ATTRIBUTE_READ_ONLY(SBNode*, NextNode, "Next", "Node");
-		SB_ATTRIBUTE_READ_ONLY(SBNode*, PreviousNode, "Previous", "Node");
+		//SB_ATTRIBUTE_READ_ONLY(bool, Selected, "Selected", "Node");
+		//SB_ATTRIBUTE_READ_ONLY(bool, Visible, "Visible", "Node");
+		//SB_ATTRIBUTE_READ_WRITE(bool, SelectionFlag, "Selection flag", "Node");
+		//SB_ATTRIBUTE_READ_WRITE(bool, VisibilityFlag, "Visibility flag", "Node");
+		//SB_ATTRIBUTE_READ_ONLY(SBNode*, Parent, "Parent", "Node");
+		//SB_ATTRIBUTE_READ_ONLY(SBNode*, ThisNode, "Itself", "Node");
+		//SB_ATTRIBUTE_READ_ONLY(SBNode*, NextNode, "Next", "Node");
+		//SB_ATTRIBUTE_READ_ONLY(SBNode*, PreviousNode, "Previous", "Node");
 
 		SB_ATTRIBUTE_READ_WRITE_RESET_RANGE(float, Scale, "Scale", "Properties");
 		SB_ATTRIBUTE_READ_WRITE_LIST(DiscreteScale, "Scale (discrete)", "Properties");

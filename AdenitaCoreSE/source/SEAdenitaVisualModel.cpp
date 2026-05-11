@@ -163,7 +163,6 @@ void		SEAdenitaVisualModel::setScale(float scale) {
 	}
 	else if (scale_ < static_cast<float>(Scale::SINGLE_STRANDS)) {
 		prepareNucleotidesToSingleStrands(interpolated);
-		setDimension(dim_);
 	}
 	else if (scale_ < static_cast<float>(Scale::DOUBLE_STRANDS)) {
 		prepareSingleStrandsToDoubleStrands(interpolated);
@@ -171,6 +170,9 @@ void		SEAdenitaVisualModel::setScale(float scale) {
 	else if (scale_ <= static_cast<float>(Scale::OBJECTS)) {
 		prepareDoubleStrandsToObjects(interpolated);
 	}
+
+	if (scale_ >= static_cast<float>(Scale::NUCLEOTIDES) && scale_ <= static_cast<float>(Scale::SINGLE_STRANDS))
+		setDimension(dim_);
 
 	changed();
 	//SAMSON::requestViewportUpdate();
