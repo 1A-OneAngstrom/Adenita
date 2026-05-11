@@ -61,28 +61,28 @@ namespace ADNAuxiliary {
         double r{ 0.0 };
     };
 
-    enum class OxDNAInteractionType {
-        DNA = 0,
-        DNA2 = 1,
-        Patchy = 2,
-        LJ = 3,
-    };
-
-    enum class OxDNASimulationType {
-        MD = 0,
-        MC = 1,
-        VMMC = 2,
-    };
-
-    enum class OxDNABackend {
-        CPU = 0,
-        CUDA = 1,
-    };
+    //enum class OxDNAInteractionType {
+    //    DNA = 0,
+    //    DNA2 = 1,
+    //    Patchy = 2,
+    //    LJ = 3,
+    //};
+    
+    //enum class OxDNASimulationType {
+    //    MD = 0,
+    //    MC = 1,
+    //    VMMC = 2,
+    //};
+    
+    //enum class OxDNABackend {
+    //    CPU = 0,
+    //    CUDA = 1,
+    //};
 
     struct OxDNAOptions {
-        OxDNAInteractionType interactionType_;
-        OxDNASimulationType simType_;
-        OxDNABackend backend_;
+        //OxDNAInteractionType interactionType_{ OxDNAInteractionType::DNA };
+        //OxDNASimulationType simType_{ OxDNASimulationType::MD };
+        //OxDNABackend backend_{ OxDNABackend::CPU };
         bool debug_{ false };
         unsigned int steps_{ 0u };
         std::string temp_;

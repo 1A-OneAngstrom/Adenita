@@ -30,6 +30,30 @@
 
 #include "SEAdenitaCoreSEAppGUIFlowLayout.hpp"
 
+namespace {
+
+void updateToolButtonStyle(QToolButton* button) {
+
+	if (!button) return;
+
+	button->style()->unpolish(button);
+	button->style()->polish(button);
+	button->update();
+
+}
+
+void setToolButtonHighlighted(QToolButton* button, bool highlighted) {
+
+	if (!button) return;
+
+	button->setProperty("highlighting", highlighted);
+	if (button->isCheckable()) button->setChecked(highlighted);
+	updateToolButtonStyle(button);
+
+}
+
+}
+
 SEAdenitaCoreSEAppGUI::SEAdenitaCoreSEAppGUI(SEAdenitaCoreSEApp* t) : SBGApp(t) {
 
 	setupUI();
@@ -1021,26 +1045,19 @@ void SEAdenitaCoreSEAppGUI::clearHighlightEditor() {
 
 void SEAdenitaCoreSEAppGUI::setHighlightEditor(QToolButton* button) {
 
-	// remove current
-	if (highlightedEditorButton_) {
+	const auto clearButtons = [](const std::vector<QToolButton*>& buttons) {
+		for (QToolButton* editorButton : buttons)
+			setToolButtonHighlighted(editorButton, false);
+	};
 
-		//highlightedEditorButton_->setStyleSheet(QString("border: none"));
-		highlightedEditorButton_->setProperty("highlighting", "false");
-		highlightedEditorButton_->style()->unpolish(highlightedEditorButton_);
-		highlightedEditorButton_->style()->polish(highlightedEditorButton_);
-
-	}
+	clearButtons(editSequencesButtons_);
+	clearButtons(modelingButtons_);
+	clearButtons(creatorsButtons_);
+	setToolButtonHighlighted(highlightedEditorButton_, false);
 
 	highlightedEditorButton_ = button;
 
-	if (highlightedEditorButton_) {
-
-		//highlightedEditorButton_->setStyleSheet(QString("border: 2px solid #FFFFFF"));
-		highlightedEditorButton_->setProperty("highlighting", "true");
-		highlightedEditorButton_->style()->unpolish(highlightedEditorButton_);
-		highlightedEditorButton_->style()->polish(highlightedEditorButton_);
-
-	}
+	setToolButtonHighlighted(highlightedEditorButton_, true);
 
 }
 
@@ -1191,13 +1208,18 @@ void SEAdenitaCoreSEAppGUI::setToolButtonStyleSheet(QToolButton* button) {
 
 	if (button) {
 
+		button->setProperty("highlighting", false);
 		button->setStyleSheet(button->styleSheet() + R"(
 		QToolButton:hover { background: rgba(93,111,129,100); border-radius: 10px; }
 		QToolButton:pressed { background: rgba(93,111,129,255); border-radius: 10px; }
-		QToolButton[highlighting="true"] { background-color: rgba(49,148,128,120); border-radius: 10px; }
-		QToolButton[highlighting="true"]:hover { background-color: rgba(49,148,128,200); border-radius: 10px; }
-		QToolButton[highlighting="true"]:pressed { background-color: rgba(49,148,128,255); border-radius: 10px; }
+		QToolButton[highlighting="true"],
+		QToolButton[highlighting="true"]:checked { background-color: rgba(49,148,128,120); border-radius: 10px; }
+		QToolButton[highlighting="true"]:hover,
+		QToolButton[highlighting="true"]:checked:hover { background-color: rgba(49,148,128,200); border-radius: 10px; }
+		QToolButton[highlighting="true"]:pressed,
+		QToolButton[highlighting="true"]:checked:pressed { background-color: rgba(49,148,128,255); border-radius: 10px; }
 		)");
+		updateToolButtonStyle(button);
 
 	}
 
