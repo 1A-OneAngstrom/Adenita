@@ -13,6 +13,7 @@ ADNSingleStrand& ADNSingleStrand::operator=(const ADNSingleStrand& other) {
     SBChain::operator =(other);
 
     this->scaffoldFlag = other.scaffoldFlag;
+    this->circularFlag = other.circularFlag;
     this->fivePrimeNucleotide = other.fivePrimeNucleotide;
     this->threePrimeNucleotide = other.threePrimeNucleotide;
 

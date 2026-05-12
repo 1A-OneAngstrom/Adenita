@@ -167,6 +167,7 @@ inline bool validateModernSingleStrands(const rapidjson::Value& strands, double 
 			!hasBool(value, "isScaffold") ||
 			!hasInt(value, "fivePrimeId") ||
 			!hasObject(value, "nucleotides")) return false;
+		if (value.HasMember("isCircular") && !value["isCircular"].IsBool()) return false;
 
 		const rapidjson::Value& nucleotides = value["nucleotides"];
 		for (auto nucleotide = nucleotides.MemberBegin(); nucleotide != nucleotides.MemberEnd(); ++nucleotide) {
@@ -301,6 +302,7 @@ inline bool validateLegacyStrands(const rapidjson::Value& strands) {
 			!hasBool(value, "isScaffold") ||
 			!hasInt(value, "fivePrimeId") ||
 			!hasObject(value, "nucleotides")) return false;
+		if (value.HasMember("isCircular") && !value["isCircular"].IsBool()) return false;
 
 		const rapidjson::Value& nucleotides = value["nucleotides"];
 		for (auto nucleotide = nucleotides.MemberBegin(); nucleotide != nucleotides.MemberEnd(); ++nucleotide) {

@@ -104,6 +104,7 @@ SBPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, DASPolyhedron& p
 	//LogLinkGraph();
 	// Route scaffold
 	RouteScaffold(daedalus_part, scaff, seq, r_length);
+	scaff->setCircularFlag(true);
 	// Create staple objects
 	CreateEdgeStaples(daedalus_part);
 	CreateVertexStaples(daedalus_part, fig);

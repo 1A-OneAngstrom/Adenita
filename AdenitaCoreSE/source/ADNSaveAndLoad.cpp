@@ -177,6 +177,8 @@ SBPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value& val, double ver
 		SBPointer<ADNSingleStrand> ss = SBPointer<ADNSingleStrand>(new ADNSingleStrand());
 		ss->setName(itr->value["chainName"].GetString());
 		ss->setScaffoldFlag(itr->value["isScaffold"].GetBool());
+		if (itr->value.HasMember("isCircular"))
+			ss->setCircularFlag(itr->value["isCircular"].GetBool());
 
 		const rapidjson::Value& val_nucleotides = itr->value["nucleotides"];
 		for (rapidjson::Value::ConstMemberIterator itr2 = val_nucleotides.MemberBegin(); itr2 != val_nucleotides.MemberEnd(); ++itr2) {
@@ -566,6 +568,8 @@ SBPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filename
 
 		ss->setName(itr->value["chainName"].GetString());
 		ss->setScaffoldFlag(itr->value["isScaffold"].GetBool());
+		if (itr->value.HasMember("isCircular"))
+			ss->setCircularFlag(itr->value["isCircular"].GetBool());
 
 		const int fivePrimeId = itr->value["fivePrimeId"].GetInt();
 		const int threePrimeId = itr->value["fivePrimeId"].GetInt();
@@ -1080,6 +1084,9 @@ void ADNLoader::SavePartToJson(SBPointer<ADNPart> p, rapidjson::Writer<rapidjson
 
 		writer.Key("isScaffold");
 		writer.Bool(ss->IsScaffold());
+
+		writer.Key("isCircular");
+		writer.Bool(ss->IsCircular());
 
 		writer.Key("fivePrimeId");
 		writer.Int(ntsMap.GetIndex(ss->GetFivePrime()));

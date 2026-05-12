@@ -17,16 +17,10 @@
 #include "ADNConfigJson.hpp"
 #include "ADNJsonValidation.hpp"
 #include "ADNPart.hpp"
+#include "ADNSaveAndLoad.hpp"
 #include "ADNScaffoldReader.hpp"
 #include "DASDaedalus.hpp"
 #include "SBCHeapExport.hpp"
-
-namespace ADNLoader {
-
-	SB_EXPORT void BuildTopScales(SBPointer<ADNPart> part);
-	SB_EXPORT void BuildTopScalesParametrized(SBPointer<ADNPart> part, const SBQuantity::length& maxCutOff, const SBQuantity::length& minCutOff, double maxAngle);
-
-}
 
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
@@ -180,6 +174,36 @@ SBPointer<ADNPart> createPartWithBrokenTopScaleLinks(double pairedX) {
 	pairedNucleotide->setEndType(ADNNucleotide::EndType::NotEnd);
 
 	return part;
+
+}
+
+struct CircularStrandFixture {
+	SBPointer<ADNPart> part;
+	SBPointer<ADNSingleStrand> strand;
+	SBPointer<ADNNucleotide> fivePrime;
+	SBPointer<ADNNucleotide> middle;
+	SBPointer<ADNNucleotide> threePrime;
+};
+
+CircularStrandFixture createCircularStrandFixture() {
+
+	CircularStrandFixture fixture;
+	fixture.part = new ADNPart();
+	fixture.part->setName("Circular Part");
+	fixture.strand = new ADNSingleStrand();
+	fixture.strand->setName("Circular Strand");
+	fixture.part->RegisterSingleStrand(fixture.strand);
+
+	fixture.fivePrime = createSyntheticNucleotide(SBResidue::ResidueType::DA, 0.0, 0.0, 0.0, vector3(1.0, 0.0, 0.0));
+	fixture.middle = createSyntheticNucleotide(SBResidue::ResidueType::DT, 1.0, 0.0, 0.0, vector3(0.0, 1.0, 0.0));
+	fixture.threePrime = createSyntheticNucleotide(SBResidue::ResidueType::DG, 2.0, 0.0, 0.0, vector3(-1.0, 0.0, 0.0));
+
+	fixture.part->RegisterNucleotideThreePrime(fixture.strand, fixture.fivePrime);
+	fixture.part->RegisterNucleotideThreePrime(fixture.strand, fixture.middle);
+	fixture.part->RegisterNucleotideThreePrime(fixture.strand, fixture.threePrime);
+	fixture.strand->setCircularFlag(true);
+
+	return fixture;
 
 }
 
@@ -545,6 +569,26 @@ void testConcatenate() {
 
 }
 
+void testCircularSingleStrandWrapsWithoutChangingSequenceOrder() {
+
+	const CircularStrandFixture fixture = createCircularStrandFixture();
+
+	requireTrue("circular strand wrap 3 to 5",
+		fixture.threePrime->GetNext(true) == fixture.fivePrime,
+		"Expected circular strands to wrap from 3' to 5' when requested.");
+	requireTrue("circular strand wrap 5 to 3",
+		fixture.fivePrime->GetPrev(true) == fixture.threePrime,
+		"Expected circular strands to wrap from 5' to 3' when requested.");
+	requireTrue("circular strand keeps linear next pointer",
+		fixture.threePrime->GetNext() == nullptr,
+		"Expected the physical 3' next pointer to remain open.");
+	requireTrue("circular strand keeps linear prev pointer",
+		fixture.fivePrime->GetPrev() == nullptr,
+		"Expected the physical 5' prev pointer to remain open.");
+	requireEqual("circular strand sequence remains finite", fixture.strand->GetSequence(), std::string("ATG"));
+
+}
+
 void testModernJsonValidation() {
 
 	auto valid = parseJson(R"json({
@@ -598,6 +642,36 @@ void testModernJsonValidation() {
 	})json");
 
 	requireTrue("valid modern json", ADNLoader::JsonValidation::isValidModernPart(valid, 0.5), "Expected valid modern part JSON.");
+
+	auto validWithCircular = parseJson(R"json({
+		"version": 0.5,
+		"name": "valid circular part",
+		"singleStrands": {
+			"1": {
+				"chainName": "strand",
+				"isScaffold": true,
+				"isCircular": true,
+				"fivePrimeId": 10,
+				"nucleotides": {
+					"10": {
+						"type": "A",
+						"position": "0,0,0",
+						"backboneCenter": "0,0,0",
+						"sidechainCenter": "0,0,0",
+						"e1": "1,0,0",
+						"e2": "0,1,0",
+						"e3": "0,0,1",
+						"tag": "",
+						"next": -1,
+						"prev": -1,
+						"pair": -1
+					}
+				}
+			}
+		},
+		"doubleStrands": {}
+	})json");
+	requireTrue("valid modern circular json", ADNLoader::JsonValidation::isValidModernPart(validWithCircular, 0.5), "Expected optional circular metadata to be accepted.");
 
 	auto missingName = parseJson(R"json({
 		"version": 0.5,
@@ -662,6 +736,36 @@ void testModernJsonValidation() {
 		"doubleStrands": {}
 	})json");
 	requireTrue("modern json invalid vector", !ADNLoader::JsonValidation::isValidModernPart(invalidVector, 0.5), "Expected invalid vector string to be rejected.");
+
+	auto invalidCircularType = parseJson(R"json({
+		"version": 0.5,
+		"name": "invalid circular type",
+		"singleStrands": {
+			"1": {
+				"chainName": "strand",
+				"isScaffold": true,
+				"isCircular": "true",
+				"fivePrimeId": 10,
+				"nucleotides": {
+					"10": {
+						"type": "A",
+						"position": "0,0,0",
+						"backboneCenter": "0,0,0",
+						"sidechainCenter": "0,0,0",
+						"e1": "1,0,0",
+						"e2": "0,1,0",
+						"e3": "0,0,1",
+						"tag": "",
+						"next": -1,
+						"prev": -1,
+						"pair": -1
+					}
+				}
+			}
+		},
+		"doubleStrands": {}
+	})json");
+	requireTrue("modern json invalid circular type", !ADNLoader::JsonValidation::isValidModernPart(invalidCircularType, 0.5), "Expected non-boolean circular metadata to be rejected.");
 
 	auto validParts = parseJson(R"json({
 		"version": 0.5,
@@ -748,6 +852,79 @@ void testLegacyJsonValidation() {
 
 	requireTrue("valid legacy json", ADNLoader::JsonValidation::isValidLegacyPart(validLegacy, 0.3), "Expected valid legacy part JSON.");
 
+	auto validLegacyWithCircular = parseJson(R"json({
+		"version": 0.3,
+		"name": "legacy circular part",
+		"strands": {
+			"0": {
+				"id": 1,
+				"chainName": "strand",
+				"isScaffold": true,
+				"isCircular": true,
+				"fivePrimeId": 10,
+				"nucleotides": {
+					"0": {
+						"id": 10,
+						"type": "A",
+						"e1": "1,0,0",
+						"e2": "0,1,0",
+						"e3": "0,0,1",
+						"position": "0,0,0",
+						"backboneCenter": "0,0,0",
+						"sidechainCenter": "0,0,0",
+						"next": -1,
+						"prev": -1,
+						"pair": {
+							"strandId": -1,
+							"pairId": -1
+						}
+					}
+				}
+			}
+		},
+		"doubleStrands": {
+			"0": {
+				"id": 2,
+				"initialTwistAngle": 0.0,
+				"size": 1,
+				"bsStartId": 20
+			}
+		},
+		"joints": {
+			"0": {
+				"id": 30,
+				"position": "0,0,0"
+			}
+		},
+		"bases": {
+			"0": {
+				"id": 20,
+				"position": "0,0,0",
+				"next": -1,
+				"prev": -1,
+				"double_strand": 2,
+				"source": 30,
+				"target": 30,
+				"number": 0,
+				"normal": "0,1,0",
+				"direction": "0,0,1",
+				"u": "1,0,0",
+				"cell": {
+					"type": 0,
+					"left": {
+						"strand_id": 1,
+						"nt_id": 10
+					},
+					"right": {
+						"strand_id": -1,
+						"nt_id": -1
+					}
+				}
+			}
+		}
+	})json");
+	requireTrue("valid legacy circular json", ADNLoader::JsonValidation::isValidLegacyPart(validLegacyWithCircular, 0.3), "Expected optional circular metadata in legacy JSON to be accepted.");
+
 	auto missingVersion = parseJson(R"json({
 		"name": "legacy part",
 		"strands": {},
@@ -788,6 +965,159 @@ void testLegacyJsonValidation() {
 		"bases": {}
 	})json");
 	requireTrue("legacy json malformed pair", !ADNLoader::JsonValidation::isValidLegacyPart(malformedPair, 0.3), "Expected malformed legacy pair to be rejected.");
+
+	auto invalidLegacyCircularType = parseJson(R"json({
+		"version": 0.3,
+		"name": "legacy invalid circular type",
+		"strands": {
+			"0": {
+				"id": 1,
+				"chainName": "strand",
+				"isScaffold": true,
+				"isCircular": "true",
+				"fivePrimeId": 10,
+				"nucleotides": {
+					"0": {
+						"id": 10,
+						"type": "A",
+						"e1": "1,0,0",
+						"e2": "0,1,0",
+						"e3": "0,0,1",
+						"position": "0,0,0",
+						"backboneCenter": "0,0,0",
+						"sidechainCenter": "0,0,0",
+						"next": -1,
+						"prev": -1,
+						"pair": {
+							"strandId": -1,
+							"pairId": -1
+						}
+					}
+				}
+			}
+		},
+		"doubleStrands": {
+			"0": {
+				"id": 2,
+				"initialTwistAngle": 0.0,
+				"size": 1,
+				"bsStartId": 20
+			}
+		},
+		"joints": {
+			"0": {
+				"id": 30,
+				"position": "0,0,0"
+			}
+		},
+		"bases": {
+			"0": {
+				"id": 20,
+				"position": "0,0,0",
+				"next": -1,
+				"prev": -1,
+				"double_strand": 2,
+				"source": 30,
+				"target": 30,
+				"number": 0,
+				"normal": "0,1,0",
+				"direction": "0,0,1",
+				"u": "1,0,0",
+				"cell": {
+					"type": 0,
+					"left": {
+						"strand_id": 1,
+						"nt_id": 10
+					},
+					"right": {
+						"strand_id": -1,
+						"nt_id": -1
+					}
+				}
+			}
+		}
+	})json");
+	requireTrue("legacy json invalid circular type", !ADNLoader::JsonValidation::isValidLegacyPart(invalidLegacyCircularType, 0.3), "Expected legacy circular metadata to be boolean when present.");
+
+}
+
+void testCircularSingleStrandJsonRoundTrip() {
+
+	const CircularStrandFixture fixture = createCircularStrandFixture();
+
+	rapidjson::StringBuffer buffer;
+	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+	writer.StartObject();
+	writer.Key("version");
+	writer.Double(ADNConstants::JSON_FORMAT_VERSION);
+	ADNLoader::SavePartToJson(fixture.part, writer);
+	writer.EndObject();
+
+	rapidjson::Document document;
+	document.Parse(buffer.GetString());
+	const bool parsed = !document.HasParseError() && document.IsObject();
+	requireTrue("circular json round-trip parse", parsed, "Expected the serialized circular strand JSON to parse.");
+	if (!parsed) return;
+
+	requireTrue("circular json round-trip validates",
+		ADNLoader::JsonValidation::isValidModernPart(document, ADNConstants::JSON_FORMAT_VERSION),
+		"Expected the serialized circular strand JSON to validate.");
+
+	const bool hasSingleStrands = document.HasMember("singleStrands") && document["singleStrands"].IsObject() && document["singleStrands"].MemberCount() == 1;
+	requireTrue("circular json round-trip has one strand", hasSingleStrands, "Expected a single serialized strand.");
+	if (!hasSingleStrands) return;
+
+	auto strandIt = document["singleStrands"].MemberBegin();
+	const rapidjson::Value& strandValue = strandIt->value;
+	requireTrue("circular json round-trip writes circular flag",
+		strandValue.HasMember("isCircular") && strandValue["isCircular"].IsBool() && strandValue["isCircular"].GetBool(),
+		"Expected serialized strands to preserve circular metadata.");
+
+	const bool hasNucleotides = strandValue.HasMember("nucleotides") && strandValue["nucleotides"].IsObject();
+	requireTrue("circular json round-trip writes nucleotides", hasNucleotides, "Expected serialized nucleotides.");
+	if (!hasNucleotides) return;
+
+	const rapidjson::Value& nucleotides = strandValue["nucleotides"];
+	const std::string fivePrimeId = std::to_string(strandValue["fivePrimeId"].GetInt());
+	const std::string threePrimeId = std::to_string(strandValue["threePrimeId"].GetInt());
+	auto fivePrimeIt = nucleotides.FindMember(fivePrimeId.c_str());
+	auto threePrimeIt = nucleotides.FindMember(threePrimeId.c_str());
+	const bool hasFivePrime = fivePrimeIt != nucleotides.MemberEnd();
+	const bool hasThreePrime = threePrimeIt != nucleotides.MemberEnd();
+	requireTrue("circular json round-trip keeps five prime nucleotide", hasFivePrime, "Expected serialized five-prime nucleotide data.");
+	requireTrue("circular json round-trip keeps three prime nucleotide", hasThreePrime, "Expected serialized three-prime nucleotide data.");
+	if (!hasFivePrime || !hasThreePrime) return;
+
+	requireEqual("circular json round-trip keeps linear five prime prev", fivePrimeIt->value["prev"].GetInt(), -1);
+	requireEqual("circular json round-trip keeps linear three prime next", threePrimeIt->value["next"].GetInt(), -1);
+
+	SBPointer<ADNPart> reloaded = ADNLoader::LoadPartFromJson(document, ADNConstants::JSON_FORMAT_VERSION);
+	requireTrue("circular json round-trip reloads part", reloaded != nullptr, "Expected the serialized circular strand to reload.");
+	if (reloaded == nullptr) return;
+
+	SBPointer<ADNSingleStrand> reloadedStrand = nullptr;
+	auto singleStrands = reloaded->GetSingleStrands();
+	SB_FOR(SBPointer<ADNSingleStrand> strand, singleStrands) {
+		reloadedStrand = strand;
+		break;
+	}
+
+	requireTrue("circular json round-trip reloads strand", reloadedStrand != nullptr, "Expected the reloaded part to contain a strand.");
+	if (reloadedStrand == nullptr) return;
+
+	requireTrue("circular json round-trip preserves circular flag",
+		reloadedStrand->IsCircular(),
+		"Expected the reloaded strand to remain circular.");
+	requireEqual("circular json round-trip preserves sequence", reloadedStrand->GetSequence(), std::string("ATG"));
+	requireTrue("circular json round-trip preserves wrap 3 to 5",
+		reloadedStrand->GetThreePrime()->GetNext(true) == reloadedStrand->GetFivePrime(),
+		"Expected the reloaded circular strand to wrap from 3' to 5'.");
+	requireTrue("circular json round-trip preserves wrap 5 to 3",
+		reloadedStrand->GetFivePrime()->GetPrev(true) == reloadedStrand->GetThreePrime(),
+		"Expected the reloaded circular strand to wrap from 5' to 3'.");
+	requireTrue("circular json round-trip keeps linear topology after reload",
+		reloadedStrand->GetThreePrime()->GetNext() == nullptr && reloadedStrand->GetFivePrime()->GetPrev() == nullptr,
+		"Expected the reloaded circular strand to keep a linear stored topology.");
 
 }
 
@@ -853,6 +1183,31 @@ void testDaedalusPlyRegressionDoesNotCrashOnTeardown() {
 		part != nullptr && part->GetNumberOfSingleStrands() > 0,
 		"Expected the generated part to contain strands.");
 
+	SBPointer<ADNSingleStrand> scaffold = nullptr;
+	bool foundLinearStaple = false;
+	if (part != nullptr) {
+		auto singleStrands = part->GetSingleStrands();
+		SB_FOR(SBPointer<ADNSingleStrand> strand, singleStrands) {
+			if (strand == nullptr) continue;
+			if (strand->IsScaffold()) {
+				scaffold = strand;
+			}
+			else if (!strand->IsCircular()) {
+				foundLinearStaple = true;
+			}
+		}
+	}
+
+	requireTrue("daedalus regression created scaffold strand",
+		scaffold != nullptr,
+		"Expected the generated part to contain a scaffold strand.");
+	requireTrue("daedalus regression scaffold is circular",
+		scaffold != nullptr && scaffold->IsCircular(),
+		"Expected the routed scaffold strand to be circular.");
+	requireTrue("daedalus regression keeps staples linear",
+		foundLinearStaple,
+		"Expected at least one generated staple strand to remain linear.");
+
 }
 
 } // namespace
@@ -873,8 +1228,10 @@ int main() {
 	testConfigFileIoClosesWrittenAndReadFiles();
 	testConfigFileIoReportsFailuresAndClosesInvalidReads();
 	testConcatenate();
+	testCircularSingleStrandWrapsWithoutChangingSequenceOrder();
 	testModernJsonValidation();
 	testLegacyJsonValidation();
+	testCircularSingleStrandJsonRoundTrip();
 	testBuildTopScalesHandlesBrokenNucleotideLinks();
 	testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks();
 	testDaedalusPlyRegressionDoesNotCrashOnTeardown();

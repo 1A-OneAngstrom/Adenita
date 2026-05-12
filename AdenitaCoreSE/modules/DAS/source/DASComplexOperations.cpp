@@ -1,5 +1,45 @@
 #include "DASComplexOperations.hpp"
 #include "DASBackToTheAtom.hpp"
+#include "ADNLogger.hpp"
+
+namespace {
+
+#ifndef NDEBUG
+void ValidateCircularStrandTopology(SBPointer<ADNSingleStrand> strand) {
+
+	if (strand == nullptr) {
+		ADNLogger::LogDebug(std::string("Circular strand validation skipped for a null strand."));
+		return;
+	}
+
+	SBPointer<ADNNucleotide> fivePrime = strand->GetFivePrime();
+	SBPointer<ADNNucleotide> threePrime = strand->GetThreePrime();
+	if (fivePrime == nullptr || threePrime == nullptr) {
+		ADNLogger::LogDebug("Circular strand '" + strand->getName() + "' has missing 5'/3' endpoints.");
+		return;
+	}
+
+	if (threePrime->GetNext(true) != fivePrime)
+		ADNLogger::LogDebug("Circular strand '" + strand->getName() + "' does not wrap 3' -> 5'.");
+
+	if (fivePrime->GetPrev(true) != threePrime)
+		ADNLogger::LogDebug("Circular strand '" + strand->getName() + "' does not wrap 5' -> 3'.");
+
+}
+#else
+void ValidateCircularStrandTopology(SBPointer<ADNSingleStrand>) {}
+#endif
+
+void MarkCircularAndValidate(SBPointer<ADNSingleStrand> strand) {
+
+	if (strand == nullptr) return;
+
+	strand->setCircularFlag(true);
+	ValidateCircularStrandTopology(strand);
+
+}
+
+}
 
 DASOperations::Connections DASOperations::PrepareStrandsForConnection(SBPointer<ADNPart> part1, SBPointer<ADNPart> part2,
 	SBPointer<ADNNucleotide> nt1, SBPointer<ADNNucleotide> nt2)
@@ -141,10 +181,10 @@ void DASOperations::CreateCrossover(SBPointer<ADNPart> part1, SBPointer<ADNPart>
 		else {
 			if (joinStrand1 != nullptr) {
 				auto ss = ADNBasicOperations::MergeSingleStrands(pair.firstPart, pair.firstPart, pair.first, joinStrand1);
-				ss->setCircularFlag(true);
+				MarkCircularAndValidate(ss);
 			}
 			else {
-				pair.first->setCircularFlag(true);
+				MarkCircularAndValidate(pair.first);
 			}
 		}
 	}
@@ -163,11 +203,11 @@ void DASOperations::CreateCrossover(SBPointer<ADNPart> part1, SBPointer<ADNPart>
 			}
 			else {
 				if (joinStrand2 != nullptr) {
-					auto ss = ADNBasicOperations::MergeSingleStrands(compPair.firstPart, pair.firstPart, compPair.first, joinStrand1);
-					ss->setCircularFlag(true);
+					auto ss = ADNBasicOperations::MergeSingleStrands(compPair.firstPart, pair.firstPart, compPair.first, joinStrand2);
+					MarkCircularAndValidate(ss);
 				}
 				else {
-					compPair.first->setCircularFlag(true);
+					MarkCircularAndValidate(compPair.first);
 				}
 			}
 		}

@@ -2317,7 +2317,7 @@ void SEAdenitaVisualModel::prepareNucleotides() {
 				}
 
 				//strand direction
-				if (nt->getEndType() == ADNNucleotide::EndType::ThreePrime) {
+				if (!singleStrand->IsCircular() && nt->getEndType() == ADNNucleotide::EndType::ThreePrime) {
 					radiiENt_(index) = config.nucleotide_E_radius;
 				}
 
@@ -2387,7 +2387,7 @@ void SEAdenitaVisualModel::prepareSingleStrands() {
 				radiiESS_(index) = config.nucleotide_V_radius;
 
 				//strand direction
-				if (nt->getEndType() == ADNNucleotide::EndType::ThreePrime) {
+				if (!ss->IsCircular() && nt->getEndType() == ADNNucleotide::EndType::ThreePrime) {
 					radiiESS_(index) = config.nucleotide_E_radius;
 				}
 

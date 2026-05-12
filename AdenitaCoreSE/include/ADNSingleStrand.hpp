@@ -39,6 +39,9 @@ public:
     [[nodiscard]] bool                                          getScaffoldFlag() const;
     void                                                        setScaffoldFlag(bool b);
 
+    // Circular single strands keep a linear 5' -> 3' child order with an
+    // arbitrary break. Use ADNNucleotide::GetNext(true) / GetPrev(true) to
+    // traverse across the metadata-only closure.
     [[nodiscard]] bool                                          IsCircular() const;
     [[nodiscard]] bool                                          getCircularFlag() const;
     void                                                        setCircularFlag(bool b);
