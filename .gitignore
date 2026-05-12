@@ -59,5 +59,7 @@ ElementVersionHash.cmake
 .DS_Store
 .vscode/
 
+*_ui.py
+
 # Do not ignore
 !AdenitaCoreSE/data/*

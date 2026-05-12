@@ -1493,8 +1493,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		auto btnDNATwisterEditor = new QToolButton(this);
 		btnDNATwisterEditor->setObjectName(QStringLiteral("btnDNATwisterEditor"));
 		btnDNATwisterEditor->setText("Rotate DNA");
-		btnDNATwisterEditor->setToolTip("<b>DNA twister editor</b><br/><br/>"
-			"Rotate double strand DNA along helical axis - modify the twist angle of a double-strand along the helical axis.");
+		btnDNATwisterEditor->setToolTip("<b>DNA rotation/twist editor</b><br/><br/>"
+			"Rotate double strand DNA along helical axis - modify the twist angle of a double-strand along the helical axis.<br>Hold <b>Alt</b> to rotate in the opposite direction.");
 		btnDNATwisterEditor->setIconSize(QSize(24, 24));
 		btnDNATwisterEditor->setCheckable(true);
 		btnDNATwisterEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
