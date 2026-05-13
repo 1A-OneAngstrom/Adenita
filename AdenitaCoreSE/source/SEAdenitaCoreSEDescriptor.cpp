@@ -33,7 +33,7 @@
 
 SB_ELEMENT_DESCRIPTION("Modeling and Visualization of DNA Nanostructures");
 SB_ELEMENT_DOCUMENTATION("https://documentation.samson-connect.net/tutorials/adenita/adenita/");
-SB_ELEMENT_VERSION_NUMBER("0.21.0");
+SB_ELEMENT_VERSION_NUMBER("0.22.0");
 
 SB_ELEMENT_CLASSES_BEGIN;
 
