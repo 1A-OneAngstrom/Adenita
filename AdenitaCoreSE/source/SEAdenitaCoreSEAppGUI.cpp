@@ -20,6 +20,7 @@
 
 #include "DASPolyhedron.hpp"
 
+#include <cmath>
 #include <filesystem>
 
 #include <QPixmap>
@@ -158,8 +159,10 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 		int i = 42;
 		if (SAMSON::getIntegerFromUser(QString("Wireframe structure (Daedalus)"), i, 31, 1050, 1, QString("Minimum edge size: "), QString(" bp"))) {
 
-			div_t d = div(i, 10.5);
-			int minSize = floor(d.quot * 10.5);
+			// Daedalus edge sizes are quantized in 10.5 bp turns; keep that step explicitly
+			// instead of relying on integer division, which would silently turn 10.5 into 10.
+			const double turns = std::round(static_cast<double>(i) / 10.5);
+			int minSize = static_cast<int>(std::floor(turns * 10.5));
 			getApp()->LoadPartWithDaedalus(filename, minSize);
 
 		}

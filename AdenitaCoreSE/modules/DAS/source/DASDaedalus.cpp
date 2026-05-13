@@ -1398,9 +1398,10 @@ std::map<DASHalfEdge*, SBPosition3> DASDaedalus::GetVertexPositions(DASPolyhedro
 int DASDaedalus::CalculateEdgeSize(SBQuantity::length nmLength) {
 
 	SBQuantity::dimensionless zSB = nmLength / SBQuantity::nanometer(ADNConstants::BP_RISE);
-	std::ldiv_t div;
-	div = std::div(long(zSB.getValue()), long(10.5));
-	int sz = std::floor(div.quot * 10.5);
+	// Quantize geometric edge lengths to full 10.5 bp turns explicitly; using integer
+	// division here would truncate the divisor to 10 and shift the step boundaries.
+	const double turns = std::round(zSB.getValue() / 10.5);
+	int sz = static_cast<int>(std::floor(turns * 10.5));
 	if (sz < 31) sz = 31;
 	return sz;
 
