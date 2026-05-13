@@ -265,9 +265,9 @@ void SETaggingEditor::keyReleaseEvent(QKeyEvent* event) {
 
 }
 
-ADNPointer<ADNNucleotide> SETaggingEditor::GetHighlightedNucleotide() const {
+SBPointer<ADNNucleotide> SETaggingEditor::GetHighlightedNucleotide() const {
 
-	ADNPointer<ADNNucleotide> nucleotide = nullptr;
+	SBPointer<ADNNucleotide> nucleotide = nullptr;
 	auto highlightedNucleotides = SEAdenitaCoreSEApp::getAdenitaApp()->GetNanorobot()->GetHighlightedNucleotides();
 
 	if (highlightedNucleotides.size() == 1)

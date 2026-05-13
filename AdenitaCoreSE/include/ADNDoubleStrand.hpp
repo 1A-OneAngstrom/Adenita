@@ -22,7 +22,7 @@ public:
 	virtual void												serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const override;		///< Serializes the node
 	virtual void												unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;			///< Unserializes the node
 
-	[[nodiscard]] ADNPointer<ADNPart>                           GetPart() const;                                                        ///< Returns a pointer to the part to which this double strand belongs
+	[[nodiscard]] SBPointer<ADNPart>                           GetPart() const;                                                        ///< Returns a pointer to the part to which this double strand belongs
 	
 	void														SetInitialTwistAngle(double angle);
 	[[nodiscard]] double										GetInitialTwistAngle() const;
@@ -35,25 +35,25 @@ public:
 	[[nodiscard]] bool											getCircularFlag() const;
 	void														setCircularFlag(bool b);
 
-	[[nodiscard]] CollectionMap<ADNBaseSegment>					GetBaseSegments() const;
-	[[nodiscard]] ADNPointer<ADNBaseSegment>					GetNthBaseSegment(int n) const;											///< Returns the base segment by position in the double strand
+	[[nodiscard]] SBPointerIndexer<ADNBaseSegment>					GetBaseSegments() const;
+	[[nodiscard]] SBPointer<ADNBaseSegment>					GetNthBaseSegment(int n) const;											///< Returns the base segment by position in the double strand
 
-	[[nodiscard]] ADNPointer<ADNBaseSegment>					GetFirstBaseSegment() const;
+	[[nodiscard]] SBPointer<ADNBaseSegment>					GetFirstBaseSegment() const;
 	[[nodiscard]] SBNode*										getFirstBaseSegment() const;
-	void														SetStart(ADNPointer<ADNBaseSegment> baseSegment);
-	[[nodiscard]] ADNPointer<ADNBaseSegment>					GetLastBaseSegment() const;
+	void														SetStart(SBPointer<ADNBaseSegment> baseSegment);
+	[[nodiscard]] SBPointer<ADNBaseSegment>					GetLastBaseSegment() const;
 	[[nodiscard]] SBNode*										getLastBaseSegment() const;
-	void														SetEnd(ADNPointer<ADNBaseSegment> baseSegment);
+	void														SetEnd(SBPointer<ADNBaseSegment> baseSegment);
 
-	void														AddBaseSegmentBeginning(ADNPointer<ADNBaseSegment> baseSegment);
-	void														AddBaseSegmentEnd(ADNPointer<ADNBaseSegment> baseSegment);
+	void														AddBaseSegmentBeginning(SBPointer<ADNBaseSegment> baseSegment);
+	void														AddBaseSegmentEnd(SBPointer<ADNBaseSegment> baseSegment);
 
 private:
 
 	bool														circularFlag{ false };
 
-	ADNPointer<ADNBaseSegment>									startBaseSegment = nullptr;
-	ADNPointer<ADNBaseSegment>									endBaseSegment = nullptr;
+	SBPointer<ADNBaseSegment>									startBaseSegment = nullptr;
+	SBPointer<ADNBaseSegment>									endBaseSegment = nullptr;
 
 	double														initialTwistAngle{ 0.0 };
 

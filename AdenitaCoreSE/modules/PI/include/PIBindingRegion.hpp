@@ -40,10 +40,10 @@ public:
 	double getTemp() const;
 	std::string getStatusString() const;
 
-	void SetLastNt(ADNPointer<ADNNucleotide> nt);
-	void SetFirstNt(ADNPointer<ADNNucleotide> nt);
-	ADNPointer<ADNPart> GetPart() const;
-	void SetPart(ADNPointer<ADNPart> part);
+	void SetLastNt(SBPointer<ADNNucleotide> nt);
+	void SetFirstNt(SBPointer<ADNNucleotide> nt);
+	SBPointer<ADNPart> GetPart() const;
+	void SetPart(SBPointer<ADNPart> part);
 	void SetThermodynamicParameters(ThermodynamicParameters res);
 
 	void RegisterBindingRegion(SBFolder* folder = nullptr);
@@ -53,9 +53,9 @@ public:
 private:
 
 	ThermodynamicParameters thermodynamicParameters_;
-	ADNPointer<ADNNucleotide> firstNt_;
-	ADNPointer<ADNNucleotide> lastNt_;
-	ADNPointer<ADNPart> part_;
+	SBPointer<ADNNucleotide> firstNt_;
+	SBPointer<ADNNucleotide> lastNt_;
+	SBPointer<ADNPart> part_;
 
 };
 

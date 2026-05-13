@@ -44,7 +44,7 @@ void SEDNATwisterEditor::untwisting() {
 
 	SB_FOR(SBNode* node, baseSegmentIndexer) {
 
-		ADNPointer<ADNBaseSegment> baseSegment = static_cast<ADNBaseSegment*>(node);
+		SBPointer<ADNBaseSegment> baseSegment = static_cast<ADNBaseSegment*>(node);
 		const SBPosition3 baseSegmentPosition = baseSegment->GetPosition();
 		const SBQuantity::length distanceFromSphereCenter = (baseSegmentPosition - spherePosition).norm();
 
@@ -70,7 +70,7 @@ void SEDNATwisterEditor::makeInvisible() {
 
 	SB_FOR(SBNode* node, nucleotideIndexer) {
 
-		ADNPointer<ADNNucleotide> nt = static_cast<ADNNucleotide*>(node);
+		SBPointer<ADNNucleotide> nt = static_cast<ADNNucleotide*>(node);
 
 		SBPosition3 pos = nt->GetPosition();
 		SBPosition3 vectorFromSphereCenter = pos - spherePosition;

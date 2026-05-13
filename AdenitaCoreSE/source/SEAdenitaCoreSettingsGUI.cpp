@@ -13,11 +13,11 @@ SEAdenitaCoreSettingsGUI::SEAdenitaCoreSettingsGUI(QWidget* parent, Qt::WindowFl
 	dialogWindow->QWidget::setWindowFlags(dialogWindow->QWidget::windowFlags() | Qt::WindowStaysOnTopHint);
 	dialogWindow->setWindowModality(Qt::ApplicationModal);
 
-	QObject::connect(ui.comboBoxScaffold, SIGNAL(currentIndexChanged(int)), this, SLOT(onChangeScaffold(int)));
-	QObject::connect(ui.pushButtonOK, SIGNAL(released()), this, SLOT(accept()));
-	QObject::connect(ui.pushButtonCancel, SIGNAL(released()), this, SLOT(reject()));
-	//QObject::connect(ui.pushButtonReset, SIGNAL(released()), this, SLOT(onResetToDefault()));
-	QObject::connect(ui.pushButtonSetPathNtthal, SIGNAL(released()), this, SLOT(onSetPathNtthal()));
+	QObject::connect(ui.comboBoxScaffold, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SEAdenitaCoreSettingsGUI::onChangeScaffold);
+	QObject::connect(ui.pushButtonOK, &QPushButton::released, this, &SEAdenitaCoreSettingsGUI::accept);
+	QObject::connect(ui.pushButtonCancel, &QPushButton::released, this, &SEAdenitaCoreSettingsGUI::reject);
+	//QObject::connect(ui.pushButtonReset, &QPushButton::released, this, &SEAdenitaCoreSettingsGUI::onResetToDefault);
+	QObject::connect(ui.pushButtonSetPathNtthal, &QPushButton::released, this, &SEAdenitaCoreSettingsGUI::onSetPathNtthal);
 
 	ui.pushButtonReset->setVisible(false);
 

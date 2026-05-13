@@ -686,7 +686,7 @@ void ADNDisplayHelper::displaySphere(const SBPosition3& pos, float radius, ADNAr
 
 }
 
-void ADNDisplayHelper::displayBasePairConnection(ADNPointer<ADNNucleotide> nt) {
+void ADNDisplayHelper::displayBasePairConnection(SBPointer<ADNNucleotide> nt) {
 
     auto pair = nt->GetPair();
 
@@ -708,7 +708,7 @@ void ADNDisplayHelper::displayBasePairConnection(ADNPointer<ADNNucleotide> nt) {
 
 }
 
-void ADNDisplayHelper::displayBaseVectors(ADNPointer<ADNNucleotide> nt, const SBPosition3& pos) {
+void ADNDisplayHelper::displayBaseVectors(SBPointer<ADNNucleotide> nt, const SBPosition3& pos) {
 
     SBVector3 e1 = SBVector3(nt->GetE1()[0], nt->GetE1()[1], nt->GetE1()[2]);
     SBVector3 e2 = SBVector3(nt->GetE2()[0], nt->GetE2()[1], nt->GetE2()[2]);
@@ -750,7 +750,7 @@ void ADNDisplayHelper::displayTriangleMesh(DASPolyhedron* p) {
     float* colorData = new float[4 * nVertices];
     unsigned int* flagData = new unsigned int[nVertices];
     float* normalData = new float[3 * nVertices];
-    unsigned int* indexData = p->GetIndices();
+    unsigned int* indexData = p->GetIndices();  // `p` owns indices, so we should not delete them
 
     for (unsigned int i = 0; i < nVertices; i++) {
 
@@ -766,9 +766,9 @@ void ADNDisplayHelper::displayTriangleMesh(DASPolyhedron* p) {
         flagData[i] = 0;
 
         //normal
-        int idx1 = indexData[3 * i + 0];
-        int idx2 = indexData[3 * i + 1];
-        int idx3 = indexData[3 * i + 2];
+        const int idx1 = indexData[3 * i + 0];
+        const int idx2 = indexData[3 * i + 1];
+        const int idx3 = indexData[3 * i + 2];
 
         ublas::vector<double> posA(3);
         posA[0] = vertexPositions[3 * idx1 + 0];
@@ -809,11 +809,10 @@ void ADNDisplayHelper::displayTriangleMesh(DASPolyhedron* p) {
     delete[] colorData;
     delete[] flagData;
     delete[] normalData;
-    delete[] indexData;
 
 }
 
-void ADNDisplayHelper::displayPart(ADNPointer<ADNPart> part, float basePairRadius, float opaqueness) {
+void ADNDisplayHelper::displayPart(SBPointer<ADNPart> part, float basePairRadius, float opaqueness) {
 
     const SEConfig& config = SEConfig::GetInstance();
 

@@ -23,31 +23,31 @@ public:
 	virtual void												serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const override;		///< Serializes the node
 	virtual void												unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;			///< Unserializes the node
 
-	void														SetStart(ADNPointer<ADNNucleotide> nucleotide);							///< Set the start nucleotide
-	[[nodiscard]] ADNPointer<ADNNucleotide>						GetStart() const;
+	void														SetStart(SBPointer<ADNNucleotide> nucleotide);							///< Set the start nucleotide
+	[[nodiscard]] SBPointer<ADNNucleotide>						GetStart() const;
 	[[nodiscard]] SBNode*										getStartNucleotide() const;
-	void														SetEnd(ADNPointer<ADNNucleotide> nucleotide);							///< Set the end nucleotide
-	[[nodiscard]] ADNPointer<ADNNucleotide>						GetEnd() const;
+	void														SetEnd(SBPointer<ADNNucleotide> nucleotide);							///< Set the end nucleotide
+	[[nodiscard]] SBPointer<ADNNucleotide>						GetEnd() const;
 	[[nodiscard]] SBNode*										getEndNucleotide() const;
 
-	void														SetBaseSegment(ADNPointer<ADNBaseSegment> baseSegment, bool setPositions = false);
+	void														SetBaseSegment(SBPointer<ADNBaseSegment> baseSegment, bool setPositions = false);
 
 	[[nodiscard]] std::string									getLoopSequence() const;
 
 	[[nodiscard]] int											getNumberOfNucleotides() const;
-	[[nodiscard]] CollectionMap<ADNNucleotide>					GetNucleotides() const;
+	[[nodiscard]] SBPointerIndexer<ADNNucleotide>					GetNucleotides() const;
 
-	void														AddNucleotide(ADNPointer<ADNNucleotide> nucleotide);
-	void														RemoveNucleotide(ADNPointer<ADNNucleotide> nucleotide);
+	void														AddNucleotide(SBPointer<ADNNucleotide> nucleotide);
+	void														RemoveNucleotide(SBPointer<ADNNucleotide> nucleotide);
 
 	[[nodiscard]] bool											IsEmpty() const;
 
 private:
 
-	ADNPointer<ADNNucleotide>									startNucleotide = nullptr;
-	ADNPointer<ADNNucleotide>									endNucleotide = nullptr;
+	SBPointer<ADNNucleotide>									startNucleotide = nullptr;
+	SBPointer<ADNNucleotide>									endNucleotide = nullptr;
 
-	CollectionMap<ADNNucleotide>								nucleotides_;
+	SBPointerIndexer<ADNNucleotide>								nucleotides_;
 
 };
 

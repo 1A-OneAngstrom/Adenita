@@ -1,7 +1,7 @@
 #include "ADNBaseSegment.hpp"
 #include "ADNAtom.hpp"
 #include "ADNDoubleStrand.hpp"
-
+#include "ADNNodeValidation.hpp"
 
 ADNBaseSegment::ADNBaseSegment(CellType cellType) : PositionableSB(), Orientable(), SBStructuralGroup() {
 
@@ -38,7 +38,7 @@ void ADNBaseSegment::serialize(SBCSerializer* serializer, const SBNodeIndexer& n
 
     SBStructuralGroup::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
-    ADNPointer<ADNAtom> atom = GetCenterAtom();
+    SBPointer<ADNAtom> atom = GetCenterAtom();
     /*SBPosition3 pos = GetPosition();
     serializer->writeDoubleElement("x", pos[0].getValue());
     serializer->writeDoubleElement("y", pos[1].getValue());
@@ -85,7 +85,7 @@ void ADNBaseSegment::unserialize(SBCSerializer* serializer, const SBNodeIndexer&
     SBStructuralGroup::unserialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
     unsigned int idx = serializer->readUnsignedIntElement();
-    ADNPointer<ADNAtom> atom = (ADNAtom*)nodeIndexer.getNode(idx);
+    SBPointer<ADNAtom> atom = ADNNodeValidation::GetSerializedAdenitaNode<ADNAtom>(nodeIndexer, idx, "ADNAtom");
     SetCenterAtom(atom);
     //double x = serializer->readDoubleElement();
     //double y = serializer->readDoubleElement();
@@ -127,8 +127,7 @@ void ADNBaseSegment::unserialize(SBCSerializer* serializer, const SBNodeIndexer&
     serializer->readEndElement();
 
     SetNumber(serializer->readIntElement());
-    SBNode* cNode = nodeIndexer.getNode(serializer->readUnsignedIntElement());
-    ADNPointer<ADNCell> cell = static_cast<ADNCell*>(cNode);
+    SBPointer<ADNCell> cell = ADNNodeValidation::GetSerializedAdenitaCell(nodeIndexer, serializer->readUnsignedIntElement());
     SetCell(cell());
 
 }
@@ -149,9 +148,12 @@ int ADNBaseSegment::getNumber() const {
     return GetNumber();
 }
 
-ADNPointer<ADNBaseSegment> ADNBaseSegment::GetPrev(bool checkCircular) const {
+SBPointer<ADNBaseSegment> ADNBaseSegment::GetPrev(bool checkCircular) const {
 
-    ADNPointer<ADNBaseSegment> p = static_cast<ADNBaseSegment*>(getPreviousStructuralNode());
+    SBPointer<ADNBaseSegment> p;
+    if (SBNode* previous = getPreviousStructuralNode())
+        if (ADNNodeValidation::IsAdenitaNode(previous, "ADNBaseSegment"))
+            p = dynamic_cast<ADNBaseSegment*>(previous);
 
     if (checkCircular) {
 
@@ -169,9 +171,12 @@ ADNPointer<ADNBaseSegment> ADNBaseSegment::GetPrev(bool checkCircular) const {
 
 }
 
-ADNPointer<ADNBaseSegment> ADNBaseSegment::GetNext(bool checkCircular) const {
+SBPointer<ADNBaseSegment> ADNBaseSegment::GetNext(bool checkCircular) const {
 
-    ADNPointer<ADNBaseSegment> p = static_cast<ADNBaseSegment*>(getNextStructuralNode());
+    SBPointer<ADNBaseSegment> p;
+    if (SBNode* next = getNextStructuralNode())
+        if (ADNNodeValidation::IsAdenitaNode(next, "ADNBaseSegment"))
+            p = dynamic_cast<ADNBaseSegment*>(next);
 
     if (checkCircular) {
 
@@ -215,10 +220,12 @@ bool ADNBaseSegment::IsLast() const {
 
 }
 
-ADNPointer<ADNDoubleStrand> ADNBaseSegment::GetDoubleStrand() const {
+SBPointer<ADNDoubleStrand> ADNBaseSegment::GetDoubleStrand() const {
 
-    auto p = static_cast<ADNDoubleStrand*>(getParent());
-    return ADNPointer<ADNDoubleStrand>(p);
+    SBNode* parent = getParent();
+    if (!ADNNodeValidation::IsAdenitaNode(parent, "ADNDoubleStrand")) return nullptr;
+
+    return SBPointer<ADNDoubleStrand>(dynamic_cast<ADNDoubleStrand*>(parent));
 
 }
 
@@ -234,16 +241,16 @@ unsigned int ADNBaseSegment::getNumberOfNucleotides() const {
 
 }
 
-CollectionMap<ADNNucleotide> ADNBaseSegment::GetNucleotides() const {
+SBPointerIndexer<ADNNucleotide> ADNBaseSegment::GetNucleotides() const {
     
     if (this->cell_ != nullptr) return cell_->GetNucleotides();
-    else return CollectionMap<ADNNucleotide>();
+    else return SBPointerIndexer<ADNNucleotide>();
 
 }
 
 void ADNBaseSegment::SetCell(ADNCell* c) {
 
-    this->cell_ = ADNPointer<ADNCell>(c);
+    this->cell_ = SBPointer<ADNCell>(c);
     if (this->cell_ != nullptr) {
 
         this->cell_->setName(cell_->getCellTypeString() + " " + std::to_string(this->cell_->getNodeIndex()));
@@ -254,7 +261,7 @@ void ADNBaseSegment::SetCell(ADNCell* c) {
 
 }
 
-ADNPointer<ADNCell> ADNBaseSegment::GetCell() const {
+SBPointer<ADNCell> ADNBaseSegment::GetCell() const {
 
     return cell_;
 
@@ -262,7 +269,7 @@ ADNPointer<ADNCell> ADNBaseSegment::GetCell() const {
 
 CellType ADNBaseSegment::GetCellType() const {
 
-    ADNPointer<ADNCell> cell = GetCell();
+    SBPointer<ADNCell> cell = GetCell();
     if (cell.isValid()) return cell->GetCellType();
     return CellType::Undefined;
 
@@ -274,21 +281,21 @@ std::string ADNBaseSegment::getCellTypeString() const {
 
 }
 
-void ADNBaseSegment::RemoveNucleotide(ADNPointer<ADNNucleotide> nt) {
+void ADNBaseSegment::RemoveNucleotide(SBPointer<ADNNucleotide> nt) {
 
-    ADNPointer<ADNCell> cell = GetCell();
+    SBPointer<ADNCell> cell = GetCell();
     if (cell.isValid()) cell->RemoveNucleotide(nt);
 
 }
 
-bool ADNBaseSegment::IsLeft(ADNPointer<ADNNucleotide> nt) const {
+bool ADNBaseSegment::IsLeft(SBPointer<ADNNucleotide> nt) const {
 
     if (cell_ != nullptr) return cell_->IsLeft(nt);
     else return false;
 
 }
 
-bool ADNBaseSegment::IsRight(ADNPointer<ADNNucleotide> nt) const {
+bool ADNBaseSegment::IsRight(SBPointer<ADNNucleotide> nt) const {
 
     if (cell_ != nullptr) return cell_->IsRight(nt);
     else return false;

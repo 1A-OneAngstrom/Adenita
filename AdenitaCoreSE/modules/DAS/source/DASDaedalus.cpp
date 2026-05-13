@@ -2,20 +2,39 @@
 
 #include <filesystem>
 
+namespace {
+
+void DeleteLinkGraph(LinkList& linkGraph) {
+
+	for (DOTLink* link : linkGraph)
+		delete link;
+
+	linkGraph.clear();
+
+}
+
+void DeleteNodes(NodeList& nodes) {
+
+	for (auto& nodeEntry : nodes)
+		delete nodeEntry.second;
+
+	nodes.clear();
+
+}
+
+}
+
 DASDaedalus::~DASDaedalus() {
 
-	for (auto& l : linkGraph_) {
-		delete l;
-	}
-	linkGraph_.clear();
-	nodes_.clear();
+	DeleteLinkGraph(linkGraph_);
+	DeleteNodes(nodes_);
 	firstBasesHe_.clear();
 	chains_.clear();
 	positionsBBSC_.clear();
 
 }
 
-ADNPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, std::string filename, bool center) {
+SBPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, std::string filename, bool center) {
 
 	// Create DASPolyhedron
 	DASPolyhedron p(filename);
@@ -24,15 +43,15 @@ ADNPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, std::string fil
 	if (p.GetNumVertices() == 0 && p.GetNumFaces() == 0)
 		return nullptr;
 
-	ADNPointer<ADNPart> daedalus_part = ApplyAlgorithm(seq, p, center);
+	SBPointer<ADNPart> daedalus_part = ApplyAlgorithm(seq, p, center);
 
 	return daedalus_part;
 
 }
 
-ADNPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, DASPolyhedron& p, bool center, bool editor) {
+SBPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, DASPolyhedron& p, bool center, bool editor) {
 
-	ADNPointer<ADNPart> daedalus_part = new ADNPart();
+	SBPointer<ADNPart> daedalus_part = new ADNPart();
 	DASPolyhedron& fig = p;
 	if (center) fig.Center(SBPosition3());
 
@@ -65,7 +84,7 @@ ADNPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, DASPolyhedron& 
 		seq += ap;
 	}
 
-	ADNPointer<ADNSingleStrand> scaff = new ADNSingleStrand();
+	SBPointer<ADNSingleStrand> scaff = new ADNSingleStrand();
 	scaff->setName("Scaffold");
 	scaff->setScaffoldFlag(true);
 	chains_.insert(std::make_pair(0, scaff));
@@ -85,6 +104,7 @@ ADNPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, DASPolyhedron& 
 	//LogLinkGraph();
 	// Route scaffold
 	RouteScaffold(daedalus_part, scaff, seq, r_length);
+	scaff->setCircularFlag(true);
 	// Create staple objects
 	CreateEdgeStaples(daedalus_part);
 	CreateVertexStaples(daedalus_part, fig);
@@ -112,7 +132,7 @@ UndirectedGraph DASDaedalus::GenerateUndirectedGraph() {
 	return u_graph;
 }
 
-DirectedGraph DASDaedalus::GenerateDirectedGraph(const UndirectedGraph& u_graph, ADNPointer<ADNPart> origami) {
+DirectedGraph DASDaedalus::GenerateDirectedGraph(const UndirectedGraph& u_graph, SBPointer<ADNPart> origami) {
 	DirectedGraph d_graph;
 	// Add all nodes with the same indices
 	boost::graph_traits<UndirectedGraph>::vertex_iterator v_it, v_end;
@@ -153,7 +173,7 @@ DirectedGraph DASDaedalus::GenerateDirectedGraph(const UndirectedGraph& u_graph,
 		link_graph.push_back(link);
 		d_graph[e.first].link_ = link;
 
-		ADNPointer<ADNBaseSegment> bs = firstBasesHe_.at(link->halfEdge_);
+		SBPointer<ADNBaseSegment> bs = firstBasesHe_.at(link->halfEdge_);
 		link->firstBase_ = bs;
 		if (link->split_) {
 			DOTNode* s = link->source_;
@@ -165,6 +185,7 @@ DirectedGraph DASDaedalus::GenerateDirectedGraph(const UndirectedGraph& u_graph,
 		}
 	}
 
+	DeleteLinkGraph(linkGraph_);
 	linkGraph_ = link_graph;
 	return d_graph;
 }
@@ -196,7 +217,7 @@ LinkList DASDaedalus::MinimumSpanningTree(const UndirectedGraph& u_graph) {
 	return prim_path;
 }
 
-void DASDaedalus::SplitEdges(const LinkList& mst, ADNPointer<ADNPart> origami, DASPolyhedron& figure) {
+void DASDaedalus::SplitEdges(const LinkList& mst, SBPointer<ADNPart> origami, DASPolyhedron& figure) {
 
 	LinkList links_to_remove;
 	std::map<std::pair<DOTNode*, DOTNode*>, int> links_to_add;
@@ -342,6 +363,8 @@ void DASDaedalus::AddPseudoNodes(DASPolyhedron& figure) {
 			}
 		}
 	}
+	DeleteLinkGraph(linkGraph_);
+	DeleteNodes(nodes_);
 	nodes_ = new_nodes;
 	linkGraph_ = new_link_list;
 }
@@ -394,7 +417,7 @@ int DASDaedalus::RoutingLength(EdgeBps& lengths) {
 	return 2 * total_length;
 }
 
-void DASDaedalus::CreateEdgeStaples(ADNPointer<ADNPart> origami) {
+void DASDaedalus::CreateEdgeStaples(SBPointer<ADNPart> origami) {
 
 	unsigned int c_id = chains_.rbegin()->first + 1;
 	std::vector<DASEdge*> stapled_edges;
@@ -416,15 +439,15 @@ void DASDaedalus::CreateEdgeStaples(ADNPointer<ADNPart> origami) {
 			if (!(*lit)->split_) {
 				int start = vertex_staple_span_start_;
 				for (int i = 0; i < num_staples; ++i) {
-					ADNPointer<ADNBaseSegment> bs_start = AdvanceBaseSegment((*lit)->firstBase_, start + staple_length);
-					ADNPointer<ADNSingleStrand> chain = CreateEdgeChain(origami, bs_start, c_id, staple_length, staple_length);
+					SBPointer<ADNBaseSegment> bs_start = AdvanceBaseSegment((*lit)->firstBase_, start + staple_length);
+					SBPointer<ADNSingleStrand> chain = CreateEdgeChain(origami, bs_start, c_id, staple_length, staple_length);
 					start += staple_length;
 					chains_.insert(std::make_pair(c_id, chain));
 					++c_id;
 				}
 				if (length_extra_staple > 0) {
-					ADNPointer<ADNBaseSegment> bs_start = AdvanceBaseSegment((*lit)->firstBase_, start + crossover_staple_span_);
-					ADNPointer<ADNSingleStrand> chain = CreateEdgeChain(origami, bs_start, c_id, crossover_staple_span_, crossover_staple_span_);
+					SBPointer<ADNBaseSegment> bs_start = AdvanceBaseSegment((*lit)->firstBase_, start + crossover_staple_span_);
+					SBPointer<ADNSingleStrand> chain = CreateEdgeChain(origami, bs_start, c_id, crossover_staple_span_, crossover_staple_span_);
 					chains_.insert(std::make_pair(c_id, chain));
 					++c_id;
 				}
@@ -438,15 +461,15 @@ void DASDaedalus::CreateEdgeStaples(ADNPointer<ADNPart> origami) {
 				if (length_extra_staple > 0) {
 					// First pair keeps the extra staple
 					int span = crossover_staple_span_;
-					ADNPointer<ADNBaseSegment> bs_start = AdvanceBaseSegment((*lit)->firstBase_, start + crossover_staple_span_);
-					ADNPointer<ADNSingleStrand> chain = CreateEdgeChain(origami, bs_start, c_id, crossover_staple_span_, crossover_staple_span_);
+					SBPointer<ADNBaseSegment> bs_start = AdvanceBaseSegment((*lit)->firstBase_, start + crossover_staple_span_);
+					SBPointer<ADNSingleStrand> chain = CreateEdgeChain(origami, bs_start, c_id, crossover_staple_span_, crossover_staple_span_);
 					chains_.insert(std::make_pair(c_id, chain));
 					++c_id;
 					start += crossover_staple_span_;
 				}
 				for (int i = 0; i < num_staples_first; ++i) {
-					ADNPointer<ADNBaseSegment> bs_start = AdvanceBaseSegment((*lit)->firstBase_, start + staple_length);
-					ADNPointer<ADNSingleStrand> chain = CreateEdgeChain(origami, bs_start, c_id, staple_length, staple_length);
+					SBPointer<ADNBaseSegment> bs_start = AdvanceBaseSegment((*lit)->firstBase_, start + staple_length);
+					SBPointer<ADNSingleStrand> chain = CreateEdgeChain(origami, bs_start, c_id, staple_length, staple_length);
 					chains_.insert(std::make_pair(c_id, chain));
 					start += staple_length;
 					++c_id;
@@ -457,12 +480,12 @@ void DASDaedalus::CreateEdgeStaples(ADNPointer<ADNPart> origami) {
 				if (c_type == CrossoverType::kDoubleXO) {
 					span_pos = 16;
 					span_neg = 5;
-					ADNPointer<ADNBaseSegment> bs_start = AdvanceBaseSegment((*lit)->firstBase_, start + span_pos);
-					ADNPointer<ADNSingleStrand> chain = CreateEdgeChain(origami, bs_start, c_id, span_pos, span_neg);
+					SBPointer<ADNBaseSegment> bs_start = AdvanceBaseSegment((*lit)->firstBase_, start + span_pos);
+					SBPointer<ADNSingleStrand> chain = CreateEdgeChain(origami, bs_start, c_id, span_pos, span_neg);
 					chains_.insert(std::make_pair(c_id, chain));
 					++c_id;
 					bs_start = MoveBackBaseSegment(FindBaseSegmentPair(origami, (*lit)->firstBase_), start + span_neg);
-					ADNPointer<ADNSingleStrand> chain2 = CreateEdgeChain(origami, bs_start, c_id, span_pos, span_neg);
+					SBPointer<ADNSingleStrand> chain2 = CreateEdgeChain(origami, bs_start, c_id, span_pos, span_neg);
 					chains_.insert(std::make_pair(c_id, chain2));
 					++c_id;
 					start += span_pos + span_neg;
@@ -470,16 +493,16 @@ void DASDaedalus::CreateEdgeStaples(ADNPointer<ADNPart> origami) {
 				else {
 					span_pos = 10;
 					span_neg = 10;
-					ADNPointer<ADNBaseSegment> bs_start = AdvanceBaseSegment((*lit)->firstBase_, start + span_pos);
-					ADNPointer<ADNSingleStrand> chain = CreateEdgeChain(origami, bs_start, c_id, span_pos, span_neg);
+					SBPointer<ADNBaseSegment> bs_start = AdvanceBaseSegment((*lit)->firstBase_, start + span_pos);
+					SBPointer<ADNSingleStrand> chain = CreateEdgeChain(origami, bs_start, c_id, span_pos, span_neg);
 					chains_.insert(std::make_pair(c_id, chain));
 					++c_id;
 					start += span_pos;
 				}
 				// Remaining staples
 				for (int i = 0; i < num_staples_second; ++i) {
-					ADNPointer<ADNBaseSegment> bs_start = AdvanceBaseSegment((*lit)->firstBase_, start + staple_length);
-					ADNPointer<ADNSingleStrand> chain = CreateEdgeChain(origami, bs_start, c_id, staple_length, staple_length);
+					SBPointer<ADNBaseSegment> bs_start = AdvanceBaseSegment((*lit)->firstBase_, start + staple_length);
+					SBPointer<ADNSingleStrand> chain = CreateEdgeChain(origami, bs_start, c_id, staple_length, staple_length);
 					chains_.insert(std::make_pair(c_id, chain));
 					start += staple_length;
 					++c_id;
@@ -501,7 +524,7 @@ CrossoverType DASDaedalus::GetCrossoverType(int edge_length) {
 	return t;
 }
 
-void DASDaedalus::CreateVertexStaples(ADNPointer<ADNPart> origami, DASPolyhedron& figure) {
+void DASDaedalus::CreateVertexStaples(SBPointer<ADNPart> origami, DASPolyhedron& figure) {
 
 	std::map<int, DASVertex*> vertices = figure.GetVertices();
 	int c_id = chains_.rbegin()->first + 1;
@@ -539,7 +562,7 @@ void DASDaedalus::CreateVertexStaples(ADNPointer<ADNPart> origami, DASPolyhedron
 			// 52nt span 2 edges = 4 half edges
 			unsigned int sz = 4;
 			std::vector<DASHalfEdge*> ps(edges.begin() + start, edges.begin() + start + sz);
-			ADNPointer<ADNSingleStrand> chain = CreateVertexChain(origami, c_id, ps, bpLengths_);
+			SBPointer<ADNSingleStrand> chain = CreateVertexChain(origami, c_id, ps, bpLengths_);
 			chains_.insert(std::make_pair(c_id, chain));
 			++c_id;
 			start += sz;
@@ -548,7 +571,7 @@ void DASDaedalus::CreateVertexStaples(ADNPointer<ADNPart> origami, DASPolyhedron
 			// 78nt span 3 edges = 6 half edges
 			unsigned int sz = 6;
 			std::vector<DASHalfEdge*> ps(edges.begin() + start, edges.begin() + start + sz);
-			ADNPointer<ADNSingleStrand> chain = CreateVertexChain(origami, c_id, ps, bpLengths_);
+			SBPointer<ADNSingleStrand> chain = CreateVertexChain(origami, c_id, ps, bpLengths_);
 			chains_.insert(std::make_pair(c_id, chain));
 			++c_id;
 			start += sz;
@@ -556,7 +579,7 @@ void DASDaedalus::CreateVertexStaples(ADNPointer<ADNPart> origami, DASPolyhedron
 	}
 }
 
-void DASDaedalus::InitEdgeMap(ADNPointer<ADNPart> origami, DASPolyhedron& fig) {
+void DASDaedalus::InitEdgeMap(SBPointer<ADNPart> origami, DASPolyhedron& fig) {
 	unsigned int b_id = 0;
 	int j_id = 0;
 	Faces faces = fig.GetFaces();
@@ -580,13 +603,13 @@ void DASDaedalus::InitEdgeMap(ADNPointer<ADNPart> origami, DASPolyhedron& fig) {
 
 			int l = bpLengths_.at(he->edge_) + 1; // +1 since we have apolyT region at the end
 
-			ADNPointer<ADNDoubleStrand> ds = new ADNDoubleStrand();
+			SBPointer<ADNDoubleStrand> ds = new ADNDoubleStrand();
 			ds->SetInitialTwistAngle(7 * ADNConstants::BP_ROT);  // necessary to fix crossovers
 			origami->RegisterDoubleStrand(ds);
 
 			for (int i = 0; i < l; ++i) {
 				// every step is a ADNBaseSegment
-				ADNPointer<ADNBaseSegment> bs = new ADNBaseSegment(CellType::BasePair);
+				SBPointer<ADNBaseSegment> bs = new ADNBaseSegment(CellType::BasePair);
 
 				bs->SetPosition(coords);
 				bs->SetE1(ADNAuxiliary::SBVectorToUblasVector(norm));
@@ -596,7 +619,7 @@ void DASDaedalus::InitEdgeMap(ADNPointer<ADNPart> origami, DASPolyhedron& fig) {
 
 				if (i == l - 1) {
 					// this region is polyT
-					ADNPointer<ADNLoopPair> cell = new ADNLoopPair();
+					SBPointer<ADNLoopPair> cell = new ADNLoopPair();
 					bs->SetCell(cell());
 				}
 
@@ -615,15 +638,15 @@ void DASDaedalus::InitEdgeMap(ADNPointer<ADNPart> origami, DASPolyhedron& fig) {
 	// Pair base segments and create double helices
 
 	// don't register ds twice!
-	std::map<DASHalfEdge*, ADNPointer<ADNDoubleStrand>> registeredDs;
+	std::map<DASHalfEdge*, SBPointer<ADNDoubleStrand>> registeredDs;
 	for (auto it = firstBasesHe_.begin(); it != firstBasesHe_.end(); ++it) {
 		DASHalfEdge* fhe = it->first;
 		DASHalfEdge* she = fhe->pair_;
-		ADNPointer<ADNBaseSegment> begin = it->second;
-		ADNPointer<ADNBaseSegment> bs = begin;
+		SBPointer<ADNBaseSegment> begin = it->second;
+		SBPointer<ADNBaseSegment> bs = begin;
 		DASEdge* e = fhe->edge_;
 		int length = bpLengths_.at(e) + 1;  // to include polyTs
-		ADNPointer<ADNBaseSegment> bs_pair = AdvanceBaseSegment(firstBasesHe_.at(she), length - 2); // since the last one is a PolyT
+		SBPointer<ADNBaseSegment> bs_pair = AdvanceBaseSegment(firstBasesHe_.at(she), length - 2); // since the last one is a PolyT
 
 		for (int i = 0; i < length - 1; ++i) {
 			auto bsId = origami->GetBaseSegmentIndex(bs);
@@ -636,7 +659,7 @@ void DASDaedalus::InitEdgeMap(ADNPointer<ADNPart> origami, DASPolyhedron& fig) {
 	}
 }
 
-void DASDaedalus::InitEdgeMap2(ADNPointer<ADNPart> origami, DASPolyhedron& fig)
+void DASDaedalus::InitEdgeMap2(SBPointer<ADNPart> origami, DASPolyhedron& fig)
 {
 	double pi = atan(1) * 4;
 	// get the span distance for the beginning of half-edges w.r.t. vertices
@@ -759,13 +782,13 @@ void DASDaedalus::InitEdgeMap2(ADNPointer<ADNPart> origami, DASPolyhedron& fig)
 
 			int l = bpLengths_.at(he->edge_) + 1; // +1 since we have a polyT region at the end
 
-			ADNPointer<ADNDoubleStrand> ds = new ADNDoubleStrand();
+			SBPointer<ADNDoubleStrand> ds = new ADNDoubleStrand();
 			ds->SetInitialTwistAngle(7 * ADNConstants::BP_ROT);  // necessary to fix crossovers
 			origami->RegisterDoubleStrand(ds);
 
 			for (int i = 0; i < l; ++i) {
 				// every step is a ADNBaseSegment
-				ADNPointer<ADNBaseSegment> bs = new ADNBaseSegment(CellType::BasePair);
+				SBPointer<ADNBaseSegment> bs = new ADNBaseSegment(CellType::BasePair);
 
 				bs->SetPosition(coords);
 				bs->SetE1(ADNAuxiliary::SBVectorToUblasVector(norm));
@@ -775,7 +798,7 @@ void DASDaedalus::InitEdgeMap2(ADNPointer<ADNPart> origami, DASPolyhedron& fig)
 
 				if (i == l - 1) {
 					// this region is polyT
-					ADNPointer<ADNLoopPair> cell = new ADNLoopPair();
+					SBPointer<ADNLoopPair> cell = new ADNLoopPair();
 					bs->SetCell(cell());
 				}
 
@@ -794,15 +817,15 @@ void DASDaedalus::InitEdgeMap2(ADNPointer<ADNPart> origami, DASPolyhedron& fig)
 	// Pair base segments and create double helices
 
 	// don't register ds twice!
-	std::map<DASHalfEdge*, ADNPointer<ADNDoubleStrand>> registeredDs;
+	std::map<DASHalfEdge*, SBPointer<ADNDoubleStrand>> registeredDs;
 	for (auto it = firstBasesHe_.begin(); it != firstBasesHe_.end(); ++it) {
 		DASHalfEdge* fhe = it->first;
 		DASHalfEdge* she = fhe->pair_;
-		ADNPointer<ADNBaseSegment> begin = it->second;
-		ADNPointer<ADNBaseSegment> bs = begin;
+		SBPointer<ADNBaseSegment> begin = it->second;
+		SBPointer<ADNBaseSegment> bs = begin;
 		DASEdge* e = fhe->edge_;
 		int length = bpLengths_.at(e) + 1;  // to include polyTs
-		ADNPointer<ADNBaseSegment> bs_pair = AdvanceBaseSegment(firstBasesHe_.at(she), length - 2); // since the last one is a PolyT
+		SBPointer<ADNBaseSegment> bs_pair = AdvanceBaseSegment(firstBasesHe_.at(she), length - 2); // since the last one is a PolyT
 
 		for (int i = 0; i < length - 1; ++i) {
 			auto bsId = origami->GetBaseSegmentIndex(bs);
@@ -815,7 +838,7 @@ void DASDaedalus::InitEdgeMap2(ADNPointer<ADNPart> origami, DASPolyhedron& fig)
 	}
 }
 
-void DASDaedalus::CreateLinkGraphFromMesh(ADNPointer<ADNPart> origami, DASPolyhedron& figure) {
+void DASDaedalus::CreateLinkGraphFromMesh(SBPointer<ADNPart> origami, DASPolyhedron& figure) {
 
 	Vertices vertices = figure.GetVertices();
 	Edges edges = figure.GetEdges();
@@ -850,7 +873,11 @@ void DASDaedalus::AddNode(DOTNode* node) {
 
 void DASDaedalus::RemoveLink(DOTLink* link) {
 
-	linkGraph_.erase(std::find(linkGraph_.begin(), linkGraph_.end(), link));
+	auto it = std::find(linkGraph_.begin(), linkGraph_.end(), link);
+	if (it == linkGraph_.end()) return;
+
+	linkGraph_.erase(it);
+	delete link;
 
 }
 
@@ -877,13 +904,11 @@ DOTNode* DASDaedalus::GetNodeById(int id) const {
 
 DOTLink* DASDaedalus::GetLinkByNodes(DOTNode* v, DOTNode* w) const {
 
-	DOTLink* link = new DOTLink();
 	for (auto lit = linkGraph_.begin(); lit != linkGraph_.end(); ++lit) {
 
 		if ((*lit)->source_ == v && (*lit)->target_ == w) {
 
-			link = *lit;
-			break;
+			return *lit;
 
 		}
 
@@ -891,8 +916,7 @@ DOTLink* DASDaedalus::GetLinkByNodes(DOTNode* v, DOTNode* w) const {
 
 			if ((*lit)->source_ == w && (*lit)->target_ == v) {
 
-				link = *lit;
-				break;
+				return *lit;
 
 			}
 
@@ -900,11 +924,11 @@ DOTLink* DASDaedalus::GetLinkByNodes(DOTNode* v, DOTNode* w) const {
 
 	}
 
-	return link;
+	return nullptr;
 
 }
 
-void DASDaedalus::SetEdgeBps(int min_edge_bp, ADNPointer<ADNPart> part, DASPolyhedron& fig) {
+void DASDaedalus::SetEdgeBps(int min_edge_bp, SBPointer<ADNPart> part, DASPolyhedron& fig) {
 
 	const float min_length = fig.MinimumEdgeLength().second;
 	const float rel = min_edge_bp / min_length;
@@ -924,7 +948,7 @@ void DASDaedalus::SetEdgeBps(int min_edge_bp, ADNPointer<ADNPart> part, DASPolyh
 
 }
 
-void DASDaedalus::RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleStrand> scaffold, std::string seq, int routing_length) {
+void DASDaedalus::RouteScaffold(SBPointer<ADNPart> part, SBPointer<ADNSingleStrand> scaffold, std::string seq, int routing_length) {
 
 	unsigned int nt_id = 0;
 
@@ -933,11 +957,11 @@ void DASDaedalus::RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleSt
 
 	for (auto lit = linkGraph_.begin(); lit != linkGraph_.end(); ++lit) {
 
-		ADNPointer<ADNBaseSegment> bs = (*lit)->firstBase_;
+		SBPointer<ADNBaseSegment> bs = (*lit)->firstBase_;
 
 		for (int i = 0; i < (*lit)->bp_; ++i) {
 
-			ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
+			SBPointer<ADNNucleotide> nt = new ADNNucleotide();
 			nt->Init();
 			part->RegisterNucleotideThreePrime(scaffold, nt);
 			nt->setNucleotideType(ADNModel::ResidueNameToType(used_seq[nt_id]));
@@ -946,11 +970,11 @@ void DASDaedalus::RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleSt
 			nt->SetSidechainPosition(bs->GetPosition());
 			nt->SetBaseSegment(bs);
 
-			ADNPointer<ADNCell> cell = bs->GetCell();
+			SBPointer<ADNCell> cell = bs->GetCell();
 			if (cell->GetCellType() == CellType::BasePair) {
 
 				// scaffold only goes through dsDNA regions
-				ADNPointer<ADNBasePair> bp_cell = static_cast<ADNBasePair*>(cell());
+				SBPointer<ADNBasePair> bp_cell = static_cast<ADNBasePair*>(cell());
 				if (left)
 					bp_cell->SetLeftNucleotide(nt);
 				else
@@ -973,41 +997,41 @@ void DASDaedalus::RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleSt
 	const int idx2 = edge->halfEdge_->pair_->source_->id_;
 	int pos = ceil(m);
 	if (idx1 < idx2) pos = floor(m);
-	ADNPointer<ADNNucleotide> res = AdvanceNucleotide(scaffold->GetFivePrime(), pos);
+	SBPointer<ADNNucleotide> res = AdvanceNucleotide(scaffold->GetFivePrime(), pos);
 	ADNBasicOperations::SetStart(res);
 
 }
 
-ADNPointer<ADNBaseSegment> DASDaedalus::AdvanceBaseSegment(ADNPointer<ADNBaseSegment> bs, int pos) {
+SBPointer<ADNBaseSegment> DASDaedalus::AdvanceBaseSegment(SBPointer<ADNBaseSegment> bs, int pos) {
 
-	ADNPointer<ADNBaseSegment> res = bs->GetNext();
+	SBPointer<ADNBaseSegment> res = bs->GetNext();
 	for (int i = 0; i < pos - 1; ++i)
 		res = res->GetNext();
 	return res;
 
 }
 
-ADNPointer<ADNBaseSegment> DASDaedalus::MoveBackBaseSegment(ADNPointer<ADNBaseSegment> bs, int pos) {
+SBPointer<ADNBaseSegment> DASDaedalus::MoveBackBaseSegment(SBPointer<ADNBaseSegment> bs, int pos) {
 
-	ADNPointer<ADNBaseSegment> res = bs->GetPrev();
+	SBPointer<ADNBaseSegment> res = bs->GetPrev();
 	for (int i = 0; i < pos - 1; ++i)
 		res = res->GetPrev();
 	return res;
 
 }
 
-ADNPointer<ADNNucleotide> DASDaedalus::AdvanceNucleotide(ADNPointer<ADNNucleotide> nt, int pos) {
+SBPointer<ADNNucleotide> DASDaedalus::AdvanceNucleotide(SBPointer<ADNNucleotide> nt, int pos) {
 
-	ADNPointer<ADNNucleotide> res = nt;
+	SBPointer<ADNNucleotide> res = nt;
 	for (int i = 0; i < pos - 1; ++i)
 		res = res->GetNext();
 	return res;
 
 }
 
-ADNPointer<ADNSingleStrand> DASDaedalus::CreateEdgeChain(ADNPointer<ADNPart> origami, ADNPointer<ADNBaseSegment> bs, int c_id, int pos_span, int neg_span) {
+SBPointer<ADNSingleStrand> DASDaedalus::CreateEdgeChain(SBPointer<ADNPart> origami, SBPointer<ADNBaseSegment> bs, int c_id, int pos_span, int neg_span) {
 
-	ADNPointer<ADNSingleStrand> chain = new ADNSingleStrand();
+	SBPointer<ADNSingleStrand> chain = new ADNSingleStrand();
 	chain->setName("Edge Staple " + std::to_string(c_id));
 	chain->setStructuralID(c_id);
 
@@ -1016,16 +1040,16 @@ ADNPointer<ADNSingleStrand> DASDaedalus::CreateEdgeChain(ADNPointer<ADNPart> ori
 
 	for (int i = 0; i < pos_span; ++i) {
 
-		ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
+		SBPointer<ADNNucleotide> nt = new ADNNucleotide();
 		nt->Init();
 		origami->RegisterNucleotideThreePrime(chain, nt);
 
-		ADNPointer<ADNCell> cell = bs->GetCell();
-		ADNPointer<ADNNucleotide> ntOld = nullptr;
+		SBPointer<ADNCell> cell = bs->GetCell();
+		SBPointer<ADNNucleotide> ntOld = nullptr;
 		if (cell->GetCellType() == CellType::BasePair) {
 
 			// edge staples only goes through dsDNA regions
-			ADNPointer<ADNBasePair> bp_cell = static_cast<ADNBasePair*>(cell());
+			SBPointer<ADNBasePair> bp_cell = static_cast<ADNBasePair*>(cell());
 			bp_cell->SetRemainingNucleotide(nt);
 			ntOld = nt->GetPair();
 
@@ -1047,16 +1071,16 @@ ADNPointer<ADNSingleStrand> DASDaedalus::CreateEdgeChain(ADNPointer<ADNPart> ori
 
 	for (int i = 0; i < neg_span; ++i) {
 
-		ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
+		SBPointer<ADNNucleotide> nt = new ADNNucleotide();
 		nt->Init();
 		origami->RegisterNucleotideThreePrime(chain, nt);
 
-		ADNPointer<ADNCell> cell = bs->GetCell();
-		ADNPointer<ADNNucleotide> ntOld = nullptr;
+		SBPointer<ADNCell> cell = bs->GetCell();
+		SBPointer<ADNNucleotide> ntOld = nullptr;
 		if (cell->GetCellType() == CellType::BasePair) {
 
 			// edge staples only goes through dsDNA regions
-			ADNPointer<ADNBasePair> bp_cell = static_cast<ADNBasePair*>(cell());
+			SBPointer<ADNBasePair> bp_cell = static_cast<ADNBasePair*>(cell());
 			bp_cell->SetRemainingNucleotide(nt);
 			ntOld = nt->GetPair();
 
@@ -1077,19 +1101,19 @@ ADNPointer<ADNSingleStrand> DASDaedalus::CreateEdgeChain(ADNPointer<ADNPart> ori
 
 }
 
-ADNPointer<ADNSingleStrand> DASDaedalus::CreateVertexChain(ADNPointer<ADNPart> part, int c_id, std::vector<DASHalfEdge*>ps, EdgeBps& lengths) {
+SBPointer<ADNSingleStrand> DASDaedalus::CreateVertexChain(SBPointer<ADNPart> part, int c_id, std::vector<DASHalfEdge*>ps, EdgeBps& lengths) {
 
-	ADNPointer<ADNSingleStrand> chain = new ADNSingleStrand();
+	SBPointer<ADNSingleStrand> chain = new ADNSingleStrand();
 	chain->setName("Vertex Staple " + std::to_string(c_id));
 	chain->setStructuralID(c_id);
 
 	bool beg = false;
 	int len = 0;
-	ADNPointer<ADNNucleotide> prev_nt = nullptr;
+	SBPointer<ADNNucleotide> prev_nt = nullptr;
 	int count = 1;
 
 	for (auto pit = ps.begin(); pit != ps.end(); ++pit) {
-		ADNPointer<ADNBaseSegment> bs = firstBasesHe_.at(*pit);
+		SBPointer<ADNBaseSegment> bs = firstBasesHe_.at(*pit);
 		// vertex of lower index gets end, vertex of higher index gets beginning
 		if (beg) {
 			len = vertex_staple_span_end_;
@@ -1102,19 +1126,19 @@ ADNPointer<ADNSingleStrand> DASDaedalus::CreateVertexChain(ADNPointer<ADNPart> p
 		}
 		for (int i = 0; i < len; ++i) {
 			// this are the ADNBasePair nts
-			ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
+			SBPointer<ADNNucleotide> nt = new ADNNucleotide();
 			nt->Init();
 			part->RegisterNucleotideFivePrime(chain, nt);
 
-			ADNPointer<ADNCell> cell = bs->GetCell();
+			SBPointer<ADNCell> cell = bs->GetCell();
 			nt->SetPosition(bs->GetPosition());
 			nt->SetBackbonePosition(bs->GetPosition());
 			nt->SetSidechainPosition(bs->GetPosition());
 
-			ADNPointer<ADNNucleotide> ntOld = nullptr;
+			SBPointer<ADNNucleotide> ntOld = nullptr;
 			if (cell->GetCellType() == CellType::BasePair) {
 				// edge staples only goes through dsDNA regions
-				ADNPointer<ADNBasePair> bp_cell = static_cast<ADNBasePair*>(cell());
+				SBPointer<ADNBasePair> bp_cell = static_cast<ADNBasePair*>(cell());
 				bp_cell->SetRemainingNucleotide(nt);
 				ntOld = nt->GetPair();
 			}
@@ -1128,18 +1152,18 @@ ADNPointer<ADNSingleStrand> DASDaedalus::CreateVertexChain(ADNPointer<ADNPart> p
 			bs = bs->GetNext();
 		}
 		if (count % 2 != 0) {
-			ADNPointer<ADNCell> cell = bs->GetCell();
+			SBPointer<ADNCell> cell = bs->GetCell();
 			if (cell->GetCellType() != CellType::LoopPair) {
 				std::string msg = "PolyT region not reached";
 				ADNLogger::LogDebug(msg);
 			}
 			else {
-				ADNPointer<ADNLoopPair> loop_cell = static_cast<ADNLoopPair*>(cell());
+				SBPointer<ADNLoopPair> loop_cell = static_cast<ADNLoopPair*>(cell());
 				std::string seq = "";
 				for (int i = 0; i < num_poly_t_; ++i) {
 					seq += "T";
 				}
-				ADNPointer<ADNLoop> loop = DASCreator::CreateLoop(chain, prev_nt, seq, part);
+				SBPointer<ADNLoop> loop = DASCreator::CreateLoop(chain, prev_nt, seq, part);
 				loop->SetBaseSegment(bs);
 				if (prev_nt->IsLeft()) {
 					loop_cell->SetLeftLoop(loop);
@@ -1155,12 +1179,12 @@ ADNPointer<ADNSingleStrand> DASDaedalus::CreateVertexChain(ADNPointer<ADNPart> p
 		++count;
 	}
 
-	ADNPointer<ADNNucleotide> start = AdvanceNucleotide(chain->GetFivePrime(), 7);
+	SBPointer<ADNNucleotide> start = AdvanceNucleotide(chain->GetFivePrime(), 7);
 	ADNBasicOperations::SetStart(start);  // we set this as start to match original Daedalus algorithm
 	return chain;
 }
 
-void DASDaedalus::SetVerticesPositions(ADNPointer<ADNPart> origami, DASPolyhedron& fig, bool center) {
+void DASDaedalus::SetVerticesPositions(SBPointer<ADNPart> origami, DASPolyhedron& fig, bool center) {
 	std::vector<DASVertex*> done_vertex;
 	Vertices vertices = fig.GetVertices();
 	Vertices originalVertices = fig.GetOriginalVertices();
@@ -1216,14 +1240,14 @@ void DASDaedalus::SetVerticesPositions(ADNPointer<ADNPart> origami, DASPolyhedro
 	}
 }
 
-void DASDaedalus::LogEdgeMap(ADNPointer<ADNPart> origami) {
-	std::vector<ADNPointer<ADNBaseSegment>> bases;
+void DASDaedalus::LogEdgeMap(SBPointer<ADNPart> origami) {
+	std::vector<SBPointer<ADNBaseSegment>> bases;
 	auto edgeMap = origami->GetBaseSegments();
 	// log the edge map as n x 3 matrix
 	std::string msg = "Daedalus module > Recording edge map";
 	ADNLogger::LogDebug(msg);
 	SB_FOR(SBStructuralNode * n, edgeMap) {
-		ADNPointer<ADNBaseSegment> bs = static_cast<ADNBaseSegment*>(n);
+		SBPointer<ADNBaseSegment> bs = static_cast<ADNBaseSegment*>(n);
 		if (bsPairs_.find(bs->getNodeIndex()) == bsPairs_.end()) {
 			bases.push_back(bs);
 		}
@@ -1292,7 +1316,7 @@ SBVector3 DASDaedalus::GetPolygonNorm(DASPolygon* face)
 	return w;
 }
 
-ADNPointer<ADNBaseSegment> DASDaedalus::FindBaseSegmentPair(ADNPointer<ADNPart> origami, ADNPointer<ADNBaseSegment> bs)
+SBPointer<ADNBaseSegment> DASDaedalus::FindBaseSegmentPair(SBPointer<ADNPart> origami, SBPointer<ADNBaseSegment> bs)
 {
 	int idx = origami->GetBaseSegmentIndex(bs);
 	int pairIdx = bsPairs_.at(idx);
@@ -1374,9 +1398,10 @@ std::map<DASHalfEdge*, SBPosition3> DASDaedalus::GetVertexPositions(DASPolyhedro
 int DASDaedalus::CalculateEdgeSize(SBQuantity::length nmLength) {
 
 	SBQuantity::dimensionless zSB = nmLength / SBQuantity::nanometer(ADNConstants::BP_RISE);
-	std::ldiv_t div;
-	div = std::div(long(zSB.getValue()), long(10.5));
-	int sz = std::floor(div.quot * 10.5);
+	// Quantize geometric edge lengths to full 10.5 bp turns explicitly; using integer
+	// division here would truncate the divisor to 10 and shift the step boundaries.
+	const double turns = std::round(zSB.getValue() / 10.5);
+	int sz = static_cast<int>(std::floor(turns * 10.5));
 	if (sz < 31) sz = 31;
 	return sz;
 
@@ -1398,22 +1423,19 @@ DOTLink::DOTLink(const DOTLink& other) {
 
 DOTLink::~DOTLink() {
 
-	delete source_;
-	delete target_;
-
 }
 
 DOTLink& DOTLink::operator=(const DOTLink& other) {
 	if (this != &other) {
 		id_ = other.id_;
+		source_ = other.source_;
+		target_ = other.target_;
 		halfEdge_ = other.halfEdge_;
 		directed_ = other.directed_;
 		split_ = other.split_;
 		firstBase_ = other.firstBase_;
 		lastBase_ = other.lastBase_;
 		bp_ = other.bp_;
-		source_ = new DOTNode(*other.source_);
-		target_ = new DOTNode(*other.target_);
 	}
 	return *this;
 }

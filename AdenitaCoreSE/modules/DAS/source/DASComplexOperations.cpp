@@ -1,8 +1,48 @@
 #include "DASComplexOperations.hpp"
 #include "DASBackToTheAtom.hpp"
+#include "ADNLogger.hpp"
 
-DASOperations::Connections DASOperations::PrepareStrandsForConnection(ADNPointer<ADNPart> part1, ADNPointer<ADNPart> part2,
-	ADNPointer<ADNNucleotide> nt1, ADNPointer<ADNNucleotide> nt2)
+namespace {
+
+#ifndef NDEBUG
+void ValidateCircularStrandTopology(SBPointer<ADNSingleStrand> strand) {
+
+	if (strand == nullptr) {
+		ADNLogger::LogDebug(std::string("Circular strand validation skipped for a null strand."));
+		return;
+	}
+
+	SBPointer<ADNNucleotide> fivePrime = strand->GetFivePrime();
+	SBPointer<ADNNucleotide> threePrime = strand->GetThreePrime();
+	if (fivePrime == nullptr || threePrime == nullptr) {
+		ADNLogger::LogDebug("Circular strand '" + strand->getName() + "' has missing 5'/3' endpoints.");
+		return;
+	}
+
+	if (threePrime->GetNext(true) != fivePrime)
+		ADNLogger::LogDebug("Circular strand '" + strand->getName() + "' does not wrap 3' -> 5'.");
+
+	if (fivePrime->GetPrev(true) != threePrime)
+		ADNLogger::LogDebug("Circular strand '" + strand->getName() + "' does not wrap 5' -> 3'.");
+
+}
+#else
+void ValidateCircularStrandTopology(SBPointer<ADNSingleStrand>) {}
+#endif
+
+void MarkCircularAndValidate(SBPointer<ADNSingleStrand> strand) {
+
+	if (strand == nullptr) return;
+
+	strand->setCircularFlag(true);
+	ValidateCircularStrandTopology(strand);
+
+}
+
+}
+
+DASOperations::Connections DASOperations::PrepareStrandsForConnection(SBPointer<ADNPart> part1, SBPointer<ADNPart> part2,
+	SBPointer<ADNNucleotide> nt1, SBPointer<ADNNucleotide> nt2)
 {
 	Connections conn;
 
@@ -11,10 +51,10 @@ DASOperations::Connections DASOperations::PrepareStrandsForConnection(ADNPointer
 	// nt1 will be left as 3' while nt2 will be left as 5'
 	if (nt1->getEndType() == ADNNucleotide::EndType::FivePrime) {
 		if (nt2->getEndType() == ADNNucleotide::EndType::FivePrime) return conn;
-		ADNPointer<ADNNucleotide> tmp = nt1;
+		SBPointer<ADNNucleotide> tmp = nt1;
 		nt1 = nt2;
 		nt2 = tmp;
-		ADNPointer<ADNPart> tmpPart = part1;
+		SBPointer<ADNPart> tmpPart = part1;
 		part1 = part2;
 		part2 = tmpPart;
 	}
@@ -32,8 +72,8 @@ DASOperations::Connections DASOperations::PrepareStrandsForConnection(ADNPointer
 		MergePair pair;
 		MergePair compPair;
 
-		ADNPointer<ADNNucleotide> firstNext = nullptr;
-		ADNPointer<ADNNucleotide> secondPrev = nullptr;
+		SBPointer<ADNNucleotide> firstNext = nullptr;
+		SBPointer<ADNNucleotide> secondPrev = nullptr;
 
 		// break first nucleotide in 3'
 		if (nt1->getEndType() != ADNNucleotide::EndType::ThreePrime) {
@@ -63,23 +103,23 @@ DASOperations::Connections DASOperations::PrepareStrandsForConnection(ADNPointer
 	return conn;
 }
 
-void DASOperations::CreateCrossover(ADNPointer<ADNPart> part1, ADNPointer<ADNPart> part2,
-	ADNPointer<ADNNucleotide> nt1, ADNPointer<ADNNucleotide> nt2, bool two, std::string seq)
+void DASOperations::CreateCrossover(SBPointer<ADNPart> part1, SBPointer<ADNPart> part2,
+	SBPointer<ADNNucleotide> nt1, SBPointer<ADNNucleotide> nt2, bool two, std::string seq)
 {
 	const auto conn = PrepareStrandsForConnection(part1, part2, nt1, nt2);
 	const auto& pair = conn.stringPair;
 	const auto& compPair = conn.compStringPair;
 
 	// create joint strands if necessary
-	ADNPointer<ADNSingleStrand> joinStrand1 = nullptr;
-	ADNPointer<ADNSingleStrand> joinStrand2 = nullptr;
+	SBPointer<ADNSingleStrand> joinStrand1 = nullptr;
+	SBPointer<ADNSingleStrand> joinStrand2 = nullptr;
 
 	if (pair.first != nullptr && pair.second != nullptr) {
 		if (!seq.empty()) {
 			const size_t seqLength = seq.size();
 
-			ADNPointer<ADNBaseSegment> bs1 = pair.first->GetThreePrime()->GetBaseSegment();
-			ADNPointer<ADNBaseSegment> bs2 = pair.second->GetFivePrime()->GetBaseSegment();
+			SBPointer<ADNBaseSegment> bs1 = pair.first->GetThreePrime()->GetBaseSegment();
+			SBPointer<ADNBaseSegment> bs2 = pair.second->GetFivePrime()->GetBaseSegment();
 			SBVector3 direction = (bs2->GetPosition() - bs1->GetPosition()).normalizedVersion();
 			SBQuantity::length availLength = (bs2->GetPosition() - bs1->GetPosition()).norm();
 			SBQuantity::length expectedLength = SBQuantity::nanometer(ADNConstants::BP_RISE) * (seqLength + 1);  // we need to accommodate space for distance between the ends
@@ -141,10 +181,10 @@ void DASOperations::CreateCrossover(ADNPointer<ADNPart> part1, ADNPointer<ADNPar
 		else {
 			if (joinStrand1 != nullptr) {
 				auto ss = ADNBasicOperations::MergeSingleStrands(pair.firstPart, pair.firstPart, pair.first, joinStrand1);
-				ss->setCircularFlag(true);
+				MarkCircularAndValidate(ss);
 			}
 			else {
-				pair.first->setCircularFlag(true);
+				MarkCircularAndValidate(pair.first);
 			}
 		}
 	}
@@ -163,30 +203,30 @@ void DASOperations::CreateCrossover(ADNPointer<ADNPart> part1, ADNPointer<ADNPar
 			}
 			else {
 				if (joinStrand2 != nullptr) {
-					auto ss = ADNBasicOperations::MergeSingleStrands(compPair.firstPart, pair.firstPart, compPair.first, joinStrand1);
-					ss->setCircularFlag(true);
+					auto ss = ADNBasicOperations::MergeSingleStrands(compPair.firstPart, pair.firstPart, compPair.first, joinStrand2);
+					MarkCircularAndValidate(ss);
 				}
 				else {
-					compPair.first->setCircularFlag(true);
+					MarkCircularAndValidate(compPair.first);
 				}
 			}
 		}
 	}
 }
 
-void DASOperations::AddComplementaryStrands(ADNNanorobot* nanorobot, CollectionMap<ADNNucleotide> selectedNucleotides)
+void DASOperations::AddComplementaryStrands(ADNNanorobot* nanorobot, SBPointerIndexer<ADNNucleotide> selectedNucleotides)
 {
 	DASBackToTheAtom btta = DASBackToTheAtom();
 
-	ADNPointer<ADNPart> prevPart = nullptr;
-	ADNPointer<ADNSingleStrand> ss = nullptr;
+	SBPointer<ADNPart> prevPart = nullptr;
+	SBPointer<ADNSingleStrand> ss = nullptr;
 	int i = 1;
-	CollectionMap<ADNNucleotide> nucleotides;
+	SBPointerIndexer<ADNNucleotide> nucleotides;
 	bool createSs = true;
 
-	SB_FOR(ADNPointer<ADNNucleotide> nt, selectedNucleotides) {
+	SB_FOR(SBPointer<ADNNucleotide> nt, selectedNucleotides) {
 		auto bs = nt->GetBaseSegment();
-		ADNPointer<ADNPart> part = bs->GetDoubleStrand()->GetPart();
+		SBPointer<ADNPart> part = bs->GetDoubleStrand()->GetPart();
 		auto next = nt->GetNext(true);
 
 		if (nt->GetPair() == nullptr) {
@@ -212,14 +252,14 @@ void DASOperations::AddComplementaryStrands(ADNNanorobot* nanorobot, CollectionM
 				createSs = false;
 			}
 
-			ADNPointer<ADNNucleotide> pair = new ADNNucleotide();
+			SBPointer<ADNNucleotide> pair = new ADNNucleotide();
 			pair->Init();
 			pair->setNucleotideType(ADNModel::GetComplementaryBase(nt->getNucleotideType()));
 			nucleotides.addReferenceTarget(pair());
 
 			auto cellType = bs->GetCellType();
 			if (cellType == CellType::BasePair) {
-				ADNPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(bs->GetCell()());
+				SBPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(bs->GetCell()());
 				if (bp->IsLeft(nt)) {
 					bp->SetRightNucleotide(pair);
 				}

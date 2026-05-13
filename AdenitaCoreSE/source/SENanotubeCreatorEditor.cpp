@@ -60,9 +60,9 @@ void SENanotubeCreatorEditor::setNumberOfBasePairs(int bp) {
 
 }
 
-ADNPointer<ADNPart> SENanotubeCreatorEditor::generateNanotube(bool mock) {
+SBPointer<ADNPart> SENanotubeCreatorEditor::generateNanotube(bool mock) {
 
-	ADNPointer<ADNPart> part = nullptr;
+	SBPointer<ADNPart> part = nullptr;
 
 	SBQuantity::length generateRadius = (thirdPosition - secondPosition).norm();
 	const SBQuantity::length roundHeight = (secondPosition - firstPosition).norm();
@@ -113,7 +113,7 @@ ADNPointer<ADNPart> SENanotubeCreatorEditor::generateNanotube(bool mock) {
 
 }
 
-void SENanotubeCreatorEditor::sendPartToAdenita(ADNPointer<ADNPart> nanotube) {
+void SENanotubeCreatorEditor::sendPartToAdenita(SBPointer<ADNPart> nanotube) {
 
 	if (nanotube != nullptr) {
 
@@ -410,7 +410,7 @@ void SENanotubeCreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
 
 		//SAMSON::beginHolding("Add DNA nanotube");
 
-		ADNPointer<ADNPart> part = generateNanotube();
+		SBPointer<ADNPart> part = generateNanotube();
 		//DASRouter* router = DASRouter::GetRouter(routingType);
 		//router->Route(part);
 		sendPartToAdenita(part);

@@ -10,11 +10,11 @@ public:
 	static PIPrimer3& GetInstance();
 	~PIPrimer3() = default;
 
-	void														UpdateBindingRegions(ADNPointer<ADNPart> p);
-	CollectionMap<PIBindingRegion>								GetBindingRegions() const;
-	CollectionMap<PIBindingRegion>								GetBindingRegions(ADNPointer<ADNPart> p) const;
-	void														Calculate(ADNPointer<ADNPart> p, int oligo_conc, int mv, int dv) const;
-	void														DeleteBindingRegions(ADNPointer<ADNPart> p);
+	void														UpdateBindingRegions(SBPointer<ADNPart> p);
+	SBPointerIndexer<PIBindingRegion>								GetBindingRegions() const;
+	SBPointerIndexer<PIBindingRegion>								GetBindingRegions(SBPointer<ADNPart> p) const;
+	void														Calculate(SBPointer<ADNPart> p, int oligo_conc, int mv, int dv) const;
+	void														DeleteBindingRegions(SBPointer<ADNPart> p);
 
 private:
 
@@ -27,6 +27,6 @@ private:
 
 	static ThermodynamicParameters								ExecuteNtthal(std::string leftSequence, std::string rightSequence, int oligo_conc, int mv, int dv);
 
-	std::map<ADNPart*, CollectionMap<PIBindingRegion>>			regionsMap_;
+	std::map<ADNPart*, SBPointerIndexer<PIBindingRegion>>			regionsMap_;
 
 };

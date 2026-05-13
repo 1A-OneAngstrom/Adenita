@@ -53,12 +53,12 @@ void ADNDoubleStrand::unserialize(SBCSerializer* serializer, const SBNodeIndexer
 
 }
 
-ADNPointer<ADNPart> ADNDoubleStrand::GetPart() const {
+SBPointer<ADNPart> ADNDoubleStrand::GetPart() const {
 
     // the ADNPart is a structural model
     SBNode* model = getModel();
     if (!model) return nullptr;
-    ADNPointer<ADNPart> part = static_cast<ADNPart*>(model);
+    SBPointer<ADNPart> part = static_cast<ADNPart*>(model);
     return part;
 
 }
@@ -95,9 +95,9 @@ void ADNDoubleStrand::setCircularFlag(bool b) {
     this->circularFlag = b;
 }
 
-CollectionMap<ADNBaseSegment> ADNDoubleStrand::GetBaseSegments() const {
+SBPointerIndexer<ADNBaseSegment> ADNDoubleStrand::GetBaseSegments() const {
 
-    CollectionMap<ADNBaseSegment> baseSegmentList;
+    SBPointerIndexer<ADNBaseSegment> baseSegmentList;
 
 #if 0
     SBNodeIndexer nodeIndexer;
@@ -122,9 +122,9 @@ CollectionMap<ADNBaseSegment> ADNDoubleStrand::GetBaseSegments() const {
 
 }
 
-ADNPointer<ADNBaseSegment> ADNDoubleStrand::GetNthBaseSegment(int n) const {
+SBPointer<ADNBaseSegment> ADNDoubleStrand::GetNthBaseSegment(int n) const {
 
-    ADNPointer<ADNBaseSegment> bs = startBaseSegment;
+    SBPointer<ADNBaseSegment> bs = startBaseSegment;
 
     for (int i = 0; i < n; ++i) {
 
@@ -137,7 +137,7 @@ ADNPointer<ADNBaseSegment> ADNDoubleStrand::GetNthBaseSegment(int n) const {
 
 }
 
-ADNPointer<ADNBaseSegment> ADNDoubleStrand::GetFirstBaseSegment() const {
+SBPointer<ADNBaseSegment> ADNDoubleStrand::GetFirstBaseSegment() const {
     return startBaseSegment;
 }
 
@@ -145,11 +145,11 @@ SBNode* ADNDoubleStrand::getFirstBaseSegment() const {
     return GetFirstBaseSegment()();
 }
 
-void ADNDoubleStrand::SetStart(ADNPointer<ADNBaseSegment> baseSegment) {
+void ADNDoubleStrand::SetStart(SBPointer<ADNBaseSegment> baseSegment) {
     this->startBaseSegment = baseSegment;
 }
 
-ADNPointer<ADNBaseSegment> ADNDoubleStrand::GetLastBaseSegment() const {
+SBPointer<ADNBaseSegment> ADNDoubleStrand::GetLastBaseSegment() const {
     return endBaseSegment;
 }
 
@@ -157,11 +157,11 @@ SBNode* ADNDoubleStrand::getLastBaseSegment() const {
     return GetLastBaseSegment()();
 }
 
-void ADNDoubleStrand::SetEnd(ADNPointer<ADNBaseSegment> baseSegment) {
+void ADNDoubleStrand::SetEnd(SBPointer<ADNBaseSegment> baseSegment) {
     this->endBaseSegment = baseSegment;
 }
 
-void ADNDoubleStrand::AddBaseSegmentBeginning(ADNPointer<ADNBaseSegment> baseSegment) {
+void ADNDoubleStrand::AddBaseSegmentBeginning(SBPointer<ADNBaseSegment> baseSegment) {
 
     if (baseSegment == nullptr) return;
 
@@ -188,7 +188,7 @@ void ADNDoubleStrand::AddBaseSegmentBeginning(ADNPointer<ADNBaseSegment> baseSeg
 
 }
 
-void ADNDoubleStrand::AddBaseSegmentEnd(ADNPointer<ADNBaseSegment> baseSegment) {
+void ADNDoubleStrand::AddBaseSegmentEnd(SBPointer<ADNBaseSegment> baseSegment) {
 
     if (baseSegment == nullptr) return;
 

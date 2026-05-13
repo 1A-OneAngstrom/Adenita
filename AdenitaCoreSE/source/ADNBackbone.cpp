@@ -1,6 +1,7 @@
 #include "ADNBackbone.hpp"
 #include "ADNAtom.hpp"
 #include "ADNNucleotide.hpp"
+#include "ADNNodeValidation.hpp"
 
 ADNBackbone::ADNBackbone() : PositionableSB(), SBBackbone() {
 
@@ -28,7 +29,7 @@ void ADNBackbone::serialize(SBCSerializer* serializer, const SBNodeIndexer& node
 
     SBBackbone::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
-    ADNPointer<ADNAtom> at = GetCenterAtom();
+    SBPointer<ADNAtom> at = GetCenterAtom();
     serializer->writeUnsignedIntElement("centerAtom", nodeIndexer.getIndex(at()));
 
 }
@@ -38,18 +39,18 @@ void ADNBackbone::unserialize(SBCSerializer* serializer, const SBNodeIndexer& no
     SBBackbone::unserialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
 
     unsigned int idx = serializer->readUnsignedIntElement();
-    ADNPointer<ADNAtom> at = (ADNAtom*)nodeIndexer.getNode(idx);
+    SBPointer<ADNAtom> at = ADNNodeValidation::GetSerializedAdenitaNode<ADNAtom>(nodeIndexer, idx, "ADNAtom");
     SetCenterAtom(at);
 
 }
 
-bool ADNBackbone::addAtom(ADNPointer<ADNAtom> atom) {
+bool ADNBackbone::addAtom(SBPointer<ADNAtom> atom) {
 
     return addChild(atom());
 
 }
 
-bool ADNBackbone::deleteAtom(ADNPointer<ADNAtom> atom) {
+bool ADNBackbone::deleteAtom(SBPointer<ADNAtom> atom) {
 
     return removeChild(atom());
 
@@ -65,9 +66,9 @@ int ADNBackbone::getNumberOfAtoms() const {
 
 }
 
-CollectionMap<ADNAtom> ADNBackbone::GetAtoms() const {
+SBPointerIndexer<ADNAtom> ADNBackbone::GetAtoms() const {
 
-    CollectionMap<ADNAtom> atomList;
+    SBPointerIndexer<ADNAtom> atomList;
 
 #if 1
     SBNodeIndexer nodeIndexer;
@@ -92,11 +93,11 @@ CollectionMap<ADNAtom> ADNBackbone::GetAtoms() const {
 
 }
 
-ADNPointer<ADNNucleotide> ADNBackbone::GetNucleotide() const {
+SBPointer<ADNNucleotide> ADNBackbone::GetNucleotide() const {
 
     if (SBNode* parent = getParent())
-        if (parent->getType() == SBNode::Residue) //if (parent->getProxy()->getName() == "ADNNucleotide")
-            return ADNPointer<ADNNucleotide>(static_cast<ADNNucleotide*>(parent));
+        if (ADNNodeValidation::IsAdenitaNode(parent, "ADNNucleotide"))
+            return SBPointer<ADNNucleotide>(dynamic_cast<ADNNucleotide*>(parent));
 
     return nullptr;
 

@@ -2,6 +2,7 @@
 
 #include "ADNPart.hpp"
 
+#include <unordered_set>
 
 PIBindingRegion& PIBindingRegion::operator=(const PIBindingRegion& other) {
 
@@ -33,19 +34,19 @@ std::string PIBindingRegion::getStatusString() const {
 
 }
 
-void PIBindingRegion::SetLastNt(ADNPointer<ADNNucleotide> nt) {
+void PIBindingRegion::SetLastNt(SBPointer<ADNNucleotide> nt) {
     lastNt_ = nt;
 }
 
-void PIBindingRegion::SetFirstNt(ADNPointer<ADNNucleotide> nt) {
+void PIBindingRegion::SetFirstNt(SBPointer<ADNNucleotide> nt) {
     firstNt_ = nt;
 }
 
-ADNPointer<ADNPart> PIBindingRegion::GetPart() const {
+SBPointer<ADNPart> PIBindingRegion::GetPart() const {
     return part_;
 }
 
-void PIBindingRegion::SetPart(ADNPointer<ADNPart> part) {
+void PIBindingRegion::SetPart(SBPointer<ADNPart> part) {
     part_ = part;
 }
 
@@ -65,7 +66,8 @@ void PIBindingRegion::RegisterBindingRegion(SBFolder* folder) {
 void PIBindingRegion::UnregisterBindingRegion() {
 
     auto parent = this->getParent();
-    parent->removeChild(this);
+    if (parent != nullptr)
+        parent->removeChild(this);
 
 }
 
@@ -74,8 +76,16 @@ std::pair<std::string, std::string> PIBindingRegion::GetSequences() const {
     std::string leftSeq;
     std::string rightSeq;
 
+    if (firstNt_ == nullptr || lastNt_ == nullptr)
+        return std::make_pair(leftSeq, rightSeq);
+
+    std::unordered_set<const ADNNucleotide*> visitedNucleotides;
+
     auto ntLeft = lastNt_;
-    while (ntLeft != firstNt_) {
+    while (ntLeft != nullptr) {
+
+        if (!visitedNucleotides.insert(ntLeft()).second)
+            return std::make_pair(std::string(), std::string());
 
         std::string left = ntLeft->getOneLetterNucleotideTypeString();
         leftSeq.insert(0, left);
@@ -88,10 +98,13 @@ std::pair<std::string, std::string> PIBindingRegion::GetSequences() const {
 
         }
 
+        if (ntLeft == firstNt_)
+            return std::make_pair(leftSeq, rightSeq);
+
         ntLeft = ntLeft->GetPrev();
 
     }
 
-    return std::make_pair(leftSeq, rightSeq);
+    return std::make_pair(std::string(), std::string());
 
 }

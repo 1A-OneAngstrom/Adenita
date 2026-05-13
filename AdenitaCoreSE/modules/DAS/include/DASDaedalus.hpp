@@ -64,8 +64,8 @@ struct DOTLink {
 	bool directed_;
 	bool split_{ false };
 
-	ADNPointer<ADNBaseSegment> firstBase_;
-	ADNPointer<ADNBaseSegment> lastBase_;
+	SBPointer<ADNBaseSegment> firstBase_;
+	SBPointer<ADNBaseSegment> lastBase_;
 
 	int bp_{ 0 }; // number of base pairs
 
@@ -74,7 +74,7 @@ struct DOTLink {
 typedef std::vector<DOTLink*> LinkList;
 typedef std::map<int, DOTNode*> NodeList;
 typedef std::pair<SBPosition3, SBPosition3> PositionPair;
-typedef std::map<ADNPointer<ADNBaseSegment>, PositionPair> BSPositions;
+typedef std::map<SBPointer<ADNBaseSegment>, PositionPair> BSPositions;
 
 struct VertexProperty {
 	/** Structure to store vertex properties.
@@ -130,16 +130,16 @@ public:
 	 *  \param ANTNanorobot object with a mesh.
 	 *  \output Origami object.
 	 */
-	ADNPointer<ADNPart> ApplyAlgorithm(std::string seq, std::string filename, bool center = true);
+	SBPointer<ADNPart> ApplyAlgorithm(std::string seq, std::string filename, bool center = true);
 	/**
 	*  \param ANTNanorobot object with a mesh as ANTPolyhedron.
 	*  \output Origami object.
 	*/
-	ADNPointer<ADNPart> ApplyAlgorithm(std::string seq, DASPolyhedron& polyhedron, bool center = true, bool editor = false);
+	SBPointer<ADNPart> ApplyAlgorithm(std::string seq, DASPolyhedron& polyhedron, bool center = true, bool editor = false);
 	/** Setters
 	 */
 	void SetMinEdgeLength(int l);
-	void SetVerticesPositions(ADNPointer<ADNPart> origami, DASPolyhedron& fig, bool center = true);
+	void SetVerticesPositions(SBPointer<ADNPart> origami, DASPolyhedron& fig, bool center = true);
 	/**
 	* Calculates the size in integer multiples of 10.5bp
 	*/
@@ -149,11 +149,11 @@ public:
    *  We generate now the base objects to make sure we don't forget any position.
    *  \param origami ANTNanorobot object
    */
-	void InitEdgeMap(ADNPointer<ADNPart> origami, DASPolyhedron& fig);
+	void InitEdgeMap(SBPointer<ADNPart> origami, DASPolyhedron& fig);
 	//! Generate geometric model
-	void InitEdgeMap2(ADNPointer<ADNPart> origami, DASPolyhedron& fig);
+	void InitEdgeMap2(SBPointer<ADNPart> origami, DASPolyhedron& fig);
 
-	void SetEdgeBps(int min_edge_bp, ADNPointer<ADNPart> part, DASPolyhedron& fig);
+	void SetEdgeBps(int min_edge_bp, SBPointer<ADNPart> part, DASPolyhedron& fig);
 
 private:
 
@@ -186,8 +186,8 @@ private:
 	/** List with links
 	*/
 	LinkList linkGraph_;
-	std::map<int, ADNPointer<ADNSingleStrand>> chains_;
-	std::map<DASHalfEdge*, ADNPointer<ADNBaseSegment>> firstBasesHe_;
+	std::map<int, SBPointer<ADNSingleStrand>> chains_;
+	std::map<DASHalfEdge*, SBPointer<ADNBaseSegment>> firstBasesHe_;
 	std::map<int, int> bsPairs_;
 	BSPositions positionsBBSC_;
 	/** Generates an undirected graph from figure from current nodes and links
@@ -199,7 +199,7 @@ private:
 	 *  \param map with position of bases
 	 *  \return DirectedGraph, direction is chosen randomly.
 	 */
-	DirectedGraph GenerateDirectedGraph(const UndirectedGraph& u_graph, ADNPointer<ADNPart> origami);
+	DirectedGraph GenerateDirectedGraph(const UndirectedGraph& u_graph, SBPointer<ADNPart> origami);
 	/** Computes the MST from an undirected graph
 	 *  \param UndirectedGraph object
 	 *  \return a vector with the edges in the order they are accessed
@@ -221,7 +221,7 @@ private:
 	 *  \param vector with MST
 	 *  \param target object
 	 */
-	void SplitEdges(const LinkList& mst, ADNPointer<ADNPart> origami, DASPolyhedron& figure);
+	void SplitEdges(const LinkList& mst, SBPointer<ADNPart> origami, DASPolyhedron& figure);
 	/** Adds Pseudo-nodes so the A-trail can be routed.
 	 *  \param the target polyhedron
 	 */
@@ -232,8 +232,8 @@ private:
 	 */
 	int RoutingLength(EdgeBps& lengths);
 
-	void CreateEdgeStaples(ADNPointer<ADNPart> origami);
-	void CreateVertexStaples(ADNPointer<ADNPart> origami, DASPolyhedron& figure);
+	void CreateEdgeStaples(SBPointer<ADNPart> origami);
+	void CreateVertexStaples(SBPointer<ADNPart> origami, DASPolyhedron& figure);
 	/** Wrapper to add an edge to a graph if it doesn't exist
 	 *  \param id of the source node
 	 *  \param id of the target node
@@ -253,26 +253,26 @@ private:
 	 *  \param the edge pair.
 	 *  \param the edge map.
 	 */
-	void CreateLinkGraphFromMesh(ADNPointer<ADNPart> p, DASPolyhedron& figure);
+	void CreateLinkGraphFromMesh(SBPointer<ADNPart> p, DASPolyhedron& figure);
 	void AddNode(DOTNode* node);
 	void RemoveLink(DOTLink* link);
 	DOTLink* AddLink(std::pair<DOTNode*, DOTNode*> ab, int bp, DASPolyhedron& fig);
 	DOTNode* GetNodeById(int id) const;
 	DOTLink* GetLinkByNodes(DOTNode* v, DOTNode* w) const;
-	void RouteScaffold(ADNPointer<ADNPart> part, ADNPointer<ADNSingleStrand> scaffold, std::string seq, int routing_length);
-	ADNPointer<ADNBaseSegment> AdvanceBaseSegment(ADNPointer<ADNBaseSegment> bs, int pos);
-	ADNPointer<ADNBaseSegment> MoveBackBaseSegment(ADNPointer<ADNBaseSegment> bs, int pos);
-	ADNPointer<ADNNucleotide> AdvanceNucleotide(ADNPointer<ADNNucleotide> nt, int pos);
-	ADNPointer<ADNSingleStrand> CreateEdgeChain(ADNPointer<ADNPart> origami, ADNPointer<ADNBaseSegment> bs, int c_id, int pos_span, int neg_span);
-	ADNPointer<ADNSingleStrand> CreateVertexChain(ADNPointer<ADNPart> part, int c_id, std::vector<DASHalfEdge*>ps, EdgeBps& lengths);
-	void LogEdgeMap(ADNPointer<ADNPart> origami);
+	void RouteScaffold(SBPointer<ADNPart> part, SBPointer<ADNSingleStrand> scaffold, std::string seq, int routing_length);
+	SBPointer<ADNBaseSegment> AdvanceBaseSegment(SBPointer<ADNBaseSegment> bs, int pos);
+	SBPointer<ADNBaseSegment> MoveBackBaseSegment(SBPointer<ADNBaseSegment> bs, int pos);
+	SBPointer<ADNNucleotide> AdvanceNucleotide(SBPointer<ADNNucleotide> nt, int pos);
+	SBPointer<ADNSingleStrand> CreateEdgeChain(SBPointer<ADNPart> origami, SBPointer<ADNBaseSegment> bs, int c_id, int pos_span, int neg_span);
+	SBPointer<ADNSingleStrand> CreateVertexChain(SBPointer<ADNPart> part, int c_id, std::vector<DASHalfEdge*>ps, EdgeBps& lengths);
+	void LogEdgeMap(SBPointer<ADNPart> origami);
 	static SBVector3 SBCrossProduct(SBVector3 v, SBVector3 w);
 	static double SBInnerProduct(SBVector3 v, SBVector3 w);
 	void LogLinkGraph();
 	template <typename T>
 	static void OutputGraph(T g, const std::string& filename);
 	static SBVector3 GetPolygonNorm(DASPolygon* face);
-	ADNPointer<ADNBaseSegment> FindBaseSegmentPair(ADNPointer<ADNPart> origami, ADNPointer<ADNBaseSegment> bs);
+	SBPointer<ADNBaseSegment> FindBaseSegmentPair(SBPointer<ADNPart> origami, SBPointer<ADNBaseSegment> bs);
 	std::map<DASHalfEdge*, SBPosition3> GetVertexPositions(DASPolyhedron& fig);
 
 };

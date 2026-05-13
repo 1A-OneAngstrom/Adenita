@@ -11,15 +11,15 @@ class SB_EXPORT ADNNeighborNt {
 
 public:
 
-	ADNNeighborNt(unsigned int idx, ADNPointer<ADNNucleotide> nt) : id_(idx), nt_(nt) {};
+	ADNNeighborNt(unsigned int idx, SBPointer<ADNNucleotide> nt) : id_(idx), nt_(nt) {};
 
 	unsigned int GetId() const noexcept { return id_; };
-	ADNPointer<ADNNucleotide> GetNucleotide() const { return nt_; };
+	SBPointer<ADNNucleotide> GetNucleotide() const { return nt_; };
 
 private:
 
 	unsigned int id_{ 0 };
-	ADNPointer<ADNNucleotide> nt_;
+	SBPointer<ADNNucleotide> nt_;
 
 };
 
@@ -30,16 +30,16 @@ public:
 	ADNNeighbors();
 	~ADNNeighbors() = default;
 
-	[[nodiscard]] ADNNeighborNt* GetPINucleotide(ADNPointer<ADNNucleotide> nt) const;
+	[[nodiscard]] ADNNeighborNt* GetPINucleotide(SBPointer<ADNNucleotide> nt) const;
 	[[nodiscard]] std::vector<ADNNeighborNt*> GetNeighbors(ADNNeighborNt* nt) const;
-	[[nodiscard]] CollectionMap<ADNNucleotide> GetNeighbors(ADNPointer<ADNNucleotide> nt) const;
+	[[nodiscard]] SBPointerIndexer<ADNNucleotide> GetNeighbors(SBPointer<ADNNucleotide> nt) const;
 
 	void SetFromOwnSingleStrand(bool b);
 	void SetIncludePairs(bool b);
 	void SetMaxCutOff(SBQuantity::length cutOff);
 	void SetMinCutOff(SBQuantity::length cutOff);
 
-	void InitializeNeighbors(ADNPointer<ADNPart> part);
+	void InitializeNeighbors(SBPointer<ADNPart> part);
 
 private:
 

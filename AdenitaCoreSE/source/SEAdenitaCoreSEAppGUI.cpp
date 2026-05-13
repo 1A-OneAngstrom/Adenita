@@ -20,6 +20,7 @@
 
 #include "DASPolyhedron.hpp"
 
+#include <cmath>
 #include <filesystem>
 
 #include <QPixmap>
@@ -29,6 +30,30 @@
 #include <QToolButton>
 
 #include "SEAdenitaCoreSEAppGUIFlowLayout.hpp"
+
+namespace {
+
+void updateToolButtonStyle(QToolButton* button) {
+
+	if (!button) return;
+
+	button->style()->unpolish(button);
+	button->style()->polish(button);
+	button->update();
+
+}
+
+void setToolButtonHighlighted(QToolButton* button, bool highlighted) {
+
+	if (!button) return;
+
+	button->setProperty("highlighting", highlighted);
+	if (button->isCheckable()) button->setChecked(highlighted);
+	updateToolButtonStyle(button);
+
+}
+
+}
 
 SEAdenitaCoreSEAppGUI::SEAdenitaCoreSEAppGUI(SEAdenitaCoreSEApp* t) : SBGApp(t) {
 
@@ -134,8 +159,10 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 		int i = 42;
 		if (SAMSON::getIntegerFromUser(QString("Wireframe structure (Daedalus)"), i, 31, 1050, 1, QString("Minimum edge size: "), QString(" bp"))) {
 
-			div_t d = div(i, 10.5);
-			int minSize = floor(d.quot * 10.5);
+			// Daedalus edge sizes are quantized in 10.5 bp turns; keep that step explicitly
+			// instead of relying on integer division, which would silently turn 10.5 into 10.
+			const double turns = std::round(static_cast<double>(i) / 10.5);
+			int minSize = static_cast<int>(std::floor(turns * 10.5));
 			getApp()->LoadPartWithDaedalus(filename, minSize);
 
 		}
@@ -191,8 +218,8 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 	auto nr = getApp()->GetNanorobot();
 	auto parts = nr->GetParts();
 	int i = 0;
-	std::map<int, ADNPointer<ADNPart>> indexParts;
-	SB_FOR(ADNPointer<ADNPart> p, parts) {
+	std::map<int, SBPointer<ADNPart>> indexParts;
+	SB_FOR(SBPointer<ADNPart> p, parts) {
 
 		std::string n = p->getName();
 		typeSelection->insertItem(i, QString::fromStdString(n));
@@ -218,8 +245,8 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 	buttonBox->addButton(acceptButton, QDialogButtonBox::ActionRole);
 	buttonBox->addButton(cancelButton, QDialogButtonBox::ActionRole);
 
-	QObject::connect(cancelButton, SIGNAL(released()), dialog, SLOT(close()));
-	QObject::connect(acceptButton, SIGNAL(released()), dialog, SLOT(accept()));
+	QObject::connect(cancelButton, &QPushButton::released, dialog, &QDialog::close);
+	QObject::connect(acceptButton, &QPushButton::released, dialog, &QDialog::accept);
 
 	QGridLayout* mainLayout = new QGridLayout;
 	mainLayout->setSizeConstraint(QLayout::SetFixedSize);
@@ -241,7 +268,7 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 		const auto val = typeSelection->currentIndex();
 		const QString eType = exportType->currentText();
 
-		CollectionMap<ADNPart> selectedParts;
+		SBPointerIndexer<ADNPart> selectedParts;
 
 		if (val == sel_idx) {
 
@@ -250,7 +277,7 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 		}
 		else if (val != all_idx) {
 
-			ADNPointer<ADNPart> part = indexParts.at(val);
+			SBPointer<ADNPart> part = indexParts.at(val);
 			selectedParts.addReferenceTarget(part());
 
 		}
@@ -313,8 +340,8 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 			bttBox->addButton(accButton, QDialogButtonBox::ActionRole);
 			bttBox->addButton(cButton, QDialogButtonBox::ActionRole);
 
-			QObject::connect(cButton, SIGNAL(released()), dialogOxDNA, SLOT(close()));
-			QObject::connect(accButton, SIGNAL(released()), dialogOxDNA, SLOT(accept()));
+			QObject::connect(cButton, &QPushButton::released, dialogOxDNA, &QDialog::close);
+			QObject::connect(accButton, &QPushButton::released, dialogOxDNA, &QDialog::accept);
 
 			oxDNALayout->addRow(info);
 			oxDNALayout->addRow(QString("Box size X (nm)"), boxX);
@@ -356,75 +383,56 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 
 void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 
-	QDialog* dialog = new QDialog();
-
-	QComboBox* typeSelection = new QComboBox();
-
 	auto nr = getApp()->GetNanorobot();
+
+	QStringList itemList;
+	std::vector<SBPointer<ADNPart>> indexParts;
+
+	// add a selected part, if it is only one
+	auto selectedParts = nr->GetSelectedParts();
+	if (selectedParts.size() > 1) {
+
+		SAMSON::informUser("Adenita: Save selection", "Found multiple pre-selected components.\nPlease select a single component to save.");
+		return;
+
+	}
+	const bool hasSelectedComponent = selectedParts.size() > 0;
+	if (hasSelectedComponent) {
+		
+		itemList.push_back("Selected component");
+		indexParts.push_back(selectedParts[0]);
+
+	}
+
+	// add all parts
 	auto parts = nr->GetParts();
-	int i = 0;
-	std::map<int, ADNPointer<ADNPart>> indexParts;
-	SB_FOR(ADNPointer<ADNPart> part, parts) {
+	SB_FOR(SBPointer<ADNPart> part, parts) {
 
-		std::string n = part->getName();
-		typeSelection->insertItem(i, QString::fromStdString(n));
-		indexParts.insert(std::make_pair(i, part));
-		++i;
+		itemList.push_back(QString::fromStdString(part->getName()));
+		indexParts.push_back(part);
 
 	}
-	typeSelection->insertItem(i, QString::fromStdString("Selected Component"));
-	const int sel_idx = i;
 
-	QPushButton* acceptButton = new QPushButton(tr("Save"));
-	acceptButton->setDefault(true);
-	QPushButton* cancelButton = new QPushButton(tr("Cancel"));
+	int val = 0;
+	if (SAMSON::getItemFromUser("Adenita: Export design", val, "", itemList)) {
 
-	QDialogButtonBox* buttonBox = new QDialogButtonBox(Qt::Horizontal);
-	buttonBox->addButton(acceptButton, QDialogButtonBox::ActionRole);
-	buttonBox->addButton(cancelButton, QDialogButtonBox::ActionRole);
+		SBPointer<ADNPart> part = indexParts.at(val);
 
-	QObject::connect(cancelButton, SIGNAL(released()), dialog, SLOT(close()));
-	QObject::connect(acceptButton, SIGNAL(released()), dialog, SLOT(accept()));
+		if (part != nullptr) {
 
-	QGridLayout* mainLayout = new QGridLayout;
-	mainLayout->setSizeConstraint(QLayout::SetFixedSize);
-	mainLayout->addWidget(typeSelection, 0, 0);
-	mainLayout->addWidget(buttonBox, 1, 0);
+			QString filename;
+			if (SBGWindowDialog::getSaveFileNameFromUser(tr("Save a part"), filename, QString(), tr("Adenita part (*.adnpart)"))) {
 
-	dialog->setLayout(mainLayout);
-	//dialog->setWindowTitle(tr("Export design"));
+				QFileInfo fileInfo(filename);
+				workingDirectory = fileInfo.absolutePath();	// get the absolute path to the filename
+				const bool overwrite = !fileInfo.exists() || SAMSON::askUser("Save a part", "The file already exists. Do you want to overwrite it?");
+				if (overwrite && !filename.isEmpty()) getApp()->SaveFile(filename, part);
 
-	// make it a SAMSON dialog
-	SBGWindow* dialogWindow = SAMSON::addDialog(dialog, "Adenita: Export design", SBGWindow::NoOptions);
-	dialogWindow->QWidget::setWindowFlags(dialogWindow->QWidget::windowFlags() | Qt::WindowStaysOnTopHint);
-	dialogWindow->setWindowModality(Qt::ApplicationModal);
-	dialogWindow->show();
-
-	if (dialog->exec() == QDialog::Accepted) {
-
-		auto val = typeSelection->currentIndex();
-		ADNPointer<ADNPart> part = nullptr;
-		if (val == sel_idx) {
-			part = nr->GetSelectedParts()[0];
-		}
-		else {
-			part = indexParts.at(val);
-		}
-
-		QString filename;// = QFileDialog::getSaveFileName(this, tr("Save a part"), QDir::currentPath(), tr("Adenita part (*.adnpart)"));
-		if (SBGWindowDialog::getSaveFileNameFromUser(tr("Save a part"), filename, QString(), tr("Adenita part (*.adnpart)"))) {
-
-			QFileInfo fileInfo(filename);
-			workingDirectory = fileInfo.absolutePath();	// get the absolute path to the filename
-			if (fileInfo.exists()) if (!SAMSON::askUser("Save a part", "The file already exists. Do you want to overwrite it?")) return;
-
-			if (!filename.isEmpty()) getApp()->SaveFile(filename, part);
+			}
 
 		}
 
 	}
-
-	dialogWindow->deleteLater();
 
 }
 
@@ -475,8 +483,8 @@ void SEAdenitaCoreSEAppGUI::onCatenanes() {
 	buttonBox_->addButton(acceptButton, QDialogButtonBox::ActionRole);
 	buttonBox_->addButton(cancelButton, QDialogButtonBox::ActionRole);
 
-	QObject::connect(cancelButton, SIGNAL(released()), dialog, SLOT(reject()));
-	QObject::connect(acceptButton, SIGNAL(released()), dialog, SLOT(accept()));
+	QObject::connect(cancelButton, &QPushButton::released, dialog, &QDialog::reject);
+	QObject::connect(acceptButton, &QPushButton::released, dialog, &QDialog::accept);
 
 	QGridLayout* mainLayout = new QGridLayout;
 	mainLayout->setSizeConstraint(QLayout::SetFixedSize);
@@ -545,8 +553,8 @@ void SEAdenitaCoreSEAppGUI::onKinetoplast() {
 	buttonBox_->addButton(acceptButton, QDialogButtonBox::ActionRole);
 	buttonBox_->addButton(cancelButton, QDialogButtonBox::ActionRole);
 
-	QObject::connect(cancelButton, SIGNAL(released()), dialog, SLOT(reject()));
-	QObject::connect(acceptButton, SIGNAL(released()), dialog, SLOT(accept()));
+	QObject::connect(cancelButton, &QPushButton::released, dialog, &QDialog::reject);
+	QObject::connect(acceptButton, &QPushButton::released, dialog, &QDialog::accept);
 
 	QGridLayout* mainLayout = new QGridLayout();
 	mainLayout->setSizeConstraint(QLayout::SetFixedSize);
@@ -625,8 +633,8 @@ void SEAdenitaCoreSEAppGUI::onCalculateBindingProperties() {
 
 	QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, &dialog);
 	form.addRow(&buttonBox);
-	QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
-	QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
+	QObject::connect(&buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+	QObject::connect(&buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
 
 	// make it a SAMSON dialog
 	SBGWindow* dialogWindow = SAMSON::addDialog(&dialog, "Adenita: Calculate Binding Properties", SBGWindow::NoOptions);
@@ -783,8 +791,8 @@ void SEAdenitaCoreSEAppGUI::onGenerateSequence() {
 	QDialogButtonBox buttonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, &dialog);
 	form.addRow(&buttonBox);
 
-	QObject::connect(&buttonBox, SIGNAL(accepted()), &dialog, SLOT(accept()));
-	QObject::connect(&buttonBox, SIGNAL(rejected()), &dialog, SLOT(reject()));
+	QObject::connect(&buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+	QObject::connect(&buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
 
 	// make it a SAMSON dialog
 	SBGWindow* dialogWindow = SAMSON::addDialog(&dialog, "Adenita: Generate Sequence", SBGWindow::NoOptions);
@@ -966,7 +974,7 @@ void SEAdenitaCoreSEAppGUI::onGenerateAtomicModel() {
 	if (parts.size()) {
 
 		unsigned int nSelectedParts = 0;
-		SB_FOR(ADNPointer<ADNPart> part, parts)
+		SB_FOR(SBPointer<ADNPart> part, parts)
 			if (part->getSelectionFlag()) ++nSelectedParts;
 
 		const bool addToAll = (nSelectedParts == 0);
@@ -983,7 +991,7 @@ void SEAdenitaCoreSEAppGUI::onGenerateAtomicModel() {
 
 		SAMSON::beginHolding("Add atomic model");
 
-		SB_FOR(ADNPointer<ADNPart> part, parts) {
+		SB_FOR(SBPointer<ADNPart> part, parts) {
 
 			if (!addToAll && !part->getSelectionFlag()) continue;
 
@@ -1040,26 +1048,19 @@ void SEAdenitaCoreSEAppGUI::clearHighlightEditor() {
 
 void SEAdenitaCoreSEAppGUI::setHighlightEditor(QToolButton* button) {
 
-	// remove current
-	if (highlightedEditorButton_) {
+	const auto clearButtons = [](const std::vector<QToolButton*>& buttons) {
+		for (QToolButton* editorButton : buttons)
+			setToolButtonHighlighted(editorButton, false);
+	};
 
-		//highlightedEditorButton_->setStyleSheet(QString("border: none"));
-		highlightedEditorButton_->setProperty("highlighting", "false");
-		highlightedEditorButton_->style()->unpolish(highlightedEditorButton_);
-		highlightedEditorButton_->style()->polish(highlightedEditorButton_);
-
-	}
+	clearButtons(editSequencesButtons_);
+	clearButtons(modelingButtons_);
+	clearButtons(creatorsButtons_);
+	setToolButtonHighlighted(highlightedEditorButton_, false);
 
 	highlightedEditorButton_ = button;
 
-	if (highlightedEditorButton_) {
-
-		//highlightedEditorButton_->setStyleSheet(QString("border: 2px solid #FFFFFF"));
-		highlightedEditorButton_->setProperty("highlighting", "true");
-		highlightedEditorButton_->style()->unpolish(highlightedEditorButton_);
-		highlightedEditorButton_->style()->polish(highlightedEditorButton_);
-
-	}
+	setToolButtonHighlighted(highlightedEditorButton_, true);
 
 }
 
@@ -1071,7 +1072,7 @@ void SEAdenitaCoreSEAppGUI::checkForLoadedParts() {
 
 	SB_FOR(SBNode * node, nodeIndexer) {
 
-		ADNPointer<ADNPart> part = static_cast<ADNPart*>(node);
+		SBPointer<ADNPart> part = static_cast<ADNPart*>(node);
 		adenita->AddLoadedPartToNanorobot(part);
 
 	}
@@ -1210,13 +1211,18 @@ void SEAdenitaCoreSEAppGUI::setToolButtonStyleSheet(QToolButton* button) {
 
 	if (button) {
 
+		button->setProperty("highlighting", false);
 		button->setStyleSheet(button->styleSheet() + R"(
 		QToolButton:hover { background: rgba(93,111,129,100); border-radius: 10px; }
 		QToolButton:pressed { background: rgba(93,111,129,255); border-radius: 10px; }
-		QToolButton[highlighting="true"] { background-color: rgba(49,148,128,120); border-radius: 10px; }
-		QToolButton[highlighting="true"]:hover { background-color: rgba(49,148,128,200); border-radius: 10px; }
-		QToolButton[highlighting="true"]:pressed { background-color: rgba(49,148,128,255); border-radius: 10px; }
+		QToolButton[highlighting="true"],
+		QToolButton[highlighting="true"]:checked { background-color: rgba(49,148,128,120); border-radius: 10px; }
+		QToolButton[highlighting="true"]:hover,
+		QToolButton[highlighting="true"]:checked:hover { background-color: rgba(49,148,128,200); border-radius: 10px; }
+		QToolButton[highlighting="true"]:pressed,
+		QToolButton[highlighting="true"]:checked:pressed { background-color: rgba(49,148,128,255); border-radius: 10px; }
 		)");
+		updateToolButtonStyle(button);
 
 	}
 
@@ -1305,14 +1311,14 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getMenuButtons() {
 		btnSettings->setAutoRaise(true);
 		menuButtons_.push_back(btnSettings);
 
-		QObject::connect(btnLoad, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onLoadFile, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnSaveSelection, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSaveSelection, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnSaveAll, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSaveAll, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnSettings, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSettings, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnExport, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onExport, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnExportCanDo, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onExportToCanDo, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnResetVisualModel, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onResetVisualModel, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnCenterOnAllModels, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCenterOnAllModels, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnLoad, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onLoadFile, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnSaveSelection, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onSaveSelection, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnSaveAll, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onSaveAll, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnSettings, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onSettings, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnExport, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onExport, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnExportCanDo, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onExportToCanDo, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnResetVisualModel, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onResetVisualModel, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnCenterOnAllModels, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onCenterOnAllModels, Qt::ConnectionType::UniqueConnection);
 
 		//change icons
 		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
@@ -1406,11 +1412,11 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getEditSequencesButtons() {
 		btnTaggingEditor->setAutoRaise(true);
 		editSequencesButtons_.push_back(btnTaggingEditor);
 
-		QObject::connect(btnSetScaff, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSetScaffold, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnGenerateSequence, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onGenerateSequence, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnCalculateBindingProperties, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCalculateBindingProperties, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnSetStart, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onSetStartNucleotide, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnTaggingEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onTaggingEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnSetScaff, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onSetScaffold, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnGenerateSequence, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onGenerateSequence, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnCalculateBindingProperties, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onCalculateBindingProperties, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnSetStart, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onSetStartNucleotide, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnTaggingEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onTaggingEditor, Qt::ConnectionType::UniqueConnection);
 
 		//change icons
 		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
@@ -1490,8 +1496,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		auto btnDNATwisterEditor = new QToolButton(this);
 		btnDNATwisterEditor->setObjectName(QStringLiteral("btnDNATwisterEditor"));
 		btnDNATwisterEditor->setText("Rotate DNA");
-		btnDNATwisterEditor->setToolTip("<b>DNA twister editor</b><br/><br/>"
-			"Rotate double strand DNA along helical axis - modify the twist angle of a double-strand along the helical axis.");
+		btnDNATwisterEditor->setToolTip("<b>DNA rotation/twist editor</b><br/><br/>"
+			"Rotate double strand DNA along helical axis - modify the twist angle of a double-strand along the helical axis.<br>Hold <b>Alt</b> to rotate in the opposite direction.");
 		btnDNATwisterEditor->setIconSize(QSize(24, 24));
 		btnDNATwisterEditor->setCheckable(true);
 		btnDNATwisterEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1509,12 +1515,12 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		btnTwisterEditor->setAutoRaise(true);
 		modelingButtons_.push_back(btnTwisterEditor);
 
-		QObject::connect(btnBreakEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onBreakEditor, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnConnectEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onConnectEditor, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnDeleteEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onDeleteEditor, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnTwisterEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onTwisterEditor, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnDNATwisterEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onDNATwistEditor, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnMergePartsEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onMergePartsEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnBreakEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onBreakEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnConnectEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onConnectEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnDeleteEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onDeleteEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnTwisterEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onTwisterEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnDNATwisterEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onDNATwistEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnMergePartsEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onMergePartsEditor, Qt::ConnectionType::UniqueConnection);
 
 		//change icons
 		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";
@@ -1614,12 +1620,12 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getCreatorsButtons() {
 		btnGenerateAtomicModel->setAutoRaise(true);
 		creatorsButtons_.push_back(btnGenerateAtomicModel);
 
-		QObject::connect(btnCreateBasePair, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCreateBasePair, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnDsDNACreatorEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onCreateStrandEditor, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnNanotubeCreator, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onNanotubeCreatorEditor, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnLatticeCreatorEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onLatticeCreatorEditor, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnWireframeEditor, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onWireframeEditor, Qt::ConnectionType::UniqueConnection);
-		QObject::connect(btnGenerateAtomicModel, &QPushButton::released, this, &SEAdenitaCoreSEAppGUI::onGenerateAtomicModel, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnCreateBasePair, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onCreateBasePair, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnDsDNACreatorEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onCreateStrandEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnNanotubeCreator, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onNanotubeCreatorEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnLatticeCreatorEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onLatticeCreatorEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnWireframeEditor, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onWireframeEditor, Qt::ConnectionType::UniqueConnection);
+		QObject::connect(btnGenerateAtomicModel, &QToolButton::released, this, &SEAdenitaCoreSEAppGUI::onGenerateAtomicModel, Qt::ConnectionType::UniqueConnection);
 
 		//change icons
 		std::string iconsPath = SB_ELEMENT_PATH + "/Resource/icons/";

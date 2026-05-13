@@ -7,10 +7,10 @@ SEMergePartsEditorGUI::SEMergePartsEditorGUI(SEMergePartsEditor* editor) {
 	this->editor = editor;
 	ui.setupUi(this);
 
-	connect(ui.comboBoxMergeComponent1, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboBoxMergeComponent1CurrentIndexChanged(int)));
-	connect(ui.comboBoxMergeComponent2, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboBoxMergeComponent2CurrentIndexChanged(int)));
-	connect(ui.comboBoxMoveElement, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboBoxMoveElementCurrentIndexChanged(int)));
-	connect(ui.comboBoxMoveToComponent, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboBoxMoveToComponentCurrentIndexChanged(int)));
+	connect(ui.comboBoxMergeComponent1, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SEMergePartsEditorGUI::onComboBoxMergeComponent1CurrentIndexChanged);
+	connect(ui.comboBoxMergeComponent2, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SEMergePartsEditorGUI::onComboBoxMergeComponent2CurrentIndexChanged);
+	connect(ui.comboBoxMoveElement, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SEMergePartsEditorGUI::onComboBoxMoveElementCurrentIndexChanged);
+	connect(ui.comboBoxMoveToComponent, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SEMergePartsEditorGUI::onComboBoxMoveToComponentCurrentIndexChanged);
 
 }
 
@@ -57,7 +57,7 @@ void SEMergePartsEditorGUI::updatePartsList() {
 
 	for (auto& pair : indexParts) {
 
-		ADNPointer<ADNPart> part = pair.second;
+		SBPointer<ADNPart> part = pair.second;
 		std::string n = part->getName();
 		ui.comboBoxMergeComponent1->insertItem(pair.first, QString::fromStdString(n));
 		ui.comboBoxMergeComponent2->insertItem(pair.first, QString::fromStdString(n));

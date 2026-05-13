@@ -78,27 +78,27 @@
 //}
 
 // todo: calculate positions
-ADNPointer<ADNDoubleStrand> DASCreator::CreateDoubleStrand(ADNPointer<ADNPart> part, int length, SBPosition3 start, SBVector3 direction, bool mock) {
+SBPointer<ADNDoubleStrand> DASCreator::CreateDoubleStrand(SBPointer<ADNPart> part, int length, SBPosition3 start, SBVector3 direction, bool mock) {
 
 	auto res = AddDoubleStrandToADNPart(part, length, start, direction, mock);
 	return res.ds;
 
 }
 
-ADNPointer<ADNSingleStrand> DASCreator::CreateSingleStrand(ADNPointer<ADNPart> part, int length, SBPosition3 start, SBVector3 direction, bool mock) {
+SBPointer<ADNSingleStrand> DASCreator::CreateSingleStrand(SBPointer<ADNPart> part, int length, SBPosition3 start, SBVector3 direction, bool mock) {
 
 	auto res = AddSingleStrandToADNPart(part, length, start, direction);
 	return res.ss1;
 
 }
 
-ADNPointer<ADNLoop> DASCreator::CreateLoop(ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNNucleotide> nextNt, const std::string& seq, ADNPointer<ADNPart> part) {
+SBPointer<ADNLoop> DASCreator::CreateLoop(SBPointer<ADNSingleStrand> ss, SBPointer<ADNNucleotide> nextNt, const std::string& seq, SBPointer<ADNPart> part) {
 
-	ADNPointer<ADNLoop> loop = new ADNLoop();
+	SBPointer<ADNLoop> loop = new ADNLoop();
 
 	for (size_t k = 0; k < seq.size(); ++k) {
 
-		ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
+		SBPointer<ADNNucleotide> nt = new ADNNucleotide();
 		nt->Init();
 		if (part != nullptr) {
 			part->RegisterNucleotide(ss, nt, nextNt);
@@ -117,12 +117,12 @@ ADNPointer<ADNLoop> DASCreator::CreateLoop(ADNPointer<ADNSingleStrand> ss, ADNPo
 
 }
 
-ADNPointer<ADNPart> DASCreator::CreateNanotube(SBQuantity::length radius, SBPosition3 center, SBVector3 direction, int length, bool mock) {
+SBPointer<ADNPart> DASCreator::CreateNanotube(SBQuantity::length radius, SBPosition3 center, SBVector3 direction, int length, bool mock) {
 
 	int minHeight = 1;
 	int minNanotubes = 3;
 
-	ADNPointer<ADNPart> nanorobot = nullptr;
+	SBPointer<ADNPart> nanorobot = nullptr;
 
 	// transformation to global coordinates
 	ublas::vector<double> dir = ublas::vector<double>(3);
@@ -206,31 +206,31 @@ ADNPointer<ADNPart> DASCreator::CreateNanotube(SBQuantity::length radius, SBPosi
 
 }
 
-ADNPointer<ADNPart> DASCreator::CreateMockNanotube(SBQuantity::length radius, SBPosition3 center, SBVector3 direction, int length) {
+SBPointer<ADNPart> DASCreator::CreateMockNanotube(SBQuantity::length radius, SBPosition3 center, SBVector3 direction, int length) {
 
 	return CreateNanotube(radius, center, direction, length, true);
 
 }
 
-ADNPointer<ADNPart> DASCreator::CreateDSRing(SBQuantity::length radius, SBPosition3 center, SBVector3 normal, bool mock) {
+SBPointer<ADNPart> DASCreator::CreateDSRing(SBQuantity::length radius, SBPosition3 center, SBVector3 normal, bool mock) {
 
-	ADNPointer<ADNPart> part = new ADNPart();
+	SBPointer<ADNPart> part = new ADNPart();
 	DASCreator::AddRingToADNPart(part, radius, center, normal, false, mock);
 	return part;
 
 }
 
-ADNPointer<ADNPart> DASCreator::CreateSSRing(SBQuantity::length radius, SBPosition3 center, SBVector3 normal, bool mock) {
+SBPointer<ADNPart> DASCreator::CreateSSRing(SBQuantity::length radius, SBPosition3 center, SBVector3 normal, bool mock) {
 
-	ADNPointer<ADNPart> part = new ADNPart();
+	SBPointer<ADNPart> part = new ADNPart();
 	DASCreator::AddRingToADNPart(part, radius, center, normal, true, mock);
 	return part;
 
 }
 
-ADNPointer<ADNPart> DASCreator::CreateLinearCatenanes(SBQuantity::length radius, SBPosition3 center, SBVector3 normal, int number, bool mock) {
+SBPointer<ADNPart> DASCreator::CreateLinearCatenanes(SBQuantity::length radius, SBPosition3 center, SBVector3 normal, int number, bool mock) {
 
-	ADNPointer<ADNPart> part = new ADNPart();
+	SBPointer<ADNPart> part = new ADNPart();
 	// calculate overlap
 	SBQuantity::length dist = radius * 0.8;
 	// total distance spanning the catenanes
@@ -253,9 +253,9 @@ ADNPointer<ADNPart> DASCreator::CreateLinearCatenanes(SBQuantity::length radius,
 
 }
 
-ADNPointer<ADNPart> DASCreator::CreateHexagonalCatenanes(SBQuantity::length radius, SBPosition3 center, SBVector3 normal, int rows, int cols, bool mock) {
+SBPointer<ADNPart> DASCreator::CreateHexagonalCatenanes(SBQuantity::length radius, SBPosition3 center, SBVector3 normal, int rows, int cols, bool mock) {
 
-	ADNPointer<ADNPart> part = new ADNPart();
+	SBPointer<ADNPart> part = new ADNPart();
 
 	const double edgeDist = radius.getValue() * 2 * 0.8;
 	const DASLattice lattice = DASLattice(LatticeType::Honeycomb, edgeDist, rows, cols);
@@ -290,11 +290,11 @@ ADNPointer<ADNPart> DASCreator::CreateHexagonalCatenanes(SBQuantity::length radi
 
 }
 
-ADNPointer<ADNDoubleStrand> DASCreator::AddRingToADNPart(ADNPointer<ADNPart> part, SBQuantity::length radius, SBPosition3 center, SBVector3 normal, bool ssDNA, bool mock) {
+SBPointer<ADNDoubleStrand> DASCreator::AddRingToADNPart(SBPointer<ADNPart> part, SBQuantity::length radius, SBPosition3 center, SBVector3 normal, bool ssDNA, bool mock) {
 
-	ADNPointer<ADNDoubleStrand> ds = new ADNDoubleStrand();
-	ADNPointer<ADNSingleStrand> ssLeft = new ADNSingleStrand();
-	ADNPointer<ADNSingleStrand> ssRight = new ADNSingleStrand();
+	SBPointer<ADNDoubleStrand> ds = new ADNDoubleStrand();
+	SBPointer<ADNSingleStrand> ssLeft = new ADNSingleStrand();
+	SBPointer<ADNSingleStrand> ssRight = new ADNSingleStrand();
 	part->RegisterDoubleStrand(ds);
 	if (!mock) {
 		part->RegisterSingleStrand(ssLeft);
@@ -332,9 +332,9 @@ ADNPointer<ADNDoubleStrand> DASCreator::AddRingToADNPart(ADNPointer<ADNPart> par
 		//rVec[2] = 0.0;
 		auto direction = ADNVectorMath::CrossProduct(ADNAuxiliary::SBVectorToUblasVector(normal), -rVec);
 
-		ADNPointer<ADNBaseSegment> bs = new ADNBaseSegment();
+		SBPointer<ADNBaseSegment> bs = new ADNBaseSegment();
 
-		Position3D pos = center;
+		SBPosition3 pos = center;
 		pos += a * ADNAuxiliary::UblasVectorToSBVector(xVec);
 		pos += b * ADNAuxiliary::UblasVectorToSBVector(yVec);
 		bs->SetPosition(pos);
@@ -343,11 +343,11 @@ ADNPointer<ADNDoubleStrand> DASCreator::AddRingToADNPart(ADNPointer<ADNPart> par
 		bs->SetE1(rVec);
 		bs->SetNumber(boost::numeric_cast<int>(j));
 
-		ADNPointer<ADNBasePair> cell = new ADNBasePair();
+		SBPointer<ADNBasePair> cell = new ADNBasePair();
 		if (!mock) {
 
 			// create nucleotides
-			ADNPointer<ADNNucleotide> ntLeft = new ADNNucleotide();
+			SBPointer<ADNNucleotide> ntLeft = new ADNNucleotide();
 			ntLeft->Init();
 			part->RegisterNucleotideThreePrime(ssLeft, ntLeft);
 			cell->SetLeftNucleotide(ntLeft);
@@ -359,7 +359,7 @@ ADNPointer<ADNDoubleStrand> DASCreator::AddRingToADNPart(ADNPointer<ADNPart> par
 
 			if (!ssDNA) {
 
-				ADNPointer<ADNNucleotide> ntRight = new ADNNucleotide();
+				SBPointer<ADNNucleotide> ntRight = new ADNNucleotide();
 				ntRight->Init();
 				part->RegisterNucleotideFivePrime(ssRight, ntRight);
 				cell->SetRightNucleotide(ntRight);
@@ -394,16 +394,16 @@ ADNPointer<ADNDoubleStrand> DASCreator::AddRingToADNPart(ADNPointer<ADNPart> par
 
 }
 
-RTDoubleStrand DASCreator::AddDoubleStrandToADNPart(ADNPointer<ADNPart> part, const size_t length, SBPosition3 start, SBVector3 direction, bool mock) {
+RTDoubleStrand DASCreator::AddDoubleStrandToADNPart(SBPointer<ADNPart> part, const size_t length, SBPosition3 start, SBVector3 direction, bool mock) {
 
 	const SBPosition3 delt = SBQuantity::nanometer(ADNConstants::BP_RISE) * direction;
 	SBPosition3 pos = start;
 
-	ADNPointer<ADNDoubleStrand> ds = new ADNDoubleStrand();
+	SBPointer<ADNDoubleStrand> ds = new ADNDoubleStrand();
 	part->RegisterDoubleStrand(ds);
 
-	ADNPointer<ADNSingleStrand> ssLeft = nullptr;
-	ADNPointer<ADNSingleStrand> ssRight = nullptr;
+	SBPointer<ADNSingleStrand> ssLeft = nullptr;
+	SBPointer<ADNSingleStrand> ssRight = nullptr;
 	if (!mock) {
 
 		ssLeft = new ADNSingleStrand();
@@ -415,17 +415,17 @@ RTDoubleStrand DASCreator::AddDoubleStrandToADNPart(ADNPointer<ADNPart> part, co
 
 	for (size_t i = 0; i < length; ++i) {
 
-		ADNPointer<ADNBaseSegment> bs = new ADNBaseSegment();
+		SBPointer<ADNBaseSegment> bs = new ADNBaseSegment();
 
 		bs->SetPosition(pos);
 		bs->SetE3(ADNAuxiliary::SBVectorToUblasVector(direction));
 		bs->SetNumber(boost::numeric_cast<int>(i));
-		ADNPointer<ADNBasePair> cell = new ADNBasePair();
+		SBPointer<ADNBasePair> cell = new ADNBasePair();
 
 		if (!mock) {
 
 			// create nucleotides
-			ADNPointer<ADNNucleotide> ntLeft = new ADNNucleotide();
+			SBPointer<ADNNucleotide> ntLeft = new ADNNucleotide();
 			ntLeft->Init();
 			part->RegisterNucleotideThreePrime(ssLeft, ntLeft);
 			cell->SetLeftNucleotide(ntLeft);
@@ -435,7 +435,7 @@ RTDoubleStrand DASCreator::AddDoubleStrandToADNPart(ADNPointer<ADNPart> part, co
 			ntLeft->SetBaseSegment(bs);
 			ntLeft->setNucleotideType(DNABlocks::DI);
 
-			ADNPointer<ADNNucleotide> ntRight = new ADNNucleotide();
+			SBPointer<ADNNucleotide> ntRight = new ADNNucleotide();
 			ntRight->Init();
 			part->RegisterNucleotideFivePrime(ssRight, ntRight);
 			cell->SetRightNucleotide(ntRight);
@@ -467,29 +467,29 @@ RTDoubleStrand DASCreator::AddDoubleStrandToADNPart(ADNPointer<ADNPart> part, co
 
 }
 
-RTDoubleStrand DASCreator::AddSingleStrandToADNPart(ADNPointer<ADNPart> part, const size_t length, SBPosition3 start, SBVector3 direction) {
+RTDoubleStrand DASCreator::AddSingleStrandToADNPart(SBPointer<ADNPart> part, const size_t length, SBPosition3 start, SBVector3 direction) {
 
 	const SBPosition3 delt = SBQuantity::nanometer(ADNConstants::BP_RISE) * direction;
 	SBPosition3 pos = start;
 
-	ADNPointer<ADNDoubleStrand> ds = new ADNDoubleStrand();
+	SBPointer<ADNDoubleStrand> ds = new ADNDoubleStrand();
 	part->RegisterDoubleStrand(ds);
 	// create nucleotides
-	ADNPointer<ADNSingleStrand> ss = new ADNSingleStrand();
+	SBPointer<ADNSingleStrand> ss = new ADNSingleStrand();
 	part->RegisterSingleStrand(ss);
 
 	for (size_t i = 0; i < length; ++i) {
 
-		ADNPointer<ADNBaseSegment> bs = new ADNBaseSegment();
+		SBPointer<ADNBaseSegment> bs = new ADNBaseSegment();
 		bs->SetPosition(pos);
 		bs->SetE3(ADNAuxiliary::SBVectorToUblasVector(direction));
 		bs->SetNumber(boost::numeric_cast<int>(i));
 		part->RegisterBaseSegmentEnd(ds, bs);
 
-		ADNPointer<ADNBasePair> bp = new ADNBasePair();
+		SBPointer<ADNBasePair> bp = new ADNBasePair();
 		bs->SetCell(bp());
 
-		ADNPointer<ADNNucleotide> nt = new ADNNucleotide();
+		SBPointer<ADNNucleotide> nt = new ADNNucleotide();
 		nt->Init();
 		part->RegisterNucleotideThreePrime(ss, nt);
 

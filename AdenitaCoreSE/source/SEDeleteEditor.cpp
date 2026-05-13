@@ -160,12 +160,12 @@ void SEDeleteEditor::mousePressEvent(QMouseEvent* event) {
 
 		if (highlightedNucleotides.size() == 1) {
 
-			ADNPointer<ADNNucleotide> nt = highlightedNucleotides[0];
+			SBPointer<ADNNucleotide> nt = highlightedNucleotides[0];
 			if (nt != nullptr) {
 
-				ADNPointer<ADNBaseSegment> bs = nt->GetBaseSegment();
-				ADNPointer<ADNSingleStrand> ss = nt->GetStrand();
-				ADNPointer<ADNPart> part = nullptr;
+				SBPointer<ADNBaseSegment> bs = nt->GetBaseSegment();
+				SBPointer<ADNSingleStrand> ss = nt->GetStrand();
+				SBPointer<ADNPart> part = nullptr;
 				if (ss != nullptr)
 					part = ss->GetPart();
 

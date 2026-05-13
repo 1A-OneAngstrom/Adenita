@@ -15,28 +15,6 @@
 
 namespace ublas = boost::numeric::ublas;
 
-/* Using smart pointers */
-//template <typename T>
-//using ADNPointer = std::shared_ptr<T>;
-
-template <typename T>
-using ADNPointer = SBPointer<T>;
-
-//template <typename T>
-//using ADNWeakPointer = std::weak_ptr<T>;
-
-template <typename T>
-using ADNWeakPointer = SBPointer<T>;
-
-//template<typename T>
-//using CollectionMap = std::map<int, ADNPointer<T>>;
-
-template<typename T>
-using CollectionMap = SBPointerIndexer<T>;
-
-//using Position3D = ublas::vector<double>;
-using Position3D = SBPosition3;
-
 using DNABlocks = SBResidue::ResidueType;
 
 using NucleotideGroup = SBNode::Type;
@@ -96,16 +74,16 @@ public:
 
     PositionableSB& operator=(const PositionableSB& other);
 
-    void SetPosition(const Position3D& pos);
-    [[nodiscard]] const Position3D& GetPosition() const;
+    void SetPosition(const SBPosition3& pos);
+    [[nodiscard]] const SBPosition3& GetPosition() const;
 
-    [[nodiscard]] ADNPointer<ADNAtom> GetCenterAtom() const;
-    void SetCenterAtom(ADNPointer<ADNAtom> centerAtom);
+    [[nodiscard]] SBPointer<ADNAtom> GetCenterAtom() const;
+    void SetCenterAtom(SBPointer<ADNAtom> centerAtom);
     void HideCenterAtom();
 
 private:
 
-    ADNPointer<ADNAtom> centerAtom_;
+    SBPointer<ADNAtom> centerAtom_;
 
 };
 
@@ -167,15 +145,15 @@ public:
 
     Collection<T>& operator=(const Collection<T>& other);
 
-    void AddElement(ADNPointer<T> elem, int id = -1);
-    [[nodiscard]] const CollectionMap<T>& GetCollection() const;
+    void AddElement(SBPointer<T> elem, int id = -1);
+    [[nodiscard]] const SBPointerIndexer<T>& GetCollection() const;
     void DeleteElement(int id);
     [[nodiscard]] int GetLastKey() const;
-    [[nodiscard]] ADNPointer<T> GetElement(int id) const;
+    [[nodiscard]] SBPointer<T> GetElement(int id) const;
 
 private:
 
-    CollectionMap<T> collection_;
+    SBPointerIndexer<T> collection_;
 
 };
 
@@ -199,7 +177,7 @@ inline Collection<T>& Collection<T>::operator=(const Collection<T>& other) {
 }
 
 template<class T>
-inline void Collection<T>::AddElement(ADNPointer<T> elem, int id) {
+inline void Collection<T>::AddElement(SBPointer<T> elem, int id) {
 
     if (id == -1) {
 
@@ -213,7 +191,7 @@ inline void Collection<T>::AddElement(ADNPointer<T> elem, int id) {
 }
 
 template<class T>
-inline const CollectionMap<T>& Collection<T>::GetCollection() const {
+inline const SBPointerIndexer<T>& Collection<T>::GetCollection() const {
 
     return collection_;
 
@@ -239,7 +217,7 @@ inline int Collection<T>::GetLastKey() const {
 }
 
 template<class T>
-inline ADNPointer<T> Collection<T>::GetElement(int id) const {
+inline SBPointer<T> Collection<T>::GetElement(int id) const {
 
     return collection_.at(id);
 

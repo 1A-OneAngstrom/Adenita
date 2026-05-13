@@ -110,9 +110,9 @@ public:
 
 private:
 
-	ADNPointer<ADNPart>											generateLattice(bool mock = false);
+	SBPointer<ADNPart>											generateLattice(bool mock = false);
 
-	void														sendPartToAdenita(ADNPointer<ADNPart> lattice);
+	void														sendPartToAdenita(SBPointer<ADNPart> lattice);
 
 	LatticeType													latticeType = LatticeType::Honeycomb;
 	VGrid														vGrid;
@@ -125,7 +125,7 @@ private:
 	SBPosition3													secondPosition;
 	SBPosition3													thirdPosition;
 	bool														displayFlag = false;
-	ADNPointer<ADNPart>											tempPart = nullptr;
+	SBPointer<ADNPart>											tempPart = nullptr;
 
 	int															maxXDoubleStrands = 32;
 	int															maxYDoubleStrands = 30;

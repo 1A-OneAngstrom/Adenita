@@ -3,6 +3,7 @@
 #include "ADNNucleotide.hpp"
 #include "ADNModel.hpp"
 
+#include <unordered_set>
 
 void ADNLoop::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber, const SBVersionNumber& classVersionNumber) const {
 
@@ -13,7 +14,7 @@ void ADNLoop::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeInde
     serializer->writeUnsignedIntElement("numNt", getNumberOfNucleotides());
     serializer->writeStartElement("nucleotides");
 
-    SB_FOR(ADNPointer<ADNNucleotide> nt, nucleotides_) {
+    SB_FOR(SBPointer<ADNNucleotide> nt, nucleotides_) {
         serializer->writeUnsignedIntElement("id", nodeIndexer.getIndex(nt()));
     }
 
@@ -36,7 +37,7 @@ void ADNLoop::unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIn
         SBNode* node = nodeIndexer.getNode(idx);
         if (node) {
             
-            ADNPointer<ADNNucleotide> nt = static_cast<ADNNucleotide*>(node);
+            SBPointer<ADNNucleotide> nt = static_cast<ADNNucleotide*>(node);
             AddNucleotide(nt);
 
         }
@@ -52,13 +53,13 @@ void ADNLoop::unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIn
 
 }
 
-void ADNLoop::SetStart(ADNPointer<ADNNucleotide> nucleotide) {
+void ADNLoop::SetStart(SBPointer<ADNNucleotide> nucleotide) {
 
     this->startNucleotide = nucleotide;
 
 }
 
-ADNPointer<ADNNucleotide> ADNLoop::GetStart() const {
+SBPointer<ADNNucleotide> ADNLoop::GetStart() const {
 
     return startNucleotide;
 
@@ -70,13 +71,13 @@ SBNode* ADNLoop::getStartNucleotide() const {
 
 }
 
-void ADNLoop::SetEnd(ADNPointer<ADNNucleotide> nucleotide) {
+void ADNLoop::SetEnd(SBPointer<ADNNucleotide> nucleotide) {
 
     this->endNucleotide = nucleotide;
 
 }
 
-ADNPointer<ADNNucleotide> ADNLoop::GetEnd() const {
+SBPointer<ADNNucleotide> ADNLoop::GetEnd() const {
 
     return endNucleotide;
 
@@ -91,28 +92,38 @@ SBNode* ADNLoop::getEndNucleotide() const {
 std::string ADNLoop::getLoopSequence() const {
 
     std::string seq = "";
-    ADNPointer<ADNNucleotide> currentNucleotide = startNucleotide;
-    while (currentNucleotide != nullptr && currentNucleotide != endNucleotide->GetNext()) {
+    if (startNucleotide == nullptr || endNucleotide == nullptr) return seq;
+
+    std::unordered_set<const ADNNucleotide*> visitedNucleotides;
+    SBPointer<ADNNucleotide> currentNucleotide = startNucleotide;
+    while (currentNucleotide != nullptr) {
+
+        if (!visitedNucleotides.insert(currentNucleotide()).second)
+            return "";
 
         seq += currentNucleotide->getOneLetterNucleotideTypeString();
+
+        if (currentNucleotide == endNucleotide)
+            return seq;
+
         currentNucleotide = currentNucleotide->GetNext();
 
     }
 
-    return seq;
+    return "";
 
 }
 
-void ADNLoop::SetBaseSegment(ADNPointer<ADNBaseSegment> baseSegment, bool setPositions) {
+void ADNLoop::SetBaseSegment(SBPointer<ADNBaseSegment> baseSegment, bool setPositions) {
 
-    SB_FOR(ADNPointer<ADNNucleotide> nucleotide, nucleotides_) {
+    SB_FOR(SBPointer<ADNNucleotide> nucleotide, nucleotides_) {
 
         if (nucleotide == nullptr) continue;
 
         nucleotide->SetBaseSegment(baseSegment);
         if (setPositions) {
 
-            const Position3D& baseSegmentPosition = baseSegment->GetPosition();
+            const SBPosition3& baseSegmentPosition = baseSegment->GetPosition();
 
             nucleotide->SetPosition(baseSegmentPosition);
             nucleotide->SetBackbonePosition(baseSegmentPosition);
@@ -130,19 +141,19 @@ int ADNLoop::getNumberOfNucleotides() const {
 
 }
 
-CollectionMap<ADNNucleotide> ADNLoop::GetNucleotides() const {
+SBPointerIndexer<ADNNucleotide> ADNLoop::GetNucleotides() const {
 
     return nucleotides_;
 
 }
 
-void ADNLoop::AddNucleotide(ADNPointer<ADNNucleotide> nucleotide) {
+void ADNLoop::AddNucleotide(SBPointer<ADNNucleotide> nucleotide) {
 
     nucleotides_.addReferenceTarget(nucleotide());
 
 }
 
-void ADNLoop::RemoveNucleotide(ADNPointer<ADNNucleotide> nucleotide) {
+void ADNLoop::RemoveNucleotide(SBPointer<ADNNucleotide> nucleotide) {
 
     if (startNucleotide == nucleotide) startNucleotide = nullptr;
     if (endNucleotide == nucleotide) endNucleotide = nullptr;

@@ -7,10 +7,10 @@
 namespace DASOperations {
 
     struct MergePair {
-        ADNPointer<ADNSingleStrand> first = nullptr;
-        ADNPointer<ADNSingleStrand> second = nullptr;
-        ADNPointer<ADNPart> firstPart = nullptr;
-        ADNPointer<ADNPart> secondPart = nullptr;
+        SBPointer<ADNSingleStrand> first = nullptr;
+        SBPointer<ADNSingleStrand> second = nullptr;
+        SBPointer<ADNPart> firstPart = nullptr;
+        SBPointer<ADNPart> secondPart = nullptr;
     };
 
     struct Connections {
@@ -18,11 +18,11 @@ namespace DASOperations {
         MergePair compStringPair;
     };
 
-    SB_EXPORT Connections PrepareStrandsForConnection(ADNPointer<ADNPart> part1, ADNPointer<ADNPart> part2, ADNPointer<ADNNucleotide> nt1, ADNPointer<ADNNucleotide> nt2);
+    SB_EXPORT Connections PrepareStrandsForConnection(SBPointer<ADNPart> part1, SBPointer<ADNPart> part2, SBPointer<ADNNucleotide> nt1, SBPointer<ADNNucleotide> nt2);
 
-    SB_EXPORT void CreateCrossover(ADNPointer<ADNPart> part1, ADNPointer<ADNPart> part2, ADNPointer<ADNNucleotide> nt1,
-        ADNPointer<ADNNucleotide> nt2, bool two = false, std::string seq = "");
+    SB_EXPORT void CreateCrossover(SBPointer<ADNPart> part1, SBPointer<ADNPart> part2, SBPointer<ADNNucleotide> nt1,
+        SBPointer<ADNNucleotide> nt2, bool two = false, std::string seq = "");
 
-    SB_EXPORT void AddComplementaryStrands(ADNNanorobot* nanorobot, CollectionMap<ADNNucleotide> selectedNucleotides);
+    SB_EXPORT void AddComplementaryStrands(ADNNanorobot* nanorobot, SBPointerIndexer<ADNNucleotide> selectedNucleotides);
 
 }

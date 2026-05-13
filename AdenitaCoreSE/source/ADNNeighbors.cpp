@@ -3,13 +3,15 @@
 
 ADNNeighbors::ADNNeighbors() {}
 
-ADNNeighborNt* ADNNeighbors::GetPINucleotide(ADNPointer<ADNNucleotide> nt) const {
+ADNNeighborNt* ADNNeighbors::GetPINucleotide(SBPointer<ADNNucleotide> nt) const {
 
     ADNNeighborNt* piNt = nullptr;
 
     for (const auto& p : ntIndices_) {
+
         piNt = p.second;
         if (piNt->GetNucleotide() == nt) break;
+
     }
 
     return piNt;
@@ -27,9 +29,11 @@ std::vector<ADNNeighborNt*> ADNNeighbors::GetNeighbors(ADNNeighborNt* nt) const 
         const unsigned int sz = numNeighborsList_[idx];
 
         for (unsigned int i = 0; i < sz; ++i) {
+
             unsigned int neighborIdx = neighborList_[pos + i];
             ADNNeighborNt* nt = ntIndices_.at(neighborIdx);
             neighbors.push_back(nt);
+
         }
 
     }
@@ -38,20 +42,22 @@ std::vector<ADNNeighborNt*> ADNNeighbors::GetNeighbors(ADNNeighborNt* nt) const 
 
 }
 
-CollectionMap<ADNNucleotide> ADNNeighbors::GetNeighbors(ADNPointer<ADNNucleotide> nt) const {
+SBPointerIndexer<ADNNucleotide> ADNNeighbors::GetNeighbors(SBPointer<ADNNucleotide> nt) const {
 
     ADNNeighborNt* piNt = GetPINucleotide(nt);
     // repeat code to avoid an extra loop
-    CollectionMap<ADNNucleotide> neighbors;
+    SBPointerIndexer<ADNNucleotide> neighbors;
 
     const unsigned int idx = piNt->GetId();
     const unsigned int pos = headList_[idx];
     const unsigned int sz = numNeighborsList_[idx];
 
     for (unsigned int i = 0; i < sz; ++i) {
+
         unsigned int neighborIdx = neighborList_[pos + i];
         ADNNeighborNt* nt = ntIndices_.at(neighborIdx);
         neighbors.addReferenceTarget(nt->GetNucleotide()());
+
     }
 
     return neighbors;
@@ -74,7 +80,7 @@ void ADNNeighbors::SetMinCutOff(SBQuantity::length cutOff) {
     minCutOff_ = cutOff;
 }
 
-void ADNNeighbors::InitializeNeighbors(ADNPointer<ADNPart> part) {
+void ADNNeighbors::InitializeNeighbors(SBPointer<ADNPart> part) {
 
     if (part == nullptr) return;
 

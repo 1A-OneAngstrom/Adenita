@@ -24,11 +24,11 @@ SB_CLASS_BEGIN(ADNPart);
 
   SB_INTERFACE_BEGIN;
 
-    SB_ATTRIBUTE_READ_ONLY(int, NumberOfAtoms, "Number of atoms", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(int, NumberOfNucleotides, "Number of nucleotides", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(int, NumberOfSingleStrands, "Number of single strands", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(int, NumberOfBaseSegments, "Number of base segments", "Adenita");
-    SB_ATTRIBUTE_READ_ONLY(int, NumberOfDoubleStrands, "Number of double strands", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(unsigned int, NumberOfAtoms, "Number of atoms", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(unsigned int, NumberOfNucleotides, "Number of nucleotides", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(unsigned int, NumberOfSingleStrands, "Number of single strands", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(unsigned int, NumberOfBaseSegments, "Number of base segments", "Adenita");
+    SB_ATTRIBUTE_READ_ONLY(unsigned int, NumberOfDoubleStrands, "Number of double strands", "Adenita");
     
     SB_ATTRIBUTE_READ_WRITE(std::string const &, Name, "Name", "Identity");
 

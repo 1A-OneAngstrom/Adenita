@@ -70,8 +70,8 @@ public:
 	SBPosition3 position_;
 
 	/* Getters */
-	std::vector<double> GetVectorCoordinates() const; // always returns picometers 10^-12
-	const SBPosition3& GetSBPosition() const;
+	[[nodiscard]] std::vector<double> GetVectorCoordinates() const; // always returns picometers 10^-12
+	[[nodiscard]] const SBPosition3& GetSBPosition() const;
 
 	/* Setters */
 	void SetCoordinates(const SBPosition3& coordinates);
@@ -103,7 +103,7 @@ public:
 
 	DASPolygon& operator=(const DASPolygon& p);
 
-	SBPosition3 GetCenter() const;
+	[[nodiscard]] SBPosition3 GetCenter() const;
 
 	int id_{ 0 };
 	DASHalfEdge* halfEdge_{ nullptr };
@@ -128,13 +128,13 @@ public:
 	DASPolyhedron& operator=(const DASPolyhedron& other);
 
 	/* Getters */
-	Vertices GetVertices() const;
-	Vertices GetOriginalVertices() const;
-	Faces GetFaces() const;
-	Edges GetEdges() const;
-	DASVertex* GetVertexById(int id);
-	static DASEdge* GetEdgeByVertices(DASVertex* source, DASVertex* target);
-	unsigned int* GetIndices() const;
+	[[nodiscard]] Vertices GetVertices() const;
+	[[nodiscard]] Vertices GetOriginalVertices() const;
+	[[nodiscard]] Faces GetFaces() const;
+	[[nodiscard]] Edges GetEdges() const;
+	[[nodiscard]] DASVertex* GetVertexById(int id);
+	[[nodiscard]] static DASEdge* GetEdgeByVertices(DASVertex* source, DASVertex* target);
+	unsigned int* GetIndices() const;	///< Returns a pointer to the indices array; owned by this class
 
 	/* Setters */
 	void SetVertices(Vertices vertices, bool isOriginal);
@@ -142,28 +142,28 @@ public:
 	void SetEdges(Edges edges);
 
 	/* Methods */
-	size_t GetNumVertices() const;
-	size_t GetNumFaces() const;
+	[[nodiscard]] size_t GetNumVertices() const;
+	[[nodiscard]] size_t GetNumFaces() const;
 	void BuildPolyhedron(const std::map<int, SBPosition3>& vertices, const std::map<int, std::vector<int>>& faces);
-	static bool isPLYFile(const std::string& filename);
+	[[nodiscard]] static bool isPLYFile(const std::string& filename);
 	void LoadFromPLYFile(const std::string& filename);
 	void AddVertex(int id, const SBPosition3& coords);
 	void AddFace(int id, const std::vector<int>& vertices);
-	std::pair<DASEdge*, double> MinimumEdgeLength();
-	std::pair<DASEdge*, double> MaximumEdgeLength();
-	static double CalculateEdgeLength(DASEdge* edge);
-	static int GetVertexDegree(DASVertex* v);
-	static bool IsInFace(DASVertex* v, DASPolygon* f);
-	DASHalfEdge* GetHalfEdge(unsigned int id);
+	[[nodiscard]] std::pair<DASEdge*, double> MinimumEdgeLength();
+	[[nodiscard]] std::pair<DASEdge*, double> MaximumEdgeLength();
+	[[nodiscard]] static double CalculateEdgeLength(DASEdge* edge);
+	[[nodiscard]] static int GetVertexDegree(DASVertex* v);
+	[[nodiscard]] static bool IsInFace(DASVertex* v, DASPolygon* f);
+	[[nodiscard]] DASHalfEdge* GetHalfEdge(unsigned int id);
 	// static ANTPolygon* GetSharedFace(ANTVertex* v, ANTVertex* w);
 	static DASHalfEdge* GetHalfEdge(DASVertex* v, DASVertex* w);
 	void Scale(double scalingFactor);
 	void Center(const SBPosition3& center);
-	SBPosition3 GetCenter() const;
+	[[nodiscard]] SBPosition3 GetCenter() const;
 
 protected:
 
-	int FetchNumber(const std::string& st, const std::string& tok) const;
+	[[nodiscard]] int FetchNumber(const std::string& st, const std::string& tok) const;
 	template <typename T> std::vector<T> SplitString(std::string s, std::string type, T dummy);
 
 private:

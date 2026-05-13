@@ -1,7 +1,7 @@
 #include "DASAlgorithms.hpp"
 #include <random>
 
-bool DASAlgorithms::CheckCrossoverBetweenNucleotides(ADNPointer<ADNNucleotide> ntFirst, ADNPointer<ADNNucleotide> ntSecond, double angle_threshold, double dist_threshold) {
+bool DASAlgorithms::CheckCrossoverBetweenNucleotides(SBPointer<ADNNucleotide> ntFirst, SBPointer<ADNNucleotide> ntSecond, double angle_threshold, double dist_threshold) {
 	bool crssv = false;
 
 	// check directionality of strand
@@ -25,15 +25,15 @@ bool DASAlgorithms::CheckCrossoverBetweenNucleotides(ADNPointer<ADNNucleotide> n
 	return crssv;
 }
 
-//std::vector<std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>>> DASAlgorithms::DetectPossibleCrossovers(ADNPointer<ADNPart> nanorobot, double angle_threshold, double dist_threshold) {
-//  std::vector<std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>>> crossovers;
-//  std::vector<ADNPointer<ADNDoubleStrand>> doneDS;
+//std::vector<std::pair<SBPointer<ADNNucleotide>, SBPointer<ADNNucleotide>>> DASAlgorithms::DetectPossibleCrossovers(SBPointer<ADNPart> nanorobot, double angle_threshold, double dist_threshold) {
+//  std::vector<std::pair<SBPointer<ADNNucleotide>, SBPointer<ADNNucleotide>>> crossovers;
+//  std::vector<SBPointer<ADNDoubleStrand>> doneDS;
 //  auto doubleStrands = nanorobot->GetDoubleStrands();
 //
 //  std::vector<std::string> errors;
 //  // crossover are formed between distinct double strands only
-//  SB_FOR(ADNPointer<ADNDoubleStrand> dsFirst, doubleStrands) {
-//    ADNPointer<ADNBaseSegment> bsFirst = dsFirst->GetFirstBaseSegment();
+//  SB_FOR(SBPointer<ADNDoubleStrand> dsFirst, doubleStrands) {
+//    SBPointer<ADNBaseSegment> bsFirst = dsFirst->GetFirstBaseSegment();
 //    // go through the base segments and check if nucleotides can form crossovers
 //    unsigned int sz = dsFirst->GetSize();
 //    for (unsigned int i = 0; i < sz; ++i) {
@@ -44,11 +44,11 @@ bool DASAlgorithms::CheckCrossoverBetweenNucleotides(ADNPointer<ADNNucleotide> n
 //        break;
 //      }
 //
-//      ADNPointer<ADNNucleotide> ntFirst = bsFirst->GetNucleotide();
-//      ADNPointer<ADNNucleotide> ntFirst_pair = ntFirst->pair_;
+//      SBPointer<ADNNucleotide> ntFirst = bsFirst->GetNucleotide();
+//      SBPointer<ADNNucleotide> ntFirst_pair = ntFirst->pair_;
 //      for (auto& pSecond : doubleStrands) {
-//        ADNPointer<ADNDoubleStrand> dsSecond = pSecond.first;
-//        ADNPointer<ADNBaseSegment> bsSecond = dsSecond->start_;
+//        SBPointer<ADNDoubleStrand> dsSecond = pSecond.first;
+//        SBPointer<ADNBaseSegment> bsSecond = dsSecond->start_;
 //        if (dsSecond == dsFirst || std::find(doneDS.begin(), doneDS.end(), dsSecond) != doneDS.end()) continue;
 //
 //        unsigned int szSecond = dsSecond->size_;
@@ -60,12 +60,12 @@ bool DASAlgorithms::CheckCrossoverBetweenNucleotides(ADNPointer<ADNNucleotide> n
 //            break;
 //          }
 //
-//          ADNPointer<ADNNucleotide> ntSecond = bsSecond->GetNucleotide();
-//          ADNPointer<ADNNucleotide> ntSecond_pair = ntSecond->pair_;
+//          SBPointer<ADNNucleotide> ntSecond = bsSecond->GetNucleotide();
+//          SBPointer<ADNNucleotide> ntSecond_pair = ntSecond->pair_;
 //
 //          // Check ntFirst vs ntSecond
-//          std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>> co_pair = std::make_pair(ntFirst, ntSecond);
-//          std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>> co_pair_other = std::make_pair(ntSecond, ntFirst);
+//          std::pair<SBPointer<ADNNucleotide>, SBPointer<ADNNucleotide>> co_pair = std::make_pair(ntFirst, ntSecond);
+//          std::pair<SBPointer<ADNNucleotide>, SBPointer<ADNNucleotide>> co_pair_other = std::make_pair(ntSecond, ntFirst);
 //          if (std::find(crossovers.begin(), crossovers.end(), co_pair_other) == crossovers.end()) {
 //            if (CheckCrossoverBetweenNucleotides(ntFirst, ntSecond, angle_threshold, dist_threshold)) crossovers.push_back(co_pair);
 //          }
@@ -115,7 +115,7 @@ bool DASAlgorithms::CheckCrossoverBetweenNucleotides(ADNPointer<ADNNucleotide> n
 //  return crossovers;
 //}
 
-//std::vector<DASCrossover*> DASAlgorithms::DetectPossibleCrossovers(ADNPointer<ADNDoubleStrand> dsF, ADNPointer<ADNDoubleStrand> dsS, double angle_threshold, double dist_threshold) {
+//std::vector<DASCrossover*> DASAlgorithms::DetectPossibleCrossovers(SBPointer<ADNDoubleStrand> dsF, SBPointer<ADNDoubleStrand> dsS, double angle_threshold, double dist_threshold) {
 //  
 //  // need to fully redo this function
 //
@@ -125,8 +125,8 @@ bool DASAlgorithms::CheckCrossoverBetweenNucleotides(ADNPointer<ADNNucleotide> n
 //
 //  if (dsF == dsS || dsF == nullptr || dsS == nullptr) return crossovers;
 //
-//  ADNPointer<ADNDoubleStrand> dsFirst = dsF;
-//  ADNPointer<ADNBaseSegment> bsFirst = dsFirst->start_;
+//  SBPointer<ADNDoubleStrand> dsFirst = dsF;
+//  SBPointer<ADNBaseSegment> bsFirst = dsFirst->start_;
 //  // go through the base segments and check if nucleotides can form crossovers
 //  unsigned int sz = dsFirst->size_;
 //  for (unsigned int i = 0; i < sz; ++i) {
@@ -138,8 +138,8 @@ bool DASAlgorithms::CheckCrossoverBetweenNucleotides(ADNPointer<ADNNucleotide> n
 //    }
 //
 //    SBPosition3 bsFirstPos = bsFirst->GetSBPosition();
-//    ADNPointer<ADNNucleotide> ntFirstLeft = nullptr;
-//    ADNPointer<ADNNucleotide> ntFirstRight = nullptr;
+//    SBPointer<ADNNucleotide> ntFirstLeft = nullptr;
+//    SBPointer<ADNNucleotide> ntFirstRight = nullptr;
 //    // check nucleotides of the base pair (so far only working for base pairs
 //    ANTCell* cellFirst = bsFirst->GetCell();
 //    if (cellFirst->GetType() != BasePair) continue;
@@ -147,8 +147,8 @@ bool DASAlgorithms::CheckCrossoverBetweenNucleotides(ADNPointer<ADNNucleotide> n
 //    ntFirstLeft = bpFirst->GetLeftNucleotide();
 //    ntFirstRight = bpFirst->GetRightNucleotide();
 //
-//    ADNPointer<ADNDoubleStrand> dsSecond = dsS;
-//    ADNPointer<ADNBaseSegment> bsSecond = dsSecond->start_;
+//    SBPointer<ADNDoubleStrand> dsSecond = dsS;
+//    SBPointer<ADNBaseSegment> bsSecond = dsSecond->start_;
 //    unsigned int szSecond = dsSecond->size_;
 //    for (unsigned int j = 0; j < szSecond; ++j) {
 //      if (bsSecond == nullptr) {
@@ -164,8 +164,8 @@ bool DASAlgorithms::CheckCrossoverBetweenNucleotides(ADNPointer<ADNNucleotide> n
 //      SBQuantity::length dist = (bsFirstPos - bsSecondPos).norm();
 //
 //      if (dist < SBQuantity::angstrom(2*dist_threshold)) {
-//        ADNPointer<ADNNucleotide> ntSecondLeft = nullptr;
-//        ADNPointer<ADNNucleotide> ntSecondRight = nullptr;
+//        SBPointer<ADNNucleotide> ntSecondLeft = nullptr;
+//        SBPointer<ADNNucleotide> ntSecondRight = nullptr;
 //        // check nucleotides of the base pair (so far only working for base pairs
 //        ANTCell* cellSecond = bsSecond->GetCell();
 //        if (cellSecond->GetType() != BasePair) continue;
@@ -246,20 +246,20 @@ bool DASAlgorithms::CheckCrossoverBetweenNucleotides(ADNPointer<ADNNucleotide> n
 //  return crossovers;
 //}
 
-//std::vector<std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>>> DASAlgorithms::DetectCrossovers(ADNPointer<ADNNanorobot> nanorobot) {
-//  std::vector<std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>>> crossovers;
+//std::vector<std::pair<SBPointer<ADNNucleotide>, SBPointer<ADNNucleotide>>> DASAlgorithms::DetectCrossovers(SBPointer<ADNNanorobot> nanorobot) {
+//  std::vector<std::pair<SBPointer<ADNNucleotide>, SBPointer<ADNNucleotide>>> crossovers;
 //
 //  auto singleStrands = nanorobot.GetSingleStrands();
 //
 //  for (auto & sid : singleStrands) {
-//    ADNPointer<ADNSingleStrand> strand = sid.second;
-//    ADNPointer<ADNNucleotide> nt = strand->fivePrime_;
+//    SBPointer<ADNSingleStrand> strand = sid.second;
+//    SBPointer<ADNNucleotide> nt = strand->fivePrime_;
 //    do {
-//      ADNPointer<ADNNucleotide> nt_next = nt->next_;
-//      ADNPointer<ADNBaseSegment> bs = nanorobot.GetBaseSegment(nt);
-//      ADNPointer<ADNBaseSegment> bs_nt_next = nanorobot.GetBaseSegment(nt_next);
+//      SBPointer<ADNNucleotide> nt_next = nt->next_;
+//      SBPointer<ADNBaseSegment> bs = nanorobot.GetBaseSegment(nt);
+//      SBPointer<ADNBaseSegment> bs_nt_next = nanorobot.GetBaseSegment(nt_next);
 //      if (bs != nullptr && bs_nt_next != nullptr && !(bs_nt_next == bs->next_ || bs_nt_next == bs->previous_)) {
-//        std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>> co_pair = std::make_pair(nt, nt_next);
+//        std::pair<SBPointer<ADNNucleotide>, SBPointer<ADNNucleotide>> co_pair = std::make_pair(nt, nt_next);
 //        crossovers.push_back(co_pair);
 //      }
 //      nt = nt_next;
@@ -269,13 +269,13 @@ bool DASAlgorithms::CheckCrossoverBetweenNucleotides(ADNPointer<ADNNucleotide> n
 //  auto scaffs = nanorobot.GetScaffolds();
 //
 //  for (auto &scaff : scaffs) {
-//    ADNPointer<ADNNucleotide> nt = scaff->fivePrime_;
+//    SBPointer<ADNNucleotide> nt = scaff->fivePrime_;
 //    do {
-//      ADNPointer<ADNNucleotide> nt_next = nt->next_;
-//      ADNPointer<ADNBaseSegment> bs = nanorobot.GetBaseSegment(nt);
-//      ADNPointer<ADNBaseSegment> bs_nt_next = nanorobot.GetBaseSegment(nt_next);
+//      SBPointer<ADNNucleotide> nt_next = nt->next_;
+//      SBPointer<ADNBaseSegment> bs = nanorobot.GetBaseSegment(nt);
+//      SBPointer<ADNBaseSegment> bs_nt_next = nanorobot.GetBaseSegment(nt_next);
 //      if (bs != nullptr && bs_nt_next != nullptr && !(bs_nt_next == bs->next_ || bs_nt_next == bs->previous_)) {
-//        std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>> co_pair = std::make_pair(nt, nt_next);
+//        std::pair<SBPointer<ADNNucleotide>, SBPointer<ADNNucleotide>> co_pair = std::make_pair(nt, nt_next);
 //        crossovers.push_back(co_pair);
 //      }
 //      nt = nt_next;
@@ -293,15 +293,15 @@ bool DASAlgorithms::CheckCrossoverBetweenNucleotides(ADNPointer<ADNNucleotide> n
 
 //double DASAlgorithms::CalculateTwistAngle(ANTDoubleStrand * ds) {
 //  double minAngle = NULL;
-//  ADNPointer<ADNBaseSegment> start = ds->start_;
-//  ADNPointer<ADNBaseSegment> end = ds->GetLastBaseSegment();
+//  SBPointer<ADNBaseSegment> start = ds->start_;
+//  SBPointer<ADNBaseSegment> end = ds->GetLastBaseSegment();
 //  // save angle
 //  double initAngle = ds->initialTwistAngle_;
 //  double angleUnit = ANTConstants::BP_ROT;
 //
 //  // Get pairs on the start end
-//  std::vector<std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>>> startPairs = GetLinkingNucleotides(start);
-//  std::vector<std::pair <ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>>> endPairs = GetLinkingNucleotides(end);
+//  std::vector<std::pair<SBPointer<ADNNucleotide>, SBPointer<ADNNucleotide>>> startPairs = GetLinkingNucleotides(start);
+//  std::vector<std::pair <SBPointer<ADNNucleotide>, SBPointer<ADNNucleotide>>> endPairs = GetLinkingNucleotides(end);
 //
 //  startPairs.insert(startPairs.end(), endPairs.begin(), endPairs.end());
 //  auto minDistance = CalculateAverageDistance(startPairs);
@@ -323,11 +323,11 @@ bool DASAlgorithms::CheckCrossoverBetweenNucleotides(ADNPointer<ADNNucleotide> n
 //  return minAngle;
 //}
 
-//std::vector<std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>>> DASAlgorithms::GetLinkingNucleotides(ANTBaseSegment * bs) {
-//  std::vector<std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>>> res;
+//std::vector<std::pair<SBPointer<ADNNucleotide>, SBPointer<ADNNucleotide>>> DASAlgorithms::GetLinkingNucleotides(ANTBaseSegment * bs) {
+//  std::vector<std::pair<SBPointer<ADNNucleotide>, SBPointer<ADNNucleotide>>> res;
 //
-//  ADNPointer<ADNNucleotide> ntLeft = nullptr;
-//  ADNPointer<ADNNucleotide> ntRight = nullptr;
+//  SBPointer<ADNNucleotide> ntLeft = nullptr;
+//  SBPointer<ADNNucleotide> ntRight = nullptr;
 //  ANTCell* c = bs->GetCell();
 //  if (c->GetType() == BasePair) {
 //    ANTBasePair* bp = static_cast<ANTBasePair*>(c);
@@ -348,7 +348,7 @@ bool DASAlgorithms::CheckCrossoverBetweenNucleotides(ADNPointer<ADNNucleotide> n
 //  return res;
 //}
 
-//SBQuantity::length DASAlgorithms::CalculateAverageDistance(std::vector<std::pair<ADNPointer<ADNNucleotide>, ADNPointer<ADNNucleotide>>> ntPairsList) {
+//SBQuantity::length DASAlgorithms::CalculateAverageDistance(std::vector<std::pair<SBPointer<ADNNucleotide>, SBPointer<ADNNucleotide>>> ntPairsList) {
 //  SBQuantity::length avg = SBQuantity::length(NULL);
 //
 //  int count = 0;
@@ -368,13 +368,13 @@ bool DASAlgorithms::CheckCrossoverBetweenNucleotides(ADNPointer<ADNNucleotide> n
 //void DASAlgorithms::MinimizeDSconnections(ANTDoubleStrand * ds) {
 //  double minAngle = 0.0;
 //
-//  ADNPointer<ADNBaseSegment> start = ds->start_;
-//  ADNPointer<ADNBaseSegment> end = ds->GetLastBaseSegment();
+//  SBPointer<ADNBaseSegment> start = ds->start_;
+//  SBPointer<ADNBaseSegment> end = ds->GetLastBaseSegment();
 //
-//  ADNPointer<ADNNucleotide> ntLeft = nullptr;
-//  ADNPointer<ADNNucleotide> ntRight = nullptr;
-//  ADNPointer<ADNNucleotide> ntLeftLast = nullptr;
-//  ADNPointer<ADNNucleotide> ntRightLast = nullptr;
+//  SBPointer<ADNNucleotide> ntLeft = nullptr;
+//  SBPointer<ADNNucleotide> ntRight = nullptr;
+//  SBPointer<ADNNucleotide> ntLeftLast = nullptr;
+//  SBPointer<ADNNucleotide> ntRightLast = nullptr;
 //
 //  ANTCell* cell = start->GetCell();
 //  if (cell->GetType() == BasePair) {
@@ -428,10 +428,10 @@ bool DASAlgorithms::CheckCrossoverBetweenNucleotides(ADNPointer<ADNNucleotide> n
 //  ds->initialTwistAngle_ = minAngle;
 //}
 
-void DASCrossover::CreateCrossover(ADNPointer<ADNPart> part) {
+void DASCrossover::CreateCrossover(SBPointer<ADNPart> part) {
 
-	ADNPointer<ADNSingleStrand> firstSingleStrandO = firstNt_->GetStrand();
-	ADNPointer<ADNSingleStrand> secondSingleStrandO = secondNt_->GetStrand();
+	SBPointer<ADNSingleStrand> firstSingleStrandO = firstNt_->GetStrand();
+	SBPointer<ADNSingleStrand> secondSingleStrandO = secondNt_->GetStrand();
 
 	if (firstSingleStrandO == secondSingleStrandO) return;
 
@@ -442,8 +442,8 @@ void DASCrossover::CreateCrossover(ADNPointer<ADNPart> part) {
 	//bool pair = true;
 	//if (second_chain_idsO.first == second_chain_idsO.second) pair = false;
 
-	//ADNPointer<ADNSingleStrand> mergedChainO = ADNBasicOperations::MergeSingleStrands(first_chain_idsO.first, second_chain_idsO.second);
-	//if (pair) ADNPointer<ADNSingleStrand> mergedChainPairO = ADNBasicOperations::MergeSingleStrands(second_chain_idsO.first, first_chain_idsO.second);
+	//SBPointer<ADNSingleStrand> mergedChainO = ADNBasicOperations::MergeSingleStrands(first_chain_idsO.first, second_chain_idsO.second);
+	//if (pair) SBPointer<ADNSingleStrand> mergedChainPairO = ADNBasicOperations::MergeSingleStrands(second_chain_idsO.first, first_chain_idsO.second);
 }
 
 bool DASCrossover::IsScaffoldCrossover() {

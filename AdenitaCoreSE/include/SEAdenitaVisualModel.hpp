@@ -10,9 +10,9 @@
 #include "ADNArray.hpp"
 #include "ADNMixins.hpp"
 #include "ADNPart.hpp"
+#include "MSVColors.hpp"
 
 
-class MSVColors;
 class ADNNanorobot;
 
 /// This class implements a visual model
@@ -372,7 +372,7 @@ private:
 
 	ColorType													curColorType_{ ColorType::REGULAR };
 
-	std::map<ColorType, MSVColors*>								colors_;
+	std::map<ColorType, MSVColors>								colors_;
 
 	int															colorSchemeCurrentIndex{ 0 };
 	int															nucleotideColorSchemeCurrentIndex{ 0 };

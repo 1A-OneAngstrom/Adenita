@@ -6,6 +6,7 @@
 #include "ADNSingleStrand.hpp"
 #include "ADNDoubleStrand.hpp"
 #include "ADNModel.hpp"
+#include "ADNNodeValidation.hpp"
 
 ADNNucleotide::ADNNucleotide(const ADNNucleotide& other) : PositionableSB(other), SBResidue(other), Orientable(other) {
 
@@ -30,7 +31,7 @@ void ADNNucleotide::serialize(SBCSerializer* serializer, const SBNodeIndexer& no
 
 	serializer->writeIntElement("end", static_cast<int>(endType));
 
-	//ADNPointer<ADNAtom> at = GetCenterAtom();
+	//SBPointer<ADNAtom> at = GetCenterAtom();
 	SBPosition3 pos = GetPosition();
 	serializer->writeDoubleElement("x", pos[0].getValue());
 	serializer->writeDoubleElement("y", pos[1].getValue());
@@ -81,7 +82,7 @@ void ADNNucleotide::unserialize(SBCSerializer* serializer, const SBNodeIndexer& 
 	setEndType(static_cast<ADNNucleotide::EndType>(serializer->readIntElement()));
 
 	//unsigned int idx = serializer->readUnsignedIntElement();
-	//ADNPointer<ADNAtom> at = (ADNAtom*)nodeIndexer.getNode(idx);
+	//SBPointer<ADNAtom> at = (ADNAtom*)nodeIndexer.getNode(idx);
 	//SetCenterAtom(at);
 	double x = serializer->readDoubleElement();
 	double y = serializer->readDoubleElement();
@@ -124,10 +125,8 @@ void ADNNucleotide::unserialize(SBCSerializer* serializer, const SBNodeIndexer& 
 
 	unsigned int pIdx = serializer->readUnsignedIntElement();
 	unsigned int bsIdx = serializer->readUnsignedIntElement();
-	SBNode* pNode = nodeIndexer.getNode(pIdx);
-	SBNode* bsNode = nodeIndexer.getNode(bsIdx);
-	ADNPointer<ADNNucleotide> p = static_cast<ADNNucleotide*>(pNode);
-	ADNPointer<ADNBaseSegment> bs = static_cast<ADNBaseSegment*>(bsNode);
+	SBPointer<ADNNucleotide> p = ADNNodeValidation::GetSerializedAdenitaNode<ADNNucleotide>(nodeIndexer, pIdx, "ADNNucleotide");
+	SBPointer<ADNBaseSegment> bs = ADNNodeValidation::GetSerializedAdenitaNode<ADNBaseSegment>(nodeIndexer, bsIdx, "ADNBaseSegment");
 	SetPair(p);
 	SetBaseSegment(bs);
 
@@ -162,17 +161,17 @@ std::string ADNNucleotide::getOneLetterNucleotideTypeString() const {
 
 }
 
-void ADNNucleotide::SetPair(ADNPointer<ADNNucleotide> nucleotide) {
+void ADNNucleotide::SetPair(SBPointer<ADNNucleotide> nucleotide) {
 
 	ADNNucleotide* oldNucleotide = this->pairNucleotide();
 
-	this->pairNucleotide = ADNWeakPointer<ADNNucleotide>(nucleotide);
+	this->pairNucleotide = SBPointer<ADNNucleotide>(nucleotide);
 
 	if (oldNucleotide) oldNucleotide->disconnectPair(this);
 
 }
 
-void ADNNucleotide::disconnectPair(ADNPointer<ADNNucleotide> nucleotide) {
+void ADNNucleotide::disconnectPair(SBPointer<ADNNucleotide> nucleotide) {
 
 	if (nucleotide != nullptr && this->pairNucleotide == nucleotide) {
 
@@ -194,7 +193,7 @@ void ADNNucleotide::disconnectPair() {
 
 }
 
-ADNPointer<ADNNucleotide> ADNNucleotide::GetPair() const {
+SBPointer<ADNNucleotide> ADNNucleotide::GetPair() const {
 	return pairNucleotide;
 }
 
@@ -202,12 +201,13 @@ SBNode* ADNNucleotide::getPair() const {
 	return GetPair()();
 }
 
-ADNPointer<ADNNucleotide> ADNNucleotide::GetPrev(bool checkCircular) const {
+SBPointer<ADNNucleotide> ADNNucleotide::GetPrev(bool checkCircular) const {
 
-	ADNPointer<ADNNucleotide> p;
+	SBPointer<ADNNucleotide> p;
 
 	if (SBResidue* prevResidue = getPreviousNucleicAcid())
-		p = static_cast<ADNNucleotide*>(prevResidue);
+		if (ADNNodeValidation::IsAdenitaNode(prevResidue, "ADNNucleotide"))
+			p = dynamic_cast<ADNNucleotide*>(prevResidue);
 
 	if (checkCircular) {
 
@@ -226,12 +226,13 @@ SBNode* ADNNucleotide::getPrev() const {
 	return GetPrev(true)();
 }
 
-ADNPointer<ADNNucleotide> ADNNucleotide::GetNext(bool checkCircular) const {
+SBPointer<ADNNucleotide> ADNNucleotide::GetNext(bool checkCircular) const {
 
-	ADNPointer<ADNNucleotide> p;
+	SBPointer<ADNNucleotide> p;
 
 	if (SBResidue* nextResidue = getNextNucleicAcid())
-		p = static_cast<ADNNucleotide*>(nextResidue);
+		if (ADNNodeValidation::IsAdenitaNode(nextResidue, "ADNNucleotide"))
+			p = dynamic_cast<ADNNucleotide*>(nextResidue);
 
 	if (checkCircular) {
 
@@ -250,78 +251,80 @@ SBNode* ADNNucleotide::getNext() const {
 	return GetNext(true)();
 }
 
-ADNPointer<ADNSingleStrand> ADNNucleotide::GetStrand() const {
+SBPointer<ADNSingleStrand> ADNNucleotide::GetStrand() const {
 
 	//check: if (parent->getProxy()->getUUID() == SBUUID("8EB118A4-A8BF-19F5-5171-C68582AC6262"))
 
-	auto p = static_cast<ADNSingleStrand*>(getParent());
-	return ADNPointer<ADNSingleStrand>(p);
+	SBNode* parent = getParent();
+	if (!ADNNodeValidation::IsAdenitaNode(parent, "ADNSingleStrand")) return nullptr;
+
+	return SBPointer<ADNSingleStrand>(dynamic_cast<ADNSingleStrand*>(parent));
 
 }
 
 SBNode* ADNNucleotide::getSingleStrand() const {
-	return getParent();
+	return GetStrand()();
 }
 
-void ADNNucleotide::SetBaseSegment(ADNPointer<ADNBaseSegment> bs) {
+void ADNNucleotide::SetBaseSegment(SBPointer<ADNBaseSegment> bs) {
 
 	if (this->baseSegment.isValid()) this->baseSegment->RemoveNucleotide(this);
 
-	this->baseSegment = ADNWeakPointer<ADNBaseSegment>(bs);
+	this->baseSegment = SBPointer<ADNBaseSegment>(bs);
 
 }
 
-void ADNNucleotide::addAtom(NucleotideGroup g, ADNPointer<ADNAtom> a) {
+void ADNNucleotide::addAtom(NucleotideGroup g, SBPointer<ADNAtom> a) {
 
 	if (g == SBNode::Type::Backbone) {
 
-		ADNPointer<ADNBackbone> bb = GetBackbone();
+		SBPointer<ADNBackbone> bb = GetBackbone();
 		if (bb != nullptr) bb->addAtom(a);
 
 	}
 	else if (g == SBNode::Type::SideChain) {
 
-		ADNPointer<ADNSidechain> sc = GetSidechain();
+		SBPointer<ADNSidechain> sc = GetSidechain();
 		if (sc != nullptr) sc->addAtom(a);
 
 	}
 
 }
 
-void ADNNucleotide::deleteAtom(NucleotideGroup g, ADNPointer<ADNAtom> a) {
+void ADNNucleotide::deleteAtom(NucleotideGroup g, SBPointer<ADNAtom> a) {
 
 	if (g == SBNode::Type::Backbone) {
 
-		ADNPointer<ADNBackbone> bb = GetBackbone();
+		SBPointer<ADNBackbone> bb = GetBackbone();
 		if (bb != nullptr) bb->deleteAtom(a);
 
 	}
 	else if (g == SBNode::Type::SideChain) {
 
-		ADNPointer<ADNSidechain> sc = GetSidechain();
+		SBPointer<ADNSidechain> sc = GetSidechain();
 		if (sc != nullptr) sc->deleteAtom(a);
 
 	}
 
 }
 
-CollectionMap<ADNAtom> ADNNucleotide::GetAtoms() const {
+SBPointerIndexer<ADNAtom> ADNNucleotide::GetAtoms() const {
 
-	CollectionMap<ADNAtom> atoms;
+	SBPointerIndexer<ADNAtom> atoms;
 
 	auto bb = GetBackbone();
 	if (bb != nullptr) {
 
-		CollectionMap<ADNAtom> bbAtoms = bb->GetAtoms();
-		SB_FOR(ADNPointer<ADNAtom> a, bbAtoms) atoms.addReferenceTarget(a());
+		SBPointerIndexer<ADNAtom> bbAtoms = bb->GetAtoms();
+		SB_FOR(SBPointer<ADNAtom> a, bbAtoms) atoms.addReferenceTarget(a());
 
 	}
 
 	auto sc = GetSidechain();
 	if (sc != nullptr) {
 
-		CollectionMap<ADNAtom> scAtoms = sc->GetAtoms();
-		SB_FOR(ADNPointer<ADNAtom> a, scAtoms) atoms.addReferenceTarget(a());
+		SBPointerIndexer<ADNAtom> scAtoms = sc->GetAtoms();
+		SB_FOR(SBPointer<ADNAtom> a, scAtoms) atoms.addReferenceTarget(a());
 
 	}
 
@@ -350,7 +353,7 @@ void ADNNucleotide::HideCenterAtoms() {
 
 }
 
-ADNPointer<ADNAtom> ADNNucleotide::GetBackboneCenterAtom() const {
+SBPointer<ADNAtom> ADNNucleotide::GetBackboneCenterAtom() const {
 
 	auto bb = GetBackbone();
 	if (bb != nullptr) return bb->GetCenterAtom();
@@ -358,7 +361,7 @@ ADNPointer<ADNAtom> ADNNucleotide::GetBackboneCenterAtom() const {
 
 }
 
-ADNPointer<ADNAtom> ADNNucleotide::GetSidechainCenterAtom() const {
+SBPointer<ADNAtom> ADNNucleotide::GetSidechainCenterAtom() const {
 
 	auto sc = GetSidechain();
 	if (sc != nullptr) return sc->GetCenterAtom();
@@ -366,19 +369,19 @@ ADNPointer<ADNAtom> ADNNucleotide::GetSidechainCenterAtom() const {
 
 }
 
-CollectionMap<ADNAtom> ADNNucleotide::GetAtomsByName(const std::string& name) const {
+SBPointerIndexer<ADNAtom> ADNNucleotide::GetAtomsByName(const std::string& name) const {
 
-	CollectionMap<ADNAtom> res;
+	SBPointerIndexer<ADNAtom> res;
 	/*SBNodeIndexer atoms;
 	getNodes(atoms, SBNode::GetName() == name);
 
 	SB_FOR(SBNode* a, atoms) {
-	  ADNPointer<ADNAtom> at = static_cast<ADNAtom*>(a);
+	  SBPointer<ADNAtom> at = static_cast<ADNAtom*>(a);
 	  res.addReferenceTarget(at());
 	}*/
 
 	auto atoms = GetAtoms();
-	SB_FOR(ADNPointer<ADNAtom> a, atoms) {
+	SB_FOR(SBPointer<ADNAtom> a, atoms) {
 
 		if (a->getName() == name)
 			res.addReferenceTarget(a());
@@ -399,7 +402,7 @@ ublas::matrix<double> ADNNucleotide::GetGlobalBasisTransformation() const {
 
 }
 
-ADNPointer<ADNBaseSegment> ADNNucleotide::GetBaseSegment() const {
+SBPointer<ADNBaseSegment> ADNNucleotide::GetBaseSegment() const {
 	return baseSegment;
 }
 
@@ -416,7 +419,7 @@ std::string ADNNucleotide::getBaseSegmentTypeString() const {
 
 }
 
-ADNPointer<ADNDoubleStrand> ADNNucleotide::GetDoubleStrand() const {
+SBPointer<ADNDoubleStrand> ADNNucleotide::GetDoubleStrand() const {
 
 	auto baseSegment = GetBaseSegment();
 	if (baseSegment != nullptr)
@@ -478,9 +481,9 @@ bool ADNNucleotide::isEndTypeNucleotide() const {
 void ADNNucleotide::Init() {
 
 	setNucleotideType(DNABlocks::DI);
-	ADNPointer<ADNBackbone> bb = new ADNBackbone();
+	SBPointer<ADNBackbone> bb = new ADNBackbone();
 	bb->setName(getName() + " Backbone");
-	ADNPointer<ADNSidechain> sc = new ADNSidechain();
+	SBPointer<ADNSidechain> sc = new ADNSidechain();
 	sc->setName(getName() + " Side chain");
 	addChild(bb());
 	addChild(sc());
@@ -496,63 +499,57 @@ void ADNNucleotide::Init() {
 
 }
 
-ADNPointer<ADNBackbone> ADNNucleotide::GetBackbone() const {
+SBPointer<ADNBackbone> ADNNucleotide::GetBackbone() const {
 
 	SBBackbone* backbone = getBackbone();
 	if (!backbone) return nullptr;
 
-	auto bb = static_cast<ADNBackbone*>(backbone);
-	if (bb)
-		return ADNPointer<ADNBackbone>(bb);
-	else
-		return nullptr;
+	if (!ADNNodeValidation::IsAdenitaNode(backbone, "ADNBackbone")) return nullptr;
+	return SBPointer<ADNBackbone>(dynamic_cast<ADNBackbone*>(backbone));
 
 }
 
-ADNPointer<ADNSidechain> ADNNucleotide::GetSidechain() const {
+SBPointer<ADNSidechain> ADNNucleotide::GetSidechain() const {
 
 	SBSideChain* sideChain = getSideChain();
 	if (!sideChain) return nullptr;
 
-	auto sc = static_cast<ADNSidechain*>(sideChain);
-	if (sc)
-		return ADNPointer<ADNSidechain>(sc);
-	else
-		return nullptr;
+	if (!ADNNodeValidation::IsAdenitaNode(sideChain, "ADNSidechain")) return nullptr;
+	return SBPointer<ADNSidechain>(dynamic_cast<ADNSidechain*>(sideChain));
 
 }
 
-void ADNNucleotide::SetSidechainPosition(const Position3D& pos) {
+void ADNNucleotide::SetSidechainPosition(const SBPosition3& pos) {
 
 	auto sc = GetSidechain();
 	if (sc.isValid()) sc->SetPosition(pos);
 
 }
 
-const Position3D& ADNNucleotide::GetSidechainPosition() const {
+const SBPosition3& ADNNucleotide::GetSidechainPosition() const {
 
 	auto sc = GetSidechain();
     if (sc.isValid()) return sc->GetPosition();
-    else return Position3D::zero;
+    else return SBPosition3::zero;
 
 }
 
-void ADNNucleotide::SetBackbonePosition(const Position3D& pos) {
+void ADNNucleotide::SetBackbonePosition(const SBPosition3& pos) {
 
 	auto bb = GetBackbone();
 	if (bb.isValid()) bb->SetPosition(pos);
 
 }
 
-const Position3D& ADNNucleotide::GetBackbonePosition() const {
+const SBPosition3& ADNNucleotide::GetBackbonePosition() const {
 
 	auto bb = GetBackbone();
     if (bb.isValid()) return bb->GetPosition();
-    else return Position3D::zero;
+    else return SBPosition3::zero;
 
 }
 
-Position3D ADNNucleotide::GetPosition() const {
+SBPosition3 ADNNucleotide::GetPosition() const {
 
 	return (GetBackbonePosition() + GetSidechainPosition()) * 0.5;
 

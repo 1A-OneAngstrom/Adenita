@@ -1,6 +1,6 @@
 # About Adenita
 
-Please refer to the **updated documentation for users**: [SAMSON Documentation Center: Adenita](https://documentation.samson-connect.net/tutorials/adenita/adenita/).
+Please refer to the **updated documentation for users** at the SAMSON Documentation Center: [Design DNA nanostructures with Adenita](https://documentation.samson-connect.net/tutorials/adenita/adenita/).
 
 Below is the old original documentation left for history.
 

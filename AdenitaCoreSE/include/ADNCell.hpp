@@ -32,11 +32,11 @@ public:
 
 	virtual CellType											GetCellType() const { return CellType::Undefined; }						///< Returns the cell type
 
-	virtual void												RemoveNucleotide(ADNPointer<ADNNucleotide> nt) {}
-	[[nodiscard]] virtual CollectionMap<ADNNucleotide>			GetNucleotides() const { return CollectionMap<ADNNucleotide>(); }
+	virtual void												RemoveNucleotide(SBPointer<ADNNucleotide> nt) {}
+	[[nodiscard]] virtual SBPointerIndexer<ADNNucleotide>			GetNucleotides() const { return SBPointerIndexer<ADNNucleotide>(); }
 	[[nodiscard]] unsigned int									getNumberOfNucleotides() const { return GetNucleotides().size(); }
-	virtual bool												IsLeft(ADNPointer<ADNNucleotide> nt) const { return false; }
-	virtual bool												IsRight(ADNPointer<ADNNucleotide> nt) const { return false; }
+	virtual bool												IsLeft(SBPointer<ADNNucleotide> nt) const { return false; }
+	virtual bool												IsRight(SBPointer<ADNNucleotide> nt) const { return false; }
 	
 };
 
@@ -57,24 +57,24 @@ public:
 
 	[[nodiscard]] CellType										GetCellType() const override { return CellType::BasePair; }
 
-	[[nodiscard]] ADNPointer<ADNNucleotide>						GetLeftNucleotide() const;
+	[[nodiscard]] SBPointer<ADNNucleotide>						GetLeftNucleotide() const;
 	[[nodiscard]] SBNode*										getLeftNucleotide() const;
-	void														SetLeftNucleotide(ADNPointer<ADNNucleotide> nt);
-	[[nodiscard]] ADNPointer<ADNNucleotide>						GetRightNucleotide() const;
+	void														SetLeftNucleotide(SBPointer<ADNNucleotide> nt);
+	[[nodiscard]] SBPointer<ADNNucleotide>						GetRightNucleotide() const;
 	[[nodiscard]] SBNode*										getRightNucleotide() const;
-	void														SetRightNucleotide(ADNPointer<ADNNucleotide> nt);
-	void														SetRemainingNucleotide(ADNPointer<ADNNucleotide> nt);
-	void														AddPair(ADNPointer<ADNNucleotide> left, ADNPointer<ADNNucleotide> right);
+	void														SetRightNucleotide(SBPointer<ADNNucleotide> nt);
+	void														SetRemainingNucleotide(SBPointer<ADNNucleotide> nt);
+	void														AddPair(SBPointer<ADNNucleotide> left, SBPointer<ADNNucleotide> right);
 	void														PairNucleotides();
-	void														RemoveNucleotide(ADNPointer<ADNNucleotide> nt) override;
-	[[nodiscard]] CollectionMap<ADNNucleotide>					GetNucleotides() const override;
-	bool														IsLeft(ADNPointer<ADNNucleotide> nt) const override;
-	bool														IsRight(ADNPointer<ADNNucleotide> nt) const override;
+	void														RemoveNucleotide(SBPointer<ADNNucleotide> nt) override;
+	[[nodiscard]] SBPointerIndexer<ADNNucleotide>					GetNucleotides() const override;
+	bool														IsLeft(SBPointer<ADNNucleotide> nt) const override;
+	bool														IsRight(SBPointer<ADNNucleotide> nt) const override;
 
 private:
 
-	ADNPointer<ADNNucleotide>									leftNucleotide = nullptr;
-	ADNPointer<ADNNucleotide>									rightNucleotide = nullptr;
+	SBPointer<ADNNucleotide>									leftNucleotide = nullptr;
+	SBPointer<ADNNucleotide>									rightNucleotide = nullptr;
 
 };
 
@@ -95,7 +95,7 @@ public:
 
 	[[nodiscard]] CellType										GetCellType() const override { return CellType::SkipPair; }
 
-	void														RemoveNucleotide(ADNPointer<ADNNucleotide> nt) override;
+	void														RemoveNucleotide(SBPointer<ADNNucleotide> nt) override;
 
 };
 
@@ -117,23 +117,23 @@ public:
 
 	[[nodiscard]] CellType										GetCellType() const override { return CellType::LoopPair; }
 
-	[[nodiscard]] ADNPointer<ADNLoop>							GetLeftLoop() const;
+	[[nodiscard]] SBPointer<ADNLoop>							GetLeftLoop() const;
 	[[nodiscard]] SBNode*										getLeftLoop() const;
-	void														SetLeftLoop(ADNPointer<ADNLoop> lp);
-	[[nodiscard]] ADNPointer<ADNLoop>							GetRightLoop() const;
+	void														SetLeftLoop(SBPointer<ADNLoop> lp);
+	[[nodiscard]] SBPointer<ADNLoop>							GetRightLoop() const;
 	[[nodiscard]] SBNode*										getRightLoop() const;
-	void														SetRightLoop(ADNPointer<ADNLoop> lp);
+	void														SetRightLoop(SBPointer<ADNLoop> lp);
 
-	void														RemoveNucleotide(ADNPointer<ADNNucleotide> nt) override;
-	[[nodiscard]] CollectionMap<ADNNucleotide>					GetNucleotides() const override;
+	void														RemoveNucleotide(SBPointer<ADNNucleotide> nt) override;
+	[[nodiscard]] SBPointerIndexer<ADNNucleotide>					GetNucleotides() const override;
 
-	[[nodiscard]] bool											IsLeft(ADNPointer<ADNNucleotide> nt) const override;
-	[[nodiscard]] bool											IsRight(ADNPointer<ADNNucleotide> nt) const override;
+	[[nodiscard]] bool											IsLeft(SBPointer<ADNNucleotide> nt) const override;
+	[[nodiscard]] bool											IsRight(SBPointer<ADNNucleotide> nt) const override;
 
 private:
 
-	ADNPointer<ADNLoop>											leftLoop = nullptr;
-	ADNPointer<ADNLoop>											rightLoop = nullptr;
+	SBPointer<ADNLoop>											leftLoop = nullptr;
+	SBPointer<ADNLoop>											rightLoop = nullptr;
 
 };
 

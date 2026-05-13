@@ -96,7 +96,7 @@ QString SETwistHelixEditor::getToolTip() const {
 	
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Rotate double strand DNA along helical axis"); 
+	return QObject::tr("Rotate double strand DNA along helical axis.<br>Hold <b>Alt</b> to rotate in the opposite direction."); 
 
 }
 
@@ -179,6 +179,8 @@ void SETwistHelixEditor::mousePressEvent(QMouseEvent* event) {
 
 	if (event->buttons() == Qt::LeftButton) {
 
+		const bool hasAlt = event->modifiers().testFlag(Qt::AltModifier);
+
 		event->accept();
 
 		auto app = SEAdenitaCoreSEApp::getAdenitaApp();
@@ -186,16 +188,18 @@ void SETwistHelixEditor::mousePressEvent(QMouseEvent* event) {
 
 		auto highlightedNucleotides = nanorobot->GetHighlightedNucleotides();
 
-		CollectionMap<ADNDoubleStrand> highlightedDoubleStrands;
-		SB_FOR(ADNPointer<ADNNucleotide> nt, highlightedNucleotides) {
+		SBPointerIndexer<ADNDoubleStrand> highlightedDoubleStrands;
+		SB_FOR(SBPointer<ADNNucleotide> nt, highlightedNucleotides) {
 
-			ADNPointer<ADNDoubleStrand> ds = nt->GetDoubleStrand();
+			SBPointer<ADNDoubleStrand> ds = nt->GetDoubleStrand();
 			if (ds.isValid())
 				highlightedDoubleStrands.addReferenceTarget(ds());
 
 		}
 
-		app->TwistDoubleHelix(highlightedDoubleStrands, twistAngle);
+		double currentAngle = (hasAlt ? -twistAngle : twistAngle);
+
+		app->TwistDoubleHelix(highlightedDoubleStrands, currentAngle);
 
 		SAMSON::requestViewportUpdate();
 

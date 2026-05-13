@@ -93,42 +93,42 @@ private:
 
 	CadnanoJSONFile json_;
 	VGrid vGrid_;
-	std::map<Vstrand*, std::map<std::pair<int, int>, ADNPointer<ADNBaseSegment>>> cellBsMap_;
+	std::map<Vstrand*, std::map<std::pair<int, int>, SBPointer<ADNBaseSegment>>> cellBsMap_;
 	//! To speed up calculation of 1D conformation we keep track to relative position of nt within the single strand
 	std::map<ADNNucleotide*, int> ntPositions_;
 	std::map<ADNSingleStrand*, int> ssId_;
 	int lastKey{ -1 };
 
-	ADNPointer<ADNConformation> conformation3D_;
-	ADNPointer<ADNConformation> conformation2D_;
-	ADNPointer<ADNConformation> conformation1D_;
+	SBPointer<ADNConformation> conformation3D_;
+	SBPointer<ADNConformation> conformation2D_;
+	SBPointer<ADNConformation> conformation1D_;
 
 	void ParseJSON(std::string filename);
 	void ParseCadnanoFormat3(rapidjson::Document& d);
 	void ParseCadnanoLegacy(rapidjson::Document& d);
 
-	ADNPointer<ADNPart> CreateCadnanoModel();
-	void CreateEdgeMap(ADNPointer<ADNPart> part);
-	void CreateScaffold(ADNPointer<ADNPart> part);
-	void CreateStaples(ADNPointer<ADNPart> part);
-	void TraceSingleStrand(int startVStrand, int startVStrandPos, ADNPointer<ADNSingleStrand> ss, ADNPointer<ADNPart> part, bool scaf = true);
+	SBPointer<ADNPart> CreateCadnanoModel();
+	void CreateEdgeMap(SBPointer<ADNPart> part);
+	void CreateScaffold(SBPointer<ADNPart> part);
+	void CreateStaples(SBPointer<ADNPart> part);
+	void TraceSingleStrand(int startVStrand, int startVStrandPos, SBPointer<ADNSingleStrand> ss, SBPointer<ADNPart> part, bool scaf = true);
 
 	static DNABlocks GetComplementaryBase(DNABlocks type);
 	bool IsThereBase(vec4 data);
-	void AddSingleStrandToMap(ADNPointer<ADNSingleStrand> ss);
+	void AddSingleStrandToMap(SBPointer<ADNSingleStrand> ss);
 
 public:
 
 	DASCadnano() = default;
 	~DASCadnano() = default;
 
-	ADNPointer<ADNConformation> Get3DConformation();
-	ADNPointer<ADNConformation> Get2DConformation();
-	ADNPointer<ADNConformation> Get1DConformation();
+	SBPointer<ADNConformation> Get3DConformation();
+	SBPointer<ADNConformation> Get2DConformation();
+	SBPointer<ADNConformation> Get1DConformation();
 
-	ADNPointer<ADNPart> CreateCadnanoPart(std::string file);
+	SBPointer<ADNPart> CreateCadnanoPart(std::string file);
 
 	//! once 3D model has been created, set 2D and 1D positions
-	void CreateConformations(ADNPointer<ADNPart> part);
+	void CreateConformations(SBPointer<ADNPart> part);
 
 };

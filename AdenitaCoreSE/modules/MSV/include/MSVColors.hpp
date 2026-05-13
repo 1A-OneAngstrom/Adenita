@@ -18,17 +18,17 @@ public:
     MSVColors();
     ~MSVColors() = default;
 
-    ADNArray<float> GetColor(ADNPointer<ADNAtom> a) const;
-    ADNArray<float> GetColor(ADNPointer<ADNNucleotide> nt) const;
-    ADNArray<float> GetColor(ADNPointer<ADNSingleStrand> ss) const;
-    ADNArray<float> GetColor(ADNPointer<ADNBaseSegment> bs) const;
-    ADNArray<float> GetColor(ADNPointer<ADNDoubleStrand> ds) const;
+    ADNArray<float> GetColor(SBPointer<ADNAtom> a) const;
+    ADNArray<float> GetColor(SBPointer<ADNNucleotide> nt) const;
+    ADNArray<float> GetColor(SBPointer<ADNSingleStrand> ss) const;
+    ADNArray<float> GetColor(SBPointer<ADNBaseSegment> bs) const;
+    ADNArray<float> GetColor(SBPointer<ADNDoubleStrand> ds) const;
 
-    void SetColor(ADNArray<float> color, ADNPointer<ADNAtom> a);
-    void SetColor(ADNArray<float> color, ADNPointer<ADNNucleotide> nt);
-    void SetColor(ADNArray<float> color, ADNPointer<ADNSingleStrand> ss);
-    void SetColor(ADNArray<float> color, ADNPointer<ADNBaseSegment> bs);
-    void SetColor(ADNArray<float> color, ADNPointer<ADNDoubleStrand> ds);
+    void SetColor(ADNArray<float> color, SBPointer<ADNAtom> a);
+    void SetColor(ADNArray<float> color, SBPointer<ADNNucleotide> nt);
+    void SetColor(ADNArray<float> color, SBPointer<ADNSingleStrand> ss);
+    void SetColor(ADNArray<float> color, SBPointer<ADNBaseSegment> bs);
+    void SetColor(ADNArray<float> color, SBPointer<ADNDoubleStrand> ds);
 
     void SetStandardAtomColorScheme();
     void SetStandardNucleotideColorScheme();
