@@ -33,6 +33,7 @@ public:
 	/// \name Parsing
 	//@{
 
+	[[nodiscard]] virtual bool									canImportFromFile(const std::string& fileName) override;							///< Returns true when the file can be imported as an Adenita PLY mesh
 	virtual bool												importFromFile(const std::string& fileName, const SBValueMap& parameters = SBValueMap{}, SBDDocumentFolder* preferredFolder = nullptr) override;			///< Imports data into SAMSON from a file
 
 	//@}

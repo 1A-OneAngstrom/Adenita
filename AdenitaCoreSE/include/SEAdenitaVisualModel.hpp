@@ -189,6 +189,7 @@ private:
 	void														initNucleotidesAndSingleStrands(bool createIndex = true);
 	void														initDoubleStrands(bool createIndex = true);
 	void														initDisplayIndices();
+	unsigned int												getNumberOfNucleotideCylinders() const;
 
 	ADNArray<unsigned int>										getAtomIndices();
 	ADNArray<unsigned int>										getNucleotideIndices();

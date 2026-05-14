@@ -1148,6 +1148,93 @@ void testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks() {
 
 }
 
+void testPlyLoaderWeldsDuplicatedAssimpVertices() {
+
+	const std::filesystem::path path = temporaryConfigPath("adenita_assimp_duplicate_vertex_cube.ply");
+	std::ofstream file(path);
+	file << R"(ply
+format ascii 1.0
+comment Created by Open Asset Import Library
+element vertex 24
+property float x
+property float y
+property float z
+property float nx
+property float ny
+property float nz
+property float s
+property float t
+element face 12
+property list uchar int vertex_index
+end_header
+1 -1 -1 0 -1 0 0 1
+1 -1 1 0 -1 0 0 2
+-1 -1 1 0 -1 0 -1 2
+-1 -1 -1 0 -1 0 -1 1
+1 1 -0.999998987 0 1 0 0 0
+-1 1 -1 0 1 0 -1 0
+-1 1 1 0 1 0 -1 1
+0.999998987 1 1.00000095 0 1 0 0 1
+1 -1 -1 1 0 0 0 1
+1 1 -0.999998987 1 0 0 0 0
+0.999998987 1 1.00000095 1 0 0 -1 0
+1 -1 1 1 0 0 -1 1
+1 -1 1 0 0 1 0 1
+0.999998987 1 1.00000095 0 0 1 0 0
+-1 1 1 0 0 1 -1 0
+-1 -1 1 0 0 1 -1 1
+-1 -1 1 -1 0 0 0 1
+-1 1 1 -1 0 0 0 0
+-1 1 -1 -1 0 0 1 0
+-1 -1 -1 -1 0 0 1 1
+1 1 -0.999998987 0 0 -1 0 1
+1 -1 -1 0 0 -1 0 2
+-1 -1 -1 0 0 -1 -1 2
+-1 1 -1 0 0 -1 -1 1
+3 0 1 2
+3 0 2 3
+3 4 5 6
+3 4 6 7
+3 8 9 10
+3 8 10 11
+3 12 13 14
+3 12 14 15
+3 16 17 18
+3 16 18 19
+3 20 21 22
+3 20 22 23
+)";
+	file.close();
+
+	requireTrue("assimp-style ply fixture written",
+		std::filesystem::exists(path),
+		"Expected the temporary duplicated-vertex PLY fixture to exist.");
+	requireTrue("assimp-style ply recognized",
+		DASPolyhedron::isPLYFile(path.string()),
+		"Expected the duplicated-vertex PLY fixture to be recognized as valid.");
+
+	DASPolyhedron polyhedron(path.string());
+	requireEqual("assimp-style ply welds duplicated vertices",
+		polyhedron.GetNumVertices(),
+		static_cast<size_t>(8));
+	requireEqual("assimp-style ply keeps triangular faces",
+		polyhedron.GetNumFaces(),
+		static_cast<size_t>(12));
+
+	bool allEdgesPaired = true;
+	for (DASEdge* edge : polyhedron.GetEdges()) {
+		if (edge == nullptr || edge->halfEdge_ == nullptr || edge->halfEdge_->pair_ == nullptr) {
+			allEdgesPaired = false;
+			break;
+		}
+	}
+
+	requireTrue("assimp-style ply builds closed half-edge mesh",
+		allEdgesPaired,
+		"Expected duplicated position vertices to be welded so every edge has a paired half-edge.");
+
+}
+
 void testDaedalusPlyRegressionDoesNotCrashOnTeardown() {
 
 	const std::filesystem::path path = repoDataPath("01_tetrahedron.ply");
@@ -1234,6 +1321,7 @@ int main() {
 	testCircularSingleStrandJsonRoundTrip();
 	testBuildTopScalesHandlesBrokenNucleotideLinks();
 	testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks();
+	testPlyLoaderWeldsDuplicatedAssimpVertices();
 	testDaedalusPlyRegressionDoesNotCrashOnTeardown();
 
 	if (!failures.empty()) {

@@ -3,7 +3,27 @@
 #include "SEAdenitaCoreSEApp.hpp"
 #include "SAMSON.hpp"
 
+#include <QFileInfo>
+
 #include <cmath>
+
+namespace {
+
+bool hasPlyExtension(const QString& fileName) {
+
+	return QFileInfo(fileName).suffix().compare("ply", Qt::CaseInsensitive) == 0;
+
+}
+
+void informInvalidPlyFile() {
+
+	SAMSON::informUser("Adenita",
+		"The selected file does not correspond to the PLY importer.<br><br>"
+		"Please choose an ASCII .ply mesh with vertex x/y/z properties and face vertex indices.");
+
+}
+
+}
 
 SEAdenitaImporterPly::SEAdenitaImporterPly() {
 
@@ -35,6 +55,16 @@ std::string SEAdenitaImporterPly::getExtension() const {
 
 }
 
+bool SEAdenitaImporterPly::canImportFromFile(const std::string& fileName) {
+
+	const QString fn = QString::fromStdString(fileName);
+	if (!QFileInfo::exists(fn)) return false;
+	if (!hasPlyExtension(fn)) return false;
+
+	return DASPolyhedron::isPLYFile(fileName);
+
+}
+
 bool SEAdenitaImporterPly::importFromFile(const std::string& fileName, const SBValueMap& parameters, SBDDocumentFolder* preferredFolder) {
 
 	SEAdenitaCoreSEApp* adenitaApp = SEAdenitaCoreSEApp::getAdenitaApp();
@@ -44,9 +74,9 @@ bool SEAdenitaImporterPly::importFromFile(const std::string& fileName, const SBV
 	const QString fn = QString::fromStdString(fileName);
 	if (!QFileInfo::exists(fn)) return false;
 
-	if (!DASPolyhedron::isPLYFile(fileName)) {
+	if (!canImportFromFile(fileName)) {
 
-		SAMSON::informUser("Adenita", "The provided file is not in the PLY format.\nPlease check the file.");
+		informInvalidPlyFile();
 		return false;
 
 	}
