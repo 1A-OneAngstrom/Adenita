@@ -1,5 +1,340 @@
 #include "DASPolyhedron.hpp"
 
+#include <algorithm>
+#include <cmath>
+#include <set>
+#include <sstream>
+#include <tuple>
+
+namespace {
+
+constexpr double PLY_VERTEX_WELD_TOLERANCE = 1.0e-5;
+
+struct PLYVertexRecord {
+	double x{ 0.0 };
+	double y{ 0.0 };
+	double z{ 0.0 };
+};
+
+struct PLYProperty {
+	bool isList{ false };
+	std::string name;
+};
+
+struct PLYHeader {
+	int vertexCount{ 0 };
+	int faceCount{ 0 };
+	unsigned int dataStartLine{ 0 };
+	int vertexXProperty{ -1 };
+	int vertexYProperty{ -1 };
+	int vertexZProperty{ -1 };
+	int vertexPropertyCount{ 0 };
+	int faceVertexListProperty{ -1 };
+	bool isAscii{ false };
+	std::vector<PLYProperty> faceProperties;
+};
+
+bool ReadPLYHeader(const std::vector<std::string>& lines, PLYHeader& header) {
+
+	if (lines.empty()) return false;
+
+	std::string firstLine = lines[0];
+	boost::trim(firstLine);
+	if (firstLine != "ply") return false;
+
+	enum class ElementType { None, Vertex, Face, Other };
+	ElementType currentElement = ElementType::None;
+
+	for (unsigned int i = 1; i < lines.size(); ++i) {
+
+		std::string line = lines[i];
+		boost::trim(line);
+		if (line.empty()) continue;
+
+		std::istringstream stream(line);
+		std::string token;
+		stream >> token;
+
+		if (token == "comment" || token == "obj_info") continue;
+
+		if (token == "format") {
+
+			std::string format;
+			stream >> format;
+			header.isAscii = (format == "ascii");
+			continue;
+
+		}
+
+		if (token == "element") {
+
+			std::string elementName;
+			int elementCount = 0;
+			stream >> elementName >> elementCount;
+
+			if (elementName == "vertex") {
+				currentElement = ElementType::Vertex;
+				header.vertexCount = elementCount;
+			}
+			else if (elementName == "face") {
+				currentElement = ElementType::Face;
+				header.faceCount = elementCount;
+			}
+			else {
+				currentElement = ElementType::Other;
+			}
+
+			continue;
+
+		}
+
+		if (token == "property") {
+
+			std::string propertyType;
+			stream >> propertyType;
+
+			if (currentElement == ElementType::Vertex) {
+
+				std::string propertyName;
+				if (propertyType == "list") {
+					std::string countType;
+					std::string itemType;
+					stream >> countType >> itemType >> propertyName;
+				}
+				else {
+					stream >> propertyName;
+				}
+
+				if (propertyName == "x") header.vertexXProperty = header.vertexPropertyCount;
+				else if (propertyName == "y") header.vertexYProperty = header.vertexPropertyCount;
+				else if (propertyName == "z") header.vertexZProperty = header.vertexPropertyCount;
+				++header.vertexPropertyCount;
+
+			}
+			else if (currentElement == ElementType::Face) {
+
+				PLYProperty property;
+				if (propertyType == "list") {
+					std::string countType;
+					std::string itemType;
+					stream >> countType >> itemType >> property.name;
+					property.isList = true;
+				}
+				else {
+					stream >> property.name;
+				}
+
+				if (property.isList &&
+					(property.name == "vertex_indices" || property.name == "vertex_index")) {
+					header.faceVertexListProperty = static_cast<int>(header.faceProperties.size());
+				}
+
+				header.faceProperties.push_back(property);
+
+			}
+
+			continue;
+
+		}
+
+		if (token == "end_header") {
+			header.dataStartLine = i + 1;
+			break;
+		}
+
+	}
+
+	if (!header.isAscii) return false;
+	if (header.vertexCount <= 0 || header.faceCount <= 0) return false;
+	if (header.dataStartLine == 0) return false;
+	if (header.vertexXProperty < 0 || header.vertexYProperty < 0 || header.vertexZProperty < 0) return false;
+
+	if (header.faceVertexListProperty < 0) {
+		for (unsigned int i = 0; i < header.faceProperties.size(); ++i) {
+			if (header.faceProperties[i].isList) {
+				header.faceVertexListProperty = static_cast<int>(i);
+				break;
+			}
+		}
+	}
+
+	return header.faceVertexListProperty >= 0;
+
+}
+
+bool ReadPLYVertex(const std::string& line, const PLYHeader& header, PLYVertexRecord& vertex) {
+
+	std::istringstream stream(line);
+	std::vector<double> values;
+	double value = 0.0;
+	while (stream >> value)
+		values.push_back(value);
+
+	const int maxCoordinateProperty = std::max(header.vertexXProperty, std::max(header.vertexYProperty, header.vertexZProperty));
+	if (static_cast<int>(values.size()) <= maxCoordinateProperty) return false;
+
+	vertex.x = values[header.vertexXProperty];
+	vertex.y = values[header.vertexYProperty];
+	vertex.z = values[header.vertexZProperty];
+
+	return true;
+
+}
+
+bool ReadPLYFace(const std::string& line, const PLYHeader& header, std::vector<int>& face) {
+
+	std::istringstream stream(line);
+	face.clear();
+
+	for (unsigned int i = 0; i < header.faceProperties.size(); ++i) {
+
+		const PLYProperty& property = header.faceProperties[i];
+		if (property.isList) {
+
+			int count = 0;
+			if (!(stream >> count)) return false;
+			if (count < 0) return false;
+
+			std::vector<int> values;
+			values.reserve(static_cast<size_t>(count));
+			for (int j = 0; j < count; ++j) {
+				int value = 0;
+				if (!(stream >> value)) return false;
+				values.push_back(value);
+			}
+
+			if (static_cast<int>(i) == header.faceVertexListProperty) face = values;
+
+		}
+		else {
+
+			std::string ignoredValue;
+			if (!(stream >> ignoredValue)) return false;
+
+		}
+
+	}
+
+	return face.size() >= 3;
+
+}
+
+std::tuple<long long, long long, long long> GetPLYVertexWeldKey(const PLYVertexRecord& vertex) {
+
+	return std::make_tuple(
+		static_cast<long long>(std::llround(vertex.x / PLY_VERTEX_WELD_TOLERANCE)),
+		static_cast<long long>(std::llround(vertex.y / PLY_VERTEX_WELD_TOLERANCE)),
+		static_cast<long long>(std::llround(vertex.z / PLY_VERTEX_WELD_TOLERANCE)));
+
+}
+
+double DistanceSquared(const PLYVertexRecord& lhs, const PLYVertexRecord& rhs) {
+
+	const double dx = lhs.x - rhs.x;
+	const double dy = lhs.y - rhs.y;
+	const double dz = lhs.z - rhs.z;
+	return dx * dx + dy * dy + dz * dz;
+
+}
+
+SBPosition3 ToSBPosition(const PLYVertexRecord& vertex) {
+
+	SBPosition3 position;
+	position[0] = SBQuantity::angstrom(vertex.x);
+	position[1] = SBQuantity::angstrom(vertex.y);
+	position[2] = SBQuantity::angstrom(vertex.z);
+	return position;
+
+}
+
+bool BuildWeldedPLYData(const std::vector<PLYVertexRecord>& rawVertices,
+	const std::vector<std::vector<int>>& rawFaces,
+	std::map<int, SBPosition3>& vertices,
+	std::map<int, std::vector<int>>& faces) {
+
+	vertices.clear();
+	faces.clear();
+
+	std::vector<PLYVertexRecord> uniqueVertices;
+	std::vector<int> vertexRemap(rawVertices.size(), -1);
+	std::map<std::tuple<long long, long long, long long>, std::vector<int>> vertexBins;
+	const double toleranceSquared = PLY_VERTEX_WELD_TOLERANCE * PLY_VERTEX_WELD_TOLERANCE;
+
+	for (unsigned int i = 0; i < rawVertices.size(); ++i) {
+
+		const PLYVertexRecord& vertex = rawVertices[i];
+		const auto key = GetPLYVertexWeldKey(vertex);
+
+		int duplicateVertexId = -1;
+		for (int dx = -1; dx <= 1 && duplicateVertexId < 0; ++dx) {
+			for (int dy = -1; dy <= 1 && duplicateVertexId < 0; ++dy) {
+				for (int dz = -1; dz <= 1 && duplicateVertexId < 0; ++dz) {
+
+					const auto neighborKey = std::make_tuple(
+						std::get<0>(key) + dx,
+						std::get<1>(key) + dy,
+						std::get<2>(key) + dz);
+
+					const auto binIt = vertexBins.find(neighborKey);
+					if (binIt == vertexBins.end()) continue;
+
+					for (int candidateId : binIt->second) {
+						if (DistanceSquared(vertex, uniqueVertices[candidateId]) <= toleranceSquared) {
+							duplicateVertexId = candidateId;
+							break;
+						}
+					}
+
+				}
+			}
+		}
+
+		if (duplicateVertexId >= 0) {
+			vertexRemap[i] = duplicateVertexId;
+			continue;
+		}
+
+		const int uniqueVertexId = static_cast<int>(uniqueVertices.size());
+		uniqueVertices.push_back(vertex);
+		vertices.insert(std::make_pair(uniqueVertexId, ToSBPosition(vertex)));
+		vertexBins[key].push_back(uniqueVertexId);
+		vertexRemap[i] = uniqueVertexId;
+
+	}
+
+	int faceId = 0;
+	for (const std::vector<int>& rawFace : rawFaces) {
+
+		std::vector<int> weldedFace;
+		for (int rawVertexId : rawFace) {
+
+			if (rawVertexId < 0 || static_cast<unsigned int>(rawVertexId) >= vertexRemap.size())
+				return false;
+
+			const int weldedVertexId = vertexRemap[rawVertexId];
+			if (weldedFace.empty() || weldedFace.back() != weldedVertexId)
+				weldedFace.push_back(weldedVertexId);
+
+		}
+
+		if (weldedFace.size() > 1 && weldedFace.front() == weldedFace.back())
+			weldedFace.pop_back();
+
+		std::set<int> uniqueFaceVertices(weldedFace.begin(), weldedFace.end());
+		if (weldedFace.size() < 3 || uniqueFaceVertices.size() != weldedFace.size())
+			continue;
+
+		faces.insert(std::make_pair(faceId, weldedFace));
+		++faceId;
+
+	}
+
+	return !vertices.empty() && !faces.empty();
+
+}
+
+}
+
 
 DASHalfEdge::DASHalfEdge(const DASHalfEdge& other) {
 
@@ -50,12 +385,13 @@ DASEdge::~DASEdge() {
 
 	// Remove all polygons connected to the edge
 	DASPolygon* p1 = nullptr;
-	if (halfEdge_->left_ != nullptr) p1 = halfEdge_->left_;
+	if (halfEdge_ != nullptr && halfEdge_->left_ != nullptr) p1 = halfEdge_->left_;
 	DASPolygon* p2 = nullptr;
-	if (halfEdge_->pair_->left_ != nullptr) p2 = halfEdge_->pair_->left_;
+	DASHalfEdge* pair = halfEdge_ != nullptr ? halfEdge_->pair_ : nullptr;
+	if (pair != nullptr && pair->left_ != nullptr) p2 = pair->left_;
 	if (p1 != nullptr) delete p1;
 	if (p2 != nullptr) delete p2;
-	if (halfEdge_->pair_ != nullptr) delete halfEdge_->pair_;
+	if (pair != nullptr) delete pair;
 	delete halfEdge_;
 
 }
@@ -190,7 +526,7 @@ DASPolyhedron::DASPolyhedron(const DASPolyhedron& p) {
 /* Destructor */
 DASPolyhedron::~DASPolyhedron() {
 
-	delete indices_;
+	delete[] indices_;
 	indices_ = nullptr;
 
 	// Delete all Faces - std::vector<ANTPolygon*>;
@@ -225,6 +561,8 @@ DASPolyhedron& DASPolyhedron::operator=(const DASPolyhedron& p) {
 	if (this != &p) {
 
 		// Delete all info first
+		delete[] indices_;
+		indices_ = nullptr;
 		for (auto& it : faces_) {
 			delete it;
 		}
@@ -322,6 +660,9 @@ void DASPolyhedron::SetEdges(Edges edges) {
 }
 
 void DASPolyhedron::BuildPolyhedron(const std::map<int, SBPosition3>& vertices, const std::map<int, std::vector<int>>& faces) {
+
+	delete[] indices_;
+	indices_ = nullptr;
 
 	//create indices for faces
 	if (faces.size() > 0) {
@@ -446,9 +787,8 @@ bool DASPolyhedron::isPLYFile(const std::string& filename) {
 	std::vector<std::string> lines;
 	SBIFileReader::getFileLines(filename, lines);
 
-	// Check first line is ply
-	if (lines.size() < 10) return false;
-	if (lines[0] != "ply") return false;
+	PLYHeader header;
+	if (!ReadPLYHeader(lines, header)) return false;
 
 	return true;
 
@@ -460,75 +800,39 @@ void DASPolyhedron::LoadFromPLYFile(const std::string& filename) {
 	std::vector<std::string> lines;
 	SBIFileReader::getFileLines(filename, lines);
 
-	unsigned int start_vertices = 0;
-	unsigned int start_faces = 0;
+	PLYHeader header;
+	if (!ReadPLYHeader(lines, header)) return;
 
-	int counter_vertices = 0;
-	int counter_faces = 0;
-	int total_vertices = 0;
-	int total_faces = 0;
-
-	// Check first line is ply
-	if (lines.size() < 10) return;
-	if (lines[0] != "ply") return;
-
-	//initialize values
-	for (unsigned int i = 1; i < lines.size(); i++) {
-
-		std::string line = lines[i];
-
-		// Fetch number of vertices and faces
-		if (total_vertices == 0) {
-			std::string num_vertices_tok = "element vertex ";
-			total_vertices = FetchNumber(line, num_vertices_tok);
-		}
-		if (total_faces == 0) {
-			std::string num_faces_tok = "element face ";
-			total_faces = FetchNumber(line, num_faces_tok);
-		}
-		if (line == "end_header") {
-			start_vertices = i + 1;
-			start_faces = start_vertices + total_vertices;
-			break;
-		}
-
-	}
-
-	int currentSerialNumber = 0;
+	const unsigned int startVertices = header.dataStartLine;
+	const unsigned int startFaces = startVertices + header.vertexCount;
+	const unsigned int endFaces = startFaces + header.faceCount;
+	if (lines.size() < endFaces) return;
 
 	// Fetch vertices
-	std::map<int, SBPosition3> vertices;
-	for (unsigned int i = start_vertices; i < start_faces; i++) {
+	std::vector<PLYVertexRecord> rawVertices;
+	rawVertices.reserve(static_cast<size_t>(header.vertexCount));
+	for (unsigned int i = startVertices; i < startFaces; i++) {
 
-		std::string line = lines[i];
-		std::vector<double> coords = SplitString(line, std::string("double"), 0.1);
-		SBPosition3 coordsSB = SBPosition3();
-		coordsSB[0] = SBQuantity::angstrom(coords[0]);
-		coordsSB[1] = SBQuantity::angstrom(coords[1]);
-		coordsSB[2] = SBQuantity::angstrom(coords[2]);
-		vertices.insert(std::make_pair(currentSerialNumber, coordsSB));
-		++currentSerialNumber;
+		PLYVertexRecord vertex;
+		if (!ReadPLYVertex(lines[i], header, vertex)) return;
+		rawVertices.push_back(vertex);
 
 	}
 
 	// Fetch faces
-	currentSerialNumber = 0;
+	std::vector<std::vector<int>> rawFaces;
+	rawFaces.reserve(static_cast<size_t>(header.faceCount));
+	for (unsigned int i = startFaces; i < endFaces; i++) {
 
-	std::map<int, std::vector<int>> faces;
-	for (unsigned int i = start_faces; i < start_faces + total_faces; i++) {
-
-		std::string line = lines[i];
-
-		std::vector<int> f = SplitString(line, std::string("int"), 1);
-		std::vector<int> v;
-
-		for (int j = 1; j <= f[0]; j++) {
-			v.push_back(f[j]);
-		}
-		faces.insert(std::make_pair(currentSerialNumber, v));
-		++currentSerialNumber;
+		std::vector<int> face;
+		if (!ReadPLYFace(lines[i], header, face)) return;
+		rawFaces.push_back(face);
 
 	}
+
+	std::map<int, SBPosition3> vertices;
+	std::map<int, std::vector<int>> faces;
+	if (!BuildWeldedPLYData(rawVertices, rawFaces, vertices, faces)) return;
 
 	BuildPolyhedron(vertices, faces);
 
