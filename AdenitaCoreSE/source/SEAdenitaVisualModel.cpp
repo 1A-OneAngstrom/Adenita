@@ -521,12 +521,9 @@ void SEAdenitaVisualModel::initNucleotidesAndSingleStrands(bool createIndex /* =
 
 	if (!nanorobot_) return;
 
-	const unsigned int nSingleStrands = nanorobot_->GetNumberOfSingleStrands();
 	const unsigned int nPositions = nanorobot_->GetNumberOfNucleotides();
-	const unsigned int nCylinders = (nPositions > nSingleStrands ? nPositions - nSingleStrands : 0);
 
 	nPositionsNt_ = nPositions;
-	nCylindersNt_ = nCylinders;
 	positionsNt_ = ADNArray<float>(3, nPositions);
 	radiiVNt_ = ADNArray<float>(nPositions);
 	radiiENt_ = ADNArray<float>(nPositions);
@@ -547,8 +544,13 @@ void SEAdenitaVisualModel::initNucleotidesAndSingleStrands(bool createIndex /* =
 	positionsNt2D_ = ADNArray<float>(3, nPositions);
 	positionsNt1D_ = ADNArray<float>(3, nPositions);
 
-	if (createIndex)
+	if (createIndex) {
 		indicesNt_ = getNucleotideIndices();
+		nCylindersNt_ = static_cast<unsigned int>(indicesNt_.GetNumElements() / 2);
+	}
+	else {
+		nCylindersNt_ = getNumberOfNucleotideCylinders();
+	}
 
 }
 
@@ -621,6 +623,37 @@ void SEAdenitaVisualModel::initDisplayIndices() {
 
 }
 
+unsigned int SEAdenitaVisualModel::getNumberOfNucleotideCylinders() const {
+
+	if (!nanorobot_) return 0;
+
+	unsigned int nCylinders = 0;
+	auto parts = nanorobot_->GetParts();
+
+	SB_FOR(auto part, parts) {
+
+		if (part == nullptr) continue;
+
+		auto singleStrands = part->GetSingleStrands();
+		SB_FOR(SBPointer<ADNSingleStrand> singleStrand, singleStrands) {
+
+			if (singleStrand == nullptr) continue;
+
+			auto nucleotides = singleStrand->GetNucleotides();
+			if (nucleotides.size() == 0) continue;
+
+			nCylinders += static_cast<unsigned int>(nucleotides.size() - 1);
+			if (singleStrand->IsCircular() && nucleotides.size() > 1)
+				++nCylinders;
+
+		}
+
+	}
+
+	return nCylinders;
+
+}
+
 void SEAdenitaVisualModel::initDoubleStrands(bool createIndex /*= true*/) {
 
 	if (!nanorobot_) return;
@@ -683,16 +716,10 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 
 	}
 
-	const unsigned int nPositions = nanorobot_->GetNumberOfNucleotides();
-	const unsigned int nCylinders = (nPositions > singleStrands.size() ? nPositions - singleStrands.size() : 0);
-
-	ADNArray<unsigned int> indices = ADNArray<unsigned int>(nCylinders * 2);
-
-	//std::cout << "nPositions: " << nPositions << "\tnCylinders: " << nCylinders << "\tnCylinders x 2: " << nCylinders * 2 << std::endl;
+	std::vector<unsigned int> nucleotideIndices;
+	nucleotideIndices.reserve(getNumberOfNucleotideCylinders() * 2);
 
 	//this init can be optimized in the future
-
-	size_t sumNumEdges = 0;
 
 	SB_FOR(auto part, parts) if (part) {
 
@@ -706,52 +733,44 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 			SBPointer<ADNNucleotide> currentNucleotide = singleStrand->GetFivePrime();
 			if (currentNucleotide == nullptr) continue;
 
-			const size_t curNCylinders = nucleotides.size() - 1; //todo fix this
-			ADNArray<unsigned int> curIndices = ADNArray<unsigned int>(2 * curNCylinders);
-
 			//looping using the next_ member variable of nucleotides
-			unsigned int j = 0;
-			while (currentNucleotide->GetNext() != nullptr) {
+			size_t currentEdgeCount = 0;
+			while (currentNucleotide->GetNext(false) != nullptr && currentEdgeCount + 1 < nucleotides.size()) {
 
 				unsigned int currentIndex = ntMap_[currentNucleotide()];
 				//nucleotides.getIndex(currentNucleotide(), currentIndex);
-				ADNNucleotide* nextNucleotide = currentNucleotide->GetNext()();
+				ADNNucleotide* nextNucleotide = currentNucleotide->GetNext(false)();
 				unsigned int nextIndex = ntMap_[nextNucleotide];
 				//nucleotides.getIndex(nextNucleotide, nextIndex);
 
-				if (2 * j + 1 >= 2 * curNCylinders) {
+				nucleotideIndices.push_back(currentIndex);
+				nucleotideIndices.push_back(nextIndex);
 
-					std::cerr << "[Adenita] ERROR: index is out of range: " << 2 * j + 1 << std::endl;
-					break;
-
-				}
-
-				curIndices(2 * j) = currentIndex;
-				curIndices(2 * j + 1) = nextIndex;
-				j++;
-
-				currentNucleotide = currentNucleotide->GetNext();
+				currentNucleotide = currentNucleotide->GetNext(false);
+				++currentEdgeCount;
 
 			}
 
-			for (int k = 0; k < curNCylinders * 2; ++k) {
+			if (singleStrand->IsCircular() && nucleotides.size() > 1) {
 
-				if (sumNumEdges + k >= nCylinders * 2) {
+				SBPointer<ADNNucleotide> startNucleotide = singleStrand->GetFivePrime();
+				SBPointer<ADNNucleotide> endNucleotide = singleStrand->GetThreePrime();
+				if (startNucleotide != nullptr && endNucleotide != nullptr) {
 
-					std::cerr << "[Adenita] ERROR: index is out of range: " << sumNumEdges + k << std::endl;
-					break;
+					nucleotideIndices.push_back(ntMap_[endNucleotide()]);
+					nucleotideIndices.push_back(ntMap_[startNucleotide()]);
 
 				}
 
-				indices(sumNumEdges + k) = curIndices(k);
-
 			}
-
-			sumNumEdges += (2 * curNCylinders);
 
 		}
 
 	}
+
+	ADNArray<unsigned int> indices = ADNArray<unsigned int>(nucleotideIndices.size());
+	for (size_t i = 0; i < nucleotideIndices.size(); ++i)
+		indices(i) = nucleotideIndices[i];
 
 	return indices;
 
@@ -953,7 +972,6 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 			flags_.GetArray(),
 			false);
 
-		displayCircularDNAConnection(renderingPass);
 		if (showBasePairing_) displayBasePairConnections(renderingPass, false);
 		//if (highlightType_ == HighlightType::TAGGED) displayTags();
 		displayForDebugging(renderingPass);
@@ -1011,7 +1029,6 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 			flags_.GetArray(),
 			false, SBSpatialTransform::identity, inheritedOpacity);
 
-		displayCircularDNAConnection(renderingPass);
 		if (showBasePairing_) displayBasePairConnections(renderingPass, false);
 		//if (highlightType_ == HighlightType::TAGGED) displayTags();
 		displayForDebugging(renderingPass);
@@ -1042,7 +1059,6 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 			flags_.GetArray(),
 			true);
 
-		displayCircularDNAConnection(renderingPass);
 		if (showBasePairing_) displayBasePairConnections(renderingPass, false);
 		//if (highlightType_ == HighlightType::TAGGED) displayTags();
 		displayForDebugging(renderingPass);
