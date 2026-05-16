@@ -186,10 +186,20 @@ SBNode* ADNLoopPair::getLeftLoop() const {
 
 void ADNLoopPair::SetLeftLoop(SBPointer<ADNLoop> lp) {
 
+    SBPointer<ADNLoop> previousLoop = this->leftLoop;
+    const bool replacingLoop = previousLoop() != lp();
+    if (previousLoop != nullptr && replacingLoop && previousLoop() != rightLoop()) {
+        removeChild(previousLoop());
+    }
+
     this->leftLoop = lp;
-    addChild(lp());
-    lp->setName("Left loop " + std::to_string(lp->getNodeIndex()));
-    lp->setStructuralID(lp->getNodeIndex());
+    if (this->leftLoop != nullptr) {
+
+        if (replacingLoop) addChild(this->leftLoop());
+        this->leftLoop->setName("Left loop " + std::to_string(this->leftLoop->getNodeIndex()));
+        this->leftLoop->setStructuralID(this->leftLoop->getNodeIndex());
+
+    }
 
 }
 
@@ -203,10 +213,20 @@ SBNode* ADNLoopPair::getRightLoop() const {
 
 void ADNLoopPair::SetRightLoop(SBPointer<ADNLoop> lp) {
 
+    SBPointer<ADNLoop> previousLoop = this->rightLoop;
+    const bool replacingLoop = previousLoop() != lp();
+    if (previousLoop != nullptr && replacingLoop && previousLoop() != leftLoop()) {
+        removeChild(previousLoop());
+    }
+
     this->rightLoop = lp;
-    addChild(lp());
-    lp->setName("Right loop " + std::to_string(lp->getNodeIndex()));
-    lp->setStructuralID(lp->getNodeIndex());
+    if (this->rightLoop != nullptr) {
+
+        if (replacingLoop) addChild(this->rightLoop());
+        this->rightLoop->setName("Right loop " + std::to_string(this->rightLoop->getNodeIndex()));
+        this->rightLoop->setStructuralID(this->rightLoop->getNodeIndex());
+
+    }
 
 }
 

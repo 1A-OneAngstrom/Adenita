@@ -12,6 +12,8 @@
 #include <system_error>
 #include <vector>
 
+#include "ADNBaseSegment.hpp"
+#include "ADNCell.hpp"
 #include "ADNArray.hpp"
 #include "ADNConfig.hpp"
 #include "ADNConfigFileIO.hpp"
@@ -202,6 +204,21 @@ std::map<int, std::vector<int>> makeOpenSquareFaces() {
 		{ 0, { 0, 1, 2 } },
 		{ 1, { 0, 2, 3 } }
 	};
+
+}
+
+size_t countStructuralChild(const SBStructuralGroup& parent, const SBStructuralNode* child) {
+
+	if (child == nullptr) return 0;
+
+	const SBPointerList<SBStructuralNode>* children = parent.getChildren();
+	if (children == nullptr) return 0;
+
+	size_t count = 0;
+	SB_FOR(SBStructuralNode * node, *children) {
+		if (node == child) ++count;
+	}
+	return count;
 
 }
 
@@ -1215,6 +1232,107 @@ void testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks() {
 
 }
 
+void testBaseSegmentSetCellReplacesChild() {
+
+	ADNBaseSegment baseSegment;
+	SBPointer<ADNBasePair> firstCell = new ADNBasePair();
+	SBPointer<ADNSkipPair> secondCell = new ADNSkipPair();
+
+	baseSegment.SetCell(firstCell());
+	requireTrue("base segment stores initial cell",
+		baseSegment.GetCell()() == firstCell(),
+		"Expected the initial cell pointer to be stored.");
+	requireEqual("base segment initial cell child count",
+		countStructuralChild(baseSegment, firstCell()),
+		static_cast<size_t>(1));
+
+	baseSegment.SetCell(secondCell());
+	requireTrue("base segment stores replacement cell",
+		baseSegment.GetCell()() == secondCell(),
+		"Expected the replacement cell pointer to be stored.");
+	requireEqual("base segment removes old cell child",
+		countStructuralChild(baseSegment, firstCell()),
+		static_cast<size_t>(0));
+	requireEqual("base segment replacement cell child count",
+		countStructuralChild(baseSegment, secondCell()),
+		static_cast<size_t>(1));
+
+	baseSegment.SetCell(nullptr);
+	requireTrue("base segment clears cell pointer",
+		baseSegment.GetCell() == nullptr,
+		"Expected clearing the cell to reset the stored pointer.");
+	requireEqual("base segment clears replacement cell child",
+		countStructuralChild(baseSegment, secondCell()),
+		static_cast<size_t>(0));
+
+}
+
+void testLoopPairSettersReplaceOnlySelectedChild() {
+
+	ADNLoopPair loopPair;
+	SBPointer<ADNLoop> firstLeft = new ADNLoop();
+	SBPointer<ADNLoop> secondLeft = new ADNLoop();
+	SBPointer<ADNLoop> firstRight = new ADNLoop();
+	SBPointer<ADNLoop> secondRight = new ADNLoop();
+
+	loopPair.SetLeftLoop(firstLeft);
+	loopPair.SetRightLoop(firstRight);
+	requireEqual("loop pair initial left child count",
+		countStructuralChild(loopPair, firstLeft()),
+		static_cast<size_t>(1));
+	requireEqual("loop pair initial right child count",
+		countStructuralChild(loopPair, firstRight()),
+		static_cast<size_t>(1));
+
+	loopPair.SetLeftLoop(secondLeft);
+	requireTrue("loop pair stores replacement left loop",
+		loopPair.GetLeftLoop() == secondLeft,
+		"Expected the replacement left loop pointer to be stored.");
+	requireTrue("loop pair preserves existing right loop",
+		loopPair.GetRightLoop() == firstRight,
+		"Expected replacing the left loop to preserve the right loop pointer.");
+	requireEqual("loop pair removes old left child",
+		countStructuralChild(loopPair, firstLeft()),
+		static_cast<size_t>(0));
+	requireEqual("loop pair replacement left child count",
+		countStructuralChild(loopPair, secondLeft()),
+		static_cast<size_t>(1));
+	requireEqual("loop pair right child remains attached",
+		countStructuralChild(loopPair, firstRight()),
+		static_cast<size_t>(1));
+
+	loopPair.SetRightLoop(secondRight);
+	requireTrue("loop pair stores replacement right loop",
+		loopPair.GetRightLoop() == secondRight,
+		"Expected the replacement right loop pointer to be stored.");
+	requireEqual("loop pair left child remains attached",
+		countStructuralChild(loopPair, secondLeft()),
+		static_cast<size_t>(1));
+	requireEqual("loop pair removes old right child",
+		countStructuralChild(loopPair, firstRight()),
+		static_cast<size_t>(0));
+	requireEqual("loop pair replacement right child count",
+		countStructuralChild(loopPair, secondRight()),
+		static_cast<size_t>(1));
+
+	SBPointer<ADNLoop> nullLoop = nullptr;
+	loopPair.SetLeftLoop(nullLoop);
+	loopPair.SetRightLoop(nullLoop);
+	requireTrue("loop pair clears left loop",
+		loopPair.GetLeftLoop() == nullptr,
+		"Expected clearing the left loop to reset the stored pointer.");
+	requireTrue("loop pair clears right loop",
+		loopPair.GetRightLoop() == nullptr,
+		"Expected clearing the right loop to reset the stored pointer.");
+	requireEqual("loop pair clears left child",
+		countStructuralChild(loopPair, secondLeft()),
+		static_cast<size_t>(0));
+	requireEqual("loop pair clears right child",
+		countStructuralChild(loopPair, secondRight()),
+		static_cast<size_t>(0));
+
+}
+
 void testPolyhedronRebuildClearsPreviousTopology() {
 
 	DASPolyhedron polyhedron;
@@ -1463,6 +1581,8 @@ int main() {
 	testCircularSingleStrandJsonRoundTrip();
 	testBuildTopScalesHandlesBrokenNucleotideLinks();
 	testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks();
+	testBaseSegmentSetCellReplacesChild();
+	testLoopPairSettersReplaceOnlySelectedChild();
 	testPolyhedronRebuildClearsPreviousTopology();
 	testPolyhedronEdgeLookupDoesNotAllocatePlaceholders();
 	testPlyLoaderWeldsDuplicatedAssimpVertices();
