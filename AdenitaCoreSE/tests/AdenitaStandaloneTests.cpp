@@ -25,6 +25,7 @@
 #include "ADNScaffoldReader.hpp"
 #include "DASAlgorithms.hpp"
 #include "DASDaedalus.hpp"
+#include "PIPrimer3.hpp"
 #include "SBCHeapExport.hpp"
 
 #include "rapidjson/document.h"
@@ -1587,6 +1588,58 @@ void testOxDNAImportResultReportsErrors() {
 
 }
 
+void testNtthalParserAcceptsValidOutput() {
+
+	const std::string output =
+		"Calculated thermodynamical parameters for dimer:\tdS = -68.9269\tdH = -24400\tdG = -3022.33\tt = -37.8822\r\n"
+		"SEQ\t    \r\n"
+		"SEQ\tTCGG\r\n"
+		"STR\tAGCC\r\n"
+		"STR\t    \r\n";
+
+	const ThermodynamicParameters result = PIPrimer3::ParseNtthalOutput(output);
+	requireTrue("ntthal parser valid output",
+		result.isValid,
+		"Expected valid ntthal output to parse.");
+	requireNear("ntthal parser entropy", result.dS_, -68.9269, 1.0e-6);
+	requireNear("ntthal parser enthalpy", result.dH_, -24400.0, 1.0e-6);
+	requireNear("ntthal parser gibbs", result.dG_, -3022.33, 1.0e-6);
+	requireNear("ntthal parser temperature", result.T_, -37.8822, 1.0e-6);
+
+}
+
+void testNtthalParserRejectsInvalidOutput() {
+
+	const ThermodynamicParameters missingField = PIPrimer3::ParseNtthalOutput(
+		"Calculated thermodynamical parameters for dimer:\tdS = -68.9\tdH = -24400\tt = -37.8\n"
+		"SEQ\nSEQ\nSTR\nSTR\n");
+	requireTrue("ntthal parser rejects missing field",
+		!missingField.isValid,
+		"Expected missing dG field to be rejected.");
+
+	const ThermodynamicParameters shortOutput = PIPrimer3::ParseNtthalOutput(
+		"Calculated thermodynamical parameters for dimer:\tdS = -68.9\tdH = -24400\tdG = -3022\tt = -37.8\n"
+		"SEQ\n");
+	requireTrue("ntthal parser rejects short output",
+		!shortOutput.isValid,
+		"Expected short ntthal output to be rejected.");
+
+	const ThermodynamicParameters nonnumericOutput = PIPrimer3::ParseNtthalOutput(
+		"Calculated thermodynamical parameters for dimer:\tdS = nope\tdH = -24400\tdG = -3022\tt = -37.8\n"
+		"SEQ\nSEQ\nSTR\nSTR\n");
+	requireTrue("ntthal parser rejects nonnumeric output",
+		!nonnumericOutput.isValid,
+		"Expected nonnumeric ntthal output to be rejected.");
+
+	const ThermodynamicParameters malformedNumericOutput = PIPrimer3::ParseNtthalOutput(
+		"Calculated thermodynamical parameters for dimer:\tdS = -68.9bad\tdH = -24400\tdG = -3022\tt = -37.8\n"
+		"SEQ\nSEQ\nSTR\nSTR\n");
+	requireTrue("ntthal parser rejects malformed numeric output",
+		!malformedNumericOutput.isValid,
+		"Expected malformed numeric ntthal output to be rejected.");
+
+}
+
 void testPlyLoaderWeldsDuplicatedAssimpVertices() {
 
 	const std::filesystem::path path = temporaryConfigPath("adenita_assimp_duplicate_vertex_cube.ply");
@@ -1796,6 +1849,8 @@ int main() {
 	testCanDoExportWritesBasicSections();
 	testOxDNAImportResultReportsSuccess();
 	testOxDNAImportResultReportsErrors();
+	testNtthalParserAcceptsValidOutput();
+	testNtthalParserRejectsInvalidOutput();
 	testPlyLoaderWeldsDuplicatedAssimpVertices();
 	testDaedalusPlyRegressionDoesNotCrashOnTeardown();
 	testDaedalusInstanceCanRunTwice();

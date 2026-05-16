@@ -15,6 +15,7 @@ public:
 	SBPointerIndexer<PIBindingRegion>								GetBindingRegions(SBPointer<ADNPart> p) const;
 	void														Calculate(SBPointer<ADNPart> p, int oligo_conc, int mv, int dv) const;
 	void														DeleteBindingRegions(SBPointer<ADNPart> p);
+	static ThermodynamicParameters								ParseNtthalOutput(const std::string& output);
 
 private:
 
