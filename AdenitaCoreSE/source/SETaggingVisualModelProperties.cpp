@@ -3,6 +3,7 @@
 #include "SAMSON.hpp"
 #include "SBGWindow.hpp"
 #include "ADNAuxiliary.hpp"
+#include "ADNSamsonContext.hpp"
 
 
 SETaggingVisualModelProperties::SETaggingVisualModelProperties() {
@@ -82,7 +83,9 @@ QString SETaggingVisualModelProperties::getCitation() const {
 bool SETaggingVisualModelProperties::setup() {
 
 	SBNodeIndexer nodeIndexer;
-	SB_FOR(SBNode* node, *SAMSON::getActiveDocument()->getSelectedNodes()) node->getNodes(nodeIndexer, SBNode::GetClass() == std::string("SETaggingVisualModel") && SBNode::GetElement() == std::string("SETagging") && SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID));
+	auto* selectedNodes = ADNSamsonContext::GetSelectedNodes(__func__);
+	if (selectedNodes == nullptr) return false;
+	SB_FOR(SBNode* node, *selectedNodes) node->getNodes(nodeIndexer, SBNode::GetClass() == std::string("SETaggingVisualModel") && SBNode::GetElement() == std::string("SETagging") && SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID));
 
 	if (nodeIndexer.size() == 1) {
 

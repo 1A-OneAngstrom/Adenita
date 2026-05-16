@@ -2,6 +2,7 @@
 #include "SEAdenitaVisualModel.hpp"
 #include "SAMSON.hpp"
 #include "SBGWindow.hpp"
+#include "ADNSamsonContext.hpp"
 
 SEAdenitaVisualModelProperties::SEAdenitaVisualModelProperties() {
 
@@ -81,7 +82,10 @@ QString SEAdenitaVisualModelProperties::getCitation() const {
 bool SEAdenitaVisualModelProperties::setup() {
 
 	SBNodeIndexer nodeIndexer;
-	SB_FOR(SBNode* node, *SAMSON::getActiveDocument()->getSelectedNodes()) {
+	auto* selectedNodes = ADNSamsonContext::GetSelectedNodes(__func__);
+	if (selectedNodes == nullptr) return false;
+
+	SB_FOR(SBNode* node, *selectedNodes) {
 
 		node->getNodes(nodeIndexer, SBNode::GetClass() == std::string("SEAdenitaVisualModel") && SBNode::GetElement() == std::string("SEAdenitaCoreSE") && SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID));
 

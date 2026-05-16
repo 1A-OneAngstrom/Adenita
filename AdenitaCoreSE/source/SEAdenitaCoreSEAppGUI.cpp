@@ -18,6 +18,7 @@
 #include "SEDSDNACreatorEditor.hpp"
 #include "SEMergePartsEditor.hpp"
 
+#include "ADNSamsonContext.hpp"
 #include "DASPolyhedron.hpp"
 
 #include <cmath>
@@ -216,6 +217,7 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 	QComboBox* typeSelection = new QComboBox();
 
 	auto nr = getApp()->GetNanorobot();
+	if (nr == nullptr) return;
 	auto parts = nr->GetParts();
 	int i = 0;
 	std::map<int, SBPointer<ADNPart>> indexParts;
@@ -384,6 +386,7 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 
 	auto nr = getApp()->GetNanorobot();
+	if (nr == nullptr) return;
 
 	QStringList itemList;
 	std::vector<SBPointer<ADNPart>> indexParts;
@@ -596,7 +599,10 @@ void SEAdenitaCoreSEAppGUI::onKinetoplast() {
 
 void SEAdenitaCoreSEAppGUI::onCalculateBindingProperties() {
 
-	if (getApp()->GetNanorobot()->GetSelectedParts().empty()) {
+	ADNNanorobot* nanorobot = getApp()->GetNanorobot();
+	if (nanorobot == nullptr) return;
+
+	if (nanorobot->GetSelectedParts().empty()) {
 
 		SAMSON::informUser(QString("Adenita: Calculate Thermodynamic Properties"), QString("The selection is empty. Please select one or more components from the document.\n"));
 		return;
@@ -820,7 +826,9 @@ void SEAdenitaCoreSEAppGUI::onCenterOnAllModels() {
 
 	// explicitly center on the just loaded system, i.e. on the last structural model in the active document
 	SBNodeIndexer nodeIndexer;
-	SAMSON::getActiveDocument()->getNodes(nodeIndexer, SBNode::StructuralModel);
+	SBDocument* document = ADNSamsonContext::GetActiveDocument(__func__);
+	if (document == nullptr) return;
+	document->getNodes(nodeIndexer, SBNode::StructuralModel);
 	SAMSON::getActiveCamera()->center(nodeIndexer, SBNode::All(), true);	// take into account the hidden dummy atoms
 
 }
@@ -967,9 +975,12 @@ void SEAdenitaCoreSEAppGUI::onTwisterEditor() {
 
 void SEAdenitaCoreSEAppGUI::onGenerateAtomicModel() {
 
-	if (getApp()->GetNanorobot()->GetNumberOfNucleotides() == 0) return;
+	ADNNanorobot* nanorobot = getApp()->GetNanorobot();
+	if (nanorobot == nullptr) return;
 
-	auto parts = getApp()->GetNanorobot()->GetParts();
+	if (nanorobot->GetNumberOfNucleotides() == 0) return;
+
+	auto parts = nanorobot->GetParts();
 
 	if (parts.size()) {
 
@@ -1068,7 +1079,9 @@ void SEAdenitaCoreSEAppGUI::checkForLoadedParts() {
 
 	SEAdenitaCoreSEApp* adenita = getApp();
 	SBNodeIndexer nodeIndexer;
-	SAMSON::getActiveDocument()->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNPart")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+	SBDocument* document = ADNSamsonContext::GetActiveDocument(__func__);
+	if (document == nullptr) return;
+	document->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNPart")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
 	SB_FOR(SBNode * node, nodeIndexer) {
 

@@ -1,6 +1,7 @@
 #include "SETaggingVisualModel.hpp"
 #include "SAMSON.hpp"
 #include "MSVDisplayHelper.hpp"
+#include "ADNSamsonContext.hpp"
 
 
 SETaggingVisualModel::SETaggingVisualModel() {
@@ -17,7 +18,9 @@ SETaggingVisualModel::SETaggingVisualModel(const SBNodeIndexer& nodeIndexer) {
 	// the atoms' structural signals (e.g. to update the center of mass when an atom is moved).
 
 	goldAtoms_.clear();
-    SAMSON::getActiveDocument()->getNodes(goldAtoms_, SBNode::IsType(SBNode::Atom) && SBNode::IsSelected());
+	SBDocument* document = ADNSamsonContext::GetActiveDocument(__func__);
+	if (document == nullptr) return;
+    document->getNodes(goldAtoms_, SBNode::IsType(SBNode::Atom) && SBNode::IsSelected());
   
 }
 

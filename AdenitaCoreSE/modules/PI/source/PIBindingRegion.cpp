@@ -1,6 +1,7 @@
 #include "PIBindingRegion.hpp"
 
 #include "ADNPart.hpp"
+#include "ADNSamsonContext.hpp"
 
 #include <unordered_set>
 
@@ -56,10 +57,16 @@ void PIBindingRegion::SetThermodynamicParameters(ThermodynamicParameters res) {
 
 void PIBindingRegion::RegisterBindingRegion(SBFolder* folder) {
 
+    SBDocument* document = nullptr;
+    if (folder == nullptr) {
+        document = ADNSamsonContext::GetActiveDocument(__func__);
+        if (document == nullptr) return;
+    }
+
     if (SAMSON::isHolding()) SAMSON::hold(this);
     create();
     if (folder) folder->addChild(this);
-    else SAMSON::getActiveDocument()->addChild(this);
+    else document->addChild(this);
 
 }
 

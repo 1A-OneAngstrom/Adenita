@@ -1,5 +1,6 @@
 #include "SEBreakEditor.hpp"
 #include "SEAdenitaCoreSEApp.hpp"
+#include "ADNSamsonContext.hpp"
 
 #include "SAMSON.hpp"
 
@@ -144,7 +145,11 @@ void SEBreakEditor::mousePressEvent(QMouseEvent* event) {
 	// Implement this function to handle this event with your editor.
 
 	auto app = SEAdenitaCoreSEApp::getAdenitaApp();
-	auto highlightedNucleotides = app->GetNanorobot()->GetHighlightedNucleotides();
+	if (app == nullptr) return;
+	ADNNanorobot* nanorobot = app->GetNanorobot();
+	if (nanorobot == nullptr) return;
+
+	auto highlightedNucleotides = nanorobot->GetHighlightedNucleotides();
 	auto numberOfHighlightedNucleotides = highlightedNucleotides.size();
 
 	if (numberOfHighlightedNucleotides == 1) {
@@ -161,7 +166,9 @@ void SEBreakEditor::mousePressEvent(QMouseEvent* event) {
 
 		// clear the current selection
 
-		SAMSON::getActiveDocument()->clearSelection();
+		SBDocument* document = ADNSamsonContext::GetActiveDocument(__func__);
+		if (document == nullptr) return;
+		document->clearSelection();
 
 		// select the nucleotide
 		//highlightedNucleotide->setSelectionFlag(true);

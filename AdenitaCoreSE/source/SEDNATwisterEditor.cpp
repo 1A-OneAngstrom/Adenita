@@ -1,6 +1,7 @@
 #include "SEDNATwisterEditor.hpp"
 #include "SEAdenitaCoreSEApp.hpp"
 
+#include "ADNSamsonContext.hpp"
 #include "MSVDisplayHelper.hpp"
 
 #include "SAMSON.hpp"
@@ -38,7 +39,9 @@ void SEDNATwisterEditor::setBendingType(BendingType type) {
 void SEDNATwisterEditor::untwisting() {
 
 	SBNodeIndexer baseSegmentIndexer;
-	SAMSON::getActiveDocument()->getNodes(baseSegmentIndexer, (SBNode::GetClass() == std::string("ADNBaseSegment")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+	SBDocument* document = ADNSamsonContext::GetActiveDocument(__func__);
+	if (document == nullptr) return;
+	document->getNodes(baseSegmentIndexer, (SBNode::GetClass() == std::string("ADNBaseSegment")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
 	DASBackToTheAtom btta;
 
@@ -66,7 +69,9 @@ void SEDNATwisterEditor::untwisting() {
 void SEDNATwisterEditor::makeInvisible() {
 
 	SBNodeIndexer nucleotideIndexer;
-	SAMSON::getActiveDocument()->getNodes(nucleotideIndexer, (SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+	SBDocument* document = ADNSamsonContext::GetActiveDocument(__func__);
+	if (document == nullptr) return;
+	document->getNodes(nucleotideIndexer, (SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
 	SB_FOR(SBNode* node, nucleotideIndexer) {
 

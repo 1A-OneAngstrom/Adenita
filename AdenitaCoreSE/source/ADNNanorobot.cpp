@@ -1,5 +1,30 @@
 #include "ADNNanorobot.hpp"
 #include "ADNModel.hpp"
+#include "ADNSamsonContext.hpp"
+
+namespace {
+
+bool GetActiveDocumentNodes(SBNodeIndexer& nodeIndexer, const SBNodePredicate& predicate, const char* context) {
+
+    SBDocument* document = ADNSamsonContext::GetActiveDocument(context);
+    if (document == nullptr) return false;
+
+    document->getNodes(nodeIndexer, predicate);
+    return true;
+
+}
+
+bool GetActiveDocumentNodes(SBNodeIndexer& nodeIndexer, SBNode::Type type, const char* context) {
+
+    SBDocument* document = ADNSamsonContext::GetActiveDocument(context);
+    if (document == nullptr) return false;
+
+    document->getNodes(nodeIndexer, type);
+    return true;
+
+}
+
+}
 
 ADNNanorobot::ADNNanorobot() {// : Nameable(), Positionable(), Orientable() {}
 }
@@ -36,7 +61,7 @@ SBPointerIndexer<ADNSingleStrand> ADNNanorobot::GetSingleStrands() const {
     // single strands are chains, so for performance reasons we first get all the chains and then check their class name and the extensions' UUID
 
     SBNodeIndexer chainIndexer;
-    SAMSON::getActiveDocument()->getNodes(chainIndexer, SBNode::Chain);
+    if (!GetActiveDocumentNodes(chainIndexer, SBNode::Chain, __func__)) return singleStrands;
 
     SBNodeIndexer nodeIndexer;
     SB_FOR(SBNode* node, chainIndexer)
@@ -126,7 +151,7 @@ SBPointerIndexer<ADNPart> ADNNanorobot::GetParts() const {
     SBPointerIndexer<ADNPart> parts;
 
     SBNodeIndexer structuralModelIndexer;
-    SAMSON::getActiveDocument()->getNodes(structuralModelIndexer, SBNode::StructuralModel);
+    if (!GetActiveDocumentNodes(structuralModelIndexer, SBNode::StructuralModel, __func__)) return parts;
 
     SBNodeIndexer nodeIndexer;
     SB_FOR(SBNode * node, structuralModelIndexer)
@@ -146,7 +171,7 @@ unsigned int ADNNanorobot::GetNumberOfParts() const {
     return partsIndex_.size();
 #else
     SBNodeIndexer structuralModelIndexer;
-    SAMSON::getActiveDocument()->getNodes(structuralModelIndexer, SBNode::StructuralModel);
+    if (!GetActiveDocumentNodes(structuralModelIndexer, SBNode::StructuralModel, __func__)) return 0;
 
     SBNodeIndexer nodeIndexer;
     SB_FOR(SBNode * node, structuralModelIndexer)
@@ -162,7 +187,7 @@ SBPointerIndexer<ADNNucleotide> ADNNanorobot::GetSelectedNucleotides() const {
     SBPointerIndexer<ADNNucleotide> nucleotideIndexer;
 
     SBNodeIndexer residueIndexer;
-    SAMSON::getActiveDocument()->getNodes(residueIndexer, SBNode::Residue);
+    if (!GetActiveDocumentNodes(residueIndexer, SBNode::Residue, __func__)) return nucleotideIndexer;
     SBNodeIndexer nodeIndexer;
     SB_FOR(SBNode * node, residueIndexer)
         node->getNodes(nodeIndexer, SBNode::IsSelected() && (SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
@@ -183,7 +208,7 @@ SBPointerIndexer<ADNPart> ADNNanorobot::GetSelectedParts() const {
     SBPointerIndexer<ADNPart> partIndexer;
 
     SBNodeIndexer structuralModelIndexer;
-    SAMSON::getActiveDocument()->getNodes(structuralModelIndexer, SBNode::StructuralModel);
+    if (!GetActiveDocumentNodes(structuralModelIndexer, SBNode::StructuralModel, __func__)) return partIndexer;
 
     SBNodeIndexer nodeIndexer;
     SB_FOR(SBNode * node, structuralModelIndexer)
@@ -205,7 +230,7 @@ SBPointerIndexer<SBAtom> ADNNanorobot::GetHighlightedAtoms() const {
     SBPointerIndexer<SBAtom> atoms;
 
     SBNodeIndexer atomIndexer;
-    SAMSON::getActiveDocument()->getNodes(atomIndexer, SBNode::Atom);
+    if (!GetActiveDocumentNodes(atomIndexer, SBNode::Atom, __func__)) return atoms;
 
     SB_FOR(SBNode* node, atomIndexer) {
         if (node->isHighlighted()) {
@@ -225,7 +250,7 @@ SBPointerIndexer<ADNNucleotide> ADNNanorobot::GetHighlightedNucleotides() const 
     SBPointerIndexer<ADNNucleotide> nucleotideIndexer;
 
     SBNodeIndexer residueIndexer;
-    SAMSON::getActiveDocument()->getNodes(residueIndexer, SBNode::Residue);
+    if (!GetActiveDocumentNodes(residueIndexer, SBNode::Residue, __func__)) return nucleotideIndexer;
     SBNodeIndexer nodeIndexer;
     SB_FOR(SBNode * node, residueIndexer)
         node->getNodes(nodeIndexer, SBNode::IsHighlighted() && (SBNode::GetClass() == std::string("ADNNucleotide")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
@@ -263,7 +288,7 @@ SBPointerIndexer<ADNBaseSegment> ADNNanorobot::GetSelectedBaseSegmentsFromNucleo
     }
 #else
     SBNodeIndexer structuralGroupIndexer;
-    SAMSON::getActiveDocument()->getNodes(structuralGroupIndexer, SBNode::StructuralGroup);
+    if (!GetActiveDocumentNodes(structuralGroupIndexer, SBNode::StructuralGroup, __func__)) return baseSegmentIndexer;
     SBNodeIndexer nodeIndexer;
     SB_FOR(SBNode* node, structuralGroupIndexer)
         node->getNodes(nodeIndexer, SBNode::IsSelected() && (SBNode::GetClass() == std::string("ADNBaseSegment")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
@@ -285,7 +310,7 @@ SBPointerIndexer<ADNSingleStrand> ADNNanorobot::GetSelectedSingleStrands() const
     SBPointerIndexer<ADNSingleStrand> singleStrandIndexer;
 
     SBNodeIndexer chainIndexer;
-    SAMSON::getActiveDocument()->getNodes(chainIndexer, SBNode::Chain);
+    if (!GetActiveDocumentNodes(chainIndexer, SBNode::Chain, __func__)) return singleStrandIndexer;
     SBNodeIndexer nodeIndexer;
     SB_FOR(SBNode * node, chainIndexer)
         node->getNodes(nodeIndexer, SBNode::IsSelected() && (SBNode::GetClass() == std::string("ADNSingleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
@@ -306,7 +331,7 @@ SBPointerIndexer<ADNDoubleStrand> ADNNanorobot::GetSelectedDoubleStrands() const
     SBPointerIndexer<ADNDoubleStrand> doubleStrandIndexer;
 
     SBNodeIndexer structuralGroupIndexer;
-    SAMSON::getActiveDocument()->getNodes(structuralGroupIndexer, SBNode::StructuralGroup);
+    if (!GetActiveDocumentNodes(structuralGroupIndexer, SBNode::StructuralGroup, __func__)) return doubleStrandIndexer;
     SBNodeIndexer nodeIndexer;
     SB_FOR(SBNode * node, structuralGroupIndexer)
         node->getNodes(nodeIndexer, SBNode::IsSelected() && (SBNode::GetClass() == std::string("ADNDoubleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
@@ -327,7 +352,7 @@ SBPointerIndexer<ADNDoubleStrand> ADNNanorobot::GetHighlightedDoubleStrands() co
     SBPointerIndexer<ADNDoubleStrand> doubleStrands;
 
     SBNodeIndexer nodeIndexer;
-    SAMSON::getActiveDocument()->getNodes(nodeIndexer, SBNode::IsHighlighted() && (SBNode::GetClass() == std::string("ADNDoubleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+    if (!GetActiveDocumentNodes(nodeIndexer, SBNode::IsHighlighted() && (SBNode::GetClass() == std::string("ADNDoubleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)), __func__)) return doubleStrands;
 
     SB_FOR(SBNode* node, nodeIndexer) {
 
@@ -351,7 +376,7 @@ SBPointerIndexer<ADNConformation> ADNNanorobot::GetConformations() const {
     SBPointerIndexer<ADNConformation> conformationIndexer;
 
     SBNodeIndexer auxIndexer;
-    SAMSON::getActiveDocument()->getNodes(auxIndexer, SBNode::Conformation);
+    if (!GetActiveDocumentNodes(auxIndexer, SBNode::Conformation, __func__)) return conformationIndexer;
 
     //SBNodeIndexer nodeIndexer;
     //SB_FOR(SBNode * node, auxIndexer)
@@ -461,7 +486,7 @@ SBPointerIndexer<ADNBaseSegment> ADNNanorobot::GetHighlightedBaseSegments() cons
     SBPointerIndexer<ADNBaseSegment> baseSegmentIndexer;
 
     SBNodeIndexer structuralGroupIndexer;
-    SAMSON::getActiveDocument()->getNodes(structuralGroupIndexer, SBNode::StructuralGroup);
+    if (!GetActiveDocumentNodes(structuralGroupIndexer, SBNode::StructuralGroup, __func__)) return baseSegmentIndexer;
     SBNodeIndexer nodeIndexer;
     SB_FOR(SBNode * node, structuralGroupIndexer)
         node->getNodes(nodeIndexer, SBNode::IsHighlighted() && (SBNode::GetClass() == std::string("ADNBaseSegment")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));

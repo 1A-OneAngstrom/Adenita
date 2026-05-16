@@ -5,6 +5,7 @@
 #include "ADNAuxiliary.hpp"
 #include "ADNConfig.hpp"
 #include "ADNNanorobot.hpp"
+#include "ADNSamsonContext.hpp"
 
 #include "PICrossovers.hpp"
 #include "PIPrimer3.hpp"
@@ -450,7 +451,7 @@ void SEAdenitaVisualModel::update() {
 	}
 
 	SBDocument* document = getDocument();
-	if (!document) document = SAMSON::getActiveDocument();
+	if (!document) document = ADNSamsonContext::GetActiveDocument(__func__);
 
 	if (document && !document->documentSignalIsConnectedToSlot(this, SB_SLOT(&SEAdenitaVisualModel::onDocumentEvent)))
 		document->connectDocumentSignalToSlot(this, SB_SLOT(&SEAdenitaVisualModel::onDocumentEvent));
@@ -694,7 +695,8 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getNucleotideIndices() {
 	// check the correspondence of the number of single strands
 
 	SBDocument* document = getDocument();
-	if (!document) document = SAMSON::getActiveDocument();
+	if (!document) document = ADNSamsonContext::GetActiveDocument(__func__);
+	if (!document) return ADNArray<unsigned int>();
 
 	const unsigned int numberOfSingleStrandsUsingSAMSON = document->countNodes((SBNode::GetClass() == std::string("ADNSingleStrand")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 	unsigned int numberOfSingleStrandsInAllParts = 0;

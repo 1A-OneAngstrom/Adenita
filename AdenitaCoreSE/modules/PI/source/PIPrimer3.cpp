@@ -1,5 +1,6 @@
 #include "PIPrimer3.hpp"
 #include "ADNPart.hpp"
+#include "ADNSamsonContext.hpp"
 
 #include "SAMSON.hpp"
 
@@ -208,12 +209,15 @@ void PIPrimer3::UpdateBindingRegions(SBPointer<ADNPart> p) {
     SBPointer<ADNNucleotide> firstNt;
     unsigned int numRegions = 0;
 
+    SBDocument* document = ADNSamsonContext::GetActiveDocument(__func__);
+    if (document == nullptr) return;
+
     SAMSON::beginHolding("Update binding regions");
 
     SBFolder* bindingRegionsFolder = new SBFolder("Binding regions");
     SAMSON::hold(bindingRegionsFolder);
     bindingRegionsFolder->create();
-    SAMSON::getActiveDocument()->addChild(bindingRegionsFolder);
+    document->addChild(bindingRegionsFolder);
 
     SB_FOR(SBPointer<ADNSingleStrand> ss, singleStrands) if (ss != nullptr) {
 
