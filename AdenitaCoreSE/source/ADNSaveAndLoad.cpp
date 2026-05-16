@@ -1599,7 +1599,7 @@ void ADNLoader::SignOutputFile(std::ofstream& output) {
 
 }
 
-std::pair<bool, SBPointer<ADNPart>> ADNLoader::InputFromOxDNA(const std::string& topoFile, const std::string& configFile) {
+ADNLoader::OxDNAImportResult ADNLoader::InputFromOxDNA(const std::string& topoFile, const std::string& configFile) {
 
 	SBPointer<ADNPart> part = new ADNPart();
 	bool error = false;
@@ -1666,6 +1666,11 @@ std::pair<bool, SBPointer<ADNPart>> ADNLoader::InputFromOxDNA(const std::string&
 			currNt++;
 
 		}
+
+	}
+	else {
+
+		error = true;
 
 	}
 
@@ -1738,6 +1743,11 @@ std::pair<bool, SBPointer<ADNPart>> ADNLoader::InputFromOxDNA(const std::string&
 			}
 
 		}
+		else {
+
+			error = true;
+
+		}
 
 	}
 
@@ -1748,7 +1758,7 @@ std::pair<bool, SBPointer<ADNPart>> ADNLoader::InputFromOxDNA(const std::string&
 
 	}
 
-	return std::make_pair(error, part);
+	return { error, part };
 
 }
 

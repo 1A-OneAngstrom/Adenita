@@ -631,9 +631,9 @@ void SEAdenitaCoreSEApp::TestNeighbors() {
 void SEAdenitaCoreSEApp::ImportFromOxDNA(const std::string& topoFile, const std::string& configFile) {
 
 	auto res = ADNLoader::InputFromOxDNA(topoFile, configFile);
-	if (!res.first) {
+	if (res.succeeded()) {
 
-		SBPointer<ADNPart> p = res.second;
+		SBPointer<ADNPart> p = res.part;
 		addPartToDocument(p, true);
 		SEAdenitaCoreSEApp::resetVisualModel();
 

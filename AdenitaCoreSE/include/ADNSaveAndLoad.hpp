@@ -32,11 +32,20 @@ namespace ADNLoader {
 	SB_EXPORT [[nodiscard]] SBPointer<ADNPart> GenerateModelFromDataGraphParametrized(SBNode* sn, const SBQuantity::length& maxCutOff, const SBQuantity::length& minCutOff, double maxAngle);
 
 	// oxdna
+	struct SB_EXPORT OxDNAImportResult {
+		bool hasError{ false };
+		SBPointer<ADNPart> part{ nullptr };
+
+		[[nodiscard]] bool succeeded() const {
+			return !hasError && part != nullptr;
+		}
+	};
+
 	SB_EXPORT void OutputToOxDNA(SBPointer<ADNPart> part, const std::string& folder, const ADNAuxiliary::OxDNAOptions& options);
 	SB_EXPORT void OutputToOxDNA(SBPointerIndexer<ADNPart> parts, const std::string& folder, const ADNAuxiliary::OxDNAOptions& options);
 	SB_EXPORT void SingleStrandsToOxDNA(SBPointerIndexer<ADNSingleStrand> singleStrands, std::ofstream& outConf, std::ofstream& outTopo, const ADNAuxiliary::OxDNAOptions& options);
 	SB_EXPORT void SignOutputFile(std::ofstream& output);
-	SB_EXPORT std::pair<bool, SBPointer<ADNPart>> InputFromOxDNA(const std::string& topoFile, const std::string& configFile);
+	SB_EXPORT OxDNAImportResult InputFromOxDNA(const std::string& topoFile, const std::string& configFile);
 
 	// CanDo
 	SB_EXPORT void OutputToCanDo(SBPointer<ADNPart> part, const std::string& filename);

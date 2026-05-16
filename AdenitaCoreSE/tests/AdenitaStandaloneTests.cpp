@@ -1510,6 +1510,83 @@ void testCanDoExportWritesBasicSections() {
 
 }
 
+void writeBasicOxDNAFiles(const std::filesystem::path& topologyPath, const std::filesystem::path& configPath) {
+
+	{
+		std::ofstream topology(topologyPath);
+		topology << "2 1\n";
+		topology << "0 A -1 1\n";
+		topology << "0 T 0 -1\n";
+	}
+
+	{
+		std::ofstream config(configPath);
+		config << "t = 0\n";
+		config << "b = 0 0 0\n";
+		config << "E = 0 0 0\n";
+		config << "0 0 0 0 1 0 1 0 0 0 0 0 0 0 0\n";
+		config << "1 0 0 0 1 0 1 0 0 0 0 0 0 0 0\n";
+	}
+
+}
+
+void testOxDNAImportResultReportsSuccess() {
+
+	const std::filesystem::path topologyPath = temporaryConfigPath("adenita_basic_oxdna.top");
+	const std::filesystem::path configPath = temporaryConfigPath("adenita_basic_oxdna.dat");
+	writeBasicOxDNAFiles(topologyPath, configPath);
+
+	const ADNLoader::OxDNAImportResult result = ADNLoader::InputFromOxDNA(topologyPath.string(), configPath.string());
+	requireTrue("oxdna import result succeeds",
+		result.succeeded(),
+		"Expected a valid OxDNA fixture to import successfully.");
+	requireTrue("oxdna import result has no error",
+		!result.hasError,
+		"Expected valid OxDNA import result to have no error.");
+	requireTrue("oxdna import result contains part",
+		result.part != nullptr,
+		"Expected valid OxDNA import result to contain a part.");
+	requireEqual("oxdna import nucleotide count",
+		result.part->GetNumberOfNucleotides(),
+		2u);
+	requireEqual("oxdna import strand count",
+		result.part->GetNumberOfSingleStrands(),
+		1u);
+
+}
+
+void testOxDNAImportResultReportsErrors() {
+
+	const std::filesystem::path topologyPath = temporaryConfigPath("adenita_invalid_oxdna.top");
+	const std::filesystem::path configPath = temporaryConfigPath("adenita_invalid_oxdna.dat");
+	{
+		std::ofstream topology(topologyPath);
+		topology << "2 1\n";
+		topology << "malformed\n";
+	}
+	{
+		std::ofstream config(configPath);
+		config << "t = 0\n";
+	}
+
+	const ADNLoader::OxDNAImportResult malformedResult = ADNLoader::InputFromOxDNA(topologyPath.string(), configPath.string());
+	requireTrue("oxdna malformed import reports error",
+		malformedResult.hasError,
+		"Expected malformed topology to report an import error.");
+	requireTrue("oxdna malformed import does not succeed",
+		!malformedResult.succeeded(),
+		"Expected malformed topology import not to succeed.");
+
+	const ADNLoader::OxDNAImportResult missingResult = ADNLoader::InputFromOxDNA("missing_topology.top", "missing_config.dat");
+	requireTrue("oxdna missing files report error",
+		missingResult.hasError,
+		"Expected missing OxDNA files to report an import error.");
+	requireTrue("oxdna missing files do not succeed",
+		!missingResult.succeeded(),
+		"Expected missing OxDNA files import not to succeed.");
+
+}
+
 void testPlyLoaderWeldsDuplicatedAssimpVertices() {
 
 	const std::filesystem::path path = temporaryConfigPath("adenita_assimp_duplicate_vertex_cube.ply");
@@ -1717,6 +1794,8 @@ int main() {
 	testPolyhedronEdgeLookupDoesNotAllocatePlaceholders();
 	testPolyhedronMetricsAndIndices();
 	testCanDoExportWritesBasicSections();
+	testOxDNAImportResultReportsSuccess();
+	testOxDNAImportResultReportsErrors();
 	testPlyLoaderWeldsDuplicatedAssimpVertices();
 	testDaedalusPlyRegressionDoesNotCrashOnTeardown();
 	testDaedalusInstanceCanRunTwice();
