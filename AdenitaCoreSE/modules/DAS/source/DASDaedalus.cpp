@@ -26,9 +26,17 @@ void DeleteNodes(NodeList& nodes) {
 
 DASDaedalus::~DASDaedalus() {
 
+	ClearRunState();
+
+}
+
+void DASDaedalus::ClearRunState() {
+
 	DeleteLinkGraph(linkGraph_);
 	DeleteNodes(nodes_);
+	bpLengths_.clear();
 	firstBasesHe_.clear();
+	bsPairs_.clear();
 	chains_.clear();
 	positionsBBSC_.clear();
 
@@ -50,6 +58,8 @@ SBPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, std::string file
 }
 
 SBPointer<ADNPart> DASDaedalus::ApplyAlgorithm(std::string seq, DASPolyhedron& p, bool center, bool editor) {
+
+	ClearRunState();
 
 	SBPointer<ADNPart> daedalus_part = new ADNPart();
 	DASPolyhedron& fig = p;
@@ -324,11 +334,13 @@ void DASDaedalus::AddPseudoNodes(DASPolyhedron& figure) {
 			DOTNode* n = nit->second;
 			DASVertex* v = n->vertex_;
 			if (n->pseudo_ && DASPolyhedron::IsInFace(v, *fit)) {
-				DOTNode* new_s = new DOTNode();
-				if (new_pseudos.find(n->id_) != new_pseudos.end()) {
-					new_s = new_pseudos.at(n->id_);
+				DOTNode* new_s = nullptr;
+				auto pseudoIt = new_pseudos.find(n->id_);
+				if (pseudoIt != new_pseudos.end()) {
+					new_s = pseudoIt->second;
 				}
 				else {
+					new_s = new DOTNode();
 					new_s->id_ = new_id;
 					++new_id;
 					new_s->coordinates_ = n->coordinates_;

@@ -157,6 +157,8 @@ public:
 
 private:
 
+	void ClearRunState();
+
 	/** Minimum edge length
 	 */
 	int min_edge_length_ = 42; // default 42 bp

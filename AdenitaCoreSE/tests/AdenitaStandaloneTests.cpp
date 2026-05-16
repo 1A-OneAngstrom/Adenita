@@ -1413,6 +1413,32 @@ void testDaedalusPlyRegressionDoesNotCrashOnTeardown() {
 
 }
 
+void testDaedalusInstanceCanRunTwice() {
+
+	const std::filesystem::path path = repoDataPath("01_tetrahedron.ply");
+	requireTrue("daedalus reuse regression ply file exists",
+		std::filesystem::exists(path),
+		"Expected the bundled tetrahedron PLY fixture to exist.");
+
+	SEConfig& config = SEConfig::GetInstance();
+	const bool originalCustomMeshModel = config.custom_mesh_model;
+	config.custom_mesh_model = false;
+
+	DASDaedalus alg;
+	SBPointer<ADNPart> firstPart = alg.ApplyAlgorithm("", path.string(), true);
+	SBPointer<ADNPart> secondPart = alg.ApplyAlgorithm("", path.string(), true);
+
+	config.custom_mesh_model = originalCustomMeshModel;
+
+	requireTrue("daedalus reuse first part generated",
+		firstPart != nullptr && firstPart->GetNumberOfBaseSegments() > 0,
+		"Expected the first run to create a part with base segments.");
+	requireTrue("daedalus reuse second part generated",
+		secondPart != nullptr && secondPart->GetNumberOfBaseSegments() > 0,
+		"Expected the second run to create a part with base segments.");
+
+}
+
 } // namespace
 
 int main() {
@@ -1441,6 +1467,7 @@ int main() {
 	testPolyhedronEdgeLookupDoesNotAllocatePlaceholders();
 	testPlyLoaderWeldsDuplicatedAssimpVertices();
 	testDaedalusPlyRegressionDoesNotCrashOnTeardown();
+	testDaedalusInstanceCanRunTwice();
 
 	if (!failures.empty()) {
 		for (const auto& failure : failures)
