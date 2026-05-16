@@ -49,7 +49,7 @@ else( SAMSON_SDK_PATH )
 	if( DEFINED ENV{SAMSON_SDK_PATH} )
 		file( TO_CMAKE_PATH $ENV{SAMSON_SDK_PATH} CMAKE_SAMSON_SDK_PATH )
 	else( DEFINED ENV{SAMSON_SDK_PATH} )
-		message( "SAMSON_SDK_PATH is not defined, should be defined at cmake runtime or in environment variables" )
+		message(FATAL_ERROR "SAMSON_SDK_PATH is not defined. Set it at CMake configure time or in the environment.")
 	endif( DEFINED ENV{SAMSON_SDK_PATH} )
 endif( SAMSON_SDK_PATH )
 
@@ -150,11 +150,12 @@ else (${USE_GIT})
 	endif(${USE_SVN})
 endif(${USE_GIT})
 
-# we create ElementVersionHash.cmake file in CMAKE_SOURCE_DIR folder containing the corresponding VERSION_HASH
+# we create ElementVersionHash.cmake in the CMake binary directory containing the corresponding VERSION_HASH
 # This file just creates add definition of SB_ELEMENT_VERSION_HASH accessible throught the code.
-file ( WRITE ElementVersionHash.cmake "ADD_DEFINITIONS\(-DSB_ELEMENT_VERSION_HASH=\"${VERSION_HASH}\"\)\n" )
+set(ELEMENT_VERSION_HASH_FILE "${CMAKE_CURRENT_BINARY_DIR}/ElementVersionHash.cmake")
+file ( WRITE "${ELEMENT_VERSION_HASH_FILE}" "ADD_DEFINITIONS\(-DSB_ELEMENT_VERSION_HASH=\"${VERSION_HASH}\"\)\n" )
 
-include ( ElementVersionHash )
+include ( "${ELEMENT_VERSION_HASH_FILE}" )
 
 # End off VERSION_HASH information
 
@@ -222,11 +223,11 @@ foreach(FRAMEWORK IN LISTS QT_FRAMEWORKS)
   endif()
 endforeach()
 
-find_package ( OpenGL )
+find_package ( OpenGL REQUIRED )
 
 # BOOST
 MESSAGE( "Adding boost path...")
-find_package(Boost)
+find_package(Boost REQUIRED)
 IF (Boost_FOUND)
 	MESSAGE( "    BOOST_PATH            = ${BOOST_PATH} ")
 	MESSAGE( "    Boost_VERSION         = ${Boost_VERSION_STRING} ")
