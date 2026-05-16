@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <string>
 #include <system_error>
@@ -135,6 +136,72 @@ ublas::vector<double> vector3(double x, double y, double z) {
 	value[1] = y;
 	value[2] = z;
 	return value;
+
+}
+
+SBPosition3 positionAngstrom(double x, double y, double z) {
+
+	return SBPosition3(SBQuantity::angstrom(x), SBQuantity::angstrom(y), SBQuantity::angstrom(z));
+
+}
+
+std::map<int, SBPosition3> makeTetrahedronVertices() {
+
+	return {
+		{ 0, positionAngstrom(0.0, 0.0, 0.0) },
+		{ 1, positionAngstrom(1.0, 0.0, 0.0) },
+		{ 2, positionAngstrom(0.0, 1.0, 0.0) },
+		{ 3, positionAngstrom(0.0, 0.0, 1.0) }
+	};
+
+}
+
+std::map<int, std::vector<int>> makeTetrahedronFaces() {
+
+	return {
+		{ 0, { 0, 1, 2 } },
+		{ 1, { 0, 3, 1 } },
+		{ 2, { 1, 3, 2 } },
+		{ 3, { 2, 3, 0 } }
+	};
+
+}
+
+std::map<int, SBPosition3> makeTriangleVertices() {
+
+	return {
+		{ 0, positionAngstrom(0.0, 0.0, 0.0) },
+		{ 1, positionAngstrom(1.0, 0.0, 0.0) },
+		{ 2, positionAngstrom(0.0, 1.0, 0.0) }
+	};
+
+}
+
+std::map<int, std::vector<int>> makeTriangleFaces() {
+
+	return {
+		{ 0, { 0, 1, 2 } }
+	};
+
+}
+
+std::map<int, SBPosition3> makeOpenSquareVertices() {
+
+	return {
+		{ 0, positionAngstrom(0.0, 0.0, 0.0) },
+		{ 1, positionAngstrom(1.0, 0.0, 0.0) },
+		{ 2, positionAngstrom(1.0, 1.0, 0.0) },
+		{ 3, positionAngstrom(0.0, 1.0, 0.0) }
+	};
+
+}
+
+std::map<int, std::vector<int>> makeOpenSquareFaces() {
+
+	return {
+		{ 0, { 0, 1, 2 } },
+		{ 1, { 0, 2, 3 } }
+	};
 
 }
 
@@ -1148,6 +1215,55 @@ void testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks() {
 
 }
 
+void testPolyhedronRebuildClearsPreviousTopology() {
+
+	DASPolyhedron polyhedron;
+	polyhedron.BuildPolyhedron(makeTetrahedronVertices(), makeTetrahedronFaces());
+	requireEqual("polyhedron initial vertex count",
+		polyhedron.GetNumVertices(),
+		static_cast<size_t>(4));
+	requireEqual("polyhedron initial face count",
+		polyhedron.GetNumFaces(),
+		static_cast<size_t>(4));
+	requireEqual("polyhedron initial edge count",
+		polyhedron.GetEdges().size(),
+		static_cast<size_t>(6));
+
+	polyhedron.BuildPolyhedron(makeTriangleVertices(), makeTriangleFaces());
+	requireEqual("polyhedron rebuild vertex count",
+		polyhedron.GetNumVertices(),
+		static_cast<size_t>(3));
+	requireEqual("polyhedron rebuild face count",
+		polyhedron.GetNumFaces(),
+		static_cast<size_t>(1));
+	requireEqual("polyhedron rebuild edge count",
+		polyhedron.GetEdges().size(),
+		static_cast<size_t>(3));
+
+}
+
+void testPolyhedronEdgeLookupDoesNotAllocatePlaceholders() {
+
+	DASPolyhedron polyhedron;
+	polyhedron.BuildPolyhedron(makeOpenSquareVertices(), makeOpenSquareFaces());
+	Vertices vertices = polyhedron.GetVertices();
+	const size_t originalEdgeCount = polyhedron.GetEdges().size();
+
+	DASEdge* existingEdge = DASPolyhedron::GetEdgeByVertices(vertices.at(0), vertices.at(2));
+	requireTrue("polyhedron edge lookup finds existing edge",
+		existingEdge != nullptr,
+		"Expected lookup to find the shared diagonal edge.");
+
+	DASEdge* missingEdge = DASPolyhedron::GetEdgeByVertices(vertices.at(1), vertices.at(3));
+	requireTrue("polyhedron edge lookup returns null for missing edge",
+		missingEdge == nullptr,
+		"Expected lookup to return null when vertices do not share an edge.");
+	requireEqual("polyhedron missing lookup does not add edge",
+		polyhedron.GetEdges().size(),
+		originalEdgeCount);
+
+}
+
 void testPlyLoaderWeldsDuplicatedAssimpVertices() {
 
 	const std::filesystem::path path = temporaryConfigPath("adenita_assimp_duplicate_vertex_cube.ply");
@@ -1321,6 +1437,8 @@ int main() {
 	testCircularSingleStrandJsonRoundTrip();
 	testBuildTopScalesHandlesBrokenNucleotideLinks();
 	testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks();
+	testPolyhedronRebuildClearsPreviousTopology();
+	testPolyhedronEdgeLookupDoesNotAllocatePlaceholders();
 	testPlyLoaderWeldsDuplicatedAssimpVertices();
 	testDaedalusPlyRegressionDoesNotCrashOnTeardown();
 

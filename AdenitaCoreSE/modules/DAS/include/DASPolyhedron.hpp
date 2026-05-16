@@ -168,6 +168,8 @@ protected:
 
 private:
 
+	void Clear();
+
 	Vertices vertices_;					///< Map ids with Vertex objects
 	
 	Faces faces_;						///< Map ids with Face objects
