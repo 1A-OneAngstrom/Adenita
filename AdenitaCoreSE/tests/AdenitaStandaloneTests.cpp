@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <cstdlib>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -22,6 +23,7 @@
 #include "ADNPart.hpp"
 #include "ADNSaveAndLoad.hpp"
 #include "ADNScaffoldReader.hpp"
+#include "DASAlgorithms.hpp"
 #include "DASDaedalus.hpp"
 #include "SBCHeapExport.hpp"
 
@@ -76,6 +78,19 @@ void requireEqualAt(const std::string& name,
 
 }
 
+void requireNearAt(const std::string& name,
+	double actual,
+	double expected,
+	double tolerance,
+	const char* file,
+	int line,
+	const char* function) {
+
+	if (std::fabs(actual - expected) > tolerance)
+		recordFailure(name, "Unexpected numeric value.", file, line, function);
+
+}
+
 template <typename Callable>
 void requireThrowsIntAt(const std::string& name,
 	Callable callable,
@@ -100,6 +115,7 @@ void requireThrowsIntAt(const std::string& name,
 
 #define requireTrue(name, condition, message) requireTrueAt((name), (condition), (message), __FILE__, __LINE__, __func__)
 #define requireEqual(name, actual, expected) requireEqualAt((name), (actual), (expected), __FILE__, __LINE__, __func__)
+#define requireNear(name, actual, expected, tolerance) requireNearAt((name), (actual), (expected), (tolerance), __FILE__, __LINE__, __func__)
 #define requireThrowsInt(name, callable, expectedValue) requireThrowsIntAt((name), (callable), (expectedValue), __FILE__, __LINE__, __func__)
 
 rapidjson::Document parseJson(const char* json) {
@@ -219,6 +235,13 @@ size_t countStructuralChild(const SBStructuralGroup& parent, const SBStructuralN
 		if (node == child) ++count;
 	}
 	return count;
+
+}
+
+std::string readTextFile(const std::filesystem::path& path) {
+
+	std::ifstream file(path);
+	return std::string(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
 
 }
 
@@ -1232,6 +1255,40 @@ void testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks() {
 
 }
 
+void testGenerateSequenceHonorsLengthAlphabetAndMaxGs() {
+
+	const std::string sequence = DASAlgorithms::GenerateSequence(1.0, 2, 200);
+	requireEqual("generated sequence length",
+		sequence.size(),
+		static_cast<size_t>(200));
+	requireTrue("generated sequence alphabet",
+		sequence.find_first_not_of("ACGT") == std::string::npos,
+		"Expected generated sequence to contain only DNA bases.");
+	requireTrue("generated sequence max consecutive G",
+		sequence.find("GGG") == std::string::npos,
+		"Expected generated sequence to honor max consecutive G limit.");
+
+	const std::string emptySequence = DASAlgorithms::GenerateSequence(0.5, 2, 0);
+	requireTrue("generated empty sequence",
+		emptySequence.empty(),
+		"Expected zero-size sequence request to return an empty string.");
+
+}
+
+void testDaedalusEdgeSizeQuantizationBoundaries() {
+
+	requireEqual("edge size clamps below minimum",
+		DASDaedalus::CalculateEdgeSize(SBQuantity::nanometer(1.0)),
+		31);
+	requireEqual("edge size rounds to nearest full turn",
+		DASDaedalus::CalculateEdgeSize(SBQuantity::nanometer(ADNConstants::BP_RISE * 4.0 * 10.5)),
+		42);
+	requireEqual("edge size next full turn boundary",
+		DASDaedalus::CalculateEdgeSize(SBQuantity::nanometer(ADNConstants::BP_RISE * 5.0 * 10.5)),
+		52);
+
+}
+
 void testBaseSegmentSetCellReplacesChild() {
 
 	ADNBaseSegment baseSegment;
@@ -1379,6 +1436,77 @@ void testPolyhedronEdgeLookupDoesNotAllocatePlaceholders() {
 	requireEqual("polyhedron missing lookup does not add edge",
 		polyhedron.GetEdges().size(),
 		originalEdgeCount);
+
+}
+
+void testPolyhedronMetricsAndIndices() {
+
+	DASPolyhedron polyhedron;
+	polyhedron.BuildPolyhedron(makeTetrahedronVertices(), makeTetrahedronFaces());
+
+	const auto minEdge = polyhedron.MinimumEdgeLength();
+	const auto maxEdge = polyhedron.MaximumEdgeLength();
+	requireTrue("polyhedron minimum edge exists",
+		minEdge.first != nullptr,
+		"Expected minimum edge lookup to return an edge.");
+	requireTrue("polyhedron maximum edge exists",
+		maxEdge.first != nullptr,
+		"Expected maximum edge lookup to return an edge.");
+	requireNear("polyhedron minimum edge length",
+		minEdge.second,
+		1.0,
+		1.0e-8);
+	requireNear("polyhedron maximum edge length",
+		maxEdge.second,
+		std::sqrt(2.0),
+		1.0e-8);
+
+	unsigned int* indices = polyhedron.GetIndices();
+	requireTrue("polyhedron indices allocated",
+		indices != nullptr,
+		"Expected triangular face indices to be available.");
+	if (indices != nullptr) {
+		requireEqual("polyhedron first triangle index 0", indices[0], 0u);
+		requireEqual("polyhedron first triangle index 1", indices[1], 1u);
+		requireEqual("polyhedron first triangle index 2", indices[2], 2u);
+		requireEqual("polyhedron second triangle index 0", indices[3], 0u);
+		requireEqual("polyhedron second triangle index 1", indices[4], 3u);
+		requireEqual("polyhedron second triangle index 2", indices[5], 1u);
+	}
+
+}
+
+void testCanDoExportWritesBasicSections() {
+
+	CircularStrandFixture fixture = createCircularStrandFixture();
+	const std::filesystem::path path = temporaryConfigPath("adenita_basic_cando_export.cndo");
+
+	ADNLoader::OutputToCanDo(fixture.part, path.string());
+	requireTrue("cando export file exists",
+		std::filesystem::exists(path),
+		"Expected CanDo export to create an output file.");
+
+	const std::string content = readTextFile(path);
+	requireTrue("cando export contains format banner",
+		content.find("CanDo (.cndo) file format version 1.0") != std::string::npos,
+		"Expected CanDo export banner.");
+	requireTrue("cando export contains dna topology header",
+		content.find("dnaTop,id,up,down,across,seq") != std::string::npos,
+		"Expected dnaTop section header.");
+	requireTrue("cando export contains dNode header",
+		content.find("dNode,\"e0(1)\",\"e0(2)\",\"e0(3)\"") != std::string::npos,
+		"Expected dNode section header.");
+	requireTrue("cando export contains triad header",
+		content.find("triad,\"e1(1)\",\"e1(2)\",\"e1(3)\",\"e2(1)\",\"e2(2)\",\"e2(3)\",\"e3(1)\",\"e3(2)\",\"e3(3)\"") != std::string::npos,
+		"Expected triad section header.");
+	requireTrue("cando export contains base pair header",
+		content.find("id_nt,id1,id2") != std::string::npos,
+		"Expected base-pair section header.");
+	requireTrue("cando export contains nucleotide bases",
+		content.find(",A") != std::string::npos &&
+		content.find(",T") != std::string::npos &&
+		content.find(",G") != std::string::npos,
+		"Expected exported nucleotide base records.");
 
 }
 
@@ -1581,10 +1709,14 @@ int main() {
 	testCircularSingleStrandJsonRoundTrip();
 	testBuildTopScalesHandlesBrokenNucleotideLinks();
 	testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks();
+	testGenerateSequenceHonorsLengthAlphabetAndMaxGs();
+	testDaedalusEdgeSizeQuantizationBoundaries();
 	testBaseSegmentSetCellReplacesChild();
 	testLoopPairSettersReplaceOnlySelectedChild();
 	testPolyhedronRebuildClearsPreviousTopology();
 	testPolyhedronEdgeLookupDoesNotAllocatePlaceholders();
+	testPolyhedronMetricsAndIndices();
+	testCanDoExportWritesBasicSections();
 	testPlyLoaderWeldsDuplicatedAssimpVertices();
 	testDaedalusPlyRegressionDoesNotCrashOnTeardown();
 	testDaedalusInstanceCanRunTwice();
