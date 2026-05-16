@@ -1,4 +1,6 @@
 #include "ADNModel.hpp"
+#include "ADNNodeValidation.hpp"
+#include "ADNNucleotide.hpp"
 #include "ADNPart.hpp"
 
 
@@ -42,12 +44,8 @@ void ADNSingleStrand::unserialize(SBCSerializer* serializer, const SBNodeIndexer
     unsigned int tPrimeIdx = serializer->readUnsignedIntElement();
     setScaffoldFlag(isScaffold);
     setCircularFlag(isCircular);
-    SBNode* fPrime = nodeIndexer.getNode(fPrimeIdx);
-    SBPointer<ADNNucleotide> fp = static_cast<ADNNucleotide*>(fPrime);
-    SBNode* tPrime = nodeIndexer.getNode(tPrimeIdx);
-    SBPointer<ADNNucleotide> tp = static_cast<ADNNucleotide*>(tPrime);
-    fivePrimeNucleotide = fp;
-    threePrimeNucleotide = tp;
+    fivePrimeNucleotide = ADNNodeValidation::GetSerializedAdenitaNode<ADNNucleotide>(nodeIndexer, fPrimeIdx, "ADNNucleotide");
+    threePrimeNucleotide = ADNNodeValidation::GetSerializedAdenitaNode<ADNNucleotide>(nodeIndexer, tPrimeIdx, "ADNNucleotide");
 
 }
 

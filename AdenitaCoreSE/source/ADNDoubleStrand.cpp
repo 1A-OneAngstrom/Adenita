@@ -1,6 +1,7 @@
 //#include "ADNDoubleStrand.hpp"
-//#include "ADNBaseSegment.hpp"
+#include "ADNBaseSegment.hpp"
 #include "ADNModel.hpp"
+#include "ADNNodeValidation.hpp"
 #include "ADNPart.hpp"
 
 
@@ -46,10 +47,8 @@ void ADNDoubleStrand::unserialize(SBCSerializer* serializer, const SBNodeIndexer
 
     const unsigned int sIdx = serializer->readUnsignedIntElement();
     const unsigned int eIdx = serializer->readUnsignedIntElement();
-    SBNode* sNode = nodeIndexer.getNode(sIdx);
-    SBNode* eNode = nodeIndexer.getNode(eIdx);
-    if (sNode) startBaseSegment = static_cast<ADNBaseSegment*>(sNode);
-    if (eNode) endBaseSegment = static_cast<ADNBaseSegment*>(eNode);
+    startBaseSegment = ADNNodeValidation::GetSerializedAdenitaNode<ADNBaseSegment>(nodeIndexer, sIdx, "ADNBaseSegment");
+    endBaseSegment = ADNNodeValidation::GetSerializedAdenitaNode<ADNBaseSegment>(nodeIndexer, eIdx, "ADNBaseSegment");
 
 }
 

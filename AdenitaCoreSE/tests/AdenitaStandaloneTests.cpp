@@ -9,6 +9,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <system_error>
 #include <vector>
@@ -20,6 +21,9 @@
 #include "ADNConfigFileIO.hpp"
 #include "ADNConfigJson.hpp"
 #include "ADNJsonValidation.hpp"
+#include "ADNLoop.hpp"
+#include "ADNNucleotide.hpp"
+#include "ADNNodeValidation.hpp"
 #include "ADNPart.hpp"
 #include "ADNSaveAndLoad.hpp"
 #include "ADNScaffoldReader.hpp"
@@ -114,10 +118,30 @@ void requireThrowsIntAt(const std::string& name,
 
 }
 
+template <typename Callable>
+void requireThrowsRuntimeErrorAt(const std::string& name,
+	Callable callable,
+	const char* file,
+	int line,
+	const char* function) {
+
+	try {
+		callable();
+		recordFailure(name, "Expected a runtime_error exception.", file, line, function);
+	}
+	catch (const std::runtime_error&) {
+	}
+	catch (...) {
+		recordFailure(name, "Expected a runtime_error exception but caught a different type.", file, line, function);
+	}
+
+}
+
 #define requireTrue(name, condition, message) requireTrueAt((name), (condition), (message), __FILE__, __LINE__, __func__)
 #define requireEqual(name, actual, expected) requireEqualAt((name), (actual), (expected), __FILE__, __LINE__, __func__)
 #define requireNear(name, actual, expected, tolerance) requireNearAt((name), (actual), (expected), (tolerance), __FILE__, __LINE__, __func__)
 #define requireThrowsInt(name, callable, expectedValue) requireThrowsIntAt((name), (callable), (expectedValue), __FILE__, __LINE__, __func__)
+#define requireThrowsRuntimeError(name, callable) requireThrowsRuntimeErrorAt((name), (callable), __FILE__, __LINE__, __func__)
 
 rapidjson::Document parseJson(const char* json) {
 
@@ -1391,6 +1415,42 @@ void testLoopPairSettersReplaceOnlySelectedChild() {
 
 }
 
+void testSerializedNodeValidation() {
+
+	SBPointer<ADNNucleotide> nucleotide = new ADNNucleotide();
+	SBPointer<ADNLoop> loop = new ADNLoop();
+	SBNodeIndexer nodeIndexer;
+	nodeIndexer.addNode(nucleotide());
+	nodeIndexer.addNode(loop());
+
+	const unsigned int nucleotideIndex = nodeIndexer.getIndex(nucleotide());
+	const unsigned int loopIndex = nodeIndexer.getIndex(loop());
+	const unsigned int nullIndex = static_cast<unsigned int>(-1);
+
+	SBPointer<ADNNucleotide> resolvedNucleotide =
+		ADNNodeValidation::GetSerializedAdenitaNode<ADNNucleotide>(nodeIndexer, nucleotideIndex, "ADNNucleotide");
+	requireTrue("node validation correct type",
+		resolvedNucleotide() == nucleotide(),
+		"Expected a serialized nucleotide index to resolve to the nucleotide.");
+
+	SBPointer<ADNNucleotide> nullNucleotide =
+		ADNNodeValidation::GetSerializedAdenitaNode<ADNNucleotide>(nodeIndexer, nullIndex, "ADNNucleotide");
+	requireTrue("node validation null index",
+		nullNucleotide == nullptr,
+		"Expected the invalid serialized marker to resolve to null.");
+
+	auto resolveWrongType = [&nodeIndexer, loopIndex]() {
+		(void)ADNNodeValidation::GetSerializedAdenitaNode<ADNNucleotide>(nodeIndexer, loopIndex, "ADNNucleotide");
+	};
+	requireThrowsRuntimeError("node validation wrong type", resolveWrongType);
+
+	auto resolveInvalidIndex = [&nodeIndexer]() {
+		(void)ADNNodeValidation::GetSerializedAdenitaNode<ADNNucleotide>(nodeIndexer, nodeIndexer.size(), "ADNNucleotide");
+	};
+	requireThrowsRuntimeError("node validation invalid index", resolveInvalidIndex);
+
+}
+
 void testPolyhedronRebuildClearsPreviousTopology() {
 
 	DASPolyhedron polyhedron;
@@ -1843,6 +1903,7 @@ int main() {
 	testDaedalusEdgeSizeQuantizationBoundaries();
 	testBaseSegmentSetCellReplacesChild();
 	testLoopPairSettersReplaceOnlySelectedChild();
+	testSerializedNodeValidation();
 	testPolyhedronRebuildClearsPreviousTopology();
 	testPolyhedronEdgeLookupDoesNotAllocatePlaceholders();
 	testPolyhedronMetricsAndIndices();

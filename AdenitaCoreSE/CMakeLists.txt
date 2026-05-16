@@ -147,6 +147,12 @@ if(${OUTPUT_UUID}_tests)
       "${SAMSON_INCLUDE_PATH}"
   )
 
+  target_compile_definitions(${ADENITA_STANDALONE_TEST_TARGET}
+    PRIVATE
+      ELEMENT_NAME="${OUTPUT_NAME}"
+      SB_ELEMENT_UUID="${OUTPUT_UUID}"
+  )
+
   target_link_libraries(${ADENITA_STANDALONE_TEST_TARGET}
     PRIVATE
       ${OUTPUT_NAME}

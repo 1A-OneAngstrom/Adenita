@@ -1,4 +1,5 @@
 #include "ADNPart.hpp"
+#include "ADNNodeValidation.hpp"
 #include "SEAdenitaCoreSEApp.hpp"
 
 ADNPart::ADNPart() : SBStructuralModel() {
@@ -115,7 +116,8 @@ void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & node
 
         unsigned int idx = serializer->readUnsignedIntElement();
 #if ADENITA_ADNPART_REGISTER_ATOMS
-        atomsIndex_.addReferenceTarget((ADNAtom*)nodeIndexer.getNode(idx));
+        SBPointer<ADNAtom> atom = ADNNodeValidation::GetSerializedAdenitaNode<ADNAtom>(nodeIndexer, idx, "ADNAtom");
+        if (atom != nullptr) atomsIndex_.addReferenceTarget(atom());
 #endif
 
     }
@@ -128,7 +130,8 @@ void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & node
 
         unsigned int idx = serializer->readUnsignedIntElement();
 #if ADENITA_ADNPART_REGISTER_NUCLEOTIDES
-        nucleotidesIndex_.addReferenceTarget((ADNNucleotide*)nodeIndexer.getNode(idx));
+        SBPointer<ADNNucleotide> nucleotide = ADNNodeValidation::GetSerializedAdenitaNode<ADNNucleotide>(nodeIndexer, idx, "ADNNucleotide");
+        if (nucleotide != nullptr) nucleotidesIndex_.addReferenceTarget(nucleotide());
 #endif
 
     }
@@ -141,7 +144,8 @@ void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & node
 
         unsigned int idx = serializer->readUnsignedIntElement();
 #if ADENITA_ADNPART_REGISTER_STRANDS
-        singleStrandsIndex_.addReferenceTarget((ADNSingleStrand*)nodeIndexer.getNode(idx));
+        SBPointer<ADNSingleStrand> singleStrand = ADNNodeValidation::GetSerializedAdenitaNode<ADNSingleStrand>(nodeIndexer, idx, "ADNSingleStrand");
+        if (singleStrand != nullptr) singleStrandsIndex_.addReferenceTarget(singleStrand());
 #else
         // TODO
 #endif
@@ -156,7 +160,8 @@ void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & node
 
         unsigned int idx = serializer->readUnsignedIntElement();
 #if ADENITA_ADNPART_REGISTER_BASESEGMENTS
-        baseSegmentsIndex_.addReferenceTarget((ADNBaseSegment*)nodeIndexer.getNode(idx));
+        SBPointer<ADNBaseSegment> baseSegment = ADNNodeValidation::GetSerializedAdenitaNode<ADNBaseSegment>(nodeIndexer, idx, "ADNBaseSegment");
+        if (baseSegment != nullptr) baseSegmentsIndex_.addReferenceTarget(baseSegment());
 #else
         // TODO
 #endif
@@ -171,7 +176,8 @@ void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & node
 
         unsigned int idx = serializer->readUnsignedIntElement();
 #if ADENITA_ADNPART_REGISTER_STRANDS
-        doubleStrandsIndex_.addReferenceTarget((ADNDoubleStrand*)nodeIndexer.getNode(idx));
+        SBPointer<ADNDoubleStrand> doubleStrand = ADNNodeValidation::GetSerializedAdenitaNode<ADNDoubleStrand>(nodeIndexer, idx, "ADNDoubleStrand");
+        if (doubleStrand != nullptr) doubleStrandsIndex_.addReferenceTarget(doubleStrand());
 #else
         // TODO
 #endif
