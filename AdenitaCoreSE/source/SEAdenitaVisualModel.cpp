@@ -15,6 +15,7 @@
 
 //#include "SBGRenderOpenGLFunctions.hpp"
 
+#include <array>
 #include <cmath>
 
 SB_OPENGL_FUNCTIONS* SEAdenitaVisualModel::gl = nullptr;
@@ -2862,17 +2863,17 @@ void SEAdenitaVisualModel::displayCircularDNAConnection(SBNode::RenderingPass re
 				int startIdx = ntMap_[startNt()];
 				int endIdx = ntMap_[endNt()];
 
-				float* startPos = new float[3];
+				std::array<float, 3> startPos;
 				startPos[0] = positions_(startIdx, 0);
 				startPos[1] = positions_(startIdx, 1);
 				startPos[2] = positions_(startIdx, 2);
 
-				float* endPos = new float[3];
+				std::array<float, 3> endPos;
 				endPos[0] = positions_(endIdx, 0);
 				endPos[1] = positions_(endIdx, 1);
 				endPos[2] = positions_(endIdx, 2);
 
-				float* color = new float[4];
+				std::array<float, 4> color;
 				color[0] = colorsE_(endIdx, 0);
 				color[1] = colorsE_(endIdx, 1);
 				color[2] = colorsE_(endIdx, 2);
@@ -2880,11 +2881,7 @@ void SEAdenitaVisualModel::displayCircularDNAConnection(SBNode::RenderingPass re
 
 				auto radius = radiiE_(startIdx);
 
-				ADNDisplayHelper::displayDirectedCylinder(startPos, endPos, color, radius);
-
-				delete[] startPos;
-				delete[] endPos;
-				delete[] color;
+				ADNDisplayHelper::displayDirectedCylinder(startPos.data(), endPos.data(), color.data(), radius);
 
 			}
 
@@ -2986,7 +2983,7 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 
 	prepareDiscreteScalesDim();
 
-	float* colorHighlight = new float[4];
+	std::array<float, 4> colorHighlight;
 	colorHighlight[0] = 0.2f;
 	colorHighlight[1] = 0.8f;
 	colorHighlight[2] = 0.2f;
@@ -3232,13 +3229,11 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 	emphasizeColors(colorsESS_, ntContext, 0.4f, 0.4f, 0.4f, 1.0f);
 	emphasizeColors(colorsVDS_, bsContext, 0.4f, 0.4f, 0.4f, 1.0f);
 
-	replaceColors(colorsVNt_, ntHighlight, colorHighlight);
-	replaceColors(colorsENt_, ntHighlight, colorHighlight);
-	replaceColors(colorsVSS_, ntHighlight, colorHighlight);
-	replaceColors(colorsESS_, ntHighlight, colorHighlight);
-	replaceColors(colorsVDS_, bsHighlight, colorHighlight);
-
-	delete[] colorHighlight;
+	replaceColors(colorsVNt_, ntHighlight, colorHighlight.data());
+	replaceColors(colorsENt_, ntHighlight, colorHighlight.data());
+	replaceColors(colorsVSS_, ntHighlight, colorHighlight.data());
+	replaceColors(colorsESS_, ntHighlight, colorHighlight.data());
+	replaceColors(colorsVDS_, bsHighlight, colorHighlight.data());
 
 }
 
