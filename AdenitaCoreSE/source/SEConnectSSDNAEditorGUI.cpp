@@ -4,7 +4,7 @@
 SEConnectSSDNAEditorGUI::SEConnectSSDNAEditorGUI(SEConnectSSDNAEditor* editor) {
 
 	this->editor = editor;
-	ui.setupUi( this );
+	ui.setupUi(this);
 
 }
 
@@ -14,17 +14,17 @@ SEConnectSSDNAEditorGUI::~SEConnectSSDNAEditorGUI() {
 
 SEConnectSSDNAEditor* SEConnectSSDNAEditorGUI::getEditor() const { return editor; }
 
-void SEConnectSSDNAEditorGUI::loadSettings( SBGSettings *settings ) {
+void SEConnectSSDNAEditorGUI::loadSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
 }
 
-void SEConnectSSDNAEditorGUI::saveSettings( SBGSettings *settings ) {
+void SEConnectSSDNAEditorGUI::saveSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -49,7 +49,7 @@ void SEConnectSSDNAEditorGUI::onAuto(bool e) {
 
 }
 
-SBCContainerUUID SEConnectSSDNAEditorGUI::getUUID() const { return SBCContainerUUID( "CDC75BAA-A7AD-F837-49F4-E0F14DF87181" );}
+SBCContainerUUID SEConnectSSDNAEditorGUI::getUUID() const { return SBCContainerUUID("CDC75BAA-A7AD-F837-49F4-E0F14DF87181"); }
 
 QPixmap SEConnectSSDNAEditorGUI::getLogo() const {
 	

@@ -6,7 +6,7 @@
 SEBreakEditorGUI::SEBreakEditorGUI(SEBreakEditor* editor) {
 
 	this->editor = editor;
-	ui.setupUi( this );
+	ui.setupUi(this);
 
 }
 
@@ -16,9 +16,9 @@ SEBreakEditorGUI::~SEBreakEditorGUI() {
 
 SEBreakEditor* SEBreakEditorGUI::getEditor() const { return editor; }
 
-void SEBreakEditorGUI::loadSettings( SBGSettings *settings ) {
+void SEBreakEditorGUI::loadSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -30,7 +30,7 @@ void SEBreakEditorGUI::loadSettings( SBGSettings *settings ) {
 
 }
 
-void SEBreakEditorGUI::saveSettings( SBGSettings *settings ) {
+void SEBreakEditorGUI::saveSettings(SBGSettings *settings) {
 
 	if ( settings == nullptr) return;
 
@@ -40,7 +40,7 @@ void SEBreakEditorGUI::saveSettings( SBGSettings *settings ) {
 
 }
 
-SBCContainerUUID SEBreakEditorGUI::getUUID() const { return SBCContainerUUID( "1D8AA945-60B9-A01E-64E9-1998AF6B1418" );}
+SBCContainerUUID SEBreakEditorGUI::getUUID() const { return SBCContainerUUID("1D8AA945-60B9-A01E-64E9-1998AF6B1418"); }
 
 QPixmap SEBreakEditorGUI::getLogo() const { 
 	

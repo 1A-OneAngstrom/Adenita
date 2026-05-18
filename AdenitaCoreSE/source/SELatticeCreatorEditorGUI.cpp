@@ -5,7 +5,7 @@
 SELatticeCreatorEditorGUI::SELatticeCreatorEditorGUI(SELatticeCreatorEditor* editor) {
 
 	this->editor = editor;
-	ui.setupUi( this );
+	ui.setupUi(this);
 
 	ui.labelPatterns->setVisible(false);
 	ui.labelPatternsX->setVisible(false);
@@ -23,9 +23,9 @@ SELatticeCreatorEditorGUI::~SELatticeCreatorEditorGUI() {
 
 SELatticeCreatorEditor* SELatticeCreatorEditorGUI::getEditor() const { return editor; }
 
-void SELatticeCreatorEditorGUI::loadSettings( SBGSettings *settings ) {
+void SELatticeCreatorEditorGUI::loadSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -53,9 +53,9 @@ void SELatticeCreatorEditorGUI::loadSettings( SBGSettings *settings ) {
 
 }
 
-void SELatticeCreatorEditorGUI::saveSettings( SBGSettings *settings ) {
+void SELatticeCreatorEditorGUI::saveSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -116,7 +116,7 @@ void SELatticeCreatorEditorGUI::onMaxZBpsChanged(int val) {
 
 }
 
-SBCContainerUUID SELatticeCreatorEditorGUI::getUUID() const { return SBCContainerUUID( "A9C48A6E-8BD1-B387-6A63-1CB8A19C1948" );}
+SBCContainerUUID SELatticeCreatorEditorGUI::getUUID() const { return SBCContainerUUID("A9C48A6E-8BD1-B387-6A63-1CB8A19C1948"); }
 
 QPixmap SELatticeCreatorEditorGUI::getLogo() const { 
 	

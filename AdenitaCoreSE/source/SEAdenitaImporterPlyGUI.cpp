@@ -8,7 +8,7 @@
 
 SEAdenitaImporterPlyGUI::SEAdenitaImporterPlyGUI( SEAdenitaImporterPly* t ) : SBGFileImporter( t ) {
 
-	ui.setupUi( this );
+	ui.setupUi(this);
 
 }
 
@@ -34,7 +34,7 @@ void SEAdenitaImporterPlyGUI::saveSettings(SBGSettings* settings) {
 
 }
 
-SBCContainerUUID SEAdenitaImporterPlyGUI::getUUID() const { return SBCContainerUUID( "A3FF0AE0-DF09-733E-635A-676EB18DA5AE" );}
+SBCContainerUUID SEAdenitaImporterPlyGUI::getUUID() const { return SBCContainerUUID("A3FF0AE0-DF09-733E-635A-676EB18DA5AE"); }
 
 QPixmap SEAdenitaImporterPlyGUI::getLogo() const { 
 	

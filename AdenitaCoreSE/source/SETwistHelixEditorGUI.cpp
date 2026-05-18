@@ -7,7 +7,7 @@
 SETwistHelixEditorGUI::SETwistHelixEditorGUI(SETwistHelixEditor* editor) {
 
 	this->editor = editor;
-	ui.setupUi( this );
+	ui.setupUi(this);
 
 }
 
@@ -17,7 +17,7 @@ SETwistHelixEditorGUI::~SETwistHelixEditorGUI() {
 
 SETwistHelixEditor* SETwistHelixEditorGUI::getEditor() const { return editor; }
 
-void SETwistHelixEditorGUI::loadSettings( SBGSettings *settings ) {
+void SETwistHelixEditorGUI::loadSettings(SBGSettings *settings) {
 
 	if (settings == nullptr) return;
 	
@@ -36,7 +36,7 @@ void SETwistHelixEditorGUI::loadSettings( SBGSettings *settings ) {
 
 }
 
-void SETwistHelixEditorGUI::saveSettings( SBGSettings *settings ) {
+void SETwistHelixEditorGUI::saveSettings(SBGSettings *settings) {
 
 	if (settings == nullptr) return;
 
@@ -126,7 +126,7 @@ void SETwistHelixEditorGUI::onTwistTurnsChanged(int turns) {
 
 }
 
-SBCContainerUUID SETwistHelixEditorGUI::getUUID() const { return SBCContainerUUID( "8D1CB60B-F52C-14C2-F72C-DB72B6361777" );}
+SBCContainerUUID SETwistHelixEditorGUI::getUUID() const { return SBCContainerUUID("8D1CB60B-F52C-14C2-F72C-DB72B6361777"); }
 
 QPixmap SETwistHelixEditorGUI::getLogo() const {
 	

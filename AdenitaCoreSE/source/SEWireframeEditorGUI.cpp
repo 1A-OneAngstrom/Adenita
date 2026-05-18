@@ -6,7 +6,7 @@
 SEWireframeEditorGUI::SEWireframeEditorGUI(SEWireframeEditor* editor) {
 
 	this->editor = editor;
-	ui.setupUi( this );
+	ui.setupUi(this);
 
 }
 
@@ -76,17 +76,17 @@ SEWireframeEditorGUI::~SEWireframeEditorGUI() {
 
 SEWireframeEditor* SEWireframeEditorGUI::getEditor() const { return editor; }
 
-void SEWireframeEditorGUI::loadSettings( SBGSettings *settings ) {
+void SEWireframeEditorGUI::loadSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
 }
 
-void SEWireframeEditorGUI::saveSettings( SBGSettings *settings ) {
+void SEWireframeEditorGUI::saveSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -120,7 +120,7 @@ void SEWireframeEditorGUI::onCurrentWireframeTemplateChanged() {
 
 }
 
-SBCContainerUUID SEWireframeEditorGUI::getUUID() const { return SBCContainerUUID( "3A914FAF-691B-B3A1-3B91-58E77E7CCC6D" );}
+SBCContainerUUID SEWireframeEditorGUI::getUUID() const { return SBCContainerUUID("3A914FAF-691B-B3A1-3B91-58E77E7CCC6D"); }
 
 QPixmap SEWireframeEditorGUI::getLogo() const { 
 	

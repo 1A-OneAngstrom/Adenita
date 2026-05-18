@@ -6,7 +6,7 @@
 SEDeleteEditorGUI::SEDeleteEditorGUI(SEDeleteEditor* editor) {
 
 	this->editor = editor;
-	ui.setupUi( this );
+	ui.setupUi(this);
 
 }
 
@@ -16,23 +16,23 @@ SEDeleteEditorGUI::~SEDeleteEditorGUI() {
 
 SEDeleteEditor* SEDeleteEditorGUI::getEditor() const { return editor; }
 
-void SEDeleteEditorGUI::loadSettings( SBGSettings *settings ) {
+void SEDeleteEditorGUI::loadSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
 }
 
-void SEDeleteEditorGUI::saveSettings( SBGSettings *settings ) {
+void SEDeleteEditorGUI::saveSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
 }
 
-SBCContainerUUID SEDeleteEditorGUI::getUUID() const { return SBCContainerUUID( "83291D93-72A5-A466-2D96-BDD46583C6C1" );}
+SBCContainerUUID SEDeleteEditorGUI::getUUID() const { return SBCContainerUUID("83291D93-72A5-A466-2D96-BDD46583C6C1"); }
 
 QPixmap SEDeleteEditorGUI::getLogo() const { 
 	

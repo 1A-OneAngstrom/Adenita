@@ -7,7 +7,7 @@
 SEDSDNACreatorEditorGUI::SEDSDNACreatorEditorGUI(SEDSDNACreatorEditor* editor) {
 
 	this->editor = editor;
-	ui.setupUi( this );
+	ui.setupUi(this);
 
 }
 
@@ -17,9 +17,9 @@ SEDSDNACreatorEditorGUI::~SEDSDNACreatorEditorGUI() {
 
 SEDSDNACreatorEditor* SEDSDNACreatorEditorGUI::getEditor() const { return editor; }
 
-void SEDSDNACreatorEditorGUI::loadSettings( SBGSettings *settings ) {
+void SEDSDNACreatorEditorGUI::loadSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -47,9 +47,9 @@ void SEDSDNACreatorEditorGUI::loadSettings( SBGSettings *settings ) {
 
 }
 
-void SEDSDNACreatorEditorGUI::saveSettings( SBGSettings *settings ) {
+void SEDSDNACreatorEditorGUI::saveSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -134,7 +134,7 @@ void SEDSDNACreatorEditorGUI::onSetSequence(bool s) {
 	getEditor()->setSequenceFlag(s);
 }
 
-SBCContainerUUID SEDSDNACreatorEditorGUI::getUUID() const { return SBCContainerUUID( "751903AE-14BC-F0B9-01D9-D2CF8412AEF9" );}
+SBCContainerUUID SEDSDNACreatorEditorGUI::getUUID() const { return SBCContainerUUID("751903AE-14BC-F0B9-01D9-D2CF8412AEF9"); }
 
 QPixmap SEDSDNACreatorEditorGUI::getLogo() const { 
 	

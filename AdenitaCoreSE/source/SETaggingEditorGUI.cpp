@@ -5,7 +5,7 @@
 SETaggingEditorGUI::SETaggingEditorGUI(SETaggingEditor* editor) {
 
 	this->editor = editor;
-	ui.setupUi( this );
+	ui.setupUi(this);
 
 }
 
@@ -15,7 +15,7 @@ SETaggingEditorGUI::~SETaggingEditorGUI() {
 
 SETaggingEditor* SETaggingEditorGUI::getEditor() const { return editor; }
 
-void SETaggingEditorGUI::loadSettings( SBGSettings *settings ) {
+void SETaggingEditorGUI::loadSettings(SBGSettings *settings) {
 
 	if (settings == nullptr) return;
 	
@@ -37,7 +37,7 @@ void SETaggingEditorGUI::loadSettings( SBGSettings *settings ) {
 
 }
 
-void SETaggingEditorGUI::saveSettings( SBGSettings *settings ) {
+void SETaggingEditorGUI::saveSettings(SBGSettings *settings) {
 
 	if (settings == nullptr) return;
 
@@ -47,7 +47,7 @@ void SETaggingEditorGUI::saveSettings( SBGSettings *settings ) {
 
 }
 
-SBCContainerUUID SETaggingEditorGUI::getUUID() const { return SBCContainerUUID( "EA0EDF95-028E-4DE2-236F-49EB9D68BC71" );}
+SBCContainerUUID SETaggingEditorGUI::getUUID() const { return SBCContainerUUID("EA0EDF95-028E-4DE2-236F-49EB9D68BC71"); }
 
 QPixmap SETaggingEditorGUI::getLogo() const { 
 	

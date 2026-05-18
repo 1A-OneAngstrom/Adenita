@@ -7,7 +7,7 @@
 SEAdenitaVisualModelProperties::SEAdenitaVisualModelProperties() {
 
 	visualModel = 0;
-	ui.setupUi( this );
+	ui.setupUi(this);
 	observer = new Observer(this);
 	ui.gboHighlight->hide();
 
@@ -22,23 +22,23 @@ SEAdenitaVisualModelProperties::~SEAdenitaVisualModelProperties() {
 
 }
 
-void SEAdenitaVisualModelProperties::loadSettings( SBGSettings *settings ) {
+void SEAdenitaVisualModelProperties::loadSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 	
 	// SAMSON Element generator pro tip: complete this function so this property window can save its GUI state from one session to the next
 
 }
 
-void SEAdenitaVisualModelProperties::saveSettings( SBGSettings *settings ) {
+void SEAdenitaVisualModelProperties::saveSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so this property window can save its GUI state from one session to the next
 
 }
 
-SBCContainerUUID SEAdenitaVisualModelProperties::getUUID() const { return SBCContainerUUID( "D4A5CB4D-13E4-9C27-AE35-B6F690D17E3E" );}
+SBCContainerUUID SEAdenitaVisualModelProperties::getUUID() const { return SBCContainerUUID("D4A5CB4D-13E4-9C27-AE35-B6F690D17E3E"); }
 
 QPixmap SEAdenitaVisualModelProperties::getLogo() const { 
 	

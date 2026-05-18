@@ -5,7 +5,7 @@
 SEDNATwisterEditorGUI::SEDNATwisterEditorGUI(SEDNATwisterEditor* editor) {
 
 	this->editor = editor;
-	ui.setupUi( this );
+	ui.setupUi(this);
 
 	QObject::connect(ui.rdbUntwist, &QRadioButton::clicked, this, &SEDNATwisterEditorGUI::setUntwistTwist);
 	QObject::connect(ui.rdbInvisible, &QRadioButton::clicked, this, &SEDNATwisterEditorGUI::setInvisibleVisible);
@@ -20,17 +20,17 @@ SEDNATwisterEditorGUI::~SEDNATwisterEditorGUI() {
 
 SEDNATwisterEditor* SEDNATwisterEditorGUI::getEditor() const { return editor; }
 
-void SEDNATwisterEditorGUI::loadSettings( SBGSettings *settings ) {
+void SEDNATwisterEditorGUI::loadSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 	
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
 }
 
-void SEDNATwisterEditorGUI::saveSettings( SBGSettings *settings ) {
+void SEDNATwisterEditorGUI::saveSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
@@ -56,7 +56,7 @@ void SEDNATwisterEditorGUI::resetInvisible() {
 
 }
 
-SBCContainerUUID SEDNATwisterEditorGUI::getUUID() const { return SBCContainerUUID( "B2208669-EAE5-DEC5-00EB-A241BBA72C29" );}
+SBCContainerUUID SEDNATwisterEditorGUI::getUUID() const { return SBCContainerUUID("B2208669-EAE5-DEC5-00EB-A241BBA72C29"); }
 
 QPixmap SEDNATwisterEditorGUI::getLogo() const { 
 	

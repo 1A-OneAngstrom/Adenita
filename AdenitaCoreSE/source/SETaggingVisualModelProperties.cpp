@@ -9,7 +9,7 @@
 SETaggingVisualModelProperties::SETaggingVisualModelProperties() {
 
 	visualModel = 0;
-	ui.setupUi( this );
+	ui.setupUi(this);
 	observer = new Observer(this);
 
 }
@@ -23,23 +23,23 @@ SETaggingVisualModelProperties::~SETaggingVisualModelProperties() {
 
 }
 
-void SETaggingVisualModelProperties::loadSettings( SBGSettings *settings ) {
+void SETaggingVisualModelProperties::loadSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 	
 	// SAMSON Element generator pro tip: complete this function so this property window can save its GUI state from one session to the next
 
 }
 
-void SETaggingVisualModelProperties::saveSettings( SBGSettings *settings ) {
+void SETaggingVisualModelProperties::saveSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so this property window can save its GUI state from one session to the next
 
 }
 
-SBCContainerUUID SETaggingVisualModelProperties::getUUID() const { return SBCContainerUUID( "4B3559C3-7B93-93FE-66B6-EE1B535C3470" );}
+SBCContainerUUID SETaggingVisualModelProperties::getUUID() const { return SBCContainerUUID("4B3559C3-7B93-93FE-66B6-EE1B535C3470"); }
 
 QPixmap SETaggingVisualModelProperties::getLogo() const { 
 	
