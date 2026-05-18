@@ -1475,7 +1475,11 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		btnBreakEditor->setObjectName(QStringLiteral("btnBreakEditor"));
 		btnBreakEditor->setText("Break");
 		btnBreakEditor->setToolTip("<b>Break editor</b><br/><br/>"
-			"Break single strand DNA (ssDNA) - break the bond between two consecutive nucleotides of the same strand.");
+			"Break single strand DNA (ssDNA) between two consecutive nucleotides of the same strand.<br/><br/>"
+			"The editor has two modes (you can switch between them in the editor's interface):<br/>"
+			"- 5' side: break between the clicked nucleotide and its previous nucleotide.<br/>"
+			"- 3' side: break between the clicked nucleotide and its next nucleotide.<br/><br/>"
+			"Hover preview shows the two nucleotides and bond that will be cut.");
 		btnBreakEditor->setIconSize(QSize(24, 24));
 		btnBreakEditor->setCheckable(true);
 		btnBreakEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);

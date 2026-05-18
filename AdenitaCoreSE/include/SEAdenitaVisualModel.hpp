@@ -223,6 +223,8 @@ private:
 	void														prepareDimensions();
 
 	void														displayTransition(SBNode::RenderingPass renderingPass);
+	bool														isBreakEditorActive() const;
+	unsigned int*												getCylinderRenderFlags(ADNArray<unsigned int>& flags, ADNArray<unsigned int>& neutralFlags);
 
 	void														prepareSticksToBalls(double iv);
 	void														prepareBallsToNucleotides(double iv);
@@ -272,6 +274,7 @@ private:
 	ADNArray<float>												radiiV_;
 	ADNArray<float>												radiiE_;
 	ADNArray<unsigned int>										flags_;
+	ADNArray<unsigned int>										neutralFlags_;
 	ADNArray<unsigned int>										nodeIndices_;
 	ADNArray<unsigned int>										indices_;
 	ADNArray<unsigned int>										capData_;
@@ -326,6 +329,7 @@ private:
 	ADNArray<float>												radiiENt_;
 	ADNArray<unsigned int>										capDataNt_;
 	ADNArray<unsigned int>										flagsNt_;
+	ADNArray<unsigned int>										neutralFlagsNt_;
 	ADNArray<unsigned int>										nodeIndicesNt_;
 	ADNArray<unsigned int>										indicesNt_;
 

@@ -32,7 +32,7 @@ void SEBreakEditorGUI::loadSettings(SBGSettings *settings) {
 
 void SEBreakEditorGUI::saveSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr) return;
+	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 

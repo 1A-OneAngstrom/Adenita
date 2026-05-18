@@ -938,6 +938,28 @@ void SEAdenitaVisualModel::prepareDimensions() {
 
 }
 
+bool SEAdenitaVisualModel::isBreakEditorActive() const {
+
+	SBEditor* activeEditor = SAMSON::getActiveEditor();
+	return activeEditor != nullptr && activeEditor->getName() == "SEBreakEditor";
+
+}
+
+unsigned int* SEAdenitaVisualModel::getCylinderRenderFlags(ADNArray<unsigned int>& flags, ADNArray<unsigned int>& neutralFlags) {
+
+	if (!isBreakEditorActive()) return flags.GetArray();
+
+	const std::size_t numberOfFlags = flags.GetNumElements();
+	if (neutralFlags.GetNumElements() != numberOfFlags)
+		neutralFlags = ADNArray<unsigned int>(numberOfFlags);
+
+	for (std::size_t i = 0; i < numberOfFlags; ++i)
+		neutralFlags(i) = 0;
+
+	return neutralFlags.GetArray();
+
+}
+
 void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass) {
 
 	//ADNArray<unsigned int> capData = ADNArray<unsigned int>(nodeIndices_.GetNumElements());
@@ -949,6 +971,7 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 	//}
 
 	const float inheritedOpacity = getInheritedOpacity();
+	unsigned int* cylinderFlags = getCylinderRenderFlags(flags_, neutralFlags_);
 
 	if (renderingPass == SBNode::RenderingPass::SelectableGeometry) {
 
@@ -985,7 +1008,7 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 				radiiE_.GetArray(),
 				capData_.GetArray(),
 				colorsE_.GetArray(),
-				flags_.GetArray(),
+				cylinderFlags,
 				false);
 
 		}
@@ -1017,7 +1040,7 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 				radiiE_.GetArray(),
 				capData_.GetArray(),
 				colorsE_.GetArray(),
-				flags_.GetArray(),
+				cylinderFlags,
 				false, SBSpatialTransform::identity, inheritedOpacity);
 
 		}
@@ -1042,7 +1065,7 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 				radiiE_.GetArray(),
 				capData_.GetArray(),
 				colorsE_.GetArray(),
-				flags_.GetArray(),
+				cylinderFlags,
 				false, SBSpatialTransform::identity, inheritedOpacity);
 
 		}
@@ -1072,7 +1095,7 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 				radiiE_.GetArray(),
 				capData_.GetArray(),
 				colorsE_.GetArray(),
-				flags_.GetArray(),
+				cylinderFlags,
 				true);
 
 		}
@@ -2289,7 +2312,7 @@ void SEAdenitaVisualModel::display(SBNode::RenderingPass renderingPass) {
 			cylinderArray->setNodeData(nodeData_.GetArray());
 			cylinderArray->setRadiusData(radiiE_.GetArray());
 			cylinderArray->setCapData(capData_.GetArray());
-			cylinderArray->setFlagData(flags_.GetArray());
+			cylinderArray->setFlagData(getCylinderRenderFlags(flags_, neutralFlags_));
 			cylinderArray->setNodeIndexData(nodeIndices_.GetArray());
 
 		}
@@ -2718,6 +2741,8 @@ void SEAdenitaVisualModel::displayNucleotides(bool forSelection) {
 	}
 	else {
 
+		unsigned int* cylinderFlags = getCylinderRenderFlags(flagsNt_, neutralFlagsNt_);
+
 		if (nCylindersNt_ > 0) {
 
 			SAMSON::displayCylinders(
@@ -2728,7 +2753,7 @@ void SEAdenitaVisualModel::displayNucleotides(bool forSelection) {
 				radiiENt_.GetArray(),
 				capDataNt_.GetArray(),
 				colorsENt_.GetArray(),
-				flagsNt_.GetArray());
+				cylinderFlags);
 
 		}
 
@@ -2770,6 +2795,8 @@ void SEAdenitaVisualModel::displaySingleStrands(bool forSelection) {
 	}
 	else {
 
+		unsigned int* cylinderFlags = getCylinderRenderFlags(flagsNt_, neutralFlagsNt_);
+
 		if (nCylindersNt_ > 0) {
 
 			SAMSON::displayCylinders(
@@ -2780,7 +2807,7 @@ void SEAdenitaVisualModel::displaySingleStrands(bool forSelection) {
 				radiiESS_.GetArray(),
 				capDataNt_.GetArray(),
 				colorsESS_.GetArray(),
-				flagsNt_.GetArray());
+				cylinderFlags);
 
 		}
 
