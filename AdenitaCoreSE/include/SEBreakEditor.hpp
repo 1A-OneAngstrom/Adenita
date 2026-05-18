@@ -2,11 +2,10 @@
 
 #include "SBGEditor.hpp"
 #include "SEBreakEditorGUI.hpp"
+#include "ADNNucleotide.hpp"
+#include "ADNSingleStrand.hpp"
 
 #include "SBAction.hpp"
-
-class ADNNucleotide;
-class ADNSingleStrand;
 
 /// This class implements an editor
 

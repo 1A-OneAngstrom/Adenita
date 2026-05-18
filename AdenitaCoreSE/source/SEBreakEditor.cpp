@@ -2,8 +2,6 @@
 #include "SEAdenitaCoreSEApp.hpp"
 #include "ADNSamsonContext.hpp"
 #include "ADNConfig.hpp"
-#include "ADNNucleotide.hpp"
-#include "ADNSingleStrand.hpp"
 
 #include "SAMSON.hpp"
 
