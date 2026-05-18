@@ -2633,7 +2633,11 @@ void SEAdenitaVisualModel::prepareBasePairingSpikes() {
 				if (basePairingNtMap.find(nucleotidePair()) == basePairingNtMap.end())
 					basePairingNtMap.insert(std::make_pair(nucleotidePair(), nextIndex++));
 
-				const auto normalizedPair = std::minmax(nucleotide(), nucleotidePair());
+				ADNNucleotide* nucleotidePtr = nucleotide();
+				ADNNucleotide* nucleotidePairPtr = nucleotidePair();
+				const auto normalizedPair = (nucleotidePtr < nucleotidePairPtr) ?
+					std::make_pair(nucleotidePtr, nucleotidePairPtr) :
+					std::make_pair(nucleotidePairPtr, nucleotidePtr);
 				if (uniqueBasePairs.insert(normalizedPair).second)
 					basePairs.push_back(normalizedPair);
 
