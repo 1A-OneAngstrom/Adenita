@@ -211,6 +211,7 @@ private:
 	void														prepareNucleotides();
 	void														prepareSingleStrands();
 	void														prepareDoubleStrands();
+	void														prepareBasePairingSpikes();
 
 	void														displayNucleotides(bool forSelection = false);
 	void														displaySingleStrands(bool forSelection = false);
@@ -222,6 +223,8 @@ private:
 	void														prepareDimensions();
 
 	void														displayTransition(SBNode::RenderingPass renderingPass);
+	bool														isBreakEditorActive() const;
+	unsigned int*												getCylinderRenderFlags(ADNArray<unsigned int>& flags, ADNArray<unsigned int>& neutralFlags);
 
 	void														prepareSticksToBalls(double iv);
 	void														prepareBallsToNucleotides(double iv);
@@ -256,6 +259,7 @@ private:
 
 	SBPointer<SBSphereArray>									sphereArray{ nullptr };
 	SBPointer<SBCylinderArray>									cylinderArray{ nullptr };
+	SBPointer<SBCylinderArray>									basePairingCylinderArray{ nullptr };
 
 	//@}
 
@@ -270,12 +274,26 @@ private:
 	ADNArray<float>												radiiV_;
 	ADNArray<float>												radiiE_;
 	ADNArray<unsigned int>										flags_;
+	ADNArray<unsigned int>										neutralFlags_;
 	ADNArray<unsigned int>										nodeIndices_;
 	ADNArray<unsigned int>										indices_;
 	ADNArray<unsigned int>										capData_;
 	
 	ADNArray<SBNodeMaterial*>									materialData_;
 	ADNArray<SBNode*>											nodeData_;
+
+	unsigned int												nPositionsBasePairing_{ 0 };
+	unsigned int												nCylindersBasePairing_{ 0 };
+	ADNArray<float>												colorsBasePairing_;
+	ADNArray<float>												positionsBasePairing_;
+	ADNArray<float>												radiiBasePairing_;
+	ADNArray<unsigned int>										flagsBasePairing_;
+	ADNArray<unsigned int>										nodeIndicesBasePairing_;
+	ADNArray<unsigned int>										indicesBasePairing_;
+	ADNArray<unsigned int>										capDataBasePairing_;
+
+	ADNArray<SBNodeMaterial*>									materialDataBasePairing_;
+	ADNArray<SBNode*>											nodeDataBasePairing_;
 
 	//@}
 
@@ -311,6 +329,7 @@ private:
 	ADNArray<float>												radiiENt_;
 	ADNArray<unsigned int>										capDataNt_;
 	ADNArray<unsigned int>										flagsNt_;
+	ADNArray<unsigned int>										neutralFlagsNt_;
 	ADNArray<unsigned int>										nodeIndicesNt_;
 	ADNArray<unsigned int>										indicesNt_;
 

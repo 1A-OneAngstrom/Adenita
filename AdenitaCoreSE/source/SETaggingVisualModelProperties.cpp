@@ -3,12 +3,13 @@
 #include "SAMSON.hpp"
 #include "SBGWindow.hpp"
 #include "ADNAuxiliary.hpp"
+#include "ADNSamsonContext.hpp"
 
 
 SETaggingVisualModelProperties::SETaggingVisualModelProperties() {
 
 	visualModel = 0;
-	ui.setupUi( this );
+	ui.setupUi(this);
 	observer = new Observer(this);
 
 }
@@ -22,23 +23,23 @@ SETaggingVisualModelProperties::~SETaggingVisualModelProperties() {
 
 }
 
-void SETaggingVisualModelProperties::loadSettings( SBGSettings *settings ) {
+void SETaggingVisualModelProperties::loadSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 	
 	// SAMSON Element generator pro tip: complete this function so this property window can save its GUI state from one session to the next
 
 }
 
-void SETaggingVisualModelProperties::saveSettings( SBGSettings *settings ) {
+void SETaggingVisualModelProperties::saveSettings(SBGSettings *settings) {
 
-	if ( settings == nullptr ) return;
+	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so this property window can save its GUI state from one session to the next
 
 }
 
-SBCContainerUUID SETaggingVisualModelProperties::getUUID() const { return SBCContainerUUID( "4B3559C3-7B93-93FE-66B6-EE1B535C3470" );}
+SBCContainerUUID SETaggingVisualModelProperties::getUUID() const { return SBCContainerUUID("4B3559C3-7B93-93FE-66B6-EE1B535C3470"); }
 
 QPixmap SETaggingVisualModelProperties::getLogo() const { 
 	
@@ -82,7 +83,9 @@ QString SETaggingVisualModelProperties::getCitation() const {
 bool SETaggingVisualModelProperties::setup() {
 
 	SBNodeIndexer nodeIndexer;
-	SB_FOR(SBNode* node, *SAMSON::getActiveDocument()->getSelectedNodes()) node->getNodes(nodeIndexer, SBNode::GetClass() == std::string("SETaggingVisualModel") && SBNode::GetElement() == std::string("SETagging") && SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID));
+	auto* selectedNodes = ADNSamsonContext::GetSelectedNodes(__func__);
+	if (selectedNodes == nullptr) return false;
+	SB_FOR(SBNode* node, *selectedNodes) node->getNodes(nodeIndexer, SBNode::GetClass() == std::string("SETaggingVisualModel") && SBNode::GetElement() == std::string("SETagging") && SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID));
 
 	if (nodeIndexer.size() == 1) {
 

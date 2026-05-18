@@ -1,6 +1,19 @@
 #include "SEMergePartsEditorGUI.hpp"
 #include "SEMergePartsEditor.hpp"
+#include "ADNSamsonContext.hpp"
 
+namespace {
+
+bool ClearActiveSelection(const char* context) {
+
+	SBDocument* document = ADNSamsonContext::GetActiveDocument(context);
+	if (document == nullptr) return false;
+	document->clearSelection();
+	return true;
+
+}
+
+}
 
 SEMergePartsEditorGUI::SEMergePartsEditorGUI(SEMergePartsEditor* editor) {
 
@@ -83,28 +96,28 @@ void SEMergePartsEditorGUI::updatePartsList() {
 
 void SEMergePartsEditorGUI::onComboBoxMergeComponent1CurrentIndexChanged(int index) {
 
-	SAMSON::getActiveDocument()->clearSelection();
+	if (!ClearActiveSelection(__func__)) return;
 	getEditor()->selectComponent(index);
 
 }
 
 void SEMergePartsEditorGUI::onComboBoxMergeComponent2CurrentIndexChanged(int index) {
 
-	SAMSON::getActiveDocument()->clearSelection();
+	if (!ClearActiveSelection(__func__)) return;
 	getEditor()->selectComponent(index);
 
 }
 
 void SEMergePartsEditorGUI::onComboBoxMoveElementCurrentIndexChanged(int index) {
 
-	SAMSON::getActiveDocument()->clearSelection();
+	if (!ClearActiveSelection(__func__)) return;
 	getEditor()->selectElement(index);
 
 }
 
 void SEMergePartsEditorGUI::onComboBoxMoveToComponentCurrentIndexChanged(int index) {
 
-	SAMSON::getActiveDocument()->clearSelection();
+	if (!ClearActiveSelection(__func__)) return;
 	getEditor()->selectComponent(index);
 
 }

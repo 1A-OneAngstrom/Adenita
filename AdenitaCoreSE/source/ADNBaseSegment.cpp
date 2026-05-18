@@ -250,12 +250,18 @@ SBPointerIndexer<ADNNucleotide> ADNBaseSegment::GetNucleotides() const {
 
 void ADNBaseSegment::SetCell(ADNCell* c) {
 
+    SBPointer<ADNCell> previousCell = this->cell_;
+    const bool replacingCell = previousCell() != c;
+    if (previousCell != nullptr && replacingCell) {
+        removeChild(previousCell());
+    }
+
     this->cell_ = SBPointer<ADNCell>(c);
     if (this->cell_ != nullptr) {
 
         this->cell_->setName(cell_->getCellTypeString() + " " + std::to_string(this->cell_->getNodeIndex()));
         this->cell_->setStructuralID(this->cell_->getNodeIndex());
-        addChild(this->cell_());
+        if (replacingCell) addChild(this->cell_());
 
     }
 

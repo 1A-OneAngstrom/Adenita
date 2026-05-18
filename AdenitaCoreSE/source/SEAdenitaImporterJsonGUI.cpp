@@ -8,7 +8,7 @@
 
 SEAdenitaImporterJsonGUI::SEAdenitaImporterJsonGUI( SEAdenitaImporterJson* t ) : SBGFileImporter( t ) {
 
-	ui.setupUi( this );
+	ui.setupUi(this);
 
 }
 
@@ -34,7 +34,7 @@ void SEAdenitaImporterJsonGUI::saveSettings(SBGSettings* settings) {
 
 }
 
-SBCContainerUUID SEAdenitaImporterJsonGUI::getUUID() const { return SBCContainerUUID( "B1449F89-0013-7A4B-5710-8BC38D03B5FE" );}
+SBCContainerUUID SEAdenitaImporterJsonGUI::getUUID() const { return SBCContainerUUID("B1449F89-0013-7A4B-5710-8BC38D03B5FE"); }
 
 QPixmap SEAdenitaImporterJsonGUI::getLogo() const { 
 	

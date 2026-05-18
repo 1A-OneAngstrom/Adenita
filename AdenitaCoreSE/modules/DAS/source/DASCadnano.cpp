@@ -2,11 +2,153 @@
 #include "ADNBackbone.hpp"
 #include "ADNSidechain.hpp"
 
-#include <filesystem>
+#include "rapidjson/error/en.h"
 
-void DASCadnano::ParseJSON(std::string filename) {
+#include <filesystem>
+#include <set>
+#include <sstream>
+
+namespace {
+
+bool setValidationError(std::string& error, const std::string& message) {
+
+	error = message;
+	return false;
+
+}
+
+bool readIntMember(const rapidjson::Value& object,
+	const char* memberName,
+	int& out,
+	std::string& error,
+	const std::string& context) {
+
+	if (!object.IsObject())
+		return setValidationError(error, context + " must be a JSON object.");
+
+	const auto memberIt = object.FindMember(memberName);
+	if (memberIt == object.MemberEnd())
+		return setValidationError(error, context + " is missing the '" + std::string(memberName) + "' field.");
+	if (!memberIt->value.IsInt())
+		return setValidationError(error, context + " field '" + std::string(memberName) + "' must be an integer.");
+
+	out = memberIt->value.GetInt();
+	return true;
+
+}
+
+bool readArrayMember(const rapidjson::Value& object,
+	const char* memberName,
+	const rapidjson::Value*& out,
+	std::string& error,
+	const std::string& context) {
+
+	if (!object.IsObject())
+		return setValidationError(error, context + " must be a JSON object.");
+
+	const auto memberIt = object.FindMember(memberName);
+	if (memberIt == object.MemberEnd())
+		return setValidationError(error, context + " is missing the '" + std::string(memberName) + "' array.");
+	if (!memberIt->value.IsArray())
+		return setValidationError(error, context + " field '" + std::string(memberName) + "' must be an array.");
+
+	out = &memberIt->value;
+	return true;
+
+}
+
+bool readVec4(const rapidjson::Value& value,
+	vec4& out,
+	std::string& error,
+	const std::string& context) {
+
+	if (!value.IsArray() || value.Size() != 4)
+		return setValidationError(error, context + " must be an array with 4 integer entries.");
+
+	for (rapidjson::SizeType i = 0; i < value.Size(); ++i) {
+		if (!value[i].IsInt())
+			return setValidationError(error, context + " must contain only integer entries.");
+	}
+
+	out.n0 = value[0].GetInt();
+	out.n1 = value[1].GetInt();
+	out.n2 = value[2].GetInt();
+	out.n3 = value[3].GetInt();
+	return true;
+
+}
+
+bool validateLink(int linkedVstrandId,
+	int linkedPosition,
+	const std::map<int, Vstrand>& vstrands,
+	std::string& error,
+	const std::string& context) {
+
+	const bool noLink = linkedVstrandId == -1 && linkedPosition == -1;
+	const bool hasLink = linkedVstrandId >= 0 && linkedPosition >= 0;
+	if (!noLink && !hasLink)
+		return setValidationError(error, context + " must use either [-1, -1] or a non-negative [vstrand, position] pair.");
+	if (!hasLink) return true;
+
+	const auto vstrandIt = vstrands.find(linkedVstrandId);
+	if (vstrandIt == vstrands.end())
+		return setValidationError(error, context + " references missing vstrand " + std::to_string(linkedVstrandId) + ".");
+
+	if (linkedPosition >= vstrandIt->second.totalLength_)
+		return setValidationError(error,
+			context + " references position " + std::to_string(linkedPosition) +
+			" outside vstrand " + std::to_string(linkedVstrandId) +
+			" length " + std::to_string(vstrandIt->second.totalLength_) + ".");
+
+	return true;
+
+}
+
+bool validateConnection(const vec4& entry,
+	const std::map<int, Vstrand>& vstrands,
+	std::string& error,
+	const std::string& context) {
+
+	return validateLink(entry.n0, entry.n1, vstrands, error, context + " previous link") &&
+		validateLink(entry.n2, entry.n3, vstrands, error, context + " next link");
+
+}
+
+}
+
+void DASCadnano::ResetState() {
+
+	json_ = CadnanoJSONFile{};
+	vGrid_ = VGrid{};
+	cellBsMap_.clear();
+	ntPositions_.clear();
+	ssId_.clear();
+	lastKey = -1;
+	lastError_.clear();
+	conformation3D_ = nullptr;
+	conformation2D_ = nullptr;
+	conformation1D_ = nullptr;
+
+}
+
+bool DASCadnano::Fail(const std::string& message) {
+
+	lastError_ = message;
+	ADNLogger::LogError(message);
+	return false;
+
+}
+
+bool DASCadnano::ParseJSON(const std::string& filename) {
 
 	FILE* fp = nullptr;
+	const auto closeFile = [&fp]() {
+		if (fp != nullptr) {
+			fclose(fp);
+			fp = nullptr;
+		}
+	};
+
 	try {
 
 		std::filesystem::path filepath = std::filesystem::u8path(filename);
@@ -20,62 +162,117 @@ void DASCadnano::ParseJSON(std::string filename) {
 	}
 	catch (...) {
 
-		return;
+		return Fail("Adenita couldn't open the cadnano file.");
 
 	}
+
+	if (fp == nullptr)
+		return Fail("Adenita couldn't open the cadnano file.");
 
 	char readBuffer[65536];
 	rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
 	rapidjson::Document d;
 	d.ParseStream(is);
 
+	if (d.HasParseError()) {
+
+		std::ostringstream message;
+		message << "The cadnano file is not valid JSON";
+		if (const char* parseError = rapidjson::GetParseError_En(d.GetParseError())) {
+			message << " (" << parseError << " near offset " << d.GetErrorOffset() << ")";
+		}
+		message << ".";
+		closeFile();
+		return Fail(message.str());
+
+	}
+
+	if (!d.IsObject()) {
+
+		closeFile();
+		return Fail("The cadnano file must contain a JSON object at the root.");
+
+	}
+
 	// check for save version
 	double versionValue = 0.0;
 	if (rapidjson::Value* version = rapidjson::Pointer("/format").Get(d)) {
+		if (!version->IsNumber()) {
+			closeFile();
+			return Fail("The cadnano file has a non-numeric 'format' value.");
+		}
 		versionValue = version->GetDouble();
 	}
 
+	bool parsed = false;
 	if (versionValue < 3.0) {
-		ParseCadnanoLegacy(d);
+		parsed = ParseCadnanoLegacy(d);
 	}
 	else {
-		ParseCadnanoFormat3(d);
+		parsed = ParseCadnanoFormat3(d);
 	}
 
-	fclose(fp);
+	closeFile();
+	return parsed;
 
 }
 
-void DASCadnano::ParseCadnanoFormat3(rapidjson::Document& d) {
+bool DASCadnano::ParseCadnanoFormat3(rapidjson::Document&) {
 
-	ADNLogger::LogError(std::string("Cadnano format 3.0 not yet supported."));
+	return Fail("Cadnano format 3.0 is not supported yet.");
 
 }
 
-void DASCadnano::ParseCadnanoLegacy(rapidjson::Document& d) {
+bool DASCadnano::ParseCadnanoLegacy(rapidjson::Document& d) {
 
-	json_.name_ = d["name"].GetString();
-	rapidjson::Value& vstrandsVal = d["vstrands"];
+	if (d.HasMember("name") && d["name"].IsString())
+		json_.name_ = d["name"].GetString();
+
+	std::string validationError;
+	const rapidjson::Value* vstrandsVal = nullptr;
+	if (!readArrayMember(d, "vstrands", vstrandsVal, validationError, "Cadnano file"))
+		return Fail(validationError);
+	if (vstrandsVal->Empty())
+		return Fail("Cadnano file does not contain any virtual strands.");
 
 	int totalCount = -1;
-	for (unsigned int i = 0; i < vstrandsVal.Size(); i++) {
+	for (rapidjson::SizeType i = 0; i < vstrandsVal->Size(); ++i) {
 
-		rapidjson::Value& vstrandVal = vstrandsVal[i];
+		const rapidjson::Value& vstrandVal = (*vstrandsVal)[i];
+		if (!vstrandVal.IsObject())
+			return Fail("Cadnano vstrand entry " + std::to_string(static_cast<int>(i)) + " must be a JSON object.");
+
+		const std::string vstrandContext = "Cadnano vstrand " + std::to_string(static_cast<int>(i));
 		Vstrand vstrand;
 
-		vstrand.num_ = vstrandVal["num"].GetInt();
-		vstrand.col_ = vstrandVal["col"].GetInt();
-		vstrand.row_ = vstrandVal["row"].GetInt();
+		if (!readIntMember(vstrandVal, "num", vstrand.num_, validationError, vstrandContext) ||
+			!readIntMember(vstrandVal, "col", vstrand.col_, validationError, vstrandContext) ||
+			!readIntMember(vstrandVal, "row", vstrand.row_, validationError, vstrandContext))
+			return Fail(validationError);
 
-		rapidjson::Value& scafVals = vstrandVal["scaf"];
+		if (json_.vstrands_.find(vstrand.num_) != json_.vstrands_.end())
+			return Fail("Cadnano file contains duplicate vstrand id " + std::to_string(vstrand.num_) + ".");
+
+		const rapidjson::Value* scafVals = nullptr;
+		const rapidjson::Value* stapVals = nullptr;
+		const rapidjson::Value* loopVals = nullptr;
+		const rapidjson::Value* skipVals = nullptr;
+		if (!readArrayMember(vstrandVal, "scaf", scafVals, validationError, vstrandContext) ||
+			!readArrayMember(vstrandVal, "stap", stapVals, validationError, vstrandContext) ||
+			!readArrayMember(vstrandVal, "loop", loopVals, validationError, vstrandContext) ||
+			!readArrayMember(vstrandVal, "skip", skipVals, validationError, vstrandContext))
+			return Fail(validationError);
+
+		if (stapVals->Size() != scafVals->Size() || loopVals->Size() != scafVals->Size() || skipVals->Size() != scafVals->Size()) {
+			return Fail("Cadnano vstrand " + std::to_string(vstrand.num_) + " has inconsistent array lengths.");
+		}
+
 		int count = 0;
-		for (unsigned int k = 0; k < scafVals.Size(); k++) {
-			rapidjson::Value& a = scafVals[k];
+		for (rapidjson::SizeType k = 0; k < scafVals->Size(); ++k) {
 			vec4 elem;
-			elem.n0 = a[0].GetInt();
-			elem.n1 = a[1].GetInt();
-			elem.n2 = a[2].GetInt();
-			elem.n3 = a[3].GetInt();
+			if (!readVec4((*scafVals)[k], elem, validationError,
+				"Cadnano vstrand " + std::to_string(vstrand.num_) + " scaffold entry " + std::to_string(static_cast<int>(k))))
+				return Fail(validationError);
 			vstrand.scaf_.insert(std::make_pair(count, elem));
 
 			//start point
@@ -86,19 +283,28 @@ void DASCadnano::ParseCadnanoLegacy(rapidjson::Document& d) {
 			++count;
 		}
 
+		if (count == 0)
+			return Fail("Cadnano vstrand " + std::to_string(vstrand.num_) + " does not contain any positions.");
+
 		totalCount = count;  // all vhelix have the same count
 		vstrand.totalLength_ = totalCount;
+		if (totalCount != static_cast<int>(scafVals->Size()))
+			return Fail("Cadnano vstrand " + std::to_string(vstrand.num_) + " contains too many positions.");
 
-		rapidjson::Value& stapVals = vstrandVal["stap"];
+		if (json_.vstrands_.empty()) {
+			totalCount = count;
+		}
+		else if (count != json_.vstrands_.begin()->second.totalLength_) {
+			return Fail("Cadnano virtual strands must all have the same number of positions.");
+		}
+
 		count = 0;
-		for (unsigned int k = 0; k < stapVals.Size(); k++) {
+		for (rapidjson::SizeType k = 0; k < stapVals->Size(); ++k) {
 
-			rapidjson::Value& a = stapVals[k];
 			vec4 elem;
-			elem.n0 = a[0].GetInt();
-			elem.n1 = a[1].GetInt();
-			elem.n2 = a[2].GetInt();
-			elem.n3 = a[3].GetInt();
+			if (!readVec4((*stapVals)[k], elem, validationError,
+				"Cadnano vstrand " + std::to_string(vstrand.num_) + " staple entry " + std::to_string(static_cast<int>(k))))
+				return Fail(validationError);
 			vstrand.stap_.insert(std::make_pair(count, elem));
 
 			if (elem.n0 == -1 && elem.n1 == -1 && elem.n2 != -1 && elem.n3 != -1) {
@@ -115,20 +321,25 @@ void DASCadnano::ParseCadnanoLegacy(rapidjson::Document& d) {
 
 		}
 
-		const rapidjson::Value& loopVals = vstrandVal["loop"];
 		count = 0;
-		for (unsigned int k = 0; k < loopVals.Size(); k++) {
+		for (rapidjson::SizeType k = 0; k < loopVals->Size(); ++k) {
 
-			vstrand.loops_.insert(std::make_pair(count, loopVals[k].GetInt()));
+			if (!(*loopVals)[k].IsInt())
+				return Fail("Cadnano vstrand " + std::to_string(vstrand.num_) + " loop entry " + std::to_string(static_cast<int>(k)) + " must be an integer.");
+			const int loopValue = (*loopVals)[k].GetInt();
+			if (loopValue < 0)
+				return Fail("Cadnano vstrand " + std::to_string(vstrand.num_) + " loop entry " + std::to_string(static_cast<int>(k)) + " must be non-negative.");
+			vstrand.loops_.insert(std::make_pair(count, loopValue));
 			++count;
 
 		}
 
-		const rapidjson::Value& skipVals = vstrandVal["skip"];
 		count = 0;
-		for (unsigned int k = 0; k < skipVals.Size(); k++) {
+		for (rapidjson::SizeType k = 0; k < skipVals->Size(); ++k) {
 
-			vstrand.skips_.insert(std::make_pair(count, skipVals[k].GetInt()));
+			if (!(*skipVals)[k].IsInt())
+				return Fail("Cadnano vstrand " + std::to_string(vstrand.num_) + " skip entry " + std::to_string(static_cast<int>(k)) + " must be an integer.");
+			vstrand.skips_.insert(std::make_pair(count, (*skipVals)[k].GetInt()));
 			++count;
 
 		}
@@ -171,7 +382,34 @@ void DASCadnano::ParseCadnanoLegacy(rapidjson::Document& d) {
 
 		}
 
+		if (start_tube) {
+
+			VTube tube;
+			tube.vStrandId_ = vstrand.num_;
+			tube.initPos_ = init_pos;
+			tube.endPos_ = vstrand.totalLength_ - 1;
+			vGrid_.AddTube(tube);
+
+		}
+
 		json_.vstrands_.insert(std::make_pair(vstrand.num_, vstrand));
+
+	}
+
+	for (const auto& vstrandPair : json_.vstrands_) {
+
+		const Vstrand& vstrand = vstrandPair.second;
+		for (const auto& scafPair : vstrand.scaf_) {
+			const std::string context = "Cadnano scaffold entry at vstrand " + std::to_string(vstrand.num_) + ", position " + std::to_string(scafPair.first);
+			if (!validateConnection(scafPair.second, json_.vstrands_, validationError, context))
+				return Fail(validationError);
+		}
+
+		for (const auto& stapPair : vstrand.stap_) {
+			const std::string context = "Cadnano staple entry at vstrand " + std::to_string(vstrand.num_) + ", position " + std::to_string(stapPair.first);
+			if (!validateConnection(stapPair.second, json_.vstrands_, validationError, context))
+				return Fail(validationError);
+		}
 
 	}
 
@@ -185,16 +423,16 @@ void DASCadnano::ParseCadnanoLegacy(rapidjson::Document& d) {
 
 		// error
 		if (totalCount == -1) {
-			ADNLogger::LogError(std::string("Adenita couldn't find a compatible lattice: design seems empty"));
+			return Fail("Adenita couldn't find a compatible lattice: design seems empty.");
 		}
 		else {
-			ADNLogger::LogError(std::string("Adenita couldn't find a compatible lattice: number of vHelix positions = " + std::to_string(totalCount)));
+			return Fail("Adenita couldn't find a compatible lattice: number of vHelix positions = " + std::to_string(totalCount) + ".");
 		}
-		return;
 
 	}
 
 	vGrid_.CreateLattice(json_.lType_);
+	return true;
 
 }
 
@@ -204,14 +442,14 @@ SBPointer<ADNPart> DASCadnano::CreateCadnanoModel() {
 
 	CreateEdgeMap(part);
 	ADNLogger::LogDebug(std::string("Cadnano module > Double strands created"));
-	CreateScaffold(part);
+	if (!CreateScaffold(part)) return nullptr;
 	if (json_.scaffoldStartPositions_.size() > 0) {
 		ADNLogger::LogDebug(std::string("Cadnano module > Scaffold(s) created"));
 	}
 	else {
 		ADNLogger::LogError(std::string("Adenita couldn't detect a scaffold. Circular scaffolds won't be detected"));
 	}
-	CreateStaples(part);
+	if (!CreateStaples(part)) return nullptr;
 	ADNLogger::LogDebug(std::string("Cadnano module > Staples created"));
 
 	return part;
@@ -294,7 +532,7 @@ void DASCadnano::CreateEdgeMap(SBPointer<ADNPart> part) {
 
 }
 
-void DASCadnano::CreateScaffold(SBPointer<ADNPart> part) {
+bool DASCadnano::CreateScaffold(SBPointer<ADNPart> part) {
 
 	for (auto& p : json_.scaffoldStartPositions_) {
 
@@ -310,13 +548,16 @@ void DASCadnano::CreateScaffold(SBPointer<ADNPart> part) {
 		AddSingleStrandToMap(scaff);
 
 		//trace scaffold through vstrands
-		TraceSingleStrand(startVstrand, startVstrandPos, scaff, part);
+		if (!TraceSingleStrand(startVstrand, startVstrandPos, scaff, part))
+			return false;
 
 	}
 
+	return true;
+
 }
 
-void DASCadnano::CreateStaples(SBPointer<ADNPart> part) {
+bool DASCadnano::CreateStaples(SBPointer<ADNPart> part) {
 
 	//find number of staples and their starting points
 	std::vector<vec2> stapleStarts = json_.stapleStarts_;  //vstrand id and position on vstrand
@@ -331,9 +572,13 @@ void DASCadnano::CreateStaples(SBPointer<ADNPart> part) {
 
 		int vStrandId = curStapleStart.n0;
 		int z = curStapleStart.n1;
-		vec4 curVstrandElem = vstrands[vStrandId].stap_[z];
-
-		std::map<std::pair<int, int>, SBPointer<ADNBaseSegment>> bs_positions = cellBsMap_.at(&vstrands[vStrandId]);
+		const auto vstrandIt = vstrands.find(vStrandId);
+		if (vstrandIt == vstrands.end())
+			return Fail("Cadnano staple references missing vstrand " + std::to_string(vStrandId) + ".");
+		if (vstrandIt->second.stap_.find(z) == vstrandIt->second.stap_.end())
+			return Fail("Cadnano staple references missing position " + std::to_string(z) + " in vstrand " + std::to_string(vStrandId) + ".");
+		if (cellBsMap_.find(&vstrandIt->second) == cellBsMap_.end())
+			return Fail("Cadnano staple on vstrand " + std::to_string(vStrandId) + " is missing base-segment data.");
 
 		SBPointer<ADNSingleStrand> staple = new ADNSingleStrand();
 		staple->setName("Staple " + std::to_string(sid));
@@ -343,35 +588,62 @@ void DASCadnano::CreateStaples(SBPointer<ADNPart> part) {
 		part->RegisterSingleStrand(staple);
 		AddSingleStrandToMap(staple);
 
-		TraceSingleStrand(vStrandId, z, staple, part, false);
+		if (!TraceSingleStrand(vStrandId, z, staple, part, false))
+			return false;
 
 	}
 
+	return true;
+
 }
 
-void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, SBPointer<ADNSingleStrand> ss, SBPointer<ADNPart> part, bool scaf) {
+bool DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, SBPointer<ADNSingleStrand> ss, SBPointer<ADNPart> part, bool scaf) {
 
-	if (part == nullptr) return;
+	if (part == nullptr) return Fail("Cadnano import cannot trace a strand into a null part.");
 
 	//trace scaffold through vstrands
 	auto& vstrands = json_.vstrands_;
+	const std::string strandType = scaf ? "scaffold" : "staple";
+
+	const auto startVstrandIt = vstrands.find(startVStrand);
+	if (startVstrandIt == vstrands.end())
+		return Fail("Cadnano " + strandType + " start references missing vstrand " + std::to_string(startVStrand) + ".");
+	const auto startEntryIt = scaf ? startVstrandIt->second.scaf_.find(startVStrandPos) : startVstrandIt->second.stap_.find(startVStrandPos);
+	if (startEntryIt == (scaf ? startVstrandIt->second.scaf_.end() : startVstrandIt->second.stap_.end()))
+		return Fail("Cadnano " + strandType + " start references missing position " + std::to_string(startVStrandPos) + " in vstrand " + std::to_string(startVStrand) + ".");
 
 	int vStrandId = startVStrand;
 	int z = startVStrandPos;
-	vec4 curVstrandElem;
-	if (scaf) curVstrandElem = vstrands[startVStrand].scaf_[startVStrandPos];
-	else curVstrandElem = vstrands[startVStrand].stap_[startVStrandPos];
+	vec4 curVstrandElem = startEntryIt->second;
 	int count = 0;
+	std::set<std::pair<int, int>> visitedPositions;
 
 	while (true) {
 
-		std::map<std::pair<int, int>, SBPointer<ADNBaseSegment>> bs_positions = cellBsMap_.at(&json_.vstrands_[vStrandId]);
+		if (!visitedPositions.insert(std::make_pair(vStrandId, z)).second)
+			return Fail("Cadnano " + strandType + " path revisits vstrand " + std::to_string(vStrandId) + " position " + std::to_string(z) + ".");
 
-		if (vstrands[vStrandId].skips_[z] != -1) {
+		const auto vstrandIt = vstrands.find(vStrandId);
+		if (vstrandIt == vstrands.end())
+			return Fail("Cadnano " + strandType + " references missing vstrand " + std::to_string(vStrandId) + ".");
 
-			int max_iter = vstrands[vStrandId].loops_[z];
+		const auto bsPositionsIt = cellBsMap_.find(&vstrandIt->second);
+		if (bsPositionsIt == cellBsMap_.end())
+			return Fail("Cadnano " + strandType + " on vstrand " + std::to_string(vStrandId) + " is missing base-segment data.");
+
+		const auto& bs_positions = bsPositionsIt->second;
+		const auto skipIt = vstrandIt->second.skips_.find(z);
+		if (skipIt == vstrandIt->second.skips_.end())
+			return Fail("Cadnano " + strandType + " is missing skip data at vstrand " + std::to_string(vStrandId) + " position " + std::to_string(z) + ".");
+
+		if (skipIt->second != -1) {
+
+			const auto loopIt = vstrandIt->second.loops_.find(z);
+			if (loopIt == vstrandIt->second.loops_.end())
+				return Fail("Cadnano " + strandType + " is missing loop data at vstrand " + std::to_string(vStrandId) + " position " + std::to_string(z) + ".");
+
+			int max_iter = loopIt->second;
 			bool left = true;
-			Vstrand vs = vstrands[vStrandId];
 			if (scaf && vStrandId % 2 == 0) left = false;
 			else if (!scaf && vStrandId % 2 != 0) left = false;
 
@@ -384,7 +656,7 @@ void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, SBPoin
 				ntPositions_.insert(std::make_pair(nt(), count));
 				++count;
 
-				const SBPosition3 pos3D = vGrid_.GetGridCellPos3D(z, vstrands[vStrandId].row_, vstrands[vStrandId].col_);
+				const SBPosition3 pos3D = vGrid_.GetGridCellPos3D(z, vstrandIt->second.row_, vstrandIt->second.col_);
 
 				// fetch base segment
 				int p = 0;
@@ -467,25 +739,35 @@ void DASCadnano::TraceSingleStrand(int startVStrand, int startVStrandPos, SBPoin
 
 		}
 
-		if (curVstrandElem.n0 != -1 && curVstrandElem.n1 != -1 && curVstrandElem.n2 == -1 && curVstrandElem.n3 == -1) {
+		if (curVstrandElem.n2 == -1 && curVstrandElem.n3 == -1) {
 			break;
 		}
+		if (curVstrandElem.n2 < 0 || curVstrandElem.n3 < 0)
+			return Fail("Cadnano " + strandType + " has an incomplete next link at vstrand " + std::to_string(vStrandId) + " position " + std::to_string(z) + ".");
 
 		//find next scaffold element
-		auto nextVstrand = json_.vstrands_[curVstrandElem.n2];
-		vec4 nextVstrandElem;
-		if (scaf) nextVstrandElem = nextVstrand.scaf_[curVstrandElem.n3];
-		else nextVstrandElem = nextVstrand.stap_[curVstrandElem.n3];
+		const auto nextVstrandIt = vstrands.find(curVstrandElem.n2);
+		if (nextVstrandIt == vstrands.end())
+			return Fail("Cadnano " + strandType + " next link references missing vstrand " + std::to_string(curVstrandElem.n2) + ".");
+
+		const auto nextEntryIt = scaf ? nextVstrandIt->second.scaf_.find(curVstrandElem.n3) : nextVstrandIt->second.stap_.find(curVstrandElem.n3);
+		if (nextEntryIt == (scaf ? nextVstrandIt->second.scaf_.end() : nextVstrandIt->second.stap_.end()))
+			return Fail("Cadnano " + strandType + " next link references missing position " + std::to_string(curVstrandElem.n3) + " in vstrand " + std::to_string(curVstrandElem.n2) + ".");
 
 		vStrandId = curVstrandElem.n2;
 		z = curVstrandElem.n3;
-		curVstrandElem = nextVstrandElem;
+		curVstrandElem = nextEntryIt->second;
 
 	}
 
+	return true;
+
 }
 
-void DASCadnano::CreateConformations(SBPointer<ADNPart> part) {
+bool DASCadnano::CreateConformations(SBPointer<ADNPart> part) {
+
+	if (part == nullptr)
+		return Fail("Cadnano import cannot create conformations for a null part.");
 
 	const std::string name = part->getName();
 	SBNodeIndexer nodeIndexer;
@@ -534,9 +816,13 @@ void DASCadnano::CreateConformations(SBPointer<ADNPart> part) {
 
 	}
 
+	if (n3D == 0)
+		return Fail("Cadnano import produced no nucleotides, so conformations could not be created.");
+
 	center3D /= n3D;
 	center2D /= n3D;
-	center1D /= n1D;
+	if (n1D > 0) center1D /= n1D;
+	else center1D = center3D;
 
 	// set positions
 	for (auto it = cellBsMap_.begin(); it != cellBsMap_.end(); ++it) {
@@ -585,6 +871,12 @@ void DASCadnano::CreateConformations(SBPointer<ADNPart> part) {
 
 	}
 
+	return true;
+
+}
+
+const std::string& DASCadnano::GetLastError() const {
+	return lastError_;
 }
 
 SBPointer<ADNConformation> DASCadnano::Get3DConformation() {
@@ -601,11 +893,13 @@ SBPointer<ADNConformation> DASCadnano::Get1DConformation() {
 
 SBPointer<ADNPart> DASCadnano::CreateCadnanoPart(std::string file) {
 
-	ParseJSON(file);
+	ResetState();
+	if (!ParseJSON(file))
+		return nullptr;
 	ADNLogger::LogDebug(std::string("Cadnano design parsed"));
 	if (vGrid_.vDoubleStrands_.size() == 0) {
 
-		ADNLogger::LogError(std::string("Adenita couldn't create Cadnano model"));
+		Fail("Adenita couldn't create a cadnano model from the parsed helices.");
 		return nullptr;
 
 	}

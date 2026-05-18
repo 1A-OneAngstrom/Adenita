@@ -1,7 +1,13 @@
 #include "SEBreakEditor.hpp"
 #include "SEAdenitaCoreSEApp.hpp"
+#include "ADNSamsonContext.hpp"
+#include "ADNConfig.hpp"
+#include "ADNNucleotide.hpp"
+#include "ADNSingleStrand.hpp"
 
 #include "SAMSON.hpp"
+
+#include <array>
 
 
 SEBreakEditor::SEBreakEditor() {
@@ -27,6 +33,79 @@ SEBreakEditorGUI* SEBreakEditor::getPropertyWidget() const { return static_cast<
 void SEBreakEditor::setFivePrimeModeFlag(bool fivePrimeModeFlag) {
 
 	this->fivePrimeModeFlag = fivePrimeModeFlag;
+	SAMSON::requestViewportUpdate();
+
+}
+
+void SEBreakEditor::updateCursor() {
+
+	const double currentViewportPixelRatio = SAMSON::getViewportPixelRatio();
+	if (viewportPixelRatio_ != currentViewportPixelRatio) {
+
+		viewportPixelRatio_ = currentViewportPixelRatio;
+		breakCursor_ = SAMSON::makeViewportCursor(QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/break.png"), 32, 0, 0);
+
+	}
+
+}
+
+void SEBreakEditor::restoreCursor() {
+
+	updateCursor();
+	SAMSON::setViewportCursor(breakCursor_);
+
+}
+
+void SEBreakEditor::setCursor(QMouseEvent* event) {
+
+	updateCursor();
+
+	const bool hasCameraButton =
+		(event->buttons() & Qt::MiddleButton) ||
+		(event->buttons() & Qt::RightButton);
+
+	if (!hasCameraButton) SAMSON::setViewportCursor(breakCursor_);
+
+}
+
+void SEBreakEditor::setCursor(QKeyEvent*) {
+
+	restoreCursor();
+
+}
+
+SEBreakEditor::BreakTarget SEBreakEditor::getBreakTarget(SBPointer<ADNNucleotide> nucleotide) const {
+
+	BreakTarget target;
+	target.clickedNucleotide = nucleotide;
+
+	if (nucleotide == nullptr) return target;
+
+	target.singleStrand = nucleotide->GetStrand();
+	if (target.singleStrand == nullptr) return target;
+
+	const SBPointer<ADNNucleotide> previousNucleotide = nucleotide->GetPrev();
+	const SBPointer<ADNNucleotide> nextNucleotide = nucleotide->GetNext();
+
+	if (target.singleStrand->getNumberOfNucleotides() == 1) return target;
+	if (nucleotide->isEndTypeNucleotide()) return target;
+	if (previousNucleotide == nullptr || nextNucleotide == nullptr) return target;
+
+	if (fivePrimeModeFlag) {
+
+		target.firstNucleotide = previousNucleotide;
+		target.secondNucleotide = nucleotide;
+
+	}
+	else {
+
+		target.firstNucleotide = nucleotide;
+		target.secondNucleotide = nextNucleotide;
+
+	}
+
+	target.valid = target.firstNucleotide != nullptr && target.secondNucleotide != nullptr;
+	return target;
 
 }
 
@@ -101,11 +180,9 @@ void SEBreakEditor::beginEditing() {
 	// SAMSON Element generator pro tip: SAMSON calls this function when your editor becomes active. 
 	// Implement this function if you need to prepare some data structures in order to be able to handle GUI or SAMSON events.
 
-	const QString iconPath = QString::fromStdString(SB_ELEMENT_PATH + "/Resource/icons/break.png");
-	SAMSON::setViewportCursor(QCursor(QPixmap(iconPath)));
-
 	previousSelectionFilter = SAMSON::getActiveSelectionFilterName();
 	SAMSON::setActiveSelectionFilterByName("Any node");
+	restoreCursor();
 
 }
 
@@ -135,7 +212,66 @@ void SEBreakEditor::display(SBNode::RenderingPass renderingPass) {
 
 	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop. 
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
-  
+
+	if (renderingPass != SBNode::RenderingPass::OpaqueGeometry && renderingPass != SBNode::RenderingPass::TransparentGeometry) return;
+
+	auto app = SEAdenitaCoreSEApp::getAdenitaApp();
+	if (app == nullptr) return;
+	ADNNanorobot* nanorobot = app->GetNanorobot();
+	if (nanorobot == nullptr) return;
+
+	auto highlightedNucleotides = nanorobot->GetHighlightedNucleotides();
+	if (highlightedNucleotides.size() != 1) return;
+
+	const BreakTarget target = getBreakTarget(highlightedNucleotides[0]);
+	if (!target.valid) return;
+
+	const SEConfig& config = SEConfig::GetInstance();
+
+	const SBPosition3 firstPosition = target.firstNucleotide->GetBackbonePosition();
+	const SBPosition3 secondPosition = target.secondNucleotide->GetBackbonePosition();
+
+	std::array<float, 6> positionData = {
+		static_cast<float>(firstPosition[0].getValue()),
+		static_cast<float>(firstPosition[1].getValue()),
+		static_cast<float>(firstPosition[2].getValue()),
+		static_cast<float>(secondPosition[0].getValue()),
+		static_cast<float>(secondPosition[1].getValue()),
+		static_cast<float>(secondPosition[2].getValue())
+	};
+
+	const float previewSphereRadius = 1.5f * config.nucleotide_V_radius;
+	const float previewCylinderRadius = std::max(1.35f * config.nucleotide_V_radius, 80.0f);
+
+	const unsigned int nCylinders = 1;
+	const unsigned int nPositions = 2;
+	std::array<unsigned int, 2> cylinderIndexData = { 0, 1 };
+	std::array<float, 2> cylinderRadiusData = { previewCylinderRadius, previewCylinderRadius };
+	std::array<float, 2> sphereRadiusData = { previewSphereRadius, previewSphereRadius };
+	std::array<unsigned int, 2> capData = { 1, 1 };
+	std::array<unsigned int, 2> flagData = { 0, 0 };
+	std::array<float, 8> colorData = {
+		1.0f, 0.95f, 0.15f, 1.0f,
+		1.0f, 0.55f, 0.05f, 1.0f
+	};
+
+	SAMSON::displayCylinders(
+		nCylinders,
+		nPositions,
+		cylinderIndexData.data(),
+		positionData.data(),
+		cylinderRadiusData.data(),
+		capData.data(),
+		colorData.data(),
+		flagData.data());
+
+	SAMSON::displaySpheres(
+		nPositions,
+		positionData.data(),
+		sphereRadiusData.data(),
+		colorData.data(),
+		flagData.data());
+
 }
 
 void SEBreakEditor::mousePressEvent(QMouseEvent* event) {
@@ -143,8 +279,23 @@ void SEBreakEditor::mousePressEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
+	const bool isLeftButton = event->button() & Qt::LeftButton;
+	if (!isLeftButton) {
+
+		setCursor(event);
+		return;
+
+	}
+
+	setCursor(event);
+	event->accept();
+
 	auto app = SEAdenitaCoreSEApp::getAdenitaApp();
-	auto highlightedNucleotides = app->GetNanorobot()->GetHighlightedNucleotides();
+	if (app == nullptr) return;
+	ADNNanorobot* nanorobot = app->GetNanorobot();
+	if (nanorobot == nullptr) return;
+
+	auto highlightedNucleotides = nanorobot->GetHighlightedNucleotides();
 	auto numberOfHighlightedNucleotides = highlightedNucleotides.size();
 
 	if (numberOfHighlightedNucleotides == 1) {
@@ -155,13 +306,14 @@ void SEBreakEditor::mousePressEvent(QMouseEvent* event) {
 		// 3. the nucleotide is the end nucleotide, or there is no next or previous nucleotide 
 
 		auto highlightedNucleotide = highlightedNucleotides[0];
-		auto singleStrand = highlightedNucleotide->GetStrand();
-		auto nextNucleotide = highlightedNucleotide->GetNext();
-		auto prevNucleotide = highlightedNucleotide->GetPrev();
+		const BreakTarget target = getBreakTarget(highlightedNucleotide);
+		auto singleStrand = target.singleStrand;
 
 		// clear the current selection
 
-		SAMSON::getActiveDocument()->clearSelection();
+		SBDocument* document = ADNSamsonContext::GetActiveDocument(__func__);
+		if (document == nullptr) return;
+		document->clearSelection();
 
 		// select the nucleotide
 		//highlightedNucleotide->setSelectionFlag(true);
@@ -172,7 +324,7 @@ void SEBreakEditor::mousePressEvent(QMouseEvent* event) {
 		else if (singleStrand->getNumberOfNucleotides() == 1) {
 			SAMSON::informUser("Adenita - Break editor", "Cannot break a single strand that contains only one nucleotide. If you want to delete it use the Delete editor.");
 		}
-		else if (highlightedNucleotide->isEndTypeNucleotide() || nextNucleotide == nullptr || prevNucleotide == nullptr) {
+		else if (!target.valid) {
 			SAMSON::informUser("Adenita - Break editor", "The nucleotide is the end nucleotide - cannot break here. If you want to delete this nucleotide use the Delete editor.");
 		}
 		else {
@@ -181,9 +333,9 @@ void SEBreakEditor::mousePressEvent(QMouseEvent* event) {
 
 		}
 
-		event->accept();
-
 	}
+
+	setCursor(event);
 
 }
 
@@ -192,6 +344,16 @@ void SEBreakEditor::mouseReleaseEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
+	if (event->button() & Qt::LeftButton) {
+
+		setCursor(event);
+		event->accept();
+		return;
+
+	}
+
+	setCursor(event);
+
 }
 
 void SEBreakEditor::mouseMoveEvent(QMouseEvent* event) {
@@ -199,12 +361,24 @@ void SEBreakEditor::mouseMoveEvent(QMouseEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
+	setCursor(event);
+	SAMSON::requestViewportUpdate();
+
+	const bool hasCameraButton =
+		(event->buttons() & Qt::MiddleButton) ||
+		(event->buttons() & Qt::RightButton);
+
+	if (!hasCameraButton) event->accept();
+
 }
 
 void SEBreakEditor::mouseDoubleClickEvent(QMouseEvent* event) {
 
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
+
+	setCursor(event);
+	if (event->button() & Qt::LeftButton) event->accept();
 
 }
 
@@ -220,11 +394,15 @@ void SEBreakEditor::keyPressEvent(QKeyEvent* event) {
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
 
+	setCursor(event);
+
 }
 
 void SEBreakEditor::keyReleaseEvent(QKeyEvent* event) {
 
 	// SAMSON Element generator pro tip: SAMSON redirects Qt events to the active editor. 
 	// Implement this function to handle this event with your editor.
+
+	setCursor(event);
 
 }

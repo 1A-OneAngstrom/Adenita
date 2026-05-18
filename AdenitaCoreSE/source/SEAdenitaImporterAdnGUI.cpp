@@ -8,7 +8,7 @@
 
 SEAdenitaImporterAdnGUI::SEAdenitaImporterAdnGUI( SEAdenitaImporterAdn* t ) : SBGFileImporter( t ) {
 
-	ui.setupUi( this );
+	ui.setupUi(this);
 
 }
 
@@ -34,7 +34,7 @@ void SEAdenitaImporterAdnGUI::saveSettings(SBGSettings* settings) {
 
 }
 
-SBCContainerUUID SEAdenitaImporterAdnGUI::getUUID() const { return SBCContainerUUID( "6524E3A7-007E-D4E9-F0AC-E81142C244AA" );}
+SBCContainerUUID SEAdenitaImporterAdnGUI::getUUID() const { return SBCContainerUUID("6524E3A7-007E-D4E9-F0AC-E81142C244AA"); }
 
 QPixmap SEAdenitaImporterAdnGUI::getLogo() const { 
 	

@@ -1,11 +1,50 @@
 #include "PIPrimer3.hpp"
 #include "ADNPart.hpp"
+#include "ADNSamsonContext.hpp"
 
 #include "SAMSON.hpp"
 
+#include <cerrno>
+#include <cctype>
 #include <cfloat>
+#include <cstdlib>
+#include <sstream>
 
 #include <QProcess>
+
+namespace {
+
+ThermodynamicParameters InvalidThermodynamicParameters() {
+
+    ThermodynamicParameters res;
+    res.isValid = false;
+    res.dS_ = FLT_MAX;
+    res.dH_ = FLT_MAX;
+    res.dG_ = FLT_MAX;
+    res.T_ = FLT_MAX;
+    return res;
+
+}
+
+bool ParseLabeledDouble(const std::string& line, const std::string& label, double& value) {
+
+    const size_t labelPosition = line.find(label);
+    if (labelPosition == std::string::npos) return false;
+
+    const char* start = line.c_str() + labelPosition + label.size();
+    while (*start == ' ' || *start == '\t') ++start;
+
+    errno = 0;
+    char* end = nullptr;
+    value = std::strtod(start, &end);
+    if (start == end || errno == ERANGE) return false;
+    if (*end != '\0' && !std::isspace(static_cast<unsigned char>(*end))) return false;
+
+    return true;
+
+}
+
+}
 
 SBPointerIndexer<PIBindingRegion> PIPrimer3::GetBindingRegions() const {
 
@@ -61,12 +100,7 @@ void PIPrimer3::DeleteBindingRegions(SBPointer<ADNPart> p) {
 
 ThermodynamicParameters PIPrimer3::ExecuteNtthal(std::string leftSequence, std::string rightSequence, int oligo_conc, int mv, int dv) {
 
-    ThermodynamicParameters res;
-    res.isValid = false;
-    res.dS_ = FLT_MAX;
-    res.dH_ = FLT_MAX;
-    res.dG_ = FLT_MAX;
-    res.T_ = FLT_MAX;
+    ThermodynamicParameters res = InvalidThermodynamicParameters();
 
     const SEConfig& c = SEConfig::GetInstance();
 
@@ -111,43 +145,33 @@ ThermodynamicParameters PIPrimer3::ExecuteNtthal(std::string leftSequence, std::
     //qDebug() << "standardOutput:   " << standardOutput;
     //qDebug() << "standardError:    " << process.readAllStandardError();
 
-    // output example:
-    // Calculated thermodynamical parameters for dimer:\tdS = -68.9269\tdH = -24400\tdG = -3022.33\tt = -37.8822\r\nSEQ\t    \r\nSEQ\tTCGG\r\nSTR\tAGCC\r\nSTR\t    \r\n
-    const QString stdOutputStr = QString(standardOutput);
-    if (stdOutputStr.size() == 0) return res;
+    return ParseNtthalOutput(standardOutput.toStdString());
 
-    QStringList strLines = stdOutputStr.split("\n");
+}
 
-    // if the region is unbound
-    if (strLines.size() < 5) return res;
+ThermodynamicParameters PIPrimer3::ParseNtthalOutput(const std::string& output) {
 
-    const QString firstLine = strLines[0];
+    ThermodynamicParameters res = InvalidThermodynamicParameters();
+    if (output.empty()) return res;
 
-    const QString dS = "dS =";
-    const QString dH = "dH =";
-    const QString dG = "dG =";
-    const QString t = "t =";
-    if (!firstLine.contains(dS) || !firstLine.contains(dH) || !firstLine.contains(dG) || !firstLine.contains(t)) return res;
+    std::istringstream stream(output);
+    std::string firstLine;
+    if (!std::getline(stream, firstLine)) return res;
 
-    const int idS = firstLine.indexOf(dS);
-    const int idSEnd = firstLine.indexOf(dH, idS);
-    const int idH = firstLine.indexOf(dH);
-    const int idHEnd = firstLine.indexOf(dG, idH);
-    const int idG = firstLine.indexOf(dG);
-    const int idGEnd = firstLine.indexOf(t, idG);
-    const int it = firstLine.indexOf(t);
+    unsigned int lineCount = 1;
+    std::string line;
+    while (std::getline(stream, line))
+        ++lineCount;
 
-    const QString dSVal = firstLine.mid(idS + 5, idSEnd - idS - 6);
-    const QString dHVal = firstLine.mid(idH + 5, idHEnd - idH - 5);
-    const QString dGVal = firstLine.mid(idG + 5, idGEnd - idG - 6);
-    const QString tVal = firstLine.mid(it + 4, firstLine.size() - it);
+    // ntthal reports fewer lines when the region is unbound.
+    if (lineCount < 5) return res;
 
-    res.dS_ = dSVal.toDouble();
-    res.dH_ = dHVal.toDouble();
-    res.dG_ = dGVal.toDouble();
-    res.T_ = tVal.toDouble();
+    if (!ParseLabeledDouble(firstLine, "dS =", res.dS_)) return res;
+    if (!ParseLabeledDouble(firstLine, "dH =", res.dH_)) return res;
+    if (!ParseLabeledDouble(firstLine, "dG =", res.dG_)) return res;
+    if (!ParseLabeledDouble(firstLine, "t =", res.T_)) return res;
+
     res.isValid = true;
-
     return res;
 
 }
@@ -185,12 +209,15 @@ void PIPrimer3::UpdateBindingRegions(SBPointer<ADNPart> p) {
     SBPointer<ADNNucleotide> firstNt;
     unsigned int numRegions = 0;
 
+    SBDocument* document = ADNSamsonContext::GetActiveDocument(__func__);
+    if (document == nullptr) return;
+
     SAMSON::beginHolding("Update binding regions");
 
     SBFolder* bindingRegionsFolder = new SBFolder("Binding regions");
     SAMSON::hold(bindingRegionsFolder);
     bindingRegionsFolder->create();
-    SAMSON::getActiveDocument()->addChild(bindingRegionsFolder);
+    document->addChild(bindingRegionsFolder);
 
     SB_FOR(SBPointer<ADNSingleStrand> ss, singleStrands) if (ss != nullptr) {
 

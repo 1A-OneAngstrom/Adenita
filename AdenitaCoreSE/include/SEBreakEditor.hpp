@@ -5,6 +5,9 @@
 
 #include "SBAction.hpp"
 
+class ADNNucleotide;
+class ADNSingleStrand;
+
 /// This class implements an editor
 
 class SB_EXPORT SEBreakEditor : public SBGEditor {
@@ -91,7 +94,23 @@ public:
 
 private:
 
+	struct BreakTarget {
+		SBPointer<ADNNucleotide>								clickedNucleotide{ nullptr };
+		SBPointer<ADNNucleotide>								firstNucleotide{ nullptr };
+		SBPointer<ADNNucleotide>								secondNucleotide{ nullptr };
+		SBPointer<ADNSingleStrand>								singleStrand{ nullptr };
+		bool													valid{ false };
+	};
+
+	[[nodiscard]] BreakTarget									getBreakTarget(SBPointer<ADNNucleotide> nucleotide) const;
+	void														updateCursor();
+	void														restoreCursor();
+	void														setCursor(QMouseEvent* event);
+	void														setCursor(QKeyEvent* event);
+
 	bool														fivePrimeModeFlag = true;
+	QCursor														breakCursor_;
+	double														viewportPixelRatio_{ -1.0 };
 
 	std::string													previousSelectionFilter;
 

@@ -143,7 +143,14 @@ if(${OUTPUT_UUID}_tests)
       "${CMAKE_CURRENT_SOURCE_DIR}/include"
       "${CMAKE_CURRENT_SOURCE_DIR}/external/rapidjson/include"
       "${CMAKE_CURRENT_SOURCE_DIR}/modules/DAS/include"
+      "${CMAKE_CURRENT_SOURCE_DIR}/modules/PI/include"
       "${SAMSON_INCLUDE_PATH}"
+  )
+
+  target_compile_definitions(${ADENITA_STANDALONE_TEST_TARGET}
+    PRIVATE
+      ELEMENT_NAME="${OUTPUT_NAME}"
+      SB_ELEMENT_UUID="${OUTPUT_UUID}"
   )
 
   target_link_libraries(${ADENITA_STANDALONE_TEST_TARGET}

@@ -1,6 +1,7 @@
 #include "ADNCell.hpp"
 #include "ADNNucleotide.hpp"
 #include "ADNModel.hpp"
+#include "ADNNodeValidation.hpp"
 
 void ADNCell::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber, const SBVersionNumber& classVersionNumber) const {
 
@@ -48,11 +49,8 @@ void ADNBasePair::unserialize(SBCSerializer* serializer, const SBNodeIndexer& no
     const unsigned int lIdx = serializer->readUnsignedIntElement();
     const unsigned int rIdx = serializer->readUnsignedIntElement();
 
-    SBNode* lNode = nodeIndexer.getNode(lIdx);
-    SetLeftNucleotide(static_cast<ADNNucleotide*>(lNode));
-
-    SBNode* rNode = nodeIndexer.getNode(rIdx);
-    SetRightNucleotide(static_cast<ADNNucleotide*>(rNode));
+    SetLeftNucleotide(ADNNodeValidation::GetSerializedAdenitaNode<ADNNucleotide>(nodeIndexer, lIdx, "ADNNucleotide"));
+    SetRightNucleotide(ADNNodeValidation::GetSerializedAdenitaNode<ADNNucleotide>(nodeIndexer, rIdx, "ADNNucleotide"));
 
 }
 
@@ -169,8 +167,8 @@ void ADNLoopPair::unserialize(SBCSerializer* serializer, const SBNodeIndexer& no
 
     unsigned int lIdx = serializer->readUnsignedIntElement();
     unsigned int rIdx = serializer->readUnsignedIntElement();
-    SBPointer<ADNLoop> lp = static_cast<ADNLoop*>(nodeIndexer.getNode(lIdx));
-    SBPointer<ADNLoop> rp = static_cast<ADNLoop*>(nodeIndexer.getNode(rIdx));
+    SBPointer<ADNLoop> lp = ADNNodeValidation::GetSerializedAdenitaNode<ADNLoop>(nodeIndexer, lIdx, "ADNLoop");
+    SBPointer<ADNLoop> rp = ADNNodeValidation::GetSerializedAdenitaNode<ADNLoop>(nodeIndexer, rIdx, "ADNLoop");
     if (lp != nullptr) SetLeftLoop(lp);
     if (rp != nullptr) SetRightLoop(rp);
 
@@ -186,10 +184,20 @@ SBNode* ADNLoopPair::getLeftLoop() const {
 
 void ADNLoopPair::SetLeftLoop(SBPointer<ADNLoop> lp) {
 
+    SBPointer<ADNLoop> previousLoop = this->leftLoop;
+    const bool replacingLoop = previousLoop() != lp();
+    if (previousLoop != nullptr && replacingLoop && previousLoop() != rightLoop()) {
+        removeChild(previousLoop());
+    }
+
     this->leftLoop = lp;
-    addChild(lp());
-    lp->setName("Left loop " + std::to_string(lp->getNodeIndex()));
-    lp->setStructuralID(lp->getNodeIndex());
+    if (this->leftLoop != nullptr) {
+
+        if (replacingLoop) addChild(this->leftLoop());
+        this->leftLoop->setName("Left loop " + std::to_string(this->leftLoop->getNodeIndex()));
+        this->leftLoop->setStructuralID(this->leftLoop->getNodeIndex());
+
+    }
 
 }
 
@@ -203,10 +211,20 @@ SBNode* ADNLoopPair::getRightLoop() const {
 
 void ADNLoopPair::SetRightLoop(SBPointer<ADNLoop> lp) {
 
+    SBPointer<ADNLoop> previousLoop = this->rightLoop;
+    const bool replacingLoop = previousLoop() != lp();
+    if (previousLoop != nullptr && replacingLoop && previousLoop() != leftLoop()) {
+        removeChild(previousLoop());
+    }
+
     this->rightLoop = lp;
-    addChild(lp());
-    lp->setName("Right loop " + std::to_string(lp->getNodeIndex()));
-    lp->setStructuralID(lp->getNodeIndex());
+    if (this->rightLoop != nullptr) {
+
+        if (replacingLoop) addChild(this->rightLoop());
+        this->rightLoop->setName("Right loop " + std::to_string(this->rightLoop->getNodeIndex()));
+        this->rightLoop->setStructuralID(this->rightLoop->getNodeIndex());
+
+    }
 
 }
 

@@ -2,6 +2,7 @@
 #include "ADNBaseSegment.hpp"
 #include "ADNNucleotide.hpp"
 #include "ADNModel.hpp"
+#include "ADNNodeValidation.hpp"
 
 #include <unordered_set>
 
@@ -34,22 +35,17 @@ void ADNLoop::unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIn
     for (unsigned int i = 0; i < numNt; ++i) {
 
         const unsigned int idx = serializer->readUnsignedIntElement();
-        SBNode* node = nodeIndexer.getNode(idx);
-        if (node) {
-            
-            SBPointer<ADNNucleotide> nt = static_cast<ADNNucleotide*>(node);
-            AddNucleotide(nt);
-
-        }
+        SBPointer<ADNNucleotide> nt = ADNNodeValidation::GetSerializedAdenitaNode<ADNNucleotide>(nodeIndexer, idx, "ADNNucleotide");
+        if (nt != nullptr) AddNucleotide(nt);
 
     }
 
     serializer->readEndElement();
 
-    SBNode* sNode = nodeIndexer.getNode(sIdx);
-    if (sNode) SetStart(static_cast<ADNNucleotide*>(sNode));
-    SBNode* eNode = nodeIndexer.getNode(eIdx);
-    if (eNode) SetEnd(static_cast<ADNNucleotide*>(eNode));
+    SBPointer<ADNNucleotide> start = ADNNodeValidation::GetSerializedAdenitaNode<ADNNucleotide>(nodeIndexer, sIdx, "ADNNucleotide");
+    if (start != nullptr) SetStart(start);
+    SBPointer<ADNNucleotide> end = ADNNodeValidation::GetSerializedAdenitaNode<ADNNucleotide>(nodeIndexer, eIdx, "ADNNucleotide");
+    if (end != nullptr) SetEnd(end);
 
 }
 

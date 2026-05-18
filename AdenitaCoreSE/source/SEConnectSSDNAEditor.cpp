@@ -3,6 +3,7 @@
 
 #include "ADNBackbone.hpp"
 #include "ADNSidechain.hpp"
+#include "ADNSamsonContext.hpp"
 
 #include "MSVDisplayHelper.hpp"
 
@@ -188,7 +189,9 @@ void SEConnectSSDNAEditor::display() {
     
 		//check if a nucleotide got selected
 		auto app = SEAdenitaCoreSEApp::getAdenitaApp();
+		if (app == nullptr) return;
 		auto nanorobot = app->GetNanorobot();
+		if (nanorobot == nullptr) return;
 
 		auto highlightedNucleotides = nanorobot->GetHighlightedNucleotides();
     
@@ -219,14 +222,19 @@ void SEConnectSSDNAEditor::mousePressEvent(QMouseEvent* event) {
 
 		//check if a nucleotide got selected
 
-		auto nanorobot = SEAdenitaCoreSEApp::getAdenitaApp()->GetNanorobot();
+		SEAdenitaCoreSEApp* app = SEAdenitaCoreSEApp::getAdenitaApp();
+		if (app == nullptr) return;
+		auto nanorobot = app->GetNanorobot();
+		if (nanorobot == nullptr) return;
 
 		// deselect nodes
 
 		//auto selectedNucleotides = nanorobot->GetSelectedNucleotides();
 		//SB_FOR(auto node, selectedNucleotides) node->setSelectionFlag(false);
 
-		SAMSON::getActiveDocument()->clearSelection();
+		SBDocument* document = ADNSamsonContext::GetActiveDocument(__func__);
+		if (document == nullptr) return;
+		document->clearSelection();
 
 		// consider the single highlighted nucleotide as the selected one and remember it
 
@@ -264,7 +272,9 @@ void SEConnectSSDNAEditor::mouseReleaseEvent(QMouseEvent* event) {
 		displayFlag = false;
 
 		auto app = SEAdenitaCoreSEApp::getAdenitaApp();
+		if (app == nullptr) return;
 		auto nanorobot = app->GetNanorobot();
+		if (nanorobot == nullptr) return;
 
 		auto highlightedNucleotides = nanorobot->GetHighlightedNucleotides();
 

@@ -3,23 +3,35 @@
 
 #include <cstddef>
 #include <cstdlib>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <memory>
+#include <sstream>
+#include <stdexcept>
 #include <string>
 #include <system_error>
 #include <vector>
 
+#include "ADNBaseSegment.hpp"
+#include "ADNCell.hpp"
 #include "ADNArray.hpp"
 #include "ADNConfig.hpp"
 #include "ADNConfigFileIO.hpp"
 #include "ADNConfigJson.hpp"
 #include "ADNJsonValidation.hpp"
+#include "ADNLoop.hpp"
+#include "ADNNucleotide.hpp"
+#include "ADNNodeValidation.hpp"
 #include "ADNPart.hpp"
 #include "ADNSaveAndLoad.hpp"
 #include "ADNScaffoldReader.hpp"
+#include "DASCadnano.hpp"
+#include "DASAlgorithms.hpp"
 #include "DASDaedalus.hpp"
+#include "PIPrimer3.hpp"
 #include "SBCHeapExport.hpp"
 
 #include "rapidjson/document.h"
@@ -73,6 +85,19 @@ void requireEqualAt(const std::string& name,
 
 }
 
+void requireNearAt(const std::string& name,
+	double actual,
+	double expected,
+	double tolerance,
+	const char* file,
+	int line,
+	const char* function) {
+
+	if (std::fabs(actual - expected) > tolerance)
+		recordFailure(name, "Unexpected numeric value.", file, line, function);
+
+}
+
 template <typename Callable>
 void requireThrowsIntAt(const std::string& name,
 	Callable callable,
@@ -95,9 +120,30 @@ void requireThrowsIntAt(const std::string& name,
 
 }
 
+template <typename Callable>
+void requireThrowsRuntimeErrorAt(const std::string& name,
+	Callable callable,
+	const char* file,
+	int line,
+	const char* function) {
+
+	try {
+		callable();
+		recordFailure(name, "Expected a runtime_error exception.", file, line, function);
+	}
+	catch (const std::runtime_error&) {
+	}
+	catch (...) {
+		recordFailure(name, "Expected a runtime_error exception but caught a different type.", file, line, function);
+	}
+
+}
+
 #define requireTrue(name, condition, message) requireTrueAt((name), (condition), (message), __FILE__, __LINE__, __func__)
 #define requireEqual(name, actual, expected) requireEqualAt((name), (actual), (expected), __FILE__, __LINE__, __func__)
+#define requireNear(name, actual, expected, tolerance) requireNearAt((name), (actual), (expected), (tolerance), __FILE__, __LINE__, __func__)
 #define requireThrowsInt(name, callable, expectedValue) requireThrowsIntAt((name), (callable), (expectedValue), __FILE__, __LINE__, __func__)
+#define requireThrowsRuntimeError(name, callable) requireThrowsRuntimeErrorAt((name), (callable), __FILE__, __LINE__, __func__)
 
 rapidjson::Document parseJson(const char* json) {
 
@@ -122,6 +168,13 @@ std::filesystem::path temporaryConfigPath(const std::string& filename) {
 
 }
 
+void writeTextFile(const std::filesystem::path& path, const std::string& contents) {
+
+	std::ofstream file(path, std::ios::binary);
+	file << contents;
+
+}
+
 std::filesystem::path repoDataPath(const std::string& filename) {
 
 	return std::filesystem::path(__FILE__).parent_path().parent_path() / "data" / filename;
@@ -135,6 +188,94 @@ ublas::vector<double> vector3(double x, double y, double z) {
 	value[1] = y;
 	value[2] = z;
 	return value;
+
+}
+
+SBPosition3 positionAngstrom(double x, double y, double z) {
+
+	return SBPosition3(SBQuantity::angstrom(x), SBQuantity::angstrom(y), SBQuantity::angstrom(z));
+
+}
+
+std::map<int, SBPosition3> makeTetrahedronVertices() {
+
+	return {
+		{ 0, positionAngstrom(0.0, 0.0, 0.0) },
+		{ 1, positionAngstrom(1.0, 0.0, 0.0) },
+		{ 2, positionAngstrom(0.0, 1.0, 0.0) },
+		{ 3, positionAngstrom(0.0, 0.0, 1.0) }
+	};
+
+}
+
+std::map<int, std::vector<int>> makeTetrahedronFaces() {
+
+	return {
+		{ 0, { 0, 1, 2 } },
+		{ 1, { 0, 3, 1 } },
+		{ 2, { 1, 3, 2 } },
+		{ 3, { 2, 3, 0 } }
+	};
+
+}
+
+std::map<int, SBPosition3> makeTriangleVertices() {
+
+	return {
+		{ 0, positionAngstrom(0.0, 0.0, 0.0) },
+		{ 1, positionAngstrom(1.0, 0.0, 0.0) },
+		{ 2, positionAngstrom(0.0, 1.0, 0.0) }
+	};
+
+}
+
+std::map<int, std::vector<int>> makeTriangleFaces() {
+
+	return {
+		{ 0, { 0, 1, 2 } }
+	};
+
+}
+
+std::map<int, SBPosition3> makeOpenSquareVertices() {
+
+	return {
+		{ 0, positionAngstrom(0.0, 0.0, 0.0) },
+		{ 1, positionAngstrom(1.0, 0.0, 0.0) },
+		{ 2, positionAngstrom(1.0, 1.0, 0.0) },
+		{ 3, positionAngstrom(0.0, 1.0, 0.0) }
+	};
+
+}
+
+std::map<int, std::vector<int>> makeOpenSquareFaces() {
+
+	return {
+		{ 0, { 0, 1, 2 } },
+		{ 1, { 0, 2, 3 } }
+	};
+
+}
+
+size_t countStructuralChild(const SBStructuralGroup& parent, const SBStructuralNode* child) {
+
+	if (child == nullptr) return 0;
+
+	const SBPointerList<SBStructuralNode>* children = parent.getChildren();
+	if (children == nullptr) return 0;
+
+	size_t count = 0;
+	SB_FOR(SBStructuralNode * node, *children) {
+		if (node == child) ++count;
+	}
+	return count;
+
+}
+
+std::string readTextFile(const std::filesystem::path& path) {
+
+	std::ifstream file(path);
+	return std::string(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
 
 }
 
@@ -1148,6 +1289,466 @@ void testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks() {
 
 }
 
+void testGenerateSequenceHonorsLengthAlphabetAndMaxGs() {
+
+	const std::string sequence = DASAlgorithms::GenerateSequence(1.0, 2, 200);
+	requireEqual("generated sequence length",
+		sequence.size(),
+		static_cast<size_t>(200));
+	requireTrue("generated sequence alphabet",
+		sequence.find_first_not_of("ACGT") == std::string::npos,
+		"Expected generated sequence to contain only DNA bases.");
+	requireTrue("generated sequence max consecutive G",
+		sequence.find("GGG") == std::string::npos,
+		"Expected generated sequence to honor max consecutive G limit.");
+
+	const std::string emptySequence = DASAlgorithms::GenerateSequence(0.5, 2, 0);
+	requireTrue("generated empty sequence",
+		emptySequence.empty(),
+		"Expected zero-size sequence request to return an empty string.");
+
+}
+
+void testDaedalusEdgeSizeQuantizationBoundaries() {
+
+	requireEqual("edge size clamps below minimum",
+		DASDaedalus::CalculateEdgeSize(SBQuantity::nanometer(1.0)),
+		31);
+	requireEqual("edge size rounds to nearest full turn",
+		DASDaedalus::CalculateEdgeSize(SBQuantity::nanometer(ADNConstants::BP_RISE * 4.0 * 10.5)),
+		42);
+	requireEqual("edge size next full turn boundary",
+		DASDaedalus::CalculateEdgeSize(SBQuantity::nanometer(ADNConstants::BP_RISE * 5.0 * 10.5)),
+		52);
+
+}
+
+void testBaseSegmentSetCellReplacesChild() {
+
+	ADNBaseSegment baseSegment;
+	SBPointer<ADNBasePair> firstCell = new ADNBasePair();
+	SBPointer<ADNSkipPair> secondCell = new ADNSkipPair();
+
+	baseSegment.SetCell(firstCell());
+	requireTrue("base segment stores initial cell",
+		baseSegment.GetCell()() == firstCell(),
+		"Expected the initial cell pointer to be stored.");
+	requireEqual("base segment initial cell child count",
+		countStructuralChild(baseSegment, firstCell()),
+		static_cast<size_t>(1));
+
+	baseSegment.SetCell(secondCell());
+	requireTrue("base segment stores replacement cell",
+		baseSegment.GetCell()() == secondCell(),
+		"Expected the replacement cell pointer to be stored.");
+	requireEqual("base segment removes old cell child",
+		countStructuralChild(baseSegment, firstCell()),
+		static_cast<size_t>(0));
+	requireEqual("base segment replacement cell child count",
+		countStructuralChild(baseSegment, secondCell()),
+		static_cast<size_t>(1));
+
+	baseSegment.SetCell(nullptr);
+	requireTrue("base segment clears cell pointer",
+		baseSegment.GetCell() == nullptr,
+		"Expected clearing the cell to reset the stored pointer.");
+	requireEqual("base segment clears replacement cell child",
+		countStructuralChild(baseSegment, secondCell()),
+		static_cast<size_t>(0));
+
+}
+
+void testLoopPairSettersReplaceOnlySelectedChild() {
+
+	ADNLoopPair loopPair;
+	SBPointer<ADNLoop> firstLeft = new ADNLoop();
+	SBPointer<ADNLoop> secondLeft = new ADNLoop();
+	SBPointer<ADNLoop> firstRight = new ADNLoop();
+	SBPointer<ADNLoop> secondRight = new ADNLoop();
+
+	loopPair.SetLeftLoop(firstLeft);
+	loopPair.SetRightLoop(firstRight);
+	requireEqual("loop pair initial left child count",
+		countStructuralChild(loopPair, firstLeft()),
+		static_cast<size_t>(1));
+	requireEqual("loop pair initial right child count",
+		countStructuralChild(loopPair, firstRight()),
+		static_cast<size_t>(1));
+
+	loopPair.SetLeftLoop(secondLeft);
+	requireTrue("loop pair stores replacement left loop",
+		loopPair.GetLeftLoop() == secondLeft,
+		"Expected the replacement left loop pointer to be stored.");
+	requireTrue("loop pair preserves existing right loop",
+		loopPair.GetRightLoop() == firstRight,
+		"Expected replacing the left loop to preserve the right loop pointer.");
+	requireEqual("loop pair removes old left child",
+		countStructuralChild(loopPair, firstLeft()),
+		static_cast<size_t>(0));
+	requireEqual("loop pair replacement left child count",
+		countStructuralChild(loopPair, secondLeft()),
+		static_cast<size_t>(1));
+	requireEqual("loop pair right child remains attached",
+		countStructuralChild(loopPair, firstRight()),
+		static_cast<size_t>(1));
+
+	loopPair.SetRightLoop(secondRight);
+	requireTrue("loop pair stores replacement right loop",
+		loopPair.GetRightLoop() == secondRight,
+		"Expected the replacement right loop pointer to be stored.");
+	requireEqual("loop pair left child remains attached",
+		countStructuralChild(loopPair, secondLeft()),
+		static_cast<size_t>(1));
+	requireEqual("loop pair removes old right child",
+		countStructuralChild(loopPair, firstRight()),
+		static_cast<size_t>(0));
+	requireEqual("loop pair replacement right child count",
+		countStructuralChild(loopPair, secondRight()),
+		static_cast<size_t>(1));
+
+	SBPointer<ADNLoop> nullLoop = nullptr;
+	loopPair.SetLeftLoop(nullLoop);
+	loopPair.SetRightLoop(nullLoop);
+	requireTrue("loop pair clears left loop",
+		loopPair.GetLeftLoop() == nullptr,
+		"Expected clearing the left loop to reset the stored pointer.");
+	requireTrue("loop pair clears right loop",
+		loopPair.GetRightLoop() == nullptr,
+		"Expected clearing the right loop to reset the stored pointer.");
+	requireEqual("loop pair clears left child",
+		countStructuralChild(loopPair, secondLeft()),
+		static_cast<size_t>(0));
+	requireEqual("loop pair clears right child",
+		countStructuralChild(loopPair, secondRight()),
+		static_cast<size_t>(0));
+
+}
+
+void testSerializedNodeValidation() {
+
+	SBPointer<ADNNucleotide> nucleotide = new ADNNucleotide();
+	SBPointer<ADNLoop> loop = new ADNLoop();
+	SBNodeIndexer nodeIndexer;
+	nodeIndexer.addNode(nucleotide());
+	nodeIndexer.addNode(loop());
+
+	const unsigned int nucleotideIndex = nodeIndexer.getIndex(nucleotide());
+	const unsigned int loopIndex = nodeIndexer.getIndex(loop());
+	const unsigned int nullIndex = static_cast<unsigned int>(-1);
+
+	SBPointer<ADNNucleotide> resolvedNucleotide =
+		ADNNodeValidation::GetSerializedAdenitaNode<ADNNucleotide>(nodeIndexer, nucleotideIndex, "ADNNucleotide");
+	requireTrue("node validation correct type",
+		resolvedNucleotide() == nucleotide(),
+		"Expected a serialized nucleotide index to resolve to the nucleotide.");
+
+	SBPointer<ADNNucleotide> nullNucleotide =
+		ADNNodeValidation::GetSerializedAdenitaNode<ADNNucleotide>(nodeIndexer, nullIndex, "ADNNucleotide");
+	requireTrue("node validation null index",
+		nullNucleotide == nullptr,
+		"Expected the invalid serialized marker to resolve to null.");
+
+	auto resolveWrongType = [&nodeIndexer, loopIndex]() {
+		(void)ADNNodeValidation::GetSerializedAdenitaNode<ADNNucleotide>(nodeIndexer, loopIndex, "ADNNucleotide");
+	};
+	requireThrowsRuntimeError("node validation wrong type", resolveWrongType);
+
+	auto resolveInvalidIndex = [&nodeIndexer]() {
+		(void)ADNNodeValidation::GetSerializedAdenitaNode<ADNNucleotide>(nodeIndexer, nodeIndexer.size(), "ADNNucleotide");
+	};
+	requireThrowsRuntimeError("node validation invalid index", resolveInvalidIndex);
+
+}
+
+void testPolyhedronRebuildClearsPreviousTopology() {
+
+	DASPolyhedron polyhedron;
+	polyhedron.BuildPolyhedron(makeTetrahedronVertices(), makeTetrahedronFaces());
+	requireEqual("polyhedron initial vertex count",
+		polyhedron.GetNumVertices(),
+		static_cast<size_t>(4));
+	requireEqual("polyhedron initial face count",
+		polyhedron.GetNumFaces(),
+		static_cast<size_t>(4));
+	requireEqual("polyhedron initial edge count",
+		polyhedron.GetEdges().size(),
+		static_cast<size_t>(6));
+
+	polyhedron.BuildPolyhedron(makeTriangleVertices(), makeTriangleFaces());
+	requireEqual("polyhedron rebuild vertex count",
+		polyhedron.GetNumVertices(),
+		static_cast<size_t>(3));
+	requireEqual("polyhedron rebuild face count",
+		polyhedron.GetNumFaces(),
+		static_cast<size_t>(1));
+	requireEqual("polyhedron rebuild edge count",
+		polyhedron.GetEdges().size(),
+		static_cast<size_t>(3));
+
+}
+
+void testPolyhedronEdgeLookupDoesNotAllocatePlaceholders() {
+
+	DASPolyhedron polyhedron;
+	polyhedron.BuildPolyhedron(makeOpenSquareVertices(), makeOpenSquareFaces());
+	Vertices vertices = polyhedron.GetVertices();
+	const size_t originalEdgeCount = polyhedron.GetEdges().size();
+
+	DASEdge* existingEdge = DASPolyhedron::GetEdgeByVertices(vertices.at(0), vertices.at(2));
+	requireTrue("polyhedron edge lookup finds existing edge",
+		existingEdge != nullptr,
+		"Expected lookup to find the shared diagonal edge.");
+
+	DASEdge* missingEdge = DASPolyhedron::GetEdgeByVertices(vertices.at(1), vertices.at(3));
+	requireTrue("polyhedron edge lookup returns null for missing edge",
+		missingEdge == nullptr,
+		"Expected lookup to return null when vertices do not share an edge.");
+	requireEqual("polyhedron missing lookup does not add edge",
+		polyhedron.GetEdges().size(),
+		originalEdgeCount);
+
+}
+
+void testPolyhedronMetricsAndIndices() {
+
+	DASPolyhedron polyhedron;
+	polyhedron.BuildPolyhedron(makeTetrahedronVertices(), makeTetrahedronFaces());
+
+	const auto minEdge = polyhedron.MinimumEdgeLength();
+	const auto maxEdge = polyhedron.MaximumEdgeLength();
+	requireTrue("polyhedron minimum edge exists",
+		minEdge.first != nullptr,
+		"Expected minimum edge lookup to return an edge.");
+	requireTrue("polyhedron maximum edge exists",
+		maxEdge.first != nullptr,
+		"Expected maximum edge lookup to return an edge.");
+	requireNear("polyhedron minimum edge length",
+		minEdge.second,
+		1.0,
+		1.0e-8);
+	requireNear("polyhedron maximum edge length",
+		maxEdge.second,
+		std::sqrt(2.0),
+		1.0e-8);
+
+	unsigned int* indices = polyhedron.GetIndices();
+	requireTrue("polyhedron indices allocated",
+		indices != nullptr,
+		"Expected triangular face indices to be available.");
+	if (indices != nullptr) {
+		requireEqual("polyhedron first triangle index 0", indices[0], 0u);
+		requireEqual("polyhedron first triangle index 1", indices[1], 1u);
+		requireEqual("polyhedron first triangle index 2", indices[2], 2u);
+		requireEqual("polyhedron second triangle index 0", indices[3], 0u);
+		requireEqual("polyhedron second triangle index 1", indices[4], 3u);
+		requireEqual("polyhedron second triangle index 2", indices[5], 1u);
+	}
+
+}
+
+void testCanDoExportWritesBasicSections() {
+
+	CircularStrandFixture fixture = createCircularStrandFixture();
+	const std::filesystem::path path = temporaryConfigPath("adenita_basic_cando_export.cndo");
+
+	ADNLoader::OutputToCanDo(fixture.part, path.string());
+	requireTrue("cando export file exists",
+		std::filesystem::exists(path),
+		"Expected CanDo export to create an output file.");
+
+	const std::string content = readTextFile(path);
+	requireTrue("cando export contains format banner",
+		content.find("CanDo (.cndo) file format version 1.0") != std::string::npos,
+		"Expected CanDo export banner.");
+	requireTrue("cando export contains dna topology header",
+		content.find("dnaTop,id,up,down,across,seq") != std::string::npos,
+		"Expected dnaTop section header.");
+	requireTrue("cando export contains dNode header",
+		content.find("dNode,\"e0(1)\",\"e0(2)\",\"e0(3)\"") != std::string::npos,
+		"Expected dNode section header.");
+	requireTrue("cando export contains triad header",
+		content.find("triad,\"e1(1)\",\"e1(2)\",\"e1(3)\",\"e2(1)\",\"e2(2)\",\"e2(3)\",\"e3(1)\",\"e3(2)\",\"e3(3)\"") != std::string::npos,
+		"Expected triad section header.");
+	requireTrue("cando export contains base pair header",
+		content.find("id_nt,id1,id2") != std::string::npos,
+		"Expected base-pair section header.");
+	requireTrue("cando export contains nucleotide bases",
+		content.find(",A") != std::string::npos &&
+		content.find(",T") != std::string::npos &&
+		content.find(",G") != std::string::npos,
+		"Expected exported nucleotide base records.");
+
+}
+
+void writeBasicOxDNAFiles(const std::filesystem::path& topologyPath, const std::filesystem::path& configPath) {
+
+	{
+		std::ofstream topology(topologyPath);
+		topology << "2 1\n";
+		topology << "0 A -1 1\n";
+		topology << "0 T 0 -1\n";
+	}
+
+	{
+		std::ofstream config(configPath);
+		config << "t = 0\n";
+		config << "b = 0 0 0\n";
+		config << "E = 0 0 0\n";
+		config << "0 0 0 0 1 0 1 0 0 0 0 0 0 0 0\n";
+		config << "1 0 0 0 1 0 1 0 0 0 0 0 0 0 0\n";
+	}
+
+}
+
+std::string buildCadnanoLegacyTerminalTubeJson() {
+
+	std::ostringstream scaf;
+	std::ostringstream stap;
+	std::ostringstream loops;
+	std::ostringstream skips;
+	for (int i = 0; i < 32; ++i) {
+		if (i > 0) {
+			scaf << ",";
+			stap << ",";
+			loops << ",";
+			skips << ",";
+		}
+
+		if (i == 30) scaf << "[-1,-1,0,31]";
+		else if (i == 31) scaf << "[0,30,-1,-1]";
+		else scaf << "[-1,-1,-1,-1]";
+
+		stap << "[-1,-1,-1,-1]";
+		loops << "0";
+		skips << "0";
+	}
+
+	std::ostringstream json;
+	json << "{"
+		<< "\"name\":\"terminal_tube\","
+		<< "\"vstrands\":[{"
+		<< "\"num\":0,"
+		<< "\"col\":0,"
+		<< "\"row\":0,"
+		<< "\"scaf\":[" << scaf.str() << "],"
+		<< "\"stap\":[" << stap.str() << "],"
+		<< "\"loop\":[" << loops.str() << "],"
+		<< "\"skip\":[" << skips.str() << "]"
+		<< "}]"
+		<< "}";
+	return json.str();
+
+}
+
+void testOxDNAImportResultReportsSuccess() {
+
+	const std::filesystem::path topologyPath = temporaryConfigPath("adenita_basic_oxdna.top");
+	const std::filesystem::path configPath = temporaryConfigPath("adenita_basic_oxdna.dat");
+	writeBasicOxDNAFiles(topologyPath, configPath);
+
+	const ADNLoader::OxDNAImportResult result = ADNLoader::InputFromOxDNA(topologyPath.string(), configPath.string());
+	requireTrue("oxdna import result succeeds",
+		result.succeeded(),
+		"Expected a valid OxDNA fixture to import successfully.");
+	requireTrue("oxdna import result has no error",
+		!result.hasError,
+		"Expected valid OxDNA import result to have no error.");
+	requireTrue("oxdna import result contains part",
+		result.part != nullptr,
+		"Expected valid OxDNA import result to contain a part.");
+	requireEqual("oxdna import nucleotide count",
+		result.part->GetNumberOfNucleotides(),
+		2u);
+	requireEqual("oxdna import strand count",
+		result.part->GetNumberOfSingleStrands(),
+		1u);
+
+}
+
+void testOxDNAImportResultReportsErrors() {
+
+	const std::filesystem::path topologyPath = temporaryConfigPath("adenita_invalid_oxdna.top");
+	const std::filesystem::path configPath = temporaryConfigPath("adenita_invalid_oxdna.dat");
+	{
+		std::ofstream topology(topologyPath);
+		topology << "2 1\n";
+		topology << "malformed\n";
+	}
+	{
+		std::ofstream config(configPath);
+		config << "t = 0\n";
+	}
+
+	const ADNLoader::OxDNAImportResult malformedResult = ADNLoader::InputFromOxDNA(topologyPath.string(), configPath.string());
+	requireTrue("oxdna malformed import reports error",
+		malformedResult.hasError,
+		"Expected malformed topology to report an import error.");
+	requireTrue("oxdna malformed import does not succeed",
+		!malformedResult.succeeded(),
+		"Expected malformed topology import not to succeed.");
+
+	const ADNLoader::OxDNAImportResult missingResult = ADNLoader::InputFromOxDNA("missing_topology.top", "missing_config.dat");
+	requireTrue("oxdna missing files report error",
+		missingResult.hasError,
+		"Expected missing OxDNA files to report an import error.");
+	requireTrue("oxdna missing files do not succeed",
+		!missingResult.succeeded(),
+		"Expected missing OxDNA files import not to succeed.");
+
+}
+
+void testNtthalParserAcceptsValidOutput() {
+
+	const std::string output =
+		"Calculated thermodynamical parameters for dimer:\tdS = -68.9269\tdH = -24400\tdG = -3022.33\tt = -37.8822\r\n"
+		"SEQ\t    \r\n"
+		"SEQ\tTCGG\r\n"
+		"STR\tAGCC\r\n"
+		"STR\t    \r\n";
+
+	const ThermodynamicParameters result = PIPrimer3::ParseNtthalOutput(output);
+	requireTrue("ntthal parser valid output",
+		result.isValid,
+		"Expected valid ntthal output to parse.");
+	requireNear("ntthal parser entropy", result.dS_, -68.9269, 1.0e-6);
+	requireNear("ntthal parser enthalpy", result.dH_, -24400.0, 1.0e-6);
+	requireNear("ntthal parser gibbs", result.dG_, -3022.33, 1.0e-6);
+	requireNear("ntthal parser temperature", result.T_, -37.8822, 1.0e-6);
+
+}
+
+void testNtthalParserRejectsInvalidOutput() {
+
+	const ThermodynamicParameters missingField = PIPrimer3::ParseNtthalOutput(
+		"Calculated thermodynamical parameters for dimer:\tdS = -68.9\tdH = -24400\tt = -37.8\n"
+		"SEQ\nSEQ\nSTR\nSTR\n");
+	requireTrue("ntthal parser rejects missing field",
+		!missingField.isValid,
+		"Expected missing dG field to be rejected.");
+
+	const ThermodynamicParameters shortOutput = PIPrimer3::ParseNtthalOutput(
+		"Calculated thermodynamical parameters for dimer:\tdS = -68.9\tdH = -24400\tdG = -3022\tt = -37.8\n"
+		"SEQ\n");
+	requireTrue("ntthal parser rejects short output",
+		!shortOutput.isValid,
+		"Expected short ntthal output to be rejected.");
+
+	const ThermodynamicParameters nonnumericOutput = PIPrimer3::ParseNtthalOutput(
+		"Calculated thermodynamical parameters for dimer:\tdS = nope\tdH = -24400\tdG = -3022\tt = -37.8\n"
+		"SEQ\nSEQ\nSTR\nSTR\n");
+	requireTrue("ntthal parser rejects nonnumeric output",
+		!nonnumericOutput.isValid,
+		"Expected nonnumeric ntthal output to be rejected.");
+
+	const ThermodynamicParameters malformedNumericOutput = PIPrimer3::ParseNtthalOutput(
+		"Calculated thermodynamical parameters for dimer:\tdS = -68.9bad\tdH = -24400\tdG = -3022\tt = -37.8\n"
+		"SEQ\nSEQ\nSTR\nSTR\n");
+	requireTrue("ntthal parser rejects malformed numeric output",
+		!malformedNumericOutput.isValid,
+		"Expected malformed numeric ntthal output to be rejected.");
+
+}
+
 void testPlyLoaderWeldsDuplicatedAssimpVertices() {
 
 	const std::filesystem::path path = temporaryConfigPath("adenita_assimp_duplicate_vertex_cube.ply");
@@ -1297,6 +1898,77 @@ void testDaedalusPlyRegressionDoesNotCrashOnTeardown() {
 
 }
 
+void testDaedalusInstanceCanRunTwice() {
+
+	const std::filesystem::path path = repoDataPath("01_tetrahedron.ply");
+	requireTrue("daedalus reuse regression ply file exists",
+		std::filesystem::exists(path),
+		"Expected the bundled tetrahedron PLY fixture to exist.");
+
+	SEConfig& config = SEConfig::GetInstance();
+	const bool originalCustomMeshModel = config.custom_mesh_model;
+	config.custom_mesh_model = false;
+
+	DASDaedalus alg;
+	SBPointer<ADNPart> firstPart = alg.ApplyAlgorithm("", path.string(), true);
+	SBPointer<ADNPart> secondPart = alg.ApplyAlgorithm("", path.string(), true);
+
+	config.custom_mesh_model = originalCustomMeshModel;
+
+	requireTrue("daedalus reuse first part generated",
+		firstPart != nullptr && firstPart->GetNumberOfBaseSegments() > 0,
+		"Expected the first run to create a part with base segments.");
+	requireTrue("daedalus reuse second part generated",
+		secondPart != nullptr && secondPart->GetNumberOfBaseSegments() > 0,
+		"Expected the second run to create a part with base segments.");
+
+}
+
+void testCadnanoRejectsMalformedLegacyJson() {
+
+	const std::filesystem::path path = temporaryConfigPath("adenita_invalid_cadnano.json");
+	writeTextFile(path, R"json({"name":"broken","vstrands":{}})json");
+
+	DASCadnano cadnano;
+	SBPointer<ADNPart> part = cadnano.CreateCadnanoPart(path.string());
+
+	requireTrue("cadnano malformed json rejected",
+		part == nullptr,
+		"Expected malformed cadnano JSON to be rejected.");
+	requireTrue("cadnano malformed json reports detail",
+		cadnano.GetLastError().find("vstrands") != std::string::npos,
+		"Expected malformed cadnano JSON to report the failing field.");
+
+	std::error_code errorCode;
+	std::filesystem::remove(path, errorCode);
+
+}
+
+void testCadnanoImportsTerminalTubeAtLastPosition() {
+
+	const std::filesystem::path path = temporaryConfigPath("adenita_terminal_tube_cadnano.json");
+	writeTextFile(path, buildCadnanoLegacyTerminalTubeJson());
+
+	DASCadnano cadnano;
+	SBPointer<ADNPart> part = cadnano.CreateCadnanoPart(path.string());
+
+	requireTrue("cadnano terminal tube imports",
+		part != nullptr,
+		"Expected a cadnano tube that reaches the last position to import successfully.");
+	if (part != nullptr) {
+		requireTrue("cadnano terminal tube creates base segments",
+			part->GetNumberOfBaseSegments() > 0,
+			"Expected imported cadnano tube to create base segments.");
+		requireTrue("cadnano terminal tube creates conformations",
+			cadnano.CreateConformations(part),
+			"Expected scaffold-only cadnano import to create conformations safely.");
+	}
+
+	std::error_code errorCode;
+	std::filesystem::remove(path, errorCode);
+
+}
+
 } // namespace
 
 int main() {
@@ -1321,8 +1993,24 @@ int main() {
 	testCircularSingleStrandJsonRoundTrip();
 	testBuildTopScalesHandlesBrokenNucleotideLinks();
 	testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks();
+	testGenerateSequenceHonorsLengthAlphabetAndMaxGs();
+	testDaedalusEdgeSizeQuantizationBoundaries();
+	testBaseSegmentSetCellReplacesChild();
+	testLoopPairSettersReplaceOnlySelectedChild();
+	testSerializedNodeValidation();
+	testPolyhedronRebuildClearsPreviousTopology();
+	testPolyhedronEdgeLookupDoesNotAllocatePlaceholders();
+	testPolyhedronMetricsAndIndices();
+	testCanDoExportWritesBasicSections();
+	testOxDNAImportResultReportsSuccess();
+	testOxDNAImportResultReportsErrors();
+	testNtthalParserAcceptsValidOutput();
+	testNtthalParserRejectsInvalidOutput();
 	testPlyLoaderWeldsDuplicatedAssimpVertices();
+	testCadnanoRejectsMalformedLegacyJson();
+	testCadnanoImportsTerminalTubeAtLastPosition();
 	testDaedalusPlyRegressionDoesNotCrashOnTeardown();
+	testDaedalusInstanceCanRunTwice();
 
 	if (!failures.empty()) {
 		for (const auto& failure : failures)

@@ -18,6 +18,7 @@
 #include "SEDSDNACreatorEditor.hpp"
 #include "SEMergePartsEditor.hpp"
 
+#include "ADNSamsonContext.hpp"
 #include "DASPolyhedron.hpp"
 
 #include <cmath>
@@ -121,12 +122,8 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 		std::string format = SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(filename);
 		if (format == "cadnano") {
 
-			if (!getApp()->importFromCadnano(filename)) {
-
-				SAMSON::informUser("Adenita", "Sorry, could not load the cadnano file:\n" + QFileInfo(filename).fileName());
+			if (!getApp()->importFromCadnano(filename))
 				return;
-
-			}
 
 		}
 		else if (format == "adenita") {
@@ -216,6 +213,7 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 	QComboBox* typeSelection = new QComboBox();
 
 	auto nr = getApp()->GetNanorobot();
+	if (nr == nullptr) return;
 	auto parts = nr->GetParts();
 	int i = 0;
 	std::map<int, SBPointer<ADNPart>> indexParts;
@@ -384,6 +382,7 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 void SEAdenitaCoreSEAppGUI::onSaveSelection() {
 
 	auto nr = getApp()->GetNanorobot();
+	if (nr == nullptr) return;
 
 	QStringList itemList;
 	std::vector<SBPointer<ADNPart>> indexParts;
@@ -596,7 +595,10 @@ void SEAdenitaCoreSEAppGUI::onKinetoplast() {
 
 void SEAdenitaCoreSEAppGUI::onCalculateBindingProperties() {
 
-	if (getApp()->GetNanorobot()->GetSelectedParts().empty()) {
+	ADNNanorobot* nanorobot = getApp()->GetNanorobot();
+	if (nanorobot == nullptr) return;
+
+	if (nanorobot->GetSelectedParts().empty()) {
 
 		SAMSON::informUser(QString("Adenita: Calculate Thermodynamic Properties"), QString("The selection is empty. Please select one or more components from the document.\n"));
 		return;
@@ -820,7 +822,9 @@ void SEAdenitaCoreSEAppGUI::onCenterOnAllModels() {
 
 	// explicitly center on the just loaded system, i.e. on the last structural model in the active document
 	SBNodeIndexer nodeIndexer;
-	SAMSON::getActiveDocument()->getNodes(nodeIndexer, SBNode::StructuralModel);
+	SBDocument* document = ADNSamsonContext::GetActiveDocument(__func__);
+	if (document == nullptr) return;
+	document->getNodes(nodeIndexer, SBNode::StructuralModel);
 	SAMSON::getActiveCamera()->center(nodeIndexer, SBNode::All(), true);	// take into account the hidden dummy atoms
 
 }
@@ -967,9 +971,12 @@ void SEAdenitaCoreSEAppGUI::onTwisterEditor() {
 
 void SEAdenitaCoreSEAppGUI::onGenerateAtomicModel() {
 
-	if (getApp()->GetNanorobot()->GetNumberOfNucleotides() == 0) return;
+	ADNNanorobot* nanorobot = getApp()->GetNanorobot();
+	if (nanorobot == nullptr) return;
 
-	auto parts = getApp()->GetNanorobot()->GetParts();
+	if (nanorobot->GetNumberOfNucleotides() == 0) return;
+
+	auto parts = nanorobot->GetParts();
 
 	if (parts.size()) {
 
@@ -1009,6 +1016,12 @@ void SEAdenitaCoreSEAppGUI::onGenerateAtomicModel() {
 std::string SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(QString filename) {
 
 	FILE* fp = nullptr;
+	const auto closeFile = [&fp]() {
+		if (fp != nullptr) {
+			fclose(fp);
+			fp = nullptr;
+		}
+	};
 	try {
 
 		std::filesystem::path filePath = std::filesystem::u8path(filename.toStdString());
@@ -1026,12 +1039,17 @@ std::string SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(QString filename) {
 
 	}
 
+	if (fp == nullptr) return "unknown";
+
 	char readBuffer[65536];
 	rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
 	rapidjson::Document d;
 	d.ParseStream(is);
+	closeFile();
 
-	if (d.HasMember("vstrands"))
+	if (d.HasParseError() || !d.IsObject()) return "unknown";
+
+	if (d.HasMember("vstrands") && d["vstrands"].IsArray())
 		return "cadnano";
 	else if (d.HasMember("doubleStrands"))
 		return "adenita";
@@ -1068,7 +1086,9 @@ void SEAdenitaCoreSEAppGUI::checkForLoadedParts() {
 
 	SEAdenitaCoreSEApp* adenita = getApp();
 	SBNodeIndexer nodeIndexer;
-	SAMSON::getActiveDocument()->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNPart")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
+	SBDocument* document = ADNSamsonContext::GetActiveDocument(__func__);
+	if (document == nullptr) return;
+	document->getNodes(nodeIndexer, (SBNode::GetClass() == std::string("ADNPart")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
 	SB_FOR(SBNode * node, nodeIndexer) {
 
@@ -1455,7 +1475,11 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		btnBreakEditor->setObjectName(QStringLiteral("btnBreakEditor"));
 		btnBreakEditor->setText("Break");
 		btnBreakEditor->setToolTip("<b>Break editor</b><br/><br/>"
-			"Break single strand DNA (ssDNA) - break the bond between two consecutive nucleotides of the same strand.");
+			"Break single strand DNA (ssDNA) between two consecutive nucleotides of the same strand.<br/><br/>"
+			"The editor has two modes (you can switch between them in the editor's interface):<br/>"
+			"- 5' side: break between the clicked nucleotide and its previous nucleotide.<br/>"
+			"- 3' side: break between the clicked nucleotide and its next nucleotide.<br/><br/>"
+			"Hover preview shows the two nucleotides and bond that will be cut.");
 		btnBreakEditor->setIconSize(QSize(24, 24));
 		btnBreakEditor->setCheckable(true);
 		btnBreakEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);

@@ -145,11 +145,11 @@ SBPointer<ADNPart> SEWireframeEditor::generateCuboid(const SBPosition3& currentP
 
 		p.BuildPolyhedron(vertices, faces);
 
-		DASDaedalus* alg = new DASDaedalus();
+		DASDaedalus alg;
 		int minSize = std::min(bpSize, zSize);
 		std::string seq = "";
-		alg->SetMinEdgeLength(minSize);
-		part = alg->ApplyAlgorithm(seq, p, false);
+		alg.SetMinEdgeLength(minSize);
+		part = alg.ApplyAlgorithm(seq, p, false);
 
 		if (part != nullptr) {
 
@@ -299,10 +299,10 @@ SBPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock) {
 		}
 		else {
 
-			DASDaedalus* alg = new DASDaedalus();
-			alg->SetMinEdgeLength(min_edge_size);
+			DASDaedalus alg;
+			alg.SetMinEdgeLength(min_edge_size);
 			std::string seq = "";
-			part = alg->ApplyAlgorithm(seq, polyhedron, false, true);
+			part = alg.ApplyAlgorithm(seq, polyhedron, false, true);
 
 			if (part != nullptr && !partName.empty()) {
 
@@ -333,11 +333,11 @@ SBPointer<ADNPart> SEWireframeEditor::createMockDaedalusWireframe(DASPolyhedron&
 
 	SBPointer<ADNPart> mock = new ADNPart();
 
-	DASDaedalus* alg = new DASDaedalus();
-	alg->SetMinEdgeLength(min_edge_length);
-	alg->SetEdgeBps(min_edge_length, mock, polyhedron);
-	alg->SetVerticesPositions(mock, polyhedron, false);
-	alg->InitEdgeMap(mock, polyhedron);
+	DASDaedalus alg;
+	alg.SetMinEdgeLength(min_edge_length);
+	alg.SetEdgeBps(min_edge_length, mock, polyhedron);
+	alg.SetVerticesPositions(mock, polyhedron, false);
+	alg.InitEdgeMap(mock, polyhedron);
 
 	return mock;
 
