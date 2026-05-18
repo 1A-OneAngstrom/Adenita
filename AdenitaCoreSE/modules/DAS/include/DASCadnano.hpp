@@ -98,20 +98,23 @@ private:
 	std::map<ADNNucleotide*, int> ntPositions_;
 	std::map<ADNSingleStrand*, int> ssId_;
 	int lastKey{ -1 };
+	std::string lastError_;
 
 	SBPointer<ADNConformation> conformation3D_;
 	SBPointer<ADNConformation> conformation2D_;
 	SBPointer<ADNConformation> conformation1D_;
 
-	void ParseJSON(std::string filename);
-	void ParseCadnanoFormat3(rapidjson::Document& d);
-	void ParseCadnanoLegacy(rapidjson::Document& d);
+	void ResetState();
+	bool Fail(const std::string& message);
+	bool ParseJSON(const std::string& filename);
+	bool ParseCadnanoFormat3(rapidjson::Document& d);
+	bool ParseCadnanoLegacy(rapidjson::Document& d);
 
 	SBPointer<ADNPart> CreateCadnanoModel();
 	void CreateEdgeMap(SBPointer<ADNPart> part);
-	void CreateScaffold(SBPointer<ADNPart> part);
-	void CreateStaples(SBPointer<ADNPart> part);
-	void TraceSingleStrand(int startVStrand, int startVStrandPos, SBPointer<ADNSingleStrand> ss, SBPointer<ADNPart> part, bool scaf = true);
+	bool CreateScaffold(SBPointer<ADNPart> part);
+	bool CreateStaples(SBPointer<ADNPart> part);
+	bool TraceSingleStrand(int startVStrand, int startVStrandPos, SBPointer<ADNSingleStrand> ss, SBPointer<ADNPart> part, bool scaf = true);
 
 	static DNABlocks GetComplementaryBase(DNABlocks type);
 	bool IsThereBase(vec4 data);
@@ -122,6 +125,7 @@ public:
 	DASCadnano() = default;
 	~DASCadnano() = default;
 
+	const std::string& GetLastError() const;
 	SBPointer<ADNConformation> Get3DConformation();
 	SBPointer<ADNConformation> Get2DConformation();
 	SBPointer<ADNConformation> Get1DConformation();
@@ -129,6 +133,6 @@ public:
 	SBPointer<ADNPart> CreateCadnanoPart(std::string file);
 
 	//! once 3D model has been created, set 2D and 1D positions
-	void CreateConformations(SBPointer<ADNPart> part);
+	bool CreateConformations(SBPointer<ADNPart> part);
 
 };

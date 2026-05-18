@@ -9,6 +9,7 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <system_error>
@@ -27,6 +28,7 @@
 #include "ADNPart.hpp"
 #include "ADNSaveAndLoad.hpp"
 #include "ADNScaffoldReader.hpp"
+#include "DASCadnano.hpp"
 #include "DASAlgorithms.hpp"
 #include "DASDaedalus.hpp"
 #include "PIPrimer3.hpp"
@@ -163,6 +165,13 @@ std::string serializeJson(const rapidjson::Document& document) {
 std::filesystem::path temporaryConfigPath(const std::string& filename) {
 
 	return std::filesystem::temp_directory_path() / filename;
+
+}
+
+void writeTextFile(const std::filesystem::path& path, const std::string& contents) {
+
+	std::ofstream file(path, std::ios::binary);
+	file << contents;
 
 }
 
@@ -1591,6 +1600,46 @@ void writeBasicOxDNAFiles(const std::filesystem::path& topologyPath, const std::
 
 }
 
+std::string buildCadnanoLegacyTerminalTubeJson() {
+
+	std::ostringstream scaf;
+	std::ostringstream stap;
+	std::ostringstream loops;
+	std::ostringstream skips;
+	for (int i = 0; i < 32; ++i) {
+		if (i > 0) {
+			scaf << ",";
+			stap << ",";
+			loops << ",";
+			skips << ",";
+		}
+
+		if (i == 30) scaf << "[-1,-1,0,31]";
+		else if (i == 31) scaf << "[0,30,-1,-1]";
+		else scaf << "[-1,-1,-1,-1]";
+
+		stap << "[-1,-1,-1,-1]";
+		loops << "0";
+		skips << "0";
+	}
+
+	std::ostringstream json;
+	json << "{"
+		<< "\"name\":\"terminal_tube\","
+		<< "\"vstrands\":[{"
+		<< "\"num\":0,"
+		<< "\"col\":0,"
+		<< "\"row\":0,"
+		<< "\"scaf\":[" << scaf.str() << "],"
+		<< "\"stap\":[" << stap.str() << "],"
+		<< "\"loop\":[" << loops.str() << "],"
+		<< "\"skip\":[" << skips.str() << "]"
+		<< "}]"
+		<< "}";
+	return json.str();
+
+}
+
 void testOxDNAImportResultReportsSuccess() {
 
 	const std::filesystem::path topologyPath = temporaryConfigPath("adenita_basic_oxdna.top");
@@ -1875,6 +1924,51 @@ void testDaedalusInstanceCanRunTwice() {
 
 }
 
+void testCadnanoRejectsMalformedLegacyJson() {
+
+	const std::filesystem::path path = temporaryConfigPath("adenita_invalid_cadnano.json");
+	writeTextFile(path, R"json({"name":"broken","vstrands":{}})json");
+
+	DASCadnano cadnano;
+	SBPointer<ADNPart> part = cadnano.CreateCadnanoPart(path.string());
+
+	requireTrue("cadnano malformed json rejected",
+		part == nullptr,
+		"Expected malformed cadnano JSON to be rejected.");
+	requireTrue("cadnano malformed json reports detail",
+		cadnano.GetLastError().find("vstrands") != std::string::npos,
+		"Expected malformed cadnano JSON to report the failing field.");
+
+	std::error_code errorCode;
+	std::filesystem::remove(path, errorCode);
+
+}
+
+void testCadnanoImportsTerminalTubeAtLastPosition() {
+
+	const std::filesystem::path path = temporaryConfigPath("adenita_terminal_tube_cadnano.json");
+	writeTextFile(path, buildCadnanoLegacyTerminalTubeJson());
+
+	DASCadnano cadnano;
+	SBPointer<ADNPart> part = cadnano.CreateCadnanoPart(path.string());
+
+	requireTrue("cadnano terminal tube imports",
+		part != nullptr,
+		"Expected a cadnano tube that reaches the last position to import successfully.");
+	if (part != nullptr) {
+		requireTrue("cadnano terminal tube creates base segments",
+			part->GetNumberOfBaseSegments() > 0,
+			"Expected imported cadnano tube to create base segments.");
+		requireTrue("cadnano terminal tube creates conformations",
+			cadnano.CreateConformations(part),
+			"Expected scaffold-only cadnano import to create conformations safely.");
+	}
+
+	std::error_code errorCode;
+	std::filesystem::remove(path, errorCode);
+
+}
+
 } // namespace
 
 int main() {
@@ -1913,6 +2007,8 @@ int main() {
 	testNtthalParserAcceptsValidOutput();
 	testNtthalParserRejectsInvalidOutput();
 	testPlyLoaderWeldsDuplicatedAssimpVertices();
+	testCadnanoRejectsMalformedLegacyJson();
+	testCadnanoImportsTerminalTubeAtLastPosition();
 	testDaedalusPlyRegressionDoesNotCrashOnTeardown();
 	testDaedalusInstanceCanRunTwice();
 

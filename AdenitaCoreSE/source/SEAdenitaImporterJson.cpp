@@ -49,12 +49,8 @@ bool SEAdenitaImporterJson::importFromFile(const std::string& fileName, const SB
 	const std::string format = SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(fn);
 	if (format == "cadnano") {
 
-		if (!adenitaApp->importFromCadnano(fn, preferredFolder)) {
-
-			SAMSON::informUser("Adenita", "Sorry, could not load the cadnano file:\n" + QFileInfo(fn).fileName());
+		if (!adenitaApp->importFromCadnano(fn, preferredFolder))
 			return false;
-
-		}
 
 	}
 	else if (format == "adenita") {
@@ -83,4 +79,3 @@ bool SEAdenitaImporterJson::importFromFile(const std::string& fileName, const SB
 	return true;
 
 }
-

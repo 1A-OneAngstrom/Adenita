@@ -8,6 +8,8 @@
 #include "DASAlgorithms.hpp"
 #include "ADNSamsonContext.hpp"
 
+#include <exception>
+
 #include <QTimer>
 
 SEAdenitaCoreSEApp* SEAdenitaCoreSEApp::adenitaApp = nullptr;
@@ -145,30 +147,59 @@ bool SEAdenitaCoreSEApp::importFromCadnano(const QString& filename, SBDDocumentF
 	SAMSON::showProgressBar("Loading cadnano file...", 0, 100);
 	SAMSON::setProgressBarValue(0);
 
-	DASCadnano cad = DASCadnano();
+	const QFileInfo fileInfo(filename);
+	const auto failImport = [&](const QString& details = QString()) {
 
-	SBPointer<ADNPart> part = cad.CreateCadnanoPart(filename.toStdString());
+		SAMSON::hideProgressBar();
+		SAMSON::setStatusMessage(QString("Could not load ") + filename);
+		QString message = "Sorry, could not load the cadnano file:\n" + fileInfo.fileName();
+		if (!details.isEmpty()) message += "\n\nDetails:\n" + details;
+		SAMSON::informUser("Adenita", message);
+		return false;
+
+	};
+
+	DASCadnano cad = DASCadnano();
+	SBPointer<ADNPart> part = nullptr;
+
+	try {
+		part = cad.CreateCadnanoPart(filename.toStdString());
+	}
+	catch (const std::exception& exception) {
+		return failImport(QString("Unexpected parser error: %1").arg(exception.what()));
+	}
+	catch (...) {
+		return failImport("Unexpected parser error.");
+	}
 	SAMSON::setProgressBarValue(50);
 
 	if (part == nullptr) {
 
-		SAMSON::hideProgressBar();
-		SAMSON::setStatusMessage(QString("Could not load ") + filename);
-		SAMSON::informUser("Loading cadnano file...", "Sorry, could not load the cadnano file:\n" + filename);
-		return false;
+		return failImport(QString::fromStdString(cad.GetLastError()));
 
 	}
 
-	QFileInfo fi(filename);
-	QString s = fi.baseName();
+	QString s = fileInfo.baseName();
 	part->setName(s.toStdString());
+
+	try {
+		if (!cad.CreateConformations(part))
+			return failImport(QString::fromStdString(cad.GetLastError()));
+	}
+	catch (const std::exception& exception) {
+		return failImport(QString("Unexpected conformation error: %1").arg(exception.what()));
+	}
+	catch (...) {
+		return failImport("Unexpected conformation error.");
+	}
+
+	SAMSON::setProgressBarValue(70);
 
 	SBDocument* document = nullptr;
 	if (preferredFolder == nullptr) {
 		document = ADNSamsonContext::GetActiveDocument(__func__);
 		if (document == nullptr) {
-			SAMSON::hideProgressBar();
-			return false;
+			return failImport("No active SAMSON document is available.");
 		}
 	}
 
@@ -188,7 +219,6 @@ bool SEAdenitaCoreSEApp::importFromCadnano(const QString& filename, SBDDocumentF
 
 	SAMSON::setProgressBarValue(90);
 
-	cad.CreateConformations(part);
 	addConformationToDocument(cad.Get3DConformation(), folderWithModel);
 	addConformationToDocument(cad.Get2DConformation(), folderWithModel);
 	addConformationToDocument(cad.Get1DConformation(), folderWithModel);

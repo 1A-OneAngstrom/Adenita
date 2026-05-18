@@ -122,12 +122,8 @@ void SEAdenitaCoreSEAppGUI::onLoadFile() {
 		std::string format = SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(filename);
 		if (format == "cadnano") {
 
-			if (!getApp()->importFromCadnano(filename)) {
-
-				SAMSON::informUser("Adenita", "Sorry, could not load the cadnano file:\n" + QFileInfo(filename).fileName());
+			if (!getApp()->importFromCadnano(filename))
 				return;
-
-			}
 
 		}
 		else if (format == "adenita") {
@@ -1020,6 +1016,12 @@ void SEAdenitaCoreSEAppGUI::onGenerateAtomicModel() {
 std::string SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(QString filename) {
 
 	FILE* fp = nullptr;
+	const auto closeFile = [&fp]() {
+		if (fp != nullptr) {
+			fclose(fp);
+			fp = nullptr;
+		}
+	};
 	try {
 
 		std::filesystem::path filePath = std::filesystem::u8path(filename.toStdString());
@@ -1037,12 +1039,17 @@ std::string SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(QString filename) {
 
 	}
 
+	if (fp == nullptr) return "unknown";
+
 	char readBuffer[65536];
 	rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
 	rapidjson::Document d;
 	d.ParseStream(is);
+	closeFile();
 
-	if (d.HasMember("vstrands"))
+	if (d.HasParseError() || !d.IsObject()) return "unknown";
+
+	if (d.HasMember("vstrands") && d["vstrands"].IsArray())
 		return "cadnano";
 	else if (d.HasMember("doubleStrands"))
 		return "adenita";
