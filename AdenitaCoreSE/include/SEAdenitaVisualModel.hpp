@@ -211,6 +211,7 @@ private:
 	void														prepareNucleotides();
 	void														prepareSingleStrands();
 	void														prepareDoubleStrands();
+	void														prepareBasePairingSpikes();
 
 	void														displayNucleotides(bool forSelection = false);
 	void														displaySingleStrands(bool forSelection = false);
@@ -256,6 +257,7 @@ private:
 
 	SBPointer<SBSphereArray>									sphereArray{ nullptr };
 	SBPointer<SBCylinderArray>									cylinderArray{ nullptr };
+	SBPointer<SBCylinderArray>									basePairingCylinderArray{ nullptr };
 
 	//@}
 
@@ -276,6 +278,19 @@ private:
 	
 	ADNArray<SBNodeMaterial*>									materialData_;
 	ADNArray<SBNode*>											nodeData_;
+
+	unsigned int												nPositionsBasePairing_{ 0 };
+	unsigned int												nCylindersBasePairing_{ 0 };
+	ADNArray<float>												colorsBasePairing_;
+	ADNArray<float>												positionsBasePairing_;
+	ADNArray<float>												radiiBasePairing_;
+	ADNArray<unsigned int>										flagsBasePairing_;
+	ADNArray<unsigned int>										nodeIndicesBasePairing_;
+	ADNArray<unsigned int>										indicesBasePairing_;
+	ADNArray<unsigned int>										capDataBasePairing_;
+
+	ADNArray<SBNodeMaterial*>									materialDataBasePairing_;
+	ADNArray<SBNode*>											nodeDataBasePairing_;
 
 	//@}
 

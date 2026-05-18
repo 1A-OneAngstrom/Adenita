@@ -16,8 +16,10 @@
 
 //#include "SBGRenderOpenGLFunctions.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
+#include <set>
 
 SB_OPENGL_FUNCTIONS* SEAdenitaVisualModel::gl = nullptr;
 
@@ -33,6 +35,8 @@ SEAdenitaVisualModel::SEAdenitaVisualModel() {
 	getGeometryArrayIndexer().addReferenceTarget(sphereArray());
 	cylinderArray = new SBCylinderArray(0, 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
 	getGeometryArrayIndexer().addReferenceTarget(cylinderArray());
+	basePairingCylinderArray = new SBCylinderArray(0, 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	getGeometryArrayIndexer().addReferenceTarget(basePairingCylinderArray());
 
 	init();
 
@@ -53,6 +57,8 @@ SEAdenitaVisualModel::SEAdenitaVisualModel(const SBNodeIndexer& nodeIndexer) {
 	getGeometryArrayIndexer().addReferenceTarget(sphereArray());
 	cylinderArray = new SBCylinderArray(0, 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
 	getGeometryArrayIndexer().addReferenceTarget(cylinderArray());
+	basePairingCylinderArray = new SBCylinderArray(0, 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	getGeometryArrayIndexer().addReferenceTarget(basePairingCylinderArray());
 
 	SEAdenitaCoreSEApp* adenitaApp = SEAdenitaCoreSEApp::getAdenitaApp();
 	if (adenitaApp) {
@@ -95,6 +101,22 @@ SEAdenitaVisualModel::~SEAdenitaVisualModel() {
 		cylinderArray->setFlagData(nullptr);
 		cylinderArray->setNodeIndexData(nullptr);
 	
+	}
+
+	if (basePairingCylinderArray.isValid()) {
+
+		basePairingCylinderArray->setNumberOfGeometries(0);
+		basePairingCylinderArray->setNumberOfPositions(0);
+		basePairingCylinderArray->setPositionData(nullptr);
+		basePairingCylinderArray->setIndexData(nullptr);
+		basePairingCylinderArray->setColorData(nullptr);
+		basePairingCylinderArray->setMaterialData(nullptr);
+		basePairingCylinderArray->setNodeData(nullptr);
+		basePairingCylinderArray->setRadiusData(nullptr);
+		basePairingCylinderArray->setCapData(nullptr);
+		basePairingCylinderArray->setFlagData(nullptr);
+		basePairingCylinderArray->setNodeIndexData(nullptr);
+
 	}
 
 	ADNLogger::Log(std::string("Adenita Visual Model has been destroyed"));
@@ -805,6 +827,7 @@ void SEAdenitaVisualModel::prepareDiscreteScalesDim() {
 	prepareNucleotides();
 	prepareSingleStrands();
 	prepareDoubleStrands();
+	prepareBasePairingSpikes();
 	prepareDimensions();
 
 }
@@ -975,7 +998,7 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 			flags_.GetArray(),
 			false);
 
-		if (showBasePairing_) displayBasePairConnections(renderingPass, false);
+		if (getShowBasePairingFlag()) displayBasePairConnections(renderingPass, false);
 		//if (highlightType_ == HighlightType::TAGGED) displayTags();
 		displayForDebugging(renderingPass);
 
@@ -1032,7 +1055,7 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 			flags_.GetArray(),
 			false, SBSpatialTransform::identity, inheritedOpacity);
 
-		if (showBasePairing_) displayBasePairConnections(renderingPass, false);
+		if (getShowBasePairingFlag()) displayBasePairConnections(renderingPass, false);
 		//if (highlightType_ == HighlightType::TAGGED) displayTags();
 		displayForDebugging(renderingPass);
 
@@ -1062,7 +1085,7 @@ void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass
 			flags_.GetArray(),
 			true);
 
-		if (showBasePairing_) displayBasePairConnections(renderingPass, false);
+		if (getShowBasePairingFlag()) displayBasePairConnections(renderingPass, false);
 		//if (highlightType_ == HighlightType::TAGGED) displayTags();
 		displayForDebugging(renderingPass);
 
@@ -1386,6 +1409,16 @@ void SEAdenitaVisualModel::changeHighlightFlag() {
 			flagsDS_(index) = bs->getInheritedFlags();
 
 		}
+
+	}
+
+	for (int i = 0; i < nodeDataBasePairing_.GetNumElements(); ++i) {
+
+		ADNNucleotide* nt = static_cast<ADNNucleotide*>(nodeDataBasePairing_(i));
+		if (nt == nullptr) continue;
+		if (i >= flagsBasePairing_.GetNumElements()) continue;
+
+		flagsBasePairing_(i) = nt->getInheritedFlags();
 
 	}
 
@@ -2261,6 +2294,41 @@ void SEAdenitaVisualModel::display(SBNode::RenderingPass renderingPass) {
 
 		}
 
+		if (basePairingCylinderArray.isValid()) {
+
+			if (getShowBasePairingFlag()) {
+
+				basePairingCylinderArray->setNumberOfGeometries(nCylindersBasePairing_);
+				basePairingCylinderArray->setNumberOfPositions(nPositionsBasePairing_);
+				basePairingCylinderArray->setPositionData(positionsBasePairing_.GetArray());
+				basePairingCylinderArray->setIndexData(indicesBasePairing_.GetArray());
+				basePairingCylinderArray->setColorData(colorsBasePairing_.GetArray());
+				basePairingCylinderArray->setMaterialData(materialDataBasePairing_.GetArray());
+				basePairingCylinderArray->setNodeData(nodeDataBasePairing_.GetArray());
+				basePairingCylinderArray->setRadiusData(radiiBasePairing_.GetArray());
+				basePairingCylinderArray->setCapData(capDataBasePairing_.GetArray());
+				basePairingCylinderArray->setFlagData(flagsBasePairing_.GetArray());
+				basePairingCylinderArray->setNodeIndexData(nodeIndicesBasePairing_.GetArray());
+
+			}
+			else {
+
+				basePairingCylinderArray->setNumberOfGeometries(0);
+				basePairingCylinderArray->setNumberOfPositions(0);
+				basePairingCylinderArray->setPositionData(nullptr);
+				basePairingCylinderArray->setIndexData(nullptr);
+				basePairingCylinderArray->setColorData(nullptr);
+				basePairingCylinderArray->setMaterialData(nullptr);
+				basePairingCylinderArray->setNodeData(nullptr);
+				basePairingCylinderArray->setRadiusData(nullptr);
+				basePairingCylinderArray->setCapData(nullptr);
+				basePairingCylinderArray->setFlagData(nullptr);
+				basePairingCylinderArray->setNodeIndexData(nullptr);
+
+			}
+
+		}
+
 		if (sphereArray.isValid()) {
 
 			sphereArray->setNumberOfGeometries(nPositions_);
@@ -2516,6 +2584,109 @@ void SEAdenitaVisualModel::prepareDoubleStrands() {
 
 }
 
+void SEAdenitaVisualModel::prepareBasePairingSpikes() {
+
+	nPositionsBasePairing_ = 0;
+	nCylindersBasePairing_ = 0;
+	positionsBasePairing_ = ADNArray<float>(3, 0);
+	indicesBasePairing_ = ADNArray<unsigned int>(0);
+	radiiBasePairing_ = ADNArray<float>(0);
+	colorsBasePairing_ = ADNArray<float>(4, 0);
+	capDataBasePairing_ = ADNArray<unsigned int>(0);
+	flagsBasePairing_ = ADNArray<unsigned int>(0);
+	nodeIndicesBasePairing_ = ADNArray<unsigned int>(0);
+	materialDataBasePairing_ = ADNArray<SBNodeMaterial*>(0);
+	nodeDataBasePairing_ = ADNArray<SBNode*>(0);
+
+	if (!nanorobot_) return;
+
+	auto baseColors = &colors_.at(ColorType::REGULAR);
+	auto parts = nanorobot_->GetParts();
+
+	std::map<ADNNucleotide*, unsigned int> basePairingNtMap;
+	std::vector<std::pair<ADNNucleotide*, ADNNucleotide*>> basePairs;
+	std::set<std::pair<ADNNucleotide*, ADNNucleotide*>> uniqueBasePairs;
+
+	unsigned int nextIndex = 0;
+	SB_FOR(ADNPart * part, parts) {
+
+		if (part == nullptr) continue;
+
+		auto singleStrands = part->GetSingleStrands();
+		SB_FOR(SBPointer<ADNSingleStrand> singleStrand, singleStrands) {
+
+			if (singleStrand == nullptr) continue;
+
+			auto nucleotides = singleStrand->GetNucleotides();
+			SB_FOR(SBPointer<ADNNucleotide> nucleotide, nucleotides) {
+
+				if (nucleotide == nullptr) continue;
+
+				SBPointer<ADNNucleotide> nucleotidePair = nucleotide->GetPair();
+				if (nucleotidePair == nullptr) continue;
+
+				if (!nucleotide->isVisible() || !nucleotidePair->isVisible()) continue;
+
+				if (basePairingNtMap.find(nucleotide()) == basePairingNtMap.end())
+					basePairingNtMap.insert(std::make_pair(nucleotide(), nextIndex++));
+
+				if (basePairingNtMap.find(nucleotidePair()) == basePairingNtMap.end())
+					basePairingNtMap.insert(std::make_pair(nucleotidePair(), nextIndex++));
+
+				const auto normalizedPair = std::minmax(nucleotide(), nucleotidePair());
+				if (uniqueBasePairs.insert(normalizedPair).second)
+					basePairs.push_back(normalizedPair);
+
+			}
+
+		}
+
+	}
+
+	nPositionsBasePairing_ = static_cast<unsigned int>(basePairingNtMap.size());
+	nCylindersBasePairing_ = static_cast<unsigned int>(basePairs.size());
+	positionsBasePairing_ = ADNArray<float>(3, nPositionsBasePairing_);
+	indicesBasePairing_ = ADNArray<unsigned int>(nCylindersBasePairing_ * 2);
+	radiiBasePairing_ = ADNArray<float>(nPositionsBasePairing_);
+	colorsBasePairing_ = ADNArray<float>(4, nPositionsBasePairing_);
+	capDataBasePairing_ = ADNArray<unsigned int>(nPositionsBasePairing_);
+	flagsBasePairing_ = ADNArray<unsigned int>(nPositionsBasePairing_);
+	nodeIndicesBasePairing_ = ADNArray<unsigned int>(nPositionsBasePairing_);
+	materialDataBasePairing_ = ADNArray<SBNodeMaterial*>(nPositionsBasePairing_);
+	nodeDataBasePairing_ = ADNArray<SBNode*>(nPositionsBasePairing_);
+
+	SBNodeMaterial* material = getMaterial();
+	for (const auto& p : basePairingNtMap) {
+
+		ADNNucleotide* nt = p.first;
+		const unsigned int index = p.second;
+
+		if (nt == nullptr) continue;
+
+		const SBPosition3 pos = nt->GetBackbonePosition();
+		positionsBasePairing_(index, 0) = static_cast<float>(pos[0].getValue());
+		positionsBasePairing_(index, 1) = static_cast<float>(pos[1].getValue());
+		positionsBasePairing_(index, 2) = static_cast<float>(pos[2].getValue());
+
+		radiiBasePairing_(index) = SEConfig::GetInstance().nucleotide_E_radius;
+		colorsBasePairing_.SetRow(index, baseColors->GetColor(nt));
+		flagsBasePairing_(index) = nt->getInheritedFlags();
+		capDataBasePairing_(index) = 1;
+		nodeIndicesBasePairing_(index) = nt->getNodeIndex();
+		materialDataBasePairing_(index) = material;
+		nodeDataBasePairing_(index) = nt;
+
+	}
+
+	for (size_t i = 0; i < basePairs.size(); ++i) {
+
+		indicesBasePairing_(2 * i) = basePairingNtMap[basePairs[i].first];
+		indicesBasePairing_(2 * i + 1) = basePairingNtMap[basePairs[i].second];
+
+	}
+
+}
+
 void SEAdenitaVisualModel::displayNucleotides(bool forSelection) {
 
 	if (forSelection) {
@@ -2651,93 +2822,35 @@ void SEAdenitaVisualModel::displayBasePairConnections(SBNode::RenderingPass rend
 
 	if (scale_ < static_cast<float>(Scale::NUCLEOTIDES) && scale_ > static_cast<float>(Scale::SINGLE_STRANDS)) return;
 
-	const SEConfig& config = SEConfig::GetInstance();
+	if (nCylindersBasePairing_ == 0 || nPositionsBasePairing_ == 0) return;
 
-	auto baseColors = &colors_.at(ColorType::REGULAR);
-	auto parts = nanorobot_->GetParts();
+	ADNArray<float> selectedRadii;
+	ADNArray<float>* radii = &radiiBasePairing_;
 
-	unsigned int numPairedNucleotides = 0;
-	std::map<ADNNucleotide*, unsigned int> ntMap;
+	if (onlySelected) {
 
-	//determine how many nucleotides have pairs 
+		selectedRadii = radiiBasePairing_;
+		radii = &selectedRadii;
 
-	SB_FOR(ADNPart * part, parts) {
+		for (unsigned int i = 0; i < nCylindersBasePairing_; ++i) {
 
-		if (part == nullptr) continue;
+			const unsigned int firstIndex = indicesBasePairing_(2 * i);
+			const unsigned int secondIndex = indicesBasePairing_(2 * i + 1);
+			if (firstIndex >= nPositionsBasePairing_ || secondIndex >= nPositionsBasePairing_) continue;
 
-		auto singleStrands = part->GetSingleStrands();
-		SB_FOR(SBPointer<ADNSingleStrand> singleStrand, singleStrands) {
+			ADNNucleotide* firstNucleotide = static_cast<ADNNucleotide*>(nodeDataBasePairing_(firstIndex));
+			ADNNucleotide* secondNucleotide = static_cast<ADNNucleotide*>(nodeDataBasePairing_(secondIndex));
+			const bool isSelected =
+				(firstNucleotide != nullptr && firstNucleotide->isSelected()) ||
+				(secondNucleotide != nullptr && secondNucleotide->isSelected());
 
-			if (singleStrand == nullptr) continue;
+			if (!isSelected) {
 
-			auto nucleotides = singleStrand->GetNucleotides();
-			SB_FOR(SBPointer<ADNNucleotide> nucleotide, nucleotides) {
-
-				if (nucleotide == nullptr) continue;
-				if (nucleotide->GetPair() == nullptr) continue;
-
-				// skip if at least one of the paired nucleotides is not visible
-				if (!nucleotide->isVisible() || !nucleotide->GetPair()->isVisible()) continue;
-
-				if (nucleotide->GetPair() != nullptr) {
-
-					ntMap.insert(std::make_pair(nucleotide(), numPairedNucleotides));
-					++numPairedNucleotides;
-
-				}
+				(*radii)(firstIndex) = 0.0f;
+				(*radii)(secondIndex) = 0.0f;
 
 			}
 
-		}
-
-	}
-
-	const unsigned int nPositions = boost::numeric_cast<unsigned int>(ntMap.size());
-	const unsigned int nCylinders = nPositions / 2;
-
-	ADNArray<float> positions = ADNArray<float>(3, nPositions);
-	ADNArray<unsigned int> indices = ADNArray<unsigned int>(nCylinders * 2);
-	ADNArray<float> radii = ADNArray<float>(nPositions);
-	ADNArray<float> colors = ADNArray<float>(4, nPositions);
-	ADNArray<unsigned int> caps = ADNArray<unsigned int>(nPositions);
-	ADNArray<unsigned int> flags = ADNArray<unsigned int>(nPositions);
-
-	unsigned int j = 0;
-	std::vector<unsigned int> registerIndices;
-	for (const auto& p : ntMap) {
-
-		SBPointer<ADNNucleotide> nt = p.first;
-		if (nt == nullptr) continue;
-		SBPointer<ADNNucleotide> nucleotidePair = nt->GetPair();
-		if (nucleotidePair == nullptr) continue;
-		unsigned int index = p.second;
-
-		const SBPosition3 pos = nt->GetBackbonePosition();
-
-		positions(index, 0) = static_cast<float>(pos[0].getValue());
-		positions(index, 1) = static_cast<float>(pos[1].getValue());
-		positions(index, 2) = static_cast<float>(pos[2].getValue());
-
-		radii(index) = config.nucleotide_E_radius;
-		colors.SetRow(index, baseColors->GetColor(nt));
-		flags(index) = 0;
-		caps(index) = 1;
-
-		if (std::find(registerIndices.begin(), registerIndices.end(), ntMap[nucleotidePair()]) == registerIndices.end()) {
-
-			// we only need to insert the indices once per pair
-			indices(2 * j) = index;
-			indices(2 * j + 1) = ntMap[nucleotidePair()];
-			registerIndices.push_back(index);
-
-			++j;
-
-		}
-
-		if (onlySelected) {
-			if (!nt->isSelected() && !nucleotidePair->isSelected()) {
-				radii(index) = 0;
-			}
 		}
 
 	}
@@ -2747,14 +2860,14 @@ void SEAdenitaVisualModel::displayBasePairConnections(SBNode::RenderingPass rend
 	if ((renderingPass == SBNode::RenderingPass::OpaqueGeometry) && (inheritedOpacity == 1.0f)) {
 
 		SAMSON::displayCylinders(
-			nCylinders,
-			nPositions,
-			indices.GetArray(),
-			positions.GetArray(),
-			radii.GetArray(),
-			caps.GetArray(),
-			colors.GetArray(),
-			flags.GetArray(),
+			nCylindersBasePairing_,
+			nPositionsBasePairing_,
+			indicesBasePairing_.GetArray(),
+			positionsBasePairing_.GetArray(),
+			radii->GetArray(),
+			capDataBasePairing_.GetArray(),
+			colorsBasePairing_.GetArray(),
+			flagsBasePairing_.GetArray(),
 			false);
 
 	}
@@ -2767,28 +2880,28 @@ void SEAdenitaVisualModel::displayBasePairConnections(SBNode::RenderingPass rend
 		gl->glColorMask(false, false, false, false);
 
 		SAMSON::displayCylinders(
-			nCylinders,
-			nPositions,
-			indices.GetArray(),
-			positions.GetArray(),
-			radii.GetArray(),
-			caps.GetArray(),
-			colors.GetArray(),
-			flags.GetArray(),
+			nCylindersBasePairing_,
+			nPositionsBasePairing_,
+			indicesBasePairing_.GetArray(),
+			positionsBasePairing_.GetArray(),
+			radii->GetArray(),
+			capDataBasePairing_.GetArray(),
+			colorsBasePairing_.GetArray(),
+			flagsBasePairing_.GetArray(),
 			false, SBSpatialTransform::identity, inheritedOpacity
 		);
 
 		gl->glColorMask(true, true, true, true);
 
 		SAMSON::displayCylinders(
-			nCylinders,
-			nPositions,
-			indices.GetArray(),
-			positions.GetArray(),
-			radii.GetArray(),
-			caps.GetArray(),
-			colors.GetArray(),
-			flags.GetArray(),
+			nCylindersBasePairing_,
+			nPositionsBasePairing_,
+			indicesBasePairing_.GetArray(),
+			positionsBasePairing_.GetArray(),
+			radii->GetArray(),
+			capDataBasePairing_.GetArray(),
+			colorsBasePairing_.GetArray(),
+			flagsBasePairing_.GetArray(),
 			false, SBSpatialTransform::identity, inheritedOpacity
 		);
 
@@ -2798,14 +2911,14 @@ void SEAdenitaVisualModel::displayBasePairConnections(SBNode::RenderingPass rend
 	else if (renderingPass == SBNode::RenderingPass::ShadowingGeometry) {
 
 		SAMSON::displayCylinders(
-			nCylinders,
-			nPositions,
-			indices.GetArray(),
-			positions.GetArray(),
-			radii.GetArray(),
-			caps.GetArray(),
-			colors.GetArray(),
-			flags.GetArray(),
+			nCylindersBasePairing_,
+			nPositionsBasePairing_,
+			indicesBasePairing_.GetArray(),
+			positionsBasePairing_.GetArray(),
+			radii->GetArray(),
+			capDataBasePairing_.GetArray(),
+			colorsBasePairing_.GetArray(),
+			flagsBasePairing_.GetArray(),
 			true
 		);
 
@@ -3287,7 +3400,6 @@ ADNArray<float> SEAdenitaVisualModel::calcPropertyColor(int colorSchemeIdx, floa
 	return color;
 
 }
-
 
 bool SEAdenitaVisualModel::getShowBasePairingFlag() const { return showBasePairing_; }
 void SEAdenitaVisualModel::setShowBasePairingFlag(bool show) {
