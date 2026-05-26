@@ -3449,6 +3449,100 @@ void SEAdenitaVisualModel::expandBounds(SBIAPosition3& bounds) const {
 	// SAMSON Element generator pro tip: this function is called by SAMSON to determine the model's spatial bounds. 
 	// When this function returns, the bounds interval vector should contain the visual model. 
 
+	auto expandWithPositions =
+		[&bounds](
+			bool& initialized,
+			SBIAPosition3& modelBounds,
+			const unsigned int nPositions,
+			const ADNArray<float>& positions,
+			const ADNArray<float>& firstRadii,
+			const ADNArray<float>* secondRadii) {
+
+				const unsigned int storedPositions =
+					static_cast<unsigned int>(positions.GetNumElements());
+
+				const unsigned int positionCount =
+					nPositions < storedPositions ? nPositions : storedPositions;
+
+				for (unsigned int i = 0; i < positionCount; ++i) {
+
+					double radius = 0.0;
+
+					if (i < static_cast<unsigned int>(firstRadii.GetNumElements()))
+						radius = static_cast<double>(firstRadii(i));
+
+					if (secondRadii &&
+						i < static_cast<unsigned int>(secondRadii->GetNumElements())) {
+
+						const double secondRadius = static_cast<double>((*secondRadii)(i));
+						if (secondRadius > radius) radius = secondRadius;
+
+					}
+
+					if (radius < 0.0) radius = 0.0;
+
+					const double x = static_cast<double>(positions(i, 0));
+					const double y = static_cast<double>(positions(i, 1));
+					const double z = static_cast<double>(positions(i, 2));
+
+					if (!std::isfinite(x) ||
+						!std::isfinite(y) ||
+						!std::isfinite(z) ||
+						!std::isfinite(radius)) {
+
+						continue;
+
+					}
+
+					const SBIAPosition3 positionBounds(
+						SBQuantity::position(x - radius), SBQuantity::position(x + radius),
+						SBQuantity::position(y - radius), SBQuantity::position(y + radius),
+						SBQuantity::position(z - radius), SBQuantity::position(z + radius));
+
+					if (initialized) {
+
+						modelBounds.fit(modelBounds, positionBounds);
+
+					}
+					else {
+
+						modelBounds = positionBounds;
+						initialized = true;
+
+					}
+
+				}
+
+		};
+
+	bool initialized = false;
+	SBIAPosition3 modelBounds;
+
+	// Main transition geometry: spheres use radiiV_, cylinders use radiiE_.
+	expandWithPositions(
+		initialized,
+		modelBounds,
+		nPositions_,
+		positions_,
+		radiiV_,
+		&radiiE_);
+
+	// Base-pairing spike geometry, when enabled.
+	if (getShowBasePairingFlag()) {
+
+		expandWithPositions(
+			initialized,
+			modelBounds,
+			nPositionsBasePairing_,
+			positionsBasePairing_,
+			radiiBasePairing_,
+			nullptr);
+
+	}
+
+	if (initialized)
+		bounds.fit(bounds, modelBounds);
+
 }
 
 void SEAdenitaVisualModel::collectAmbientOcclusion(const SBPosition3& boxOrigin, const SBPosition3& boxSize, unsigned int nCellsX, unsigned int nCellsY, unsigned int nCellsZ, float* ambientOcclusionData) {
@@ -3503,11 +3597,11 @@ void SEAdenitaVisualModel::onDocumentEvent(SBDocumentEvent* documentEvent) {
 	if (!node) return;
 	if (node->getProxy()->getElementUUID() != SBUUID(SB_ELEMENT_UUID)) return;
 
-	// handle addition and deletion of ADN nodes for updating the Adenita Visual Model
+	// handle addition and deletion of ADN nodes for updating the Adenita visual model
 
 	if (eventType == SBDocumentEvent::StructuralModelAdded || eventType == SBDocumentEvent::StructuralModelRemoved) {
 
-		if (node->getProxy()->getName() == "ADNPart") {
+		if (SEAdenitaCoreSEApp::isAdenitaPart(node)) {
 
 			if (eventType == SBDocumentEvent::StructuralModelRemoved)
 				static_cast<ADNPart*>(node)->disconnectStructuralSignalFromSlot(this, SB_SLOT(&SEAdenitaVisualModel::onStructuralEvent));

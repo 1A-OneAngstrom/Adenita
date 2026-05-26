@@ -7,12 +7,66 @@
 #include "PICrossovers.hpp"
 #include "DASAlgorithms.hpp"
 #include "ADNSamsonContext.hpp"
+#include "ADNAtom.hpp"
+#include "ADNGeometrySynchronization.hpp"
 
 #include <exception>
 
+#include <QCoreApplication>
 #include <QTimer>
 
 SEAdenitaCoreSEApp* SEAdenitaCoreSEApp::adenitaApp = nullptr;
+
+namespace {
+
+bool g_pendingSAMLoadVisualModelReset = false;
+
+class ScopedGeometrySyncGuard {
+
+public:
+
+	explicit ScopedGeometrySyncGuard(bool& flag) : flag_(flag), oldValue_(flag) {
+
+		flag_ = true;
+
+	}
+
+	~ScopedGeometrySyncGuard() {
+
+		flag_ = oldValue_;
+
+	}
+
+private:
+
+	bool& flag_;
+	bool oldValue_;
+
+};
+
+void syncFramesForAtomPositionChange(SBNode* node) {
+
+	SBPointer<ADNAtom> atom = dynamic_cast<ADNAtom*>(node);
+	if (atom == nullptr) return;
+
+	SBPointer<ADNNucleotide> nucleotide = dynamic_cast<ADNNucleotide*>(atom->getNucleotide());
+	if (nucleotide != nullptr) {
+
+		ADNGeometrySynchronization::syncNucleotideFrameFromGeometry(*nucleotide);
+		SBPointer<ADNBaseSegment> baseSegment = nucleotide->GetBaseSegment();
+		if (baseSegment != nullptr)
+			ADNGeometrySynchronization::syncBaseSegmentFrameFromGeometry(*baseSegment);
+		return;
+
+	}
+
+	SBPointer<ADNBaseSegment> baseSegment = dynamic_cast<ADNBaseSegment*>(atom->getParent());
+	if (baseSegment != nullptr)
+		ADNGeometrySynchronization::syncBaseSegmentFrameFromGeometry(*baseSegment);
+
+}
+
+} // namespace
 
 SEAdenitaCoreSEApp::SEAdenitaCoreSEApp() {
 
@@ -297,6 +351,17 @@ void SEAdenitaCoreSEApp::AddNtThreeP(int numNt) {
 
 }
 
+/// \brief Explicitly centers on all Adenita structures in the active document
+void SEAdenitaCoreSEApp::centerCameraOnAllADNParts() {
+
+	SBNodeIndexer nodeIndexer;
+	SEAdenitaCoreSEApp::getAdenitaParts(nodeIndexer);
+
+	if (nodeIndexer.size())
+		SAMSON::getActiveCamera()->center(nodeIndexer, SBNode::All());	// take into account the hidden dummy atoms
+
+}
+
 void SEAdenitaCoreSEApp::centerCameraOnLoadedSystem() {
 
 #if 1
@@ -355,6 +420,56 @@ void SEAdenitaCoreSEApp::GenerateSequence(double gcCont, int maxContGs, bool ove
 
 }
 
+bool SEAdenitaCoreSEApp::isAdenitaPart(SBNode* node) {
+
+	if (!node) return false;
+
+	if (SBProxy* proxy = node->getProxy())
+		return (proxy->getName() == "ADNPart" && proxy->getElementUUID() == SBUUID(SB_ELEMENT_UUID));
+
+	return false;
+
+}
+
+void SEAdenitaCoreSEApp::getAdenitaParts(SBNodeIndexer& nodeIndexer, SBNode* parent) {
+
+	if (!parent)
+		parent = ADNSamsonContext::GetActiveDocument(__func__);
+
+	if (!parent) return;
+
+	SBNodeIndexer structuralModels;
+	parent->getNodes(structuralModels, SBNode::StructuralModel);
+
+	SB_FOR(SBNode * node, structuralModels) {
+
+		if (SEAdenitaCoreSEApp::isAdenitaPart(node))
+			nodeIndexer.push_back(node);
+
+	}
+
+}
+
+/// \brief Returns whether `node` has an Adenita's structural model (`ADNPart`)
+/// \param node A folder or document node.
+bool SEAdenitaCoreSEApp::hasAdenitaPart(SBNode* parent) {
+
+	if (!parent) return false;
+
+	SBNodeIndexer structuralModels;
+	parent->getNodes(structuralModels, SBNode::StructuralModel);
+
+	SB_FOR(SBNode * node, structuralModels) {
+
+		if (SEAdenitaCoreSEApp::isAdenitaPart(node))
+			return true;
+
+	}
+
+	return false;
+
+}
+
 void SEAdenitaCoreSEApp::requestVisualModelUpdate() {
 
 	SEAdenitaVisualModel* adenitaVisualModel = SEAdenitaCoreSEApp::getVisualModel();
@@ -375,21 +490,50 @@ void SEAdenitaCoreSEApp::requestVisualModelUpdate() {
 
 }
 
+void SEAdenitaCoreSEApp::requestDeferredVisualModelResetAfterSAMLoad() {
+
+	if (g_pendingSAMLoadVisualModelReset) return;
+
+	g_pendingSAMLoadVisualModelReset = true;
+
+	// Note: QTimer::singleShot(0, ...) should be enough in synchronous treatment within one event-loop turn.
+
+	QTimer::singleShot(0, QCoreApplication::instance(), []() {
+
+		g_pendingSAMLoadVisualModelReset = false;
+
+		SBDocument* document = ADNSamsonContext::GetActiveDocument(__func__);
+
+		if (!document) return;
+		if (!SEAdenitaCoreSEApp::hasAdenitaPart(document)) return;
+
+		// ensure that Adenita app is initialized
+		SEAdenitaCoreSEApp* adenitaApp = SEAdenitaCoreSEApp::getAdenitaApp();
+		if (!adenitaApp) return;
+
+		SEAdenitaCoreSEApp::resetVisualModel(document);
+		SAMSON::requestViewportUpdate();
+
+		// note: calling this will change the camera position saved in the document which is not a desired behaviour, so use it only for debug/tests
+		//SEAdenitaCoreSEApp::centerCameraOnAllADNParts();
+
+		});
+
+}
+
 void SEAdenitaCoreSEApp::resetVisualModel() {
 
-	SBDocument* document = ADNSamsonContext::GetActiveDocument(__func__);
-	if (document == nullptr) return;
-	SEAdenitaCoreSEApp::resetVisualModel(document);
+	SEAdenitaCoreSEApp::resetVisualModel(ADNSamsonContext::GetActiveDocument(__func__));
 
 }
 
 void SEAdenitaCoreSEApp::resetVisualModel(SBNode* parent) {
 
+	if (!parent) return;
+
 	// create visual model per nanorobot
 
-	SEAdenitaVisualModel* adenitaVisualModel = SEAdenitaCoreSEApp::getVisualModel(parent);
-
-	if (adenitaVisualModel) {
+	if (SEAdenitaVisualModel* adenitaVisualModel = SEAdenitaCoreSEApp::getVisualModel(parent)) {
 
 		adenitaVisualModel->update();
 		SAMSON::requestViewportUpdate();
@@ -804,7 +948,7 @@ void SEAdenitaCoreSEApp::ExportToCanDo(const QString& filename) {
 
 	SB_FOR(auto node, nodeIndexer) {
 
-		if (node->isSelected() && node->getProxy()->getName() == "ADNPart") {
+		if (node->isSelected() && SEAdenitaCoreSEApp::isAdenitaPart(node)) {
 
 			SBPointer<ADNPart> part = static_cast<ADNPart*>(node);
 			parts.addReferenceTarget(part());
@@ -969,7 +1113,7 @@ void SEAdenitaCoreSEApp::onDocumentEvent(SBDocumentEvent* documentEvent) {
 
 	if (eventType == SBDocumentEvent::StructuralModelAdded || eventType == SBDocumentEvent::StructuralModelRemoved) {
 
-		if (node->getProxy()->getName() == "ADNPart")
+		if (SEAdenitaCoreSEApp::isAdenitaPart(node))
 			requestVisualModelUpdate();
 
 	}
@@ -983,7 +1127,7 @@ void SEAdenitaCoreSEApp::onDocumentEvent(SBDocumentEvent* documentEvent) {
 
 		// on delete a registered ADNPart
 
-		if (node->getProxy()->getName() == "ADNPart") {
+		if (SEAdenitaCoreSEApp::isAdenitaPart(node)) {
 
 			SBPointer<ADNPart> part = dynamic_cast<ADNPart*>(node);
 			ADNNanorobot* nanorobot = GetNanorobot();
@@ -1004,6 +1148,18 @@ void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* structuralEvent) {
 	if (node->getProxy()->getElementUUID() != SBUUID(SB_ELEMENT_UUID)) return;
 
 	const std::string nodeClassName = node->getProxy()->getName();
+
+	if (eventType == SBStructuralEvent::AtomPositionChanged) {
+
+		if (!geometrySyncInProgress_) {
+
+			ScopedGeometrySyncGuard guard(geometrySyncInProgress_);
+			syncFramesForAtomPositionChange(node);
+
+		}
+		return;
+
+	}
 
 #if 0
 	// is handled in the Adenita Visual Model

@@ -21,6 +21,9 @@
 #include "ADNConfig.hpp"
 #include "ADNConfigFileIO.hpp"
 #include "ADNConfigJson.hpp"
+#include "ADNFrameAdapters.hpp"
+#include "ADNFrameUtils.hpp"
+#include "ADNGeometrySynchronization.hpp"
 #include "ADNJsonValidation.hpp"
 #include "ADNLoop.hpp"
 #include "ADNNucleotide.hpp"
@@ -144,6 +147,28 @@ void requireThrowsRuntimeErrorAt(const std::string& name,
 #define requireNear(name, actual, expected, tolerance) requireNearAt((name), (actual), (expected), (tolerance), __FILE__, __LINE__, __func__)
 #define requireThrowsInt(name, callable, expectedValue) requireThrowsIntAt((name), (callable), (expectedValue), __FILE__, __LINE__, __func__)
 #define requireThrowsRuntimeError(name, callable) requireThrowsRuntimeErrorAt((name), (callable), __FILE__, __LINE__, __func__)
+
+void requireVecNear(const std::string& name,
+	const ADNFrameUtils::Vec3& actual,
+	const ADNFrameUtils::Vec3& expected,
+	double tolerance) {
+
+	requireNear(name + " x", actual.x, expected.x, tolerance);
+	requireNear(name + " y", actual.y, expected.y, tolerance);
+	requireNear(name + " z", actual.z, expected.z, tolerance);
+
+}
+
+void requirePositionNear(const std::string& name,
+	const SBPosition3& actual,
+	const SBPosition3& expected,
+	double tolerance) {
+
+	requireNear(name + " x", actual[0].getValue(), expected[0].getValue(), tolerance);
+	requireNear(name + " y", actual[1].getValue(), expected[1].getValue(), tolerance);
+	requireNear(name + " z", actual[2].getValue(), expected[2].getValue(), tolerance);
+
+}
 
 rapidjson::Document parseJson(const char* json) {
 
@@ -707,6 +732,209 @@ void testConcatenate() {
 		std::unique_ptr<ADNArray<int>> ignored(ADNArray<int>::Concatenate(left, mismatch));
 	};
 	requireThrowsInt("concatenate dimension mismatch", concatenateMismatch, dimensionMismatch);
+
+}
+
+void testFrameUtilsRotateFrameAroundZ() {
+
+	using namespace ADNFrameUtils;
+
+	constexpr double pi = 3.141592653589793238462643383279502884;
+	const Frame frame{
+		Vec3{ 1.0, 0.0, 0.0 },
+		Vec3{ 0.0, 1.0, 0.0 },
+		Vec3{ 0.0, 0.0, 1.0 }
+	};
+
+	const Frame rotatedFrame = rotated(rotationZ(0.5 * pi), frame);
+
+	requireVecNear("frame utils rotated e1", rotatedFrame.e1, Vec3{ 0.0, 1.0, 0.0 }, 1.0e-9);
+	requireVecNear("frame utils rotated e2", rotatedFrame.e2, Vec3{ -1.0, 0.0, 0.0 }, 1.0e-9);
+	requireVecNear("frame utils rotated e3", rotatedFrame.e3, Vec3{ 0.0, 0.0, 1.0 }, 1.0e-9);
+	requireTrue("frame utils rotated frame remains valid",
+		isOrthonormalRightHanded(rotatedFrame, 1.0e-9),
+		"Expected rotated frame to remain orthonormal and right-handed.");
+
+}
+
+void testFrameUtilsOrthonormalizationRepairsSmallDrift() {
+
+	using namespace ADNFrameUtils;
+
+	const Frame noisy{
+		Vec3{ 1.0, 0.001, 0.0 },
+		Vec3{ 0.0, 0.999, 0.002 },
+		Vec3{ 0.001, 0.0, 0.998 }
+	};
+
+	const Frame repaired = orthonormalized(noisy);
+
+	requireTrue("frame utils repairs drifted frame",
+		isOrthonormalRightHanded(repaired, 1.0e-9),
+		"Expected repaired frame to be orthonormal and right-handed.");
+	requireNear("frame utils repaired e1 unit", norm(repaired.e1), 1.0, 1.0e-9);
+	requireNear("frame utils repaired e2 unit", norm(repaired.e2), 1.0, 1.0e-9);
+	requireNear("frame utils repaired e3 unit", norm(repaired.e3), 1.0, 1.0e-9);
+
+}
+
+void testFrameUtilsInvalidFrameFallsBack() {
+
+	using namespace ADNFrameUtils;
+
+	const Frame invalid{
+		Vec3{ 0.0, 0.0, 0.0 },
+		Vec3{ 0.0, 0.0, 0.0 },
+		Vec3{ 0.0, 0.0, 0.0 }
+	};
+
+	const Frame repaired = orthonormalized(invalid);
+
+	requireTrue("frame utils invalid frame fallback is valid",
+		isOrthonormalRightHanded(repaired, 1.0e-9),
+		"Expected invalid frame fallback to be orthonormal and right-handed.");
+	requireVecNear("frame utils fallback e1", repaired.e1, Vec3{ 1.0, 0.0, 0.0 }, 1.0e-9);
+	requireVecNear("frame utils fallback e2", repaired.e2, Vec3{ 0.0, 1.0, 0.0 }, 1.0e-9);
+	requireVecNear("frame utils fallback e3", repaired.e3, Vec3{ 0.0, 0.0, 1.0 }, 1.0e-9);
+
+}
+
+void testFrameUtilsRigidRotationPreservesDistances() {
+
+	using namespace ADNFrameUtils;
+
+	const Vec3 a{ 1.0, 2.0, 3.0 };
+	const Vec3 b{ 4.0, 6.0, 8.0 };
+	const double before = norm(b - a);
+
+	const Mat3 rotation = rotationZ(1.234);
+	const double after = norm(rotated(rotation, b) - rotated(rotation, a));
+
+	requireNear("frame utils rotation preserves distance", after, before, 1.0e-9);
+
+}
+
+void testFrameUtilsDerivesRotatedMockGeometryFrame() {
+
+	using namespace ADNFrameUtils;
+
+	constexpr double pi = 3.141592653589793238462643383279502884;
+	const Vec3 previousCenter{ -1.0, 0.0, 0.0 };
+	const Vec3 nextCenter{ 1.0, 0.0, 0.0 };
+	const Vec3 backbone{ 0.0, -0.5, 0.0 };
+	const Vec3 sidechain{ 0.0, 0.5, 0.0 };
+
+	const Frame original = frameFromE2AndTangent(sidechain - backbone, nextCenter - previousCenter);
+	const Mat3 rotation = rotationZ(0.5 * pi);
+
+	const Vec3 rotatedPreviousCenter = rotated(rotation, previousCenter);
+	const Vec3 rotatedNextCenter = rotated(rotation, nextCenter);
+	const Vec3 rotatedBackbone = rotated(rotation, backbone);
+	const Vec3 rotatedSidechain = rotated(rotation, sidechain);
+	const Frame derivedAfterRotation = frameFromE2AndTangent(
+		rotatedSidechain - rotatedBackbone,
+		rotatedNextCenter - rotatedPreviousCenter);
+	const Frame expectedAfterRotation = rotated(rotation, original);
+
+	requireTrue("frame utils mock geometry original valid",
+		isOrthonormalRightHanded(original, 1.0e-9),
+		"Expected mock geometry frame to be valid.");
+	requireTrue("frame utils mock geometry rotated valid",
+		isOrthonormalRightHanded(derivedAfterRotation, 1.0e-9),
+		"Expected rotated mock geometry frame to be valid.");
+	requireVecNear("frame utils mock geometry e1", derivedAfterRotation.e1, expectedAfterRotation.e1, 1.0e-9);
+	requireVecNear("frame utils mock geometry e2", derivedAfterRotation.e2, expectedAfterRotation.e2, 1.0e-9);
+	requireVecNear("frame utils mock geometry e3", derivedAfterRotation.e3, expectedAfterRotation.e3, 1.0e-9);
+
+}
+
+void testFrameAdaptersSanitizeAndRotateOrientable() {
+
+	constexpr double pi = 3.141592653589793238462643383279502884;
+
+	Orientable orientable;
+	orientable.SetE1(vector3(1.0, 0.001, 0.0));
+	orientable.SetE2(vector3(0.0, 0.999, 0.002));
+	orientable.SetE3(vector3(0.001, 0.0, 0.998));
+
+	ADNFrameAdapters::sanitizeFrame(orientable);
+	const ADNFrameUtils::Frame sanitized = ADNFrameAdapters::frameFromOrientable(orientable);
+
+	requireTrue("frame adapters sanitize orientable",
+		ADNFrameUtils::isOrthonormalRightHanded(sanitized, 1.0e-9),
+		"Expected orientable frame to be sanitized.");
+
+	ADNFrameAdapters::rotateFrame(orientable, ADNFrameUtils::rotationZ(0.5 * pi));
+	const ADNFrameUtils::Frame rotated = ADNFrameAdapters::frameFromOrientable(orientable);
+	const ADNFrameUtils::Frame expected = ADNFrameUtils::rotated(ADNFrameUtils::rotationZ(0.5 * pi), sanitized);
+
+	requireTrue("frame adapters rotate orientable",
+		ADNFrameUtils::isOrthonormalRightHanded(rotated, 1.0e-9),
+		"Expected rotated orientable frame to stay valid.");
+	requireVecNear("frame adapters rotated e1", rotated.e1, expected.e1, 1.0e-9);
+	requireVecNear("frame adapters rotated e2", rotated.e2, expected.e2, 1.0e-9);
+	requireVecNear("frame adapters rotated e3", rotated.e3, expected.e3, 1.0e-9);
+
+}
+
+void testNucleotideSetPositionTranslatesBackboneAndSidechain() {
+
+	SBPointer<ADNNucleotide> nucleotide = new ADNNucleotide();
+	nucleotide->Init();
+	nucleotide->SetBackbonePosition(positionAngstrom(0.0, 0.0, 0.0));
+	nucleotide->SetSidechainPosition(positionAngstrom(2.0, 0.0, 0.0));
+
+	nucleotide->SetPosition(positionAngstrom(3.0, 0.0, 0.0));
+
+	requirePositionNear("nucleotide set position updates center",
+		nucleotide->GetPosition(),
+		positionAngstrom(3.0, 0.0, 0.0),
+		1.0e-9);
+	requirePositionNear("nucleotide set position translates backbone",
+		nucleotide->GetBackbonePosition(),
+		positionAngstrom(2.0, 0.0, 0.0),
+		1.0e-9);
+	requirePositionNear("nucleotide set position translates sidechain",
+		nucleotide->GetSidechainPosition(),
+		positionAngstrom(4.0, 0.0, 0.0),
+		1.0e-9);
+
+}
+
+void testGeometrySynchronizationDerivesNucleotideFrame() {
+
+	SBPointer<ADNSingleStrand> strand = new ADNSingleStrand();
+	SBPointer<ADNNucleotide> previous = new ADNNucleotide();
+	SBPointer<ADNNucleotide> nucleotide = new ADNNucleotide();
+	SBPointer<ADNNucleotide> next = new ADNNucleotide();
+
+	auto initializeNucleotide = [](SBPointer<ADNNucleotide> nt, double x) {
+
+		nt->Init();
+		nt->SetBackbonePosition(positionAngstrom(x, -0.5, 0.0));
+		nt->SetSidechainPosition(positionAngstrom(x, 0.5, 0.0));
+		nt->SetE1(vector3(0.0, 0.0, 0.0));
+		nt->SetE2(vector3(0.0, 0.0, 0.0));
+		nt->SetE3(vector3(0.0, 0.0, 0.0));
+
+	};
+
+	initializeNucleotide(previous, -1.0);
+	initializeNucleotide(nucleotide, 0.0);
+	initializeNucleotide(next, 1.0);
+	strand->AddNucleotideThreePrime(previous);
+	strand->AddNucleotideThreePrime(nucleotide);
+	strand->AddNucleotideThreePrime(next);
+
+	ADNGeometrySynchronization::syncNucleotideFrameFromGeometry(*nucleotide);
+	const ADNFrameUtils::Frame frame = ADNFrameAdapters::frameFromOrientable(*nucleotide);
+
+	requireTrue("geometry synchronization nucleotide frame valid",
+		ADNGeometrySynchronization::validateNucleotideGeometry(*nucleotide),
+		"Expected synchronized nucleotide frame to be valid.");
+	requireVecNear("geometry synchronization nucleotide e1", frame.e1, ADNFrameUtils::Vec3{ 0.0, 0.0, -1.0 }, 1.0e-9);
+	requireVecNear("geometry synchronization nucleotide e2", frame.e2, ADNFrameUtils::Vec3{ 0.0, 1.0, 0.0 }, 1.0e-9);
+	requireVecNear("geometry synchronization nucleotide e3", frame.e3, ADNFrameUtils::Vec3{ 1.0, 0.0, 0.0 }, 1.0e-9);
 
 }
 
@@ -1987,6 +2215,14 @@ int main() {
 	testConfigFileIoClosesWrittenAndReadFiles();
 	testConfigFileIoReportsFailuresAndClosesInvalidReads();
 	testConcatenate();
+	testFrameUtilsRotateFrameAroundZ();
+	testFrameUtilsOrthonormalizationRepairsSmallDrift();
+	testFrameUtilsInvalidFrameFallsBack();
+	testFrameUtilsRigidRotationPreservesDistances();
+	testFrameUtilsDerivesRotatedMockGeometryFrame();
+	testFrameAdaptersSanitizeAndRotateOrientable();
+	testNucleotideSetPositionTranslatesBackboneAndSidechain();
+	testGeometrySynchronizationDerivesNucleotideFrame();
 	testCircularSingleStrandWrapsWithoutChangingSequenceOrder();
 	testModernJsonValidation();
 	testLegacyJsonValidation();
