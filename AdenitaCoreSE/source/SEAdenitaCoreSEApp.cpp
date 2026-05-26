@@ -1112,7 +1112,12 @@ void SEAdenitaCoreSEApp::CreateBasePair() {
 	auto selectedNucleotides = nanorobot->GetSelectedNucleotides();
 	if (selectedNucleotides.size() > 0) {
 
+		const SBPointerIndexer<ADNPart> affectedParts =
+			ADNGeometrySynchronization::collectPartsFromNucleotides(selectedNucleotides);
+
+		syncPartsBeforeGeometryEdit(affectedParts);
 		DASOperations::AddComplementaryStrands(nanorobot, selectedNucleotides);
+		syncPartsAfterGeometryEdit(affectedParts);
 		SEAdenitaCoreSEApp::resetVisualModel();
 
 	}
