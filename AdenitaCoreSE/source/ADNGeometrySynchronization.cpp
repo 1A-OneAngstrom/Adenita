@@ -27,6 +27,23 @@ template <typename Vector3>
 
 }
 
+[[nodiscard]] SBPosition3 toPosition(const ADNFrameUtils::Vec3& vector) {
+
+	return SBPosition3(
+		SBQuantity::picometer(vector.x),
+		SBQuantity::picometer(vector.y),
+		SBQuantity::picometer(vector.z));
+
+}
+
+[[nodiscard]] ADNFrameUtils::Vec3 rotatedAroundPoint(const ADNFrameUtils::Vec3& position,
+	const ADNFrameUtils::Vec3& center,
+	const ADNFrameUtils::Mat3& rotation) {
+
+	return center + ADNFrameUtils::rotated(rotation, position - center);
+
+}
+
 [[nodiscard]] ADNFrameUtils::Vec3 nucleotideTangent(const ADNNucleotide& nucleotide) {
 
 	const SBPointer<ADNNucleotide> prev = nucleotide.GetPrev(true);
@@ -117,6 +134,38 @@ void addPartIfMissing(SBPointerIndexer<ADNPart>& parts, SBPointer<ADNPart> part)
 
 	if (part != nullptr && !parts.hasIndex(part()))
 		parts.addReferenceTarget(part());
+
+}
+
+void rotateNucleotideGeometry(ADNNucleotide& nucleotide,
+	const ADNFrameUtils::Vec3& center,
+	const ADNFrameUtils::Mat3& rotation) {
+
+	const ADNFrameUtils::Vec3 newCenter =
+		rotatedAroundPoint(toVec3(nucleotide.GetPosition()), center, rotation);
+	const ADNFrameUtils::Vec3 newBackbone =
+		rotatedAroundPoint(toVec3(nucleotide.GetBackbonePosition()), center, rotation);
+	const ADNFrameUtils::Vec3 newSidechain =
+		rotatedAroundPoint(toVec3(nucleotide.GetSidechainPosition()), center, rotation);
+
+	SBPointer<ADNAtom> backboneCenter = nucleotide.GetBackboneCenterAtom();
+	SBPointer<ADNAtom> sidechainCenter = nucleotide.GetSidechainCenterAtom();
+	auto atoms = nucleotide.GetAtoms();
+	SB_FOR(SBPointer<ADNAtom> atom, atoms) {
+
+		if (atom == nullptr) continue;
+		if (backboneCenter != nullptr && atom() == backboneCenter()) continue;
+		if (sidechainCenter != nullptr && atom() == sidechainCenter()) continue;
+
+		atom->setPosition(toPosition(
+			rotatedAroundPoint(toVec3(atom->getPosition()), center, rotation)));
+
+	}
+
+	nucleotide.SetPosition(toPosition(newCenter));
+	nucleotide.SetBackbonePosition(toPosition(newBackbone));
+	nucleotide.SetSidechainPosition(toPosition(newSidechain));
+	ADNFrameAdapters::rotateFrame(nucleotide, rotation);
 
 }
 
@@ -270,6 +319,48 @@ void syncDoubleStrandFramesAfterGeometryEdit(ADNDoubleStrand& strand) {
 	SBPointer<ADNPart> part = strand.GetPart();
 	if (part != nullptr) syncPartFramesAfterGeometryEdit(*part);
 	else syncDoubleStrandFramesFromGeometry(strand);
+
+}
+
+void rotateBaseSegmentGeometry(ADNBaseSegment& baseSegment, double radians) {
+
+	ADNFrameUtils::Frame frame = ADNFrameAdapters::sanitizedFrame(baseSegment);
+	ADNFrameUtils::Vec3 axis = ADNFrameUtils::normalized(frame.e3);
+	if (ADNFrameUtils::isNearlyZero(axis, geometryEps)) {
+
+		syncBaseSegmentFrameFromGeometry(baseSegment);
+		frame = ADNFrameAdapters::sanitizedFrame(baseSegment);
+		axis = ADNFrameUtils::normalized(frame.e3);
+
+	}
+	if (ADNFrameUtils::isNearlyZero(axis, geometryEps)) return;
+
+	const ADNFrameUtils::Vec3 center = toVec3(baseSegment.GetPosition());
+	const ADNFrameUtils::Mat3 rotation = ADNFrameUtils::rotationAroundAxis(axis, radians);
+
+	ADNFrameAdapters::rotateFrame(baseSegment, rotation);
+
+	auto nucleotides = baseSegment.GetNucleotides();
+	SB_FOR(SBPointer<ADNNucleotide> nucleotide, nucleotides) {
+
+		if (nucleotide != nullptr)
+			rotateNucleotideGeometry(*nucleotide, center, rotation);
+
+	}
+
+	ADNFrameAdapters::sanitizeFrame(baseSegment);
+
+}
+
+void rotateDoubleStrandGeometry(ADNDoubleStrand& strand, double radians) {
+
+	auto baseSegments = strand.GetBaseSegments();
+	SB_FOR(SBPointer<ADNBaseSegment> baseSegment, baseSegments) {
+
+		if (baseSegment != nullptr)
+			rotateBaseSegmentGeometry(*baseSegment, radians);
+
+	}
 
 }
 

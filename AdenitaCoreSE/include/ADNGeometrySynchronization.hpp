@@ -64,6 +64,11 @@ SB_EXPORT void syncDoubleStrandFramesBeforeGeometryEdit(ADNDoubleStrand& strand)
 /// \brief Synchronize a double strand after an Adenita geometry edit reconstructs positions.
 SB_EXPORT void syncDoubleStrandFramesAfterGeometryEdit(ADNDoubleStrand& strand);
 
+/// \brief Rotate current nucleotide geometry attached to a base segment around its local axis.
+SB_EXPORT void rotateBaseSegmentGeometry(ADNBaseSegment& baseSegment, double radians);
+/// \brief Rotate current nucleotide geometry attached to every base segment in a double strand.
+SB_EXPORT void rotateDoubleStrandGeometry(ADNDoubleStrand& strand, double radians);
+
 /// \brief Return unique owning parts for the given double strands.
 SB_EXPORT [[nodiscard]] SBPointerIndexer<ADNPart> collectPartsFromDoubleStrands(
 	const SBPointerIndexer<ADNDoubleStrand>& doubleStrands);
