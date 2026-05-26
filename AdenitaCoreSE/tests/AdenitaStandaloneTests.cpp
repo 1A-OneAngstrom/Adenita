@@ -879,23 +879,23 @@ void testFrameAdaptersSanitizeAndRotateOrientable() {
 
 void testNucleotideSetPositionTranslatesBackboneAndSidechain() {
 
-	ADNNucleotide nucleotide;
-	nucleotide.Init();
-	nucleotide.SetBackbonePosition(positionAngstrom(0.0, 0.0, 0.0));
-	nucleotide.SetSidechainPosition(positionAngstrom(2.0, 0.0, 0.0));
+	SBPointer<ADNNucleotide> nucleotide = new ADNNucleotide();
+	nucleotide->Init();
+	nucleotide->SetBackbonePosition(positionAngstrom(0.0, 0.0, 0.0));
+	nucleotide->SetSidechainPosition(positionAngstrom(2.0, 0.0, 0.0));
 
-	nucleotide.SetPosition(positionAngstrom(3.0, 0.0, 0.0));
+	nucleotide->SetPosition(positionAngstrom(3.0, 0.0, 0.0));
 
 	requirePositionNear("nucleotide set position updates center",
-		nucleotide.GetPosition(),
+		nucleotide->GetPosition(),
 		positionAngstrom(3.0, 0.0, 0.0),
 		1.0e-9);
 	requirePositionNear("nucleotide set position translates backbone",
-		nucleotide.GetBackbonePosition(),
+		nucleotide->GetBackbonePosition(),
 		positionAngstrom(2.0, 0.0, 0.0),
 		1.0e-9);
 	requirePositionNear("nucleotide set position translates sidechain",
-		nucleotide.GetSidechainPosition(),
+		nucleotide->GetSidechainPosition(),
 		positionAngstrom(4.0, 0.0, 0.0),
 		1.0e-9);
 
