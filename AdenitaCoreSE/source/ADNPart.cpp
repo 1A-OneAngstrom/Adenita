@@ -190,14 +190,10 @@ void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & node
     ADNGeometrySynchronization::syncPartFramesFromGeometry(*this,
         ADNGeometrySynchronization::SyncReason::AfterUnserialization);
 
-    // does not fully work: the VM is created but is not visible - needs a request for update after all the nodes were created
-    //if (this->getParent()) {
-    //
-    //    SEAdenitaCoreSEApp::resetVisualModel(this->getParent());
-    //    SAMSON::requestViewportUpdate();
-    //    SAMSON::getActiveCamera()->center();
-    //
-    //}
+    // request a deferred visual model update
+
+    if (this->getParent())
+        SEAdenitaCoreSEApp::requestDeferredVisualModelResetAfterSAMLoad();
 
 }
 

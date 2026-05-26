@@ -70,12 +70,14 @@ public:
 	//@{
 
 	static void													requestVisualModelUpdate();												///< Requests an update of the Adenita visual model in the active document on the next display call
+	static void													requestDeferredVisualModelResetAfterSAMLoad();							///< Requests a deferred reset of the Adenita visual model
 	static void													resetVisualModel();														///< Resets the Adenita visual model in the active document if any, else creates one
 	static void													resetVisualModel(SBNode* parent);										///< Resets the Adenita visual model in the active document if any, else creates one
 	[[nodiscard]] static SEAdenitaVisualModel*					getVisualModel();														///< Returns an Adenita visual model from the active document if any, else returns nullptr
 	[[nodiscard]] static SEAdenitaVisualModel*					getVisualModel(SBNode* parent);											///< Returns an Adenita visual model from the parent node if any, else returns nullptr
 	static bool													addVisualModel(SBNode* parent);
 
+	static void													centerCameraOnAllADNParts();
 	static void													centerCameraOnLoadedSystem();
 	void														centerCameraOnLoadedSystemWithTimer() const;
 
@@ -125,6 +127,10 @@ public:
 	[[nodiscard]] SBPosition3									getSnappedPosition(const SBPosition3& currentPosition);
 
 	// Adding things to data graph
+
+	[[nodiscard]] static bool									isAdenitaPart(SBNode* node);
+	static void													getAdenitaParts(SBNodeIndexer& nodeIndexer, SBNode* parent = nullptr);
+	[[nodiscard]] static bool									hasAdenitaPart(SBNode* parent);
 
 	void														addPartToDocument(SBPointer<ADNPart> part, bool positionsData = false, SBFolder* preferredFolder = nullptr);
 	void														addConformationToDocument(SBPointer<ADNConformation> conf, SBFolder* preferredFolder = nullptr);
