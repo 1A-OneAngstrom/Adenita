@@ -1,6 +1,7 @@
 #include "SEDNATwisterEditor.hpp"
 #include "SEAdenitaCoreSEApp.hpp"
 
+#include "ADNGeometrySynchronization.hpp"
 #include "ADNSamsonContext.hpp"
 #include "MSVDisplayHelper.hpp"
 
@@ -44,6 +45,8 @@ void SEDNATwisterEditor::untwisting() {
 	document->getNodes(baseSegmentIndexer, (SBNode::GetClass() == std::string("ADNBaseSegment")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
 	DASBackToTheAtom btta;
+	SBPointerIndexer<ADNBaseSegment> affectedBaseSegments;
+	SBPointerIndexer<ADNPart> affectedParts;
 
 	SB_FOR(SBNode* node, baseSegmentIndexer) {
 
@@ -53,12 +56,37 @@ void SEDNATwisterEditor::untwisting() {
 
 		if (distanceFromSphereCenter < sphereRadius) {
 
-			if (forwardActionSphereActive)
-				btta.UntwistNucleotidesPosition(baseSegment);
-			else if (reverseActionSphereActive)
-				btta.SetNucleotidePosition(baseSegment, true);
+			affectedBaseSegments.addReferenceTarget(baseSegment());
+			SBPointer<ADNPart> part = ADNGeometrySynchronization::findOwningPart(baseSegment());
+			if (part != nullptr && !affectedParts.hasIndex(part()))
+				affectedParts.addReferenceTarget(part());
 
 		}
+
+	}
+
+	SB_FOR(SBPointer<ADNPart> part, affectedParts) {
+
+		if (part != nullptr)
+			ADNGeometrySynchronization::syncPartFramesBeforeGeometryEdit(*part);
+
+	}
+
+	SB_FOR(SBPointer<ADNBaseSegment> baseSegment, affectedBaseSegments) {
+
+		if (baseSegment == nullptr) continue;
+
+		if (forwardActionSphereActive)
+			btta.UntwistNucleotidesPosition(baseSegment);
+		else if (reverseActionSphereActive)
+			btta.SetNucleotidePosition(baseSegment, true);
+
+	}
+
+	SB_FOR(SBPointer<ADNPart> part, affectedParts) {
+
+		if (part != nullptr)
+			ADNGeometrySynchronization::syncPartFramesAfterGeometryEdit(*part);
 
 	}
 
