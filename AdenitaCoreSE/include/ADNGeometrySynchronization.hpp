@@ -1,6 +1,8 @@
 #pragma once
 
 #include "SBCHeapExport.hpp"
+#include "SBPointer.hpp"
+#include "SBPointerIndexer.hpp"
 
 /*! \file ADNGeometrySynchronization.hpp */
 
@@ -9,15 +11,29 @@ class ADNDoubleStrand;
 class ADNNucleotide;
 class ADNPart;
 class ADNSingleStrand;
+class SBNode;
 
 namespace ADNGeometrySynchronization {
 
 /// \brief Reason why frame synchronization is being triggered.
 enum class SyncReason {
 	AfterStructuralPositionChange, ///< Synchronize after atom or object positions changed.
+	BeforeGeometryEdit, ///< Synchronize before Adenita reconstructs geometry.
+	AfterGeometryEdit, ///< Synchronize after Adenita reconstructs geometry.
 	BeforeSerialization, ///< Synchronize before writing the part to a persistent format.
 	AfterUnserialization, ///< Synchronize after links and geometry were restored from storage.
 	ManualRepair ///< Synchronize from an explicit repair call.
+};
+
+/// \brief Result of comparing a cached frame to reconstructible geometry.
+struct SB_EXPORT FrameGeometryAlignment {
+	bool frameValid{ false }; ///< True when the cached frame is orthonormal and right-handed.
+	bool primaryDirectionAvailable{ false }; ///< True when the geometry provides a primary direction.
+	bool tangentDirectionAvailable{ false }; ///< True when the geometry provides a tangent direction.
+	bool primaryDirectionAligned{ true }; ///< True when the frame agrees with the primary direction.
+	bool tangentDirectionAligned{ true }; ///< True when the frame agrees with the tangent direction.
+	double primaryDirectionAbsDot{ 1.0 }; ///< Absolute dot product against the primary direction.
+	double tangentDirectionAbsDot{ 1.0 }; ///< Absolute dot product against the tangent direction.
 };
 
 /// \brief Reconstruct a nucleotide frame from its current geometry.
@@ -34,6 +50,15 @@ SB_EXPORT void syncDoubleStrandFramesFromGeometry(ADNDoubleStrand& strand);
 /// The \p reason allows callers to describe the synchronization boundary so
 /// the implementation can preserve stable sign conventions where needed.
 SB_EXPORT void syncPartFramesFromGeometry(ADNPart& part, SyncReason reason);
+
+/// \brief Compare a nucleotide frame with its current geometry.
+SB_EXPORT [[nodiscard]] FrameGeometryAlignment analyzeNucleotideFrameAlignment(const ADNNucleotide& nucleotide,
+	double minBackboneSidechainAbsDot = 0.85,
+	double minTangentAbsDot = 0.70);
+/// \brief Compare a base-segment frame with its current geometry.
+SB_EXPORT [[nodiscard]] FrameGeometryAlignment analyzeBaseSegmentFrameAlignment(const ADNBaseSegment& baseSegment,
+	double minPairAbsDot = 0.85,
+	double minTangentAbsDot = 0.70);
 
 /// \brief Test whether a nucleotide carries enough geometric information to reconstruct its frame.
 SB_EXPORT [[nodiscard]] bool validateNucleotideGeometry(const ADNNucleotide& nucleotide);

@@ -7,6 +7,8 @@
 #include "ADNPart.hpp"
 #include "ADNSingleStrand.hpp"
 
+#include <cmath>
+
 namespace ADNGeometrySynchronization {
 
 namespace {
@@ -72,6 +74,44 @@ template <typename Vector3>
 
 }
 
+[[nodiscard]] double alignedAbsDot(const ADNFrameUtils::Vec3& frameAxis,
+	const ADNFrameUtils::Vec3& geometryDirection,
+	double eps = geometryEps) {
+
+	if (ADNFrameUtils::isNearlyZero(frameAxis, eps) ||
+		ADNFrameUtils::isNearlyZero(geometryDirection, eps))
+		return 1.0;
+
+	return std::abs(ADNFrameUtils::dot(
+		ADNFrameUtils::normalized(frameAxis, eps),
+		ADNFrameUtils::normalized(geometryDirection, eps)));
+
+}
+
+struct BaseSegmentNucleotideSides {
+	SBPointer<ADNNucleotide> left{ nullptr };
+	SBPointer<ADNNucleotide> right{ nullptr };
+	SBPointer<ADNNucleotide> first{ nullptr };
+};
+
+[[nodiscard]] BaseSegmentNucleotideSides baseSegmentNucleotideSides(const ADNBaseSegment& baseSegment) {
+
+	BaseSegmentNucleotideSides sides;
+
+	auto nucleotides = baseSegment.GetNucleotides();
+	SB_FOR(SBPointer<ADNNucleotide> nucleotide, nucleotides) {
+
+		if (nucleotide == nullptr) continue;
+		if (sides.first == nullptr) sides.first = nucleotide;
+		if (baseSegment.IsLeft(nucleotide)) sides.left = nucleotide;
+		else if (baseSegment.IsRight(nucleotide)) sides.right = nucleotide;
+
+	}
+
+	return sides;
+
+}
+
 } // namespace
 
 void syncNucleotideFrameFromGeometry(ADNNucleotide& nucleotide) {
@@ -98,29 +138,17 @@ void syncBaseSegmentFrameFromGeometry(ADNBaseSegment& baseSegment) {
 
 	const ADNFrameUtils::Frame fallback = repairedFallback(baseSegment);
 
-	SBPointer<ADNNucleotide> left = nullptr;
-	SBPointer<ADNNucleotide> right = nullptr;
-	SBPointer<ADNNucleotide> first = nullptr;
-
-	auto nucleotides = baseSegment.GetNucleotides();
-	SB_FOR(SBPointer<ADNNucleotide> nucleotide, nucleotides) {
-
-		if (nucleotide == nullptr) continue;
-		if (first == nullptr) first = nucleotide;
-		if (baseSegment.IsLeft(nucleotide)) left = nucleotide;
-		else if (baseSegment.IsRight(nucleotide)) right = nucleotide;
-
-	}
+	const BaseSegmentNucleotideSides sides = baseSegmentNucleotideSides(baseSegment);
 
 	ADNFrameUtils::Vec3 e2{};
-	if (left != nullptr && right != nullptr) {
+	if (sides.left != nullptr && sides.right != nullptr) {
 
-		e2 = toVec3(right->GetPosition() - left->GetPosition());
+		e2 = toVec3(sides.right->GetPosition() - sides.left->GetPosition());
 
 	}
-	else if (first != nullptr && frameIsValid(*first)) {
+	else if (sides.first != nullptr && frameIsValid(*sides.first)) {
 
-		e2 = ADNFrameAdapters::frameFromOrientable(*first).e2;
+		e2 = ADNFrameAdapters::frameFromOrientable(*sides.first).e2;
 
 	}
 	else {
@@ -137,8 +165,8 @@ void syncBaseSegmentFrameFromGeometry(ADNBaseSegment& baseSegment) {
 	}
 
 	ADNFrameUtils::Vec3 tangent = baseSegmentTangent(baseSegment);
-	if (ADNFrameUtils::isNearlyZero(tangent, geometryEps) && first != nullptr && frameIsValid(*first))
-		tangent = ADNFrameAdapters::frameFromOrientable(*first).e3;
+	if (ADNFrameUtils::isNearlyZero(tangent, geometryEps) && sides.first != nullptr && frameIsValid(*sides.first))
+		tangent = ADNFrameAdapters::frameFromOrientable(*sides.first).e3;
 	if (ADNFrameUtils::isNearlyZero(tangent, geometryEps))
 		tangent = fallback.e3;
 
@@ -193,15 +221,96 @@ void syncPartFramesFromGeometry(ADNPart& part, SyncReason reason) {
 
 }
 
+FrameGeometryAlignment analyzeNucleotideFrameAlignment(const ADNNucleotide& nucleotide,
+	double minBackboneSidechainAbsDot,
+	double minTangentAbsDot) {
+
+	FrameGeometryAlignment alignment;
+	const ADNFrameUtils::Frame frame = ADNFrameAdapters::frameFromOrientable(nucleotide);
+	alignment.frameValid = ADNFrameUtils::isOrthonormalRightHanded(frame);
+
+	const ADNFrameUtils::Vec3 backboneSidechain =
+		toVec3(nucleotide.GetSidechainPosition() - nucleotide.GetBackbonePosition());
+	if (!ADNFrameUtils::isNearlyZero(backboneSidechain, geometryEps)) {
+
+		alignment.primaryDirectionAvailable = true;
+		alignment.primaryDirectionAbsDot = alignedAbsDot(frame.e2, backboneSidechain);
+		alignment.primaryDirectionAligned =
+			alignment.primaryDirectionAbsDot >= minBackboneSidechainAbsDot;
+
+	}
+
+	const ADNFrameUtils::Vec3 tangent = nucleotideTangent(nucleotide);
+	if (alignment.primaryDirectionAvailable &&
+		!ADNFrameUtils::isNearlyZero(tangent, geometryEps)) {
+
+		alignment.tangentDirectionAvailable = true;
+		const ADNFrameUtils::Frame geometryFrame =
+			ADNFrameUtils::frameFromE2AndTangent(backboneSidechain, tangent, frame);
+		alignment.tangentDirectionAbsDot = alignedAbsDot(frame.e3, geometryFrame.e3);
+		alignment.tangentDirectionAligned =
+			alignment.tangentDirectionAbsDot >= minTangentAbsDot;
+
+	}
+
+	return alignment;
+
+}
+
+FrameGeometryAlignment analyzeBaseSegmentFrameAlignment(const ADNBaseSegment& baseSegment,
+	double minPairAbsDot,
+	double minTangentAbsDot) {
+
+	FrameGeometryAlignment alignment;
+	const ADNFrameUtils::Frame frame = ADNFrameAdapters::frameFromOrientable(baseSegment);
+	alignment.frameValid = ADNFrameUtils::isOrthonormalRightHanded(frame);
+
+	const BaseSegmentNucleotideSides sides = baseSegmentNucleotideSides(baseSegment);
+	ADNFrameUtils::Vec3 pairDirection{};
+	if (sides.left != nullptr && sides.right != nullptr)
+		pairDirection = toVec3(sides.right->GetPosition() - sides.left->GetPosition());
+
+	if (!ADNFrameUtils::isNearlyZero(pairDirection, geometryEps)) {
+
+		alignment.primaryDirectionAvailable = true;
+		alignment.primaryDirectionAbsDot = alignedAbsDot(frame.e2, pairDirection);
+		alignment.primaryDirectionAligned =
+			alignment.primaryDirectionAbsDot >= minPairAbsDot;
+
+	}
+
+	const ADNFrameUtils::Vec3 tangent = baseSegmentTangent(baseSegment);
+	if (alignment.primaryDirectionAvailable &&
+		!ADNFrameUtils::isNearlyZero(tangent, geometryEps)) {
+
+		alignment.tangentDirectionAvailable = true;
+		const ADNFrameUtils::Frame geometryFrame =
+			ADNFrameUtils::frameFromE2AndTangent(pairDirection, tangent, frame);
+		alignment.tangentDirectionAbsDot = alignedAbsDot(frame.e3, geometryFrame.e3);
+		alignment.tangentDirectionAligned =
+			alignment.tangentDirectionAbsDot >= minTangentAbsDot;
+
+	}
+
+	return alignment;
+
+}
+
 bool validateNucleotideGeometry(const ADNNucleotide& nucleotide) {
 
-	return frameIsValid(nucleotide);
+	const FrameGeometryAlignment alignment = analyzeNucleotideFrameAlignment(nucleotide);
+	return alignment.frameValid &&
+		alignment.primaryDirectionAligned &&
+		alignment.tangentDirectionAligned;
 
 }
 
 bool validateBaseSegmentGeometry(const ADNBaseSegment& baseSegment) {
 
-	return frameIsValid(baseSegment);
+	const FrameGeometryAlignment alignment = analyzeBaseSegmentFrameAlignment(baseSegment);
+	return alignment.frameValid &&
+		alignment.primaryDirectionAligned &&
+		alignment.tangentDirectionAligned;
 
 }
 
