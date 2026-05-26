@@ -170,6 +170,17 @@ void requirePositionNear(const std::string& name,
 
 }
 
+void requireFrameNear(const std::string& name,
+	const ADNFrameUtils::Frame& actual,
+	const ADNFrameUtils::Frame& expected,
+	double tolerance) {
+
+	requireVecNear(name + " e1", actual.e1, expected.e1, tolerance);
+	requireVecNear(name + " e2", actual.e2, expected.e2, tolerance);
+	requireVecNear(name + " e3", actual.e3, expected.e3, tolerance);
+
+}
+
 rapidjson::Document parseJson(const char* json) {
 
 	rapidjson::Document document;
@@ -219,6 +230,98 @@ ublas::vector<double> vector3(double x, double y, double z) {
 SBPosition3 positionAngstrom(double x, double y, double z) {
 
 	return SBPosition3(SBQuantity::angstrom(x), SBQuantity::angstrom(y), SBQuantity::angstrom(z));
+
+}
+
+ADNFrameUtils::Vec3 vecFromPosition(const SBPosition3& position) {
+
+	return ADNFrameUtils::Vec3{
+		position[0].getValue(),
+		position[1].getValue(),
+		position[2].getValue()
+	};
+
+}
+
+SBPosition3 positionFromVec(const ADNFrameUtils::Vec3& position) {
+
+	return positionAngstrom(position.x, position.y, position.z);
+
+}
+
+ADNFrameUtils::Mat3 rotationAroundAxis(ADNFrameUtils::Vec3 axis, double radians) {
+
+	using namespace ADNFrameUtils;
+
+	axis = normalized(axis);
+	const double x = axis.x;
+	const double y = axis.y;
+	const double z = axis.z;
+	const double c = std::cos(radians);
+	const double s = std::sin(radians);
+	const double oneMinusC = 1.0 - c;
+
+	Mat3 rotation{};
+	rotation.m[0][0] = c + x * x * oneMinusC;
+	rotation.m[0][1] = x * y * oneMinusC - z * s;
+	rotation.m[0][2] = x * z * oneMinusC + y * s;
+	rotation.m[1][0] = y * x * oneMinusC + z * s;
+	rotation.m[1][1] = c + y * y * oneMinusC;
+	rotation.m[1][2] = y * z * oneMinusC - x * s;
+	rotation.m[2][0] = z * x * oneMinusC - y * s;
+	rotation.m[2][1] = z * y * oneMinusC + x * s;
+	rotation.m[2][2] = c + z * z * oneMinusC;
+	return rotation;
+
+}
+
+void rotateNucleotideGeometryOnly(SBPointer<ADNNucleotide> nucleotide,
+	const ADNFrameUtils::Mat3& rotation) {
+
+	nucleotide->SetBackbonePosition(positionFromVec(
+		ADNFrameUtils::rotated(rotation, vecFromPosition(nucleotide->GetBackbonePosition()))));
+	nucleotide->SetSidechainPosition(positionFromVec(
+		ADNFrameUtils::rotated(rotation, vecFromPosition(nucleotide->GetSidechainPosition()))));
+
+}
+
+void rotateBaseSegmentGeometryOnly(SBPointer<ADNBaseSegment> baseSegment,
+	const ADNFrameUtils::Mat3& rotation) {
+
+	baseSegment->SetPosition(positionFromVec(
+		ADNFrameUtils::rotated(rotation, vecFromPosition(baseSegment->GetPosition()))));
+
+	auto nucleotides = baseSegment->GetNucleotides();
+	SB_FOR(SBPointer<ADNNucleotide> nucleotide, nucleotides) {
+
+		if (nucleotide != nullptr)
+			rotateNucleotideGeometryOnly(nucleotide, rotation);
+
+	}
+
+}
+
+double backboneSidechainAbsDot(SBPointer<ADNNucleotide> nucleotide,
+	const ADNFrameUtils::Vec3& direction) {
+
+	using namespace ADNFrameUtils;
+
+	const Vec3 backboneSidechain =
+		vecFromPosition(nucleotide->GetSidechainPosition()) -
+		vecFromPosition(nucleotide->GetBackbonePosition());
+	return std::abs(dot(normalized(backboneSidechain), normalized(direction)));
+
+}
+
+void reconstructBackboneSidechainFromFrame(SBPointer<ADNNucleotide> nucleotide,
+	double halfDistance) {
+
+	using namespace ADNFrameUtils;
+
+	const Vec3 center = vecFromPosition(nucleotide->GetPosition());
+	const Vec3 e2 = normalized(ADNFrameAdapters::frameFromOrientable(*nucleotide).e2);
+	nucleotide->SetBackbonePosition(positionFromVec(center - e2 * halfDistance));
+	nucleotide->SetSidechainPosition(positionFromVec(center + e2 * halfDistance));
 
 }
 
@@ -320,6 +423,87 @@ SBPointer<ADNNucleotide> createSyntheticNucleotide(DNABlocks type,
 	nucleotide->SetE2(e2);
 	nucleotide->SetE3(vector3(0.0, 0.0, 1.0));
 	return nucleotide;
+
+}
+
+SBPointer<ADNNucleotide> createFrameNucleotide(double x) {
+
+	SBPointer<ADNNucleotide> nucleotide = new ADNNucleotide();
+	nucleotide->Init();
+	nucleotide->setNucleotideType(SBResidue::ResidueType::DA);
+	nucleotide->SetBackbonePosition(positionAngstrom(x, -0.5, 0.0));
+	nucleotide->SetSidechainPosition(positionAngstrom(x, 0.5, 0.0));
+	nucleotide->SetE1(vector3(0.0, 0.0, 0.0));
+	nucleotide->SetE2(vector3(0.0, 0.0, 0.0));
+	nucleotide->SetE3(vector3(0.0, 0.0, 0.0));
+	return nucleotide;
+
+}
+
+struct ThreeNucleotideFrameFixture {
+	SBPointer<ADNSingleStrand> strand;
+	SBPointer<ADNNucleotide> previous;
+	SBPointer<ADNNucleotide> nucleotide;
+	SBPointer<ADNNucleotide> next;
+};
+
+ThreeNucleotideFrameFixture createThreeNucleotideFrameFixture() {
+
+	ThreeNucleotideFrameFixture fixture;
+	fixture.strand = new ADNSingleStrand();
+	fixture.previous = createFrameNucleotide(-1.0);
+	fixture.nucleotide = createFrameNucleotide(0.0);
+	fixture.next = createFrameNucleotide(1.0);
+	fixture.strand->AddNucleotideThreePrime(fixture.previous);
+	fixture.strand->AddNucleotideThreePrime(fixture.nucleotide);
+	fixture.strand->AddNucleotideThreePrime(fixture.next);
+	return fixture;
+
+}
+
+struct BaseSegmentFrameFixture {
+	SBPointer<ADNPart> part;
+	SBPointer<ADNDoubleStrand> doubleStrand;
+	SBPointer<ADNBaseSegment> previous;
+	SBPointer<ADNBaseSegment> baseSegment;
+	SBPointer<ADNBaseSegment> next;
+};
+
+SBPointer<ADNBaseSegment> createBasePairSegment(double x) {
+
+	SBPointer<ADNBaseSegment> baseSegment = new ADNBaseSegment(CellType::BasePair);
+	baseSegment->SetPosition(positionAngstrom(x, 0.0, 0.0));
+
+	SBPointer<ADNNucleotide> left = createSyntheticNucleotide(
+		SBResidue::ResidueType::DA, x, -0.5, 0.0, vector3(0.0, 1.0, 0.0));
+	SBPointer<ADNNucleotide> right = createSyntheticNucleotide(
+		SBResidue::ResidueType::DT, x, 0.5, 0.0, vector3(0.0, 1.0, 0.0));
+
+	SBPointer<ADNBasePair> basePair = static_cast<ADNBasePair*>(baseSegment->GetCell()());
+	basePair->AddPair(left, right);
+	left->SetBaseSegment(baseSegment);
+	right->SetBaseSegment(baseSegment);
+
+	return baseSegment;
+
+}
+
+BaseSegmentFrameFixture createBaseSegmentFrameFixture() {
+
+	BaseSegmentFrameFixture fixture;
+	fixture.part = new ADNPart();
+	fixture.doubleStrand = new ADNDoubleStrand();
+	fixture.part->RegisterDoubleStrand(fixture.doubleStrand);
+
+	fixture.previous = createBasePairSegment(-1.0);
+	fixture.baseSegment = createBasePairSegment(0.0);
+	fixture.next = createBasePairSegment(1.0);
+
+	fixture.part->RegisterBaseSegmentEnd(fixture.doubleStrand, fixture.previous);
+	fixture.part->RegisterBaseSegmentEnd(fixture.doubleStrand, fixture.baseSegment);
+	fixture.part->RegisterBaseSegmentEnd(fixture.doubleStrand, fixture.next);
+
+	return fixture;
 
 }
 
@@ -935,6 +1119,128 @@ void testGeometrySynchronizationDerivesNucleotideFrame() {
 	requireVecNear("geometry synchronization nucleotide e1", frame.e1, ADNFrameUtils::Vec3{ 0.0, 0.0, -1.0 }, 1.0e-9);
 	requireVecNear("geometry synchronization nucleotide e2", frame.e2, ADNFrameUtils::Vec3{ 0.0, 1.0, 0.0 }, 1.0e-9);
 	requireVecNear("geometry synchronization nucleotide e3", frame.e3, ADNFrameUtils::Vec3{ 1.0, 0.0, 0.0 }, 1.0e-9);
+
+}
+
+void testGeometryValidationRejectsStaleNucleotideFrame() {
+
+	using namespace ADNFrameUtils;
+
+	ThreeNucleotideFrameFixture fixture = createThreeNucleotideFrameFixture();
+
+	ADNGeometrySynchronization::syncNucleotideFrameFromGeometry(*fixture.nucleotide);
+	const Frame original = ADNFrameAdapters::frameFromOrientable(*fixture.nucleotide);
+
+	requireTrue("stale nucleotide original frame valid",
+		ADNGeometrySynchronization::validateNucleotideGeometry(*fixture.nucleotide),
+		"Expected original nucleotide frame to align with geometry.");
+
+	const Mat3 rotation = rotationAroundAxis(Vec3{ 1.0, 1.0, 1.0 }, 1.0471975511965976);
+	rotateNucleotideGeometryOnly(fixture.previous, rotation);
+	rotateNucleotideGeometryOnly(fixture.nucleotide, rotation);
+	rotateNucleotideGeometryOnly(fixture.next, rotation);
+
+	const Frame stale = ADNFrameAdapters::frameFromOrientable(*fixture.nucleotide);
+	const ADNGeometrySynchronization::FrameGeometryAlignment staleAlignment =
+		ADNGeometrySynchronization::analyzeNucleotideFrameAlignment(*fixture.nucleotide);
+
+	requireTrue("stale nucleotide frame remains orthonormal",
+		isOrthonormalRightHanded(stale, 1.0e-9),
+		"Expected stale frame to remain mathematically valid.");
+	requireTrue("stale nucleotide geometry alignment fails",
+		!staleAlignment.primaryDirectionAligned || !staleAlignment.tangentDirectionAligned,
+		"Expected stale frame to disagree with rotated nucleotide geometry.");
+	requireTrue("stale nucleotide validation fails",
+		!ADNGeometrySynchronization::validateNucleotideGeometry(*fixture.nucleotide),
+		"Expected validation to reject a stale but valid nucleotide frame.");
+
+	ADNGeometrySynchronization::syncNucleotideFrameFromGeometry(*fixture.nucleotide);
+	const Frame synchronized = ADNFrameAdapters::frameFromOrientable(*fixture.nucleotide);
+	const Frame expected = rotated(rotation, original);
+
+	requireTrue("synchronized nucleotide validation passes",
+		ADNGeometrySynchronization::validateNucleotideGeometry(*fixture.nucleotide),
+		"Expected synchronization to realign nucleotide frame with geometry.");
+	requireFrameNear("synchronized nucleotide frame tracks rotation", synchronized, expected, 1.0e-8);
+
+}
+
+void testGeometryValidationRejectsStaleBaseSegmentFrame() {
+
+	using namespace ADNFrameUtils;
+
+	BaseSegmentFrameFixture fixture = createBaseSegmentFrameFixture();
+
+	ADNGeometrySynchronization::syncBaseSegmentFrameFromGeometry(*fixture.baseSegment);
+	const Frame original = ADNFrameAdapters::frameFromOrientable(*fixture.baseSegment);
+
+	requireTrue("stale base segment original frame valid",
+		ADNGeometrySynchronization::validateBaseSegmentGeometry(*fixture.baseSegment),
+		"Expected original base-segment frame to align with geometry.");
+
+	const Mat3 rotation = rotationAroundAxis(Vec3{ 0.3, 0.7, 0.2 }, 0.9);
+	rotateBaseSegmentGeometryOnly(fixture.previous, rotation);
+	rotateBaseSegmentGeometryOnly(fixture.baseSegment, rotation);
+	rotateBaseSegmentGeometryOnly(fixture.next, rotation);
+
+	const Frame stale = ADNFrameAdapters::frameFromOrientable(*fixture.baseSegment);
+	const ADNGeometrySynchronization::FrameGeometryAlignment staleAlignment =
+		ADNGeometrySynchronization::analyzeBaseSegmentFrameAlignment(*fixture.baseSegment);
+
+	requireTrue("stale base segment frame remains orthonormal",
+		isOrthonormalRightHanded(stale, 1.0e-9),
+		"Expected stale base-segment frame to remain mathematically valid.");
+	requireTrue("stale base segment geometry alignment fails",
+		!staleAlignment.primaryDirectionAligned || !staleAlignment.tangentDirectionAligned,
+		"Expected stale frame to disagree with rotated base-segment geometry.");
+	requireTrue("stale base segment validation fails",
+		!ADNGeometrySynchronization::validateBaseSegmentGeometry(*fixture.baseSegment),
+		"Expected validation to reject a stale but valid base-segment frame.");
+
+	ADNGeometrySynchronization::syncBaseSegmentFrameFromGeometry(*fixture.baseSegment);
+	const Frame synchronized = ADNFrameAdapters::frameFromOrientable(*fixture.baseSegment);
+	const Frame expected = rotated(rotation, original);
+
+	requireTrue("synchronized base segment validation passes",
+		ADNGeometrySynchronization::validateBaseSegmentGeometry(*fixture.baseSegment),
+		"Expected synchronization to realign base-segment frame with geometry.");
+	requireFrameNear("synchronized base segment frame tracks rotation", synchronized, expected, 1.0e-8);
+
+}
+
+void testGeometryEditBarrierPreservesRotatedNucleotideDirection() {
+
+	using namespace ADNFrameUtils;
+
+	ThreeNucleotideFrameFixture staleFixture = createThreeNucleotideFrameFixture();
+	ADNGeometrySynchronization::syncNucleotideFrameFromGeometry(*staleFixture.nucleotide);
+	const Frame staleOriginal = ADNFrameAdapters::frameFromOrientable(*staleFixture.nucleotide);
+	const Mat3 rotation = rotationZ(1.5707963267948966);
+	const Vec3 expectedDirection = rotated(rotation, staleOriginal.e2);
+
+	rotateNucleotideGeometryOnly(staleFixture.previous, rotation);
+	rotateNucleotideGeometryOnly(staleFixture.nucleotide, rotation);
+	rotateNucleotideGeometryOnly(staleFixture.next, rotation);
+	reconstructBackboneSidechainFromFrame(staleFixture.nucleotide, 0.5);
+
+	requireTrue("geometry edit without barrier uses stale direction",
+		backboneSidechainAbsDot(staleFixture.nucleotide, expectedDirection) < 0.85,
+		"Expected reconstruction without pre-sync to use the stale frame direction.");
+
+	ThreeNucleotideFrameFixture synchronizedFixture = createThreeNucleotideFrameFixture();
+	ADNGeometrySynchronization::syncNucleotideFrameFromGeometry(*synchronizedFixture.nucleotide);
+	const Frame synchronizedOriginal = ADNFrameAdapters::frameFromOrientable(*synchronizedFixture.nucleotide);
+	const Vec3 synchronizedExpectedDirection = rotated(rotation, synchronizedOriginal.e2);
+
+	rotateNucleotideGeometryOnly(synchronizedFixture.previous, rotation);
+	rotateNucleotideGeometryOnly(synchronizedFixture.nucleotide, rotation);
+	rotateNucleotideGeometryOnly(synchronizedFixture.next, rotation);
+	ADNGeometrySynchronization::syncNucleotideFrameFromGeometry(*synchronizedFixture.nucleotide);
+	reconstructBackboneSidechainFromFrame(synchronizedFixture.nucleotide, 0.5);
+
+	requireTrue("geometry edit with barrier preserves rotated direction",
+		backboneSidechainAbsDot(synchronizedFixture.nucleotide, synchronizedExpectedDirection) > 0.999,
+		"Expected pre-sync to preserve the rotated geometry direction during reconstruction.");
 
 }
 
@@ -2223,6 +2529,9 @@ int main() {
 	testFrameAdaptersSanitizeAndRotateOrientable();
 	testNucleotideSetPositionTranslatesBackboneAndSidechain();
 	testGeometrySynchronizationDerivesNucleotideFrame();
+	testGeometryValidationRejectsStaleNucleotideFrame();
+	testGeometryValidationRejectsStaleBaseSegmentFrame();
+	testGeometryEditBarrierPreservesRotatedNucleotideDirection();
 	testCircularSingleStrandWrapsWithoutChangingSequenceOrder();
 	testModernJsonValidation();
 	testLegacyJsonValidation();
