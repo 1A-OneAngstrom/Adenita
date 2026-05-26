@@ -145,11 +145,15 @@ private:
 	void														ConnectStructuralSignalSlots(SBPointer<ADNPart> part);
 	void														RemoveNanorobot(SBDocument* document);
 	void														ClearNanorobots();
+	void														MarkGeometryDirty(SBNode* node);
+	void														FlushDeferredGeometrySynchronization();
 
 	std::map<SBDocument*, ADNNanorobot*>						nanorobotMap;
 
 	bool														mod_{ false };
 	bool														geometrySyncInProgress_{ false };
+	bool														geometrySyncPending_{ false };
+	SBPointerIndexer<ADNPart>									dirtyGeometryParts_;
 
 };
 

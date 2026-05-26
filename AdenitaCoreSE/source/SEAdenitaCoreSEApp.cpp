@@ -44,28 +44,6 @@ private:
 
 };
 
-void syncFramesForAtomPositionChange(SBNode* node) {
-
-	SBPointer<ADNAtom> atom = dynamic_cast<ADNAtom*>(node);
-	if (atom == nullptr) return;
-
-	SBPointer<ADNNucleotide> nucleotide = dynamic_cast<ADNNucleotide*>(atom->getNucleotide());
-	if (nucleotide != nullptr) {
-
-		ADNGeometrySynchronization::syncNucleotideFrameFromGeometry(*nucleotide);
-		SBPointer<ADNBaseSegment> baseSegment = nucleotide->GetBaseSegment();
-		if (baseSegment != nullptr)
-			ADNGeometrySynchronization::syncBaseSegmentFrameFromGeometry(*baseSegment);
-		return;
-
-	}
-
-	SBPointer<ADNBaseSegment> baseSegment = dynamic_cast<ADNBaseSegment*>(atom->getParent());
-	if (baseSegment != nullptr)
-		ADNGeometrySynchronization::syncBaseSegmentFrameFromGeometry(*baseSegment);
-
-}
-
 void syncPartsBeforeGeometryEdit(const SBPointerIndexer<ADNPart>& parts) {
 
 	SB_FOR(SBPointer<ADNPart> part, parts) {
@@ -1129,6 +1107,61 @@ void SEAdenitaCoreSEApp::CreateBasePair() {
 
 }
 
+void SEAdenitaCoreSEApp::MarkGeometryDirty(SBNode* node) {
+
+	if (node == nullptr) return;
+
+	SBPointer<ADNPart> part = ADNGeometrySynchronization::findOwningPart(node);
+	if (part == nullptr) return;
+
+	if (!dirtyGeometryParts_.hasIndex(part()))
+		dirtyGeometryParts_.addReferenceTarget(part());
+
+	if (geometrySyncPending_) return;
+
+	geometrySyncPending_ = true;
+
+	QObject* receiver = QCoreApplication::instance();
+	if (receiver == nullptr) {
+
+		FlushDeferredGeometrySynchronization();
+		return;
+
+	}
+
+	QTimer::singleShot(0, receiver, [this]() {
+
+		FlushDeferredGeometrySynchronization();
+
+		});
+
+}
+
+void SEAdenitaCoreSEApp::FlushDeferredGeometrySynchronization() {
+
+	geometrySyncPending_ = false;
+	if (dirtyGeometryParts_.size() == 0) return;
+	if (geometrySyncInProgress_) return;
+
+	SBPointerIndexer<ADNPart> parts = dirtyGeometryParts_;
+	dirtyGeometryParts_.clear();
+
+	ScopedGeometrySyncGuard guard(geometrySyncInProgress_);
+
+	SB_FOR(SBPointer<ADNPart> part, parts) {
+
+		if (part != nullptr)
+			ADNGeometrySynchronization::syncPartFramesFromGeometry(
+				*part,
+				ADNGeometrySynchronization::SyncReason::AfterStructuralPositionChange);
+
+	}
+
+	SEAdenitaCoreSEApp::requestVisualModelUpdate();
+	SAMSON::requestViewportUpdate();
+
+}
+
 void SEAdenitaCoreSEApp::onDocumentEvent(SBDocumentEvent* documentEvent) {
 
 	if (documentEvent == nullptr) return;
@@ -1187,19 +1220,17 @@ void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* structuralEvent) {
 
 	const SBStructuralEvent::Type eventType = structuralEvent->getType();
 	SBNode* node = structuralEvent->getAuxiliaryNode();
+	if (!node) node = dynamic_cast<SBNode*>(structuralEvent->getSender());
 	if (!node) return;
 	if (node->getProxy()->getElementUUID() != SBUUID(SB_ELEMENT_UUID)) return;
 
 	const std::string nodeClassName = node->getProxy()->getName();
 
-	if (eventType == SBStructuralEvent::AtomPositionChanged) {
+	if (eventType == SBStructuralEvent::AtomPositionChanged ||
+		eventType == SBStructuralEvent::TransformChanged) {
 
-		if (!geometrySyncInProgress_) {
-
-			ScopedGeometrySyncGuard guard(geometrySyncInProgress_);
-			syncFramesForAtomPositionChange(node);
-
-		}
+		if (!geometrySyncInProgress_)
+			MarkGeometryDirty(node);
 		return;
 
 	}
