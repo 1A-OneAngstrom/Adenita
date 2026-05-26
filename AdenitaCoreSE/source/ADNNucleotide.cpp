@@ -5,6 +5,7 @@
 #include "ADNBaseSegment.hpp"
 #include "ADNSingleStrand.hpp"
 #include "ADNDoubleStrand.hpp"
+#include "ADNFrameAdapters.hpp"
 #include "ADNModel.hpp"
 #include "ADNNodeValidation.hpp"
 
@@ -38,31 +39,30 @@ void ADNNucleotide::serialize(SBCSerializer* serializer, const SBNodeIndexer& no
 	serializer->writeDoubleElement("z", pos[2].getValue());
 	//serializer->writeUnsignedIntElement("centerAtom", nodeIndexer.getIndex(at()));
 
+	const ADNFrameUtils::Frame frame = ADNFrameAdapters::sanitizedFrame(*this);
+
 	serializer->writeStartElement("e3");
-	const auto& e3 = GetE3();
-	double e3x = e3[0];
-	double e3y = e3[1];
-	double e3z = e3[2];
+	double e3x = frame.e3.x;
+	double e3y = frame.e3.y;
+	double e3z = frame.e3.z;
 	serializer->writeDoubleElement("x", e3x);
 	serializer->writeDoubleElement("y", e3y);
 	serializer->writeDoubleElement("z", e3z);
 	serializer->writeEndElement();
 
 	serializer->writeStartElement("e2");
-	const auto& e2 = GetE2();
-	double e2x = e2[0];
-	double e2y = e2[1];
-	double e2z = e2[2];
+	double e2x = frame.e2.x;
+	double e2y = frame.e2.y;
+	double e2z = frame.e2.z;
 	serializer->writeDoubleElement("x", e2x);
 	serializer->writeDoubleElement("y", e2y);
 	serializer->writeDoubleElement("z", e2z);
 	serializer->writeEndElement();
 
 	serializer->writeStartElement("e1");
-	const auto& e1 = GetE1();
-	double e1x = e1[0];
-	double e1y = e1[1];
-	double e1z = e1[2];
+	double e1x = frame.e1.x;
+	double e1y = frame.e1.y;
+	double e1z = frame.e1.z;
 	serializer->writeDoubleElement("x", e1x);
 	serializer->writeDoubleElement("y", e1y);
 	serializer->writeDoubleElement("z", e1z);
@@ -122,6 +122,7 @@ void ADNNucleotide::unserialize(SBCSerializer* serializer, const SBNodeIndexer& 
 	e1[2] = e1z;
 	SetE1(e1);
 	serializer->readEndElement();
+	ADNFrameAdapters::sanitizeFrame(*this);
 
 	unsigned int pIdx = serializer->readUnsignedIntElement();
 	unsigned int bsIdx = serializer->readUnsignedIntElement();

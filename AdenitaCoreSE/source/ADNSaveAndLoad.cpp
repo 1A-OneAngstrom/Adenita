@@ -1,5 +1,7 @@
 #include "ADNSaveAndLoad.hpp"
 
+#include "ADNFrameAdapters.hpp"
+#include "ADNGeometrySynchronization.hpp"
 #include "ADNJsonValidation.hpp"
 #include "ADNLogger.hpp"
 
@@ -99,6 +101,16 @@ bool hasFivePrimeEndMetadata(ADNNucleotide::EndType endType) {
 
 	return endType == ADNNucleotide::EndType::FivePrime ||
 		endType == ADNNucleotide::EndType::FiveAndThreePrime;
+
+}
+
+ublas::vector<double> frameVectorToUblas(const ADNFrameUtils::Vec3& vector) {
+
+	ublas::vector<double> result(3, 0.0);
+	result[0] = vector.x;
+	result[1] = vector.y;
+	result[2] = vector.z;
+	return result;
 
 }
 
@@ -410,6 +422,9 @@ SBPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value& val, double ver
 		part->RegisterDoubleStrand(ds);
 
 	}
+
+	ADNGeometrySynchronization::syncPartFramesFromGeometry(*part,
+		ADNGeometrySynchronization::SyncReason::AfterUnserialization);
 
 	return part;
 
@@ -891,11 +906,18 @@ SBPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filename
 
 	fclose(fp);
 
+	ADNGeometrySynchronization::syncPartFramesFromGeometry(*part,
+		ADNGeometrySynchronization::SyncReason::AfterUnserialization);
+
 	return part;
 
 }
 
 void ADNLoader::SavePartToJson(SBPointer<ADNPart> p, rapidjson::Writer<rapidjson::StringBuffer>& writer) {
+
+	if (p != nullptr)
+		ADNGeometrySynchronization::syncPartFramesFromGeometry(*p,
+			ADNGeometrySynchronization::SyncReason::BeforeSerialization);
 
 	writer.Key("name");
 	writer.String(p->getName().c_str());
@@ -951,14 +973,16 @@ void ADNLoader::SavePartToJson(SBPointer<ADNPart> p, rapidjson::Writer<rapidjson
 			writer.Key("previous");
 			writer.Int(prevId);
 
+			const ADNFrameUtils::Frame frame = ADNFrameAdapters::sanitizedFrame(*bs);
+
 			writer.Key("e1");
-			writer.String(ADNAuxiliary::UblasVectorToString(bs->GetE1()).c_str());
+			writer.String(ADNAuxiliary::UblasVectorToString(frameVectorToUblas(frame.e1)).c_str());
 
 			writer.Key("e2");
-			writer.String(ADNAuxiliary::UblasVectorToString(bs->GetE2()).c_str());
+			writer.String(ADNAuxiliary::UblasVectorToString(frameVectorToUblas(frame.e2)).c_str());
 
 			writer.Key("e3");
-			writer.String(ADNAuxiliary::UblasVectorToString(bs->GetE3()).c_str());
+			writer.String(ADNAuxiliary::UblasVectorToString(frameVectorToUblas(frame.e3)).c_str());
 
 			writer.Key("cell");
 			writer.StartObject();
@@ -1126,14 +1150,16 @@ void ADNLoader::SavePartToJson(SBPointer<ADNPart> p, rapidjson::Writer<rapidjson
 			writer.Key("next");
 			writer.Int(nextId);
 
+			const ADNFrameUtils::Frame frame = ADNFrameAdapters::sanitizedFrame(*nt);
+
 			writer.Key("e1");
-			writer.String(ADNAuxiliary::UblasVectorToString(nt->GetE1()).c_str());
+			writer.String(ADNAuxiliary::UblasVectorToString(frameVectorToUblas(frame.e1)).c_str());
 
 			writer.Key("e2");
-			writer.String(ADNAuxiliary::UblasVectorToString(nt->GetE2()).c_str());
+			writer.String(ADNAuxiliary::UblasVectorToString(frameVectorToUblas(frame.e2)).c_str());
 
 			writer.Key("e3");
-			writer.String(ADNAuxiliary::UblasVectorToString(nt->GetE3()).c_str());
+			writer.String(ADNAuxiliary::UblasVectorToString(frameVectorToUblas(frame.e3)).c_str());
 
 			writer.Key("position");
 			writer.String(ADNAuxiliary::SBPositionToString(nt->GetPosition()).c_str());

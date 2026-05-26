@@ -1,4 +1,5 @@
 #include "ADNPart.hpp"
+#include "ADNGeometrySynchronization.hpp"
 #include "ADNNodeValidation.hpp"
 #include "SEAdenitaCoreSEApp.hpp"
 
@@ -186,6 +187,8 @@ void ADNPart::unserialize(SBCSerializer * serializer, const SBNodeIndexer & node
     serializer->readEndElement();
 
     setLoadedViaSAMSON(true);
+    ADNGeometrySynchronization::syncPartFramesFromGeometry(*this,
+        ADNGeometrySynchronization::SyncReason::AfterUnserialization);
 
     // does not fully work: the VM is created but is not visible - needs a request for update after all the nodes were created
     //if (this->getParent()) {
