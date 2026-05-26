@@ -777,8 +777,6 @@ void ADNBasicOperations::CenterPart(SBPointer<ADNPart> part) {
             if (!nt.isValid()) continue;
 
             nt->SetPosition(nt->GetPosition() + trans);
-            nt->SetBackbonePosition(nt->GetBackbonePosition() + trans);
-            nt->SetSidechainPosition(nt->GetSidechainPosition() + trans);
             if (config.use_atomic_details) {
 
                 auto atoms = nt->GetAtoms();

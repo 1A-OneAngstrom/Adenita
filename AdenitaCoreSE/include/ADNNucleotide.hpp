@@ -75,6 +75,7 @@ public:
 	[[nodiscard]] const SBPosition3&								GetBackbonePosition() const;											///< Return the position of the backbone of a nucleotide
 
 	// overload position to retrieve it from bb and sc
+	void														SetPosition(const SBPosition3& pos);									///< Set the center of a nucleotide by translating its backbone and sidechain centers
 	[[nodiscard]] SBPosition3									GetPosition() const;													///< Return the position of a nucleotide
 
 	void														addAtom(NucleotideGroup g, SBPointer<ADNAtom> a);

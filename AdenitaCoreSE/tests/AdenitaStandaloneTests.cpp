@@ -158,6 +158,17 @@ void requireVecNear(const std::string& name,
 
 }
 
+void requirePositionNear(const std::string& name,
+	const SBPosition3& actual,
+	const SBPosition3& expected,
+	double tolerance) {
+
+	requireNear(name + " x", actual[0].getValue(), expected[0].getValue(), tolerance);
+	requireNear(name + " y", actual[1].getValue(), expected[1].getValue(), tolerance);
+	requireNear(name + " z", actual[2].getValue(), expected[2].getValue(), tolerance);
+
+}
+
 rapidjson::Document parseJson(const char* json) {
 
 	rapidjson::Document document;
@@ -862,6 +873,30 @@ void testFrameAdaptersSanitizeAndRotateOrientable() {
 	requireVecNear("frame adapters rotated e1", rotated.e1, expected.e1, 1.0e-9);
 	requireVecNear("frame adapters rotated e2", rotated.e2, expected.e2, 1.0e-9);
 	requireVecNear("frame adapters rotated e3", rotated.e3, expected.e3, 1.0e-9);
+
+}
+
+void testNucleotideSetPositionTranslatesBackboneAndSidechain() {
+
+	ADNNucleotide nucleotide;
+	nucleotide.Init();
+	nucleotide.SetBackbonePosition(positionAngstrom(0.0, 0.0, 0.0));
+	nucleotide.SetSidechainPosition(positionAngstrom(2.0, 0.0, 0.0));
+
+	nucleotide.SetPosition(positionAngstrom(3.0, 0.0, 0.0));
+
+	requirePositionNear("nucleotide set position updates center",
+		nucleotide.GetPosition(),
+		positionAngstrom(3.0, 0.0, 0.0),
+		1.0e-9);
+	requirePositionNear("nucleotide set position translates backbone",
+		nucleotide.GetBackbonePosition(),
+		positionAngstrom(2.0, 0.0, 0.0),
+		1.0e-9);
+	requirePositionNear("nucleotide set position translates sidechain",
+		nucleotide.GetSidechainPosition(),
+		positionAngstrom(4.0, 0.0, 0.0),
+		1.0e-9);
 
 }
 
@@ -2148,6 +2183,7 @@ int main() {
 	testFrameUtilsRigidRotationPreservesDistances();
 	testFrameUtilsDerivesRotatedMockGeometryFrame();
 	testFrameAdaptersSanitizeAndRotateOrientable();
+	testNucleotideSetPositionTranslatesBackboneAndSidechain();
 	testCircularSingleStrandWrapsWithoutChangingSequenceOrder();
 	testModernJsonValidation();
 	testLegacyJsonValidation();

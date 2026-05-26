@@ -549,6 +549,23 @@ const SBPosition3& ADNNucleotide::GetBackbonePosition() const {
 
 }
 
+void ADNNucleotide::SetPosition(const SBPosition3& pos) {
+
+	const SBPosition3 oldCenter = GetPosition();
+	const SBPosition3 delta = pos - oldCenter;
+
+	auto bb = GetBackbone();
+	if (bb.isValid())
+		bb->SetPosition(GetBackbonePosition() + delta);
+
+	auto sc = GetSidechain();
+	if (sc.isValid())
+		sc->SetPosition(GetSidechainPosition() + delta);
+
+	PositionableSB::SetPosition(pos);
+
+}
+
 SBPosition3 ADNNucleotide::GetPosition() const {
 
 	return (GetBackbonePosition() + GetSidechainPosition()) * 0.5;
