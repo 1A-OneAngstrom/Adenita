@@ -51,6 +51,28 @@ SB_EXPORT void syncDoubleStrandFramesFromGeometry(ADNDoubleStrand& strand);
 /// the implementation can preserve stable sign conventions where needed.
 SB_EXPORT void syncPartFramesFromGeometry(ADNPart& part, SyncReason reason);
 
+/// \brief Synchronize a part before an Adenita geometry edit reconstructs positions.
+SB_EXPORT void syncPartFramesBeforeGeometryEdit(ADNPart& part);
+/// \brief Synchronize a part after an Adenita geometry edit reconstructs positions.
+SB_EXPORT void syncPartFramesAfterGeometryEdit(ADNPart& part);
+/// \brief Synchronize a single strand before an Adenita geometry edit reconstructs positions.
+SB_EXPORT void syncSingleStrandFramesBeforeGeometryEdit(ADNSingleStrand& strand);
+/// \brief Synchronize a single strand after an Adenita geometry edit reconstructs positions.
+SB_EXPORT void syncSingleStrandFramesAfterGeometryEdit(ADNSingleStrand& strand);
+/// \brief Synchronize a double strand before an Adenita geometry edit reconstructs positions.
+SB_EXPORT void syncDoubleStrandFramesBeforeGeometryEdit(ADNDoubleStrand& strand);
+/// \brief Synchronize a double strand after an Adenita geometry edit reconstructs positions.
+SB_EXPORT void syncDoubleStrandFramesAfterGeometryEdit(ADNDoubleStrand& strand);
+
+/// \brief Return unique owning parts for the given double strands.
+SB_EXPORT [[nodiscard]] SBPointerIndexer<ADNPart> collectPartsFromDoubleStrands(
+	const SBPointerIndexer<ADNDoubleStrand>& doubleStrands);
+/// \brief Return unique owning parts for the given nucleotides.
+SB_EXPORT [[nodiscard]] SBPointerIndexer<ADNPart> collectPartsFromNucleotides(
+	const SBPointerIndexer<ADNNucleotide>& nucleotides);
+/// \brief Return the owning part for an Adenita node when it can be resolved.
+SB_EXPORT [[nodiscard]] SBPointer<ADNPart> findOwningPart(SBNode* node);
+
 /// \brief Compare a nucleotide frame with its current geometry.
 SB_EXPORT [[nodiscard]] FrameGeometryAlignment analyzeNucleotideFrameAlignment(const ADNNucleotide& nucleotide,
 	double minBackboneSidechainAbsDot = 0.85,

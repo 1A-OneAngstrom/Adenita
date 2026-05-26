@@ -1,5 +1,6 @@
 #include "ADNGeometrySynchronization.hpp"
 
+#include "ADNAtom.hpp"
 #include "ADNBaseSegment.hpp"
 #include "ADNDoubleStrand.hpp"
 #include "ADNFrameAdapters.hpp"
@@ -112,6 +113,13 @@ struct BaseSegmentNucleotideSides {
 
 }
 
+void addPartIfMissing(SBPointerIndexer<ADNPart>& parts, SBPointer<ADNPart> part) {
+
+	if (part != nullptr && !parts.hasIndex(part()))
+		parts.addReferenceTarget(part());
+
+}
+
 } // namespace
 
 void syncNucleotideFrameFromGeometry(ADNNucleotide& nucleotide) {
@@ -218,6 +226,127 @@ void syncPartFramesFromGeometry(ADNPart& part, SyncReason reason) {
 			syncBaseSegmentFrameFromGeometry(*baseSegment);
 
 	}
+
+}
+
+void syncPartFramesBeforeGeometryEdit(ADNPart& part) {
+
+	syncPartFramesFromGeometry(part, SyncReason::BeforeGeometryEdit);
+
+}
+
+void syncPartFramesAfterGeometryEdit(ADNPart& part) {
+
+	syncPartFramesFromGeometry(part, SyncReason::AfterGeometryEdit);
+
+}
+
+void syncSingleStrandFramesBeforeGeometryEdit(ADNSingleStrand& strand) {
+
+	SBPointer<ADNPart> part = strand.GetPart();
+	if (part != nullptr) syncPartFramesBeforeGeometryEdit(*part);
+	else syncSingleStrandFramesFromGeometry(strand);
+
+}
+
+void syncSingleStrandFramesAfterGeometryEdit(ADNSingleStrand& strand) {
+
+	SBPointer<ADNPart> part = strand.GetPart();
+	if (part != nullptr) syncPartFramesAfterGeometryEdit(*part);
+	else syncSingleStrandFramesFromGeometry(strand);
+
+}
+
+void syncDoubleStrandFramesBeforeGeometryEdit(ADNDoubleStrand& strand) {
+
+	SBPointer<ADNPart> part = strand.GetPart();
+	if (part != nullptr) syncPartFramesBeforeGeometryEdit(*part);
+	else syncDoubleStrandFramesFromGeometry(strand);
+
+}
+
+void syncDoubleStrandFramesAfterGeometryEdit(ADNDoubleStrand& strand) {
+
+	SBPointer<ADNPart> part = strand.GetPart();
+	if (part != nullptr) syncPartFramesAfterGeometryEdit(*part);
+	else syncDoubleStrandFramesFromGeometry(strand);
+
+}
+
+SBPointerIndexer<ADNPart> collectPartsFromDoubleStrands(
+	const SBPointerIndexer<ADNDoubleStrand>& doubleStrands) {
+
+	SBPointerIndexer<ADNPart> parts;
+
+	SB_FOR(SBPointer<ADNDoubleStrand> doubleStrand, doubleStrands) {
+
+		if (doubleStrand != nullptr)
+			addPartIfMissing(parts, doubleStrand->GetPart());
+
+	}
+
+	return parts;
+
+}
+
+SBPointerIndexer<ADNPart> collectPartsFromNucleotides(
+	const SBPointerIndexer<ADNNucleotide>& nucleotides) {
+
+	SBPointerIndexer<ADNPart> parts;
+
+	SB_FOR(SBPointer<ADNNucleotide> nucleotide, nucleotides) {
+
+		if (nucleotide != nullptr)
+			addPartIfMissing(parts, findOwningPart(nucleotide()));
+
+	}
+
+	return parts;
+
+}
+
+SBPointer<ADNPart> findOwningPart(SBNode* node) {
+
+	for (SBNode* current = node; current != nullptr; current = current->getParent()) {
+
+		if (SBPointer<ADNPart> part = dynamic_cast<ADNPart*>(current))
+			return part;
+
+		if (SBPointer<ADNSingleStrand> strand = dynamic_cast<ADNSingleStrand*>(current))
+			return strand->GetPart();
+
+		if (SBPointer<ADNDoubleStrand> strand = dynamic_cast<ADNDoubleStrand*>(current))
+			return strand->GetPart();
+
+		if (SBPointer<ADNBaseSegment> baseSegment = dynamic_cast<ADNBaseSegment*>(current)) {
+
+			SBPointer<ADNDoubleStrand> strand = baseSegment->GetDoubleStrand();
+			if (strand != nullptr) return strand->GetPart();
+			return nullptr;
+
+		}
+
+		if (SBPointer<ADNNucleotide> nucleotide = dynamic_cast<ADNNucleotide*>(current)) {
+
+			SBPointer<ADNSingleStrand> strand = nucleotide->GetStrand();
+			if (strand != nullptr) return strand->GetPart();
+
+			SBPointer<ADNDoubleStrand> doubleStrand = nucleotide->GetDoubleStrand();
+			if (doubleStrand != nullptr) return doubleStrand->GetPart();
+			return nullptr;
+
+		}
+
+		if (SBPointer<ADNAtom> atom = dynamic_cast<ADNAtom*>(current)) {
+
+			if (SBPointer<ADNPart> part = findOwningPart(atom->getNucleotide()))
+				return part;
+
+		}
+
+	}
+
+	return nullptr;
 
 }
 
