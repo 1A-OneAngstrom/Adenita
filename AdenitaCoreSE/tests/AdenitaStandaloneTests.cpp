@@ -21,6 +21,7 @@
 #include "ADNConfig.hpp"
 #include "ADNConfigFileIO.hpp"
 #include "ADNConfigJson.hpp"
+#include "ADNFrameAdapters.hpp"
 #include "ADNFrameUtils.hpp"
 #include "ADNJsonValidation.hpp"
 #include "ADNLoop.hpp"
@@ -832,6 +833,35 @@ void testFrameUtilsDerivesRotatedMockGeometryFrame() {
 	requireVecNear("frame utils mock geometry e1", derivedAfterRotation.e1, expectedAfterRotation.e1, 1.0e-9);
 	requireVecNear("frame utils mock geometry e2", derivedAfterRotation.e2, expectedAfterRotation.e2, 1.0e-9);
 	requireVecNear("frame utils mock geometry e3", derivedAfterRotation.e3, expectedAfterRotation.e3, 1.0e-9);
+
+}
+
+void testFrameAdaptersSanitizeAndRotateOrientable() {
+
+	constexpr double pi = 3.141592653589793238462643383279502884;
+
+	Orientable orientable;
+	orientable.SetE1(vector3(1.0, 0.001, 0.0));
+	orientable.SetE2(vector3(0.0, 0.999, 0.002));
+	orientable.SetE3(vector3(0.001, 0.0, 0.998));
+
+	ADNFrameAdapters::sanitizeFrame(orientable);
+	const ADNFrameUtils::Frame sanitized = ADNFrameAdapters::frameFromOrientable(orientable);
+
+	requireTrue("frame adapters sanitize orientable",
+		ADNFrameUtils::isOrthonormalRightHanded(sanitized, 1.0e-9),
+		"Expected orientable frame to be sanitized.");
+
+	ADNFrameAdapters::rotateFrame(orientable, ADNFrameUtils::rotationZ(0.5 * pi));
+	const ADNFrameUtils::Frame rotated = ADNFrameAdapters::frameFromOrientable(orientable);
+	const ADNFrameUtils::Frame expected = ADNFrameUtils::rotated(ADNFrameUtils::rotationZ(0.5 * pi), sanitized);
+
+	requireTrue("frame adapters rotate orientable",
+		ADNFrameUtils::isOrthonormalRightHanded(rotated, 1.0e-9),
+		"Expected rotated orientable frame to stay valid.");
+	requireVecNear("frame adapters rotated e1", rotated.e1, expected.e1, 1.0e-9);
+	requireVecNear("frame adapters rotated e2", rotated.e2, expected.e2, 1.0e-9);
+	requireVecNear("frame adapters rotated e3", rotated.e3, expected.e3, 1.0e-9);
 
 }
 
@@ -2117,6 +2147,7 @@ int main() {
 	testFrameUtilsInvalidFrameFallsBack();
 	testFrameUtilsRigidRotationPreservesDistances();
 	testFrameUtilsDerivesRotatedMockGeometryFrame();
+	testFrameAdaptersSanitizeAndRotateOrientable();
 	testCircularSingleStrandWrapsWithoutChangingSequenceOrder();
 	testModernJsonValidation();
 	testLegacyJsonValidation();
