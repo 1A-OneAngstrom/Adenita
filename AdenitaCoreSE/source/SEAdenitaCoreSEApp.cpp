@@ -7,12 +7,63 @@
 #include "PICrossovers.hpp"
 #include "DASAlgorithms.hpp"
 #include "ADNSamsonContext.hpp"
+#include "ADNAtom.hpp"
+#include "ADNGeometrySynchronization.hpp"
 
 #include <exception>
 
 #include <QTimer>
 
 SEAdenitaCoreSEApp* SEAdenitaCoreSEApp::adenitaApp = nullptr;
+
+namespace {
+
+class ScopedGeometrySyncGuard {
+
+public:
+
+	explicit ScopedGeometrySyncGuard(bool& flag) : flag_(flag), oldValue_(flag) {
+
+		flag_ = true;
+
+	}
+
+	~ScopedGeometrySyncGuard() {
+
+		flag_ = oldValue_;
+
+	}
+
+private:
+
+	bool& flag_;
+	bool oldValue_;
+
+};
+
+void syncFramesForAtomPositionChange(SBNode* node) {
+
+	SBPointer<ADNAtom> atom = dynamic_cast<ADNAtom*>(node);
+	if (atom == nullptr) return;
+
+	SBPointer<ADNNucleotide> nucleotide = dynamic_cast<ADNNucleotide*>(atom->getNucleotide());
+	if (nucleotide != nullptr) {
+
+		ADNGeometrySynchronization::syncNucleotideFrameFromGeometry(*nucleotide);
+		SBPointer<ADNBaseSegment> baseSegment = nucleotide->GetBaseSegment();
+		if (baseSegment != nullptr)
+			ADNGeometrySynchronization::syncBaseSegmentFrameFromGeometry(*baseSegment);
+		return;
+
+	}
+
+	SBPointer<ADNBaseSegment> baseSegment = dynamic_cast<ADNBaseSegment*>(atom->getParent());
+	if (baseSegment != nullptr)
+		ADNGeometrySynchronization::syncBaseSegmentFrameFromGeometry(*baseSegment);
+
+}
+
+} // namespace
 
 SEAdenitaCoreSEApp::SEAdenitaCoreSEApp() {
 
@@ -1004,6 +1055,18 @@ void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* structuralEvent) {
 	if (node->getProxy()->getElementUUID() != SBUUID(SB_ELEMENT_UUID)) return;
 
 	const std::string nodeClassName = node->getProxy()->getName();
+
+	if (eventType == SBStructuralEvent::AtomPositionChanged) {
+
+		if (!geometrySyncInProgress_) {
+
+			ScopedGeometrySyncGuard guard(geometrySyncInProgress_);
+			syncFramesForAtomPositionChange(node);
+
+		}
+		return;
+
+	}
 
 #if 0
 	// is handled in the Adenita Visual Model

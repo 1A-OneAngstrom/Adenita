@@ -143,6 +143,7 @@ private:
 	std::map<SBDocument*, ADNNanorobot*>						nanorobotMap;
 
 	bool														mod_{ false };
+	bool														geometrySyncInProgress_{ false };
 
 };
 
