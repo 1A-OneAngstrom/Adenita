@@ -23,6 +23,7 @@
 #include "ADNConfigJson.hpp"
 #include "ADNFrameAdapters.hpp"
 #include "ADNFrameUtils.hpp"
+#include "ADNGeometrySynchronization.hpp"
 #include "ADNJsonValidation.hpp"
 #include "ADNLoop.hpp"
 #include "ADNNucleotide.hpp"
@@ -897,6 +898,43 @@ void testNucleotideSetPositionTranslatesBackboneAndSidechain() {
 		nucleotide.GetSidechainPosition(),
 		positionAngstrom(4.0, 0.0, 0.0),
 		1.0e-9);
+
+}
+
+void testGeometrySynchronizationDerivesNucleotideFrame() {
+
+	SBPointer<ADNSingleStrand> strand = new ADNSingleStrand();
+	SBPointer<ADNNucleotide> previous = new ADNNucleotide();
+	SBPointer<ADNNucleotide> nucleotide = new ADNNucleotide();
+	SBPointer<ADNNucleotide> next = new ADNNucleotide();
+
+	auto initializeNucleotide = [](SBPointer<ADNNucleotide> nt, double x) {
+
+		nt->Init();
+		nt->SetBackbonePosition(positionAngstrom(x, -0.5, 0.0));
+		nt->SetSidechainPosition(positionAngstrom(x, 0.5, 0.0));
+		nt->SetE1(vector3(0.0, 0.0, 0.0));
+		nt->SetE2(vector3(0.0, 0.0, 0.0));
+		nt->SetE3(vector3(0.0, 0.0, 0.0));
+
+	};
+
+	initializeNucleotide(previous, -1.0);
+	initializeNucleotide(nucleotide, 0.0);
+	initializeNucleotide(next, 1.0);
+	strand->AddNucleotideThreePrime(previous);
+	strand->AddNucleotideThreePrime(nucleotide);
+	strand->AddNucleotideThreePrime(next);
+
+	ADNGeometrySynchronization::syncNucleotideFrameFromGeometry(*nucleotide);
+	const ADNFrameUtils::Frame frame = ADNFrameAdapters::frameFromOrientable(*nucleotide);
+
+	requireTrue("geometry synchronization nucleotide frame valid",
+		ADNGeometrySynchronization::validateNucleotideGeometry(*nucleotide),
+		"Expected synchronized nucleotide frame to be valid.");
+	requireVecNear("geometry synchronization nucleotide e1", frame.e1, ADNFrameUtils::Vec3{ 0.0, 0.0, -1.0 }, 1.0e-9);
+	requireVecNear("geometry synchronization nucleotide e2", frame.e2, ADNFrameUtils::Vec3{ 0.0, 1.0, 0.0 }, 1.0e-9);
+	requireVecNear("geometry synchronization nucleotide e3", frame.e3, ADNFrameUtils::Vec3{ 1.0, 0.0, 0.0 }, 1.0e-9);
 
 }
 
@@ -2184,6 +2222,7 @@ int main() {
 	testFrameUtilsDerivesRotatedMockGeometryFrame();
 	testFrameAdaptersSanitizeAndRotateOrientable();
 	testNucleotideSetPositionTranslatesBackboneAndSidechain();
+	testGeometrySynchronizationDerivesNucleotideFrame();
 	testCircularSingleStrandWrapsWithoutChangingSequenceOrder();
 	testModernJsonValidation();
 	testLegacyJsonValidation();
