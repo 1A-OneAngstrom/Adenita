@@ -1,6 +1,7 @@
 #include "SEDNATwisterEditor.hpp"
 #include "SEAdenitaCoreSEApp.hpp"
 
+#include "ADNConstants.hpp"
 #include "ADNGeometrySynchronization.hpp"
 #include "ADNSamsonContext.hpp"
 #include "MSVDisplayHelper.hpp"
@@ -8,6 +9,28 @@
 #include "SAMSON.hpp"
 
 #include "SBGRenderOpenGLFunctions.hpp"
+
+namespace {
+
+[[nodiscard]] double degreesToRadians(double degrees) {
+
+	constexpr double pi = 3.141592653589793238462643383279502884;
+	return degrees * pi / 180.0;
+
+}
+
+[[nodiscard]] double baseSegmentTwistPhaseRadians(const ADNBaseSegment& baseSegment) {
+
+	double initialTwistAngle = 0.0;
+	SBPointer<ADNDoubleStrand> doubleStrand = baseSegment.GetDoubleStrand();
+	if (doubleStrand != nullptr)
+		initialTwistAngle = doubleStrand->GetInitialTwistAngle();
+
+	return degreesToRadians(initialTwistAngle + baseSegment.GetNumber() * ADNConstants::BP_ROT);
+
+}
+
+} // namespace
 
 
 SEDNATwisterEditor::SEDNATwisterEditor() {
@@ -44,7 +67,6 @@ void SEDNATwisterEditor::untwisting() {
 	if (document == nullptr) return;
 	document->getNodes(baseSegmentIndexer, (SBNode::GetClass() == std::string("ADNBaseSegment")) && (SBNode::GetElementUUID() == SBUUID(SB_ELEMENT_UUID)));
 
-	DASBackToTheAtom btta;
 	SBPointerIndexer<ADNBaseSegment> affectedBaseSegments;
 	SBPointerIndexer<ADNPart> affectedParts;
 
@@ -76,10 +98,11 @@ void SEDNATwisterEditor::untwisting() {
 
 		if (baseSegment == nullptr) continue;
 
+		const double phase = baseSegmentTwistPhaseRadians(*baseSegment);
 		if (forwardActionSphereActive)
-			btta.UntwistNucleotidesPosition(baseSegment);
+			ADNGeometrySynchronization::rotateBaseSegmentGeometry(*baseSegment, phase);
 		else if (reverseActionSphereActive)
-			btta.SetNucleotidePosition(baseSegment, true);
+			ADNGeometrySynchronization::rotateBaseSegmentGeometry(*baseSegment, -phase);
 
 	}
 

@@ -7,7 +7,6 @@
 #include "SBAction.hpp"
 
 #include "ADNNanorobot.hpp"
-#include "DASBackToTheAtom.hpp"
 
 /// This class implements an editor
 

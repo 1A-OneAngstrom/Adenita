@@ -21,6 +21,13 @@ namespace {
 
 bool g_pendingSAMLoadVisualModelReset = false;
 
+[[nodiscard]] double degreesToRadians(double degrees) {
+
+	constexpr double pi = 3.141592653589793238462643383279502884;
+	return degrees * pi / 180.0;
+
+}
+
 class ScopedGeometrySyncGuard {
 
 public:
@@ -653,8 +660,6 @@ void SEAdenitaCoreSEApp::BreakSingleStrand(bool fivePrimeMode) {
 
 void SEAdenitaCoreSEApp::TwistDoubleHelix(SBPointerIndexer<ADNDoubleStrand> dss, double angle) {
 
-	DASBackToTheAtom btta = DASBackToTheAtom();
-	SEConfig& config = SEConfig::GetInstance();
 	const SBPointerIndexer<ADNPart> affectedParts =
 		ADNGeometrySynchronization::collectPartsFromDoubleStrands(dss);
 
@@ -666,12 +671,7 @@ void SEAdenitaCoreSEApp::TwistDoubleHelix(SBPointerIndexer<ADNDoubleStrand> dss,
 
 		double newDeg = ds->GetInitialTwistAngle() + angle;
 		ADNBasicOperations::TwistDoubleHelix(ds, newDeg);
-		// recalculate positions
-		btta.SetDoubleStrandPositions(ds);
-		if (config.use_atomic_details) {
-			// todo: calculate all atoms just for a double strand
-			//btta.GenerateAllAtomModel(ds);
-		}
+		ADNGeometrySynchronization::rotateDoubleStrandGeometry(*ds, -degreesToRadians(angle));
 
 	}
 
@@ -806,8 +806,6 @@ void SEAdenitaCoreSEApp::TwistDoubleHelix() {
 	if (nanorobot == nullptr) return;
 	auto dss = nanorobot->GetSelectedDoubleStrands();
 
-	DASBackToTheAtom btta = DASBackToTheAtom();
-	SEConfig& config = SEConfig::GetInstance();
 	const SBPointerIndexer<ADNPart> affectedParts =
 		ADNGeometrySynchronization::collectPartsFromDoubleStrands(dss);
 
@@ -819,16 +817,13 @@ void SEAdenitaCoreSEApp::TwistDoubleHelix() {
 
 		double newDeg = ds->GetInitialTwistAngle() + deg;
 		ADNBasicOperations::TwistDoubleHelix(ds, newDeg);
-		// recalculate positions
-		btta.SetDoubleStrandPositions(ds);
-		if (config.use_atomic_details) {
-			// todo: calculate all atoms just for a double strand
-			//btta.GenerateAllAtomModel(ds);
-		}
+		ADNGeometrySynchronization::rotateDoubleStrandGeometry(*ds, -degreesToRadians(deg));
 
 	}
 
 	syncPartsAfterGeometryEdit(affectedParts);
+
+	if (dss.size() > 0) SEAdenitaCoreSEApp::resetVisualModel();
 
 }
 
