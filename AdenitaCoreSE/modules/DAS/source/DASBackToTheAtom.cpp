@@ -1,5 +1,6 @@
 #include "DASBackToTheAtom.hpp"
 #include "ADNBackbone.hpp"
+#include "ADNGeometrySynchronization.hpp"
 #include "ADNSidechain.hpp"
 
 #include "SBProxy.hpp"
@@ -12,6 +13,21 @@
 #include <fstream>
 #include <cstdio>
 #include <filesystem>
+
+namespace {
+
+#ifndef NDEBUG
+void logInvalidBaseSegmentFrame(const char* context, SBPointer<ADNBaseSegment> baseSegment) {
+
+	if (baseSegment != nullptr &&
+		!ADNGeometrySynchronization::validateBaseSegmentGeometry(*baseSegment))
+		ADNLogger::LogDebug(std::string(context) +
+			": reconstructing positions from a stale base-segment frame.");
+
+}
+#endif
+
+} // namespace
 
 
 DASBackToTheAtom::DASBackToTheAtom() {
@@ -91,6 +107,10 @@ void DASBackToTheAtom::SetDoubleStrandPositions(SBPointer<ADNDoubleStrand> ds) {
 void DASBackToTheAtom::SetNucleotidePosition(SBPointer<ADNBaseSegment> bs, bool set_pair) {
 
 	if (bs == nullptr) return;
+
+#ifndef NDEBUG
+	logInvalidBaseSegmentFrame(__func__, bs);
+#endif
 
 	SBPointer<ADNNucleotide> nt_left = nullptr;
 	SBPointer<ADNNucleotide> nt_right = nullptr;
@@ -252,6 +272,10 @@ void DASBackToTheAtom::SetPositionsForNewNucleotides(SBPointer<ADNPart> part, SB
 void DASBackToTheAtom::UntwistNucleotidesPosition(SBPointer<ADNBaseSegment> bs) {
 
 	if (bs == nullptr) return;
+
+#ifndef NDEBUG
+	logInvalidBaseSegmentFrame(__func__, bs);
+#endif
 
 	auto nts = bs->GetNucleotides();
 	SB_FOR(SBPointer<ADNNucleotide> nt, nts)
@@ -480,6 +504,10 @@ void DASBackToTheAtom::UntwistNucleotidePosition(SBPointer<ADNNucleotide> nt) {
 	if (nt == nullptr) return;
 
 	SBPointer<ADNBaseSegment> bs = nt->GetBaseSegment();
+
+#ifndef NDEBUG
+	logInvalidBaseSegmentFrame(__func__, bs);
+#endif
 
 	SBPointer<ADNCell> cell = bs->GetCell();
 	if (cell->GetCellType() != CellType::BasePair) return;
