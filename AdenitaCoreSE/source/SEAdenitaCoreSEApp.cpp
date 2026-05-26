@@ -66,6 +66,28 @@ void syncFramesForAtomPositionChange(SBNode* node) {
 
 }
 
+void syncPartsBeforeGeometryEdit(const SBPointerIndexer<ADNPart>& parts) {
+
+	SB_FOR(SBPointer<ADNPart> part, parts) {
+
+		if (part != nullptr)
+			ADNGeometrySynchronization::syncPartFramesBeforeGeometryEdit(*part);
+
+	}
+
+}
+
+void syncPartsAfterGeometryEdit(const SBPointerIndexer<ADNPart>& parts) {
+
+	SB_FOR(SBPointer<ADNPart> part, parts) {
+
+		if (part != nullptr)
+			ADNGeometrySynchronization::syncPartFramesAfterGeometryEdit(*part);
+
+	}
+
+}
+
 } // namespace
 
 SEAdenitaCoreSEApp::SEAdenitaCoreSEApp() {
@@ -655,8 +677,14 @@ void SEAdenitaCoreSEApp::TwistDoubleHelix(SBPointerIndexer<ADNDoubleStrand> dss,
 
 	DASBackToTheAtom btta = DASBackToTheAtom();
 	SEConfig& config = SEConfig::GetInstance();
+	const SBPointerIndexer<ADNPart> affectedParts =
+		ADNGeometrySynchronization::collectPartsFromDoubleStrands(dss);
+
+	syncPartsBeforeGeometryEdit(affectedParts);
 
 	SB_FOR(SBPointer<ADNDoubleStrand> ds, dss) {
+
+		if (ds == nullptr) continue;
 
 		double newDeg = ds->GetInitialTwistAngle() + angle;
 		ADNBasicOperations::TwistDoubleHelix(ds, newDeg);
@@ -668,6 +696,8 @@ void SEAdenitaCoreSEApp::TwistDoubleHelix(SBPointerIndexer<ADNDoubleStrand> dss,
 		}
 
 	}
+
+	syncPartsAfterGeometryEdit(affectedParts);
 
 	if (dss.size() > 0) SEAdenitaCoreSEApp::resetVisualModel();
 
@@ -800,8 +830,14 @@ void SEAdenitaCoreSEApp::TwistDoubleHelix() {
 
 	DASBackToTheAtom btta = DASBackToTheAtom();
 	SEConfig& config = SEConfig::GetInstance();
+	const SBPointerIndexer<ADNPart> affectedParts =
+		ADNGeometrySynchronization::collectPartsFromDoubleStrands(dss);
+
+	syncPartsBeforeGeometryEdit(affectedParts);
 
 	SB_FOR(SBPointer<ADNDoubleStrand> ds, dss) {
+
+		if (ds == nullptr) continue;
 
 		double newDeg = ds->GetInitialTwistAngle() + deg;
 		ADNBasicOperations::TwistDoubleHelix(ds, newDeg);
@@ -813,6 +849,8 @@ void SEAdenitaCoreSEApp::TwistDoubleHelix() {
 		}
 
 	}
+
+	syncPartsAfterGeometryEdit(affectedParts);
 
 }
 
