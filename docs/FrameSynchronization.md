@@ -8,6 +8,8 @@ For every persisted or synchronized frame:
 - The axes are mutually orthogonal.
 - The frame is right-handed with positive determinant for columns `[e1 e2 e3]`.
 
+Frame validity is necessary but not sufficient. A frame can remain orthonormal after a SAMSON move while no longer matching the current backbone, sidechain, base-pair, or strand tangent geometry. Adenita validates both the mathematical frame and its alignment with reconstructible geometry before using cached axes as geometry anchors.
+
 Rigid transforms must update positions and frames together:
 
 ```text
@@ -25,7 +27,10 @@ Current synchronization boundaries:
 
 - after native SAMSON unserialization;
 - before and after Adenita JSON save/load;
-- after Adenita atom position structural events;
+- after deferred Adenita structural position / transform events;
+- before and after Adenita editors reconstruct geometry from cached frames;
 - when code explicitly requests manual frame repair.
+
+The explicit editor boundary is required because editors such as Rotate DNA, Twister, and Create base pair call geometry reconstruction routines that use cached frame axes. Synchronizing the owning `ADNPart` before those calls makes SAMSON-rotated positions the source of truth; synchronizing again after the edit leaves the next operation with aligned frames.
 
 Native `serialize` methods write sanitized frame copies without mutating object state.
