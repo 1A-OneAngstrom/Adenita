@@ -3619,7 +3619,9 @@ void SEAdenitaVisualModel::onStructuralEvent(SBStructuralEvent* structuralEvent)
 	// SAMSON Element generator pro tip: implement this function if you need to handle structural events (e.g. when a structural node for which you provide a visual representation is updated)
 
 	const SBStructuralEvent::Type eventType = structuralEvent->getType();
-	if (eventType == SBStructuralEvent::AtomPositionChanged) {
+	if (eventType == SBStructuralEvent::AtomAdded ||
+		eventType == SBStructuralEvent::AtomRemoved ||
+		eventType == SBStructuralEvent::AtomPositionChanged) {
 
 		requestUpdate();
 		return;
