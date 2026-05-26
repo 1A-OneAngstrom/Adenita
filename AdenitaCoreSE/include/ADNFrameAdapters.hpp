@@ -5,13 +5,13 @@
 
 namespace ADNFrameAdapters {
 
-[[nodiscard]] ADNFrameUtils::Frame frameFromOrientable(const Orientable& orientable);
-void setFrame(Orientable& orientable, const ADNFrameUtils::Frame& frame);
+SB_EXPORT [[nodiscard]] ADNFrameUtils::Frame frameFromOrientable(const Orientable& orientable);
+SB_EXPORT void setFrame(Orientable& orientable, const ADNFrameUtils::Frame& frame);
 
-[[nodiscard]] ADNFrameUtils::Frame sanitizedFrame(const Orientable& orientable,
+SB_EXPORT [[nodiscard]] ADNFrameUtils::Frame sanitizedFrame(const Orientable& orientable,
 	const ADNFrameUtils::Frame& fallback = ADNFrameUtils::identityFrame());
-void sanitizeFrame(Orientable& orientable,
+SB_EXPORT void sanitizeFrame(Orientable& orientable,
 	const ADNFrameUtils::Frame& fallback = ADNFrameUtils::identityFrame());
-void rotateFrame(Orientable& orientable, const ADNFrameUtils::Mat3& rotation);
+SB_EXPORT void rotateFrame(Orientable& orientable, const ADNFrameUtils::Mat3& rotation);
 
 } // namespace ADNFrameAdapters
