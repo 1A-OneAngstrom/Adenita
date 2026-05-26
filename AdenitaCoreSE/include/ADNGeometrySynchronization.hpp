@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SBCHeapExport.hpp"
+#include "SBDDataGraphNode.hpp"
 #include "SBPointer.hpp"
 #include "SBPointerIndexer.hpp"
 
@@ -11,7 +12,6 @@ class ADNDoubleStrand;
 class ADNNucleotide;
 class ADNPart;
 class ADNSingleStrand;
-class SBNode;
 
 namespace ADNGeometrySynchronization {
 

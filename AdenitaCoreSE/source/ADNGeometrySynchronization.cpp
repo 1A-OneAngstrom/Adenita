@@ -146,7 +146,7 @@ void syncBaseSegmentFrameFromGeometry(ADNBaseSegment& baseSegment) {
 
 	const ADNFrameUtils::Frame fallback = repairedFallback(baseSegment);
 
-	const BaseSegmentNucleotideSides sides = baseSegmentNucleotideSides(baseSegment);
+	BaseSegmentNucleotideSides sides = baseSegmentNucleotideSides(baseSegment);
 
 	ADNFrameUtils::Vec3 e2{};
 	if (sides.left != nullptr && sides.right != nullptr) {
@@ -309,16 +309,16 @@ SBPointer<ADNPart> findOwningPart(SBNode* node) {
 
 	for (SBNode* current = node; current != nullptr; current = current->getParent()) {
 
-		if (SBPointer<ADNPart> part = dynamic_cast<ADNPart*>(current))
+		if (ADNPart* part = dynamic_cast<ADNPart*>(current))
 			return part;
 
-		if (SBPointer<ADNSingleStrand> strand = dynamic_cast<ADNSingleStrand*>(current))
+		if (ADNSingleStrand* strand = dynamic_cast<ADNSingleStrand*>(current))
 			return strand->GetPart();
 
-		if (SBPointer<ADNDoubleStrand> strand = dynamic_cast<ADNDoubleStrand*>(current))
+		if (ADNDoubleStrand* strand = dynamic_cast<ADNDoubleStrand*>(current))
 			return strand->GetPart();
 
-		if (SBPointer<ADNBaseSegment> baseSegment = dynamic_cast<ADNBaseSegment*>(current)) {
+		if (ADNBaseSegment* baseSegment = dynamic_cast<ADNBaseSegment*>(current)) {
 
 			SBPointer<ADNDoubleStrand> strand = baseSegment->GetDoubleStrand();
 			if (strand != nullptr) return strand->GetPart();
@@ -326,7 +326,7 @@ SBPointer<ADNPart> findOwningPart(SBNode* node) {
 
 		}
 
-		if (SBPointer<ADNNucleotide> nucleotide = dynamic_cast<ADNNucleotide*>(current)) {
+		if (ADNNucleotide* nucleotide = dynamic_cast<ADNNucleotide*>(current)) {
 
 			SBPointer<ADNSingleStrand> strand = nucleotide->GetStrand();
 			if (strand != nullptr) return strand->GetPart();
@@ -337,9 +337,10 @@ SBPointer<ADNPart> findOwningPart(SBNode* node) {
 
 		}
 
-		if (SBPointer<ADNAtom> atom = dynamic_cast<ADNAtom*>(current)) {
+		if (ADNAtom* atom = dynamic_cast<ADNAtom*>(current)) {
 
-			if (SBPointer<ADNPart> part = findOwningPart(atom->getNucleotide()))
+			SBPointer<ADNPart> part = findOwningPart(atom->getNucleotide());
+			if (part != nullptr)
 				return part;
 
 		}
