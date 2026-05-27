@@ -121,9 +121,11 @@ SB_EXPORT [[nodiscard]] ADNFrameUtils::Frame canonicalTemplateFrameFromCurrentGe
 
 /// \brief Prepare a base-segment frame for DASBackToTheAtom template reconstruction.
 ///
-/// This derives a phase-neutral base-segment frame from the current
-/// nucleotide-side geometry. Do not replace it with a geometry-aligned part
-/// synchronization immediately before calling a template reconstruction method.
+/// This mutating compatibility helper stores a phase-neutral template frame on
+/// the base segment. Prefer canonicalTemplateFrameFromCurrentGeometry() in new
+/// code so persistent base-segment frames remain aligned with visible geometry.
+/// Callers that use this helper should reconstruct geometry immediately and
+/// then resynchronize persistent frames from the resulting positions.
 SB_EXPORT void prepareBaseSegmentFrameForTemplateReconstruction(ADNBaseSegment& baseSegment);
 /// \brief Prepare base-segment frames touched by a set of nucleotides.
 SB_EXPORT void prepareBaseSegmentFramesForTemplateReconstruction(

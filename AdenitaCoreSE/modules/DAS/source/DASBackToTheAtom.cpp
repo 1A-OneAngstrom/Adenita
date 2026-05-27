@@ -25,6 +25,82 @@ struct AtomTemplateSelection {
 	ADNGeometrySynchronization::TemplateSide side{ ADNGeometrySynchronization::TemplateSide::Left };
 };
 
+struct TemplateToWorldTransform {
+	ADNFrameUtils::Frame canonicalFrame;
+	double phaseRadians{ 0.0 };
+	ublas::matrix<double> basisMatrix;
+	ADNFrameUtils::Frame leftFrame;
+	ADNFrameUtils::Frame rightFrame;
+};
+
+[[nodiscard]] ublas::vector<double> frameVectorToUblas(const ADNFrameUtils::Vec3& vector) {
+
+	ublas::vector<double> result(3);
+	result[0] = vector.x;
+	result[1] = vector.y;
+	result[2] = vector.z;
+	return result;
+
+}
+
+[[nodiscard]] ublas::matrix<double> frameRowsToUblas(const ADNFrameUtils::Frame& frame) {
+
+	ublas::matrix<double> rows(3, 3);
+	ublas::row(rows, 0) = frameVectorToUblas(frame.e1);
+	ublas::row(rows, 1) = frameVectorToUblas(frame.e2);
+	ublas::row(rows, 2) = frameVectorToUblas(frame.e3);
+	return rows;
+
+}
+
+[[nodiscard]] ublas::matrix<double> templateBasisMatrixFromCanonicalFrame(
+	const ADNFrameUtils::Frame& canonicalFrame,
+	double phaseRadians) {
+
+	// This reproduces the legacy DASBackToTheAtom matrix convention without
+	// storing the phase-neutral frame on ADNBaseSegment. ADNVectorMath uses the
+	// opposite axis-angle sign from ADNFrameUtils, hence the negative phase.
+	ublas::matrix<double> basisRows = frameRowsToUblas(canonicalFrame);
+	ublas::matrix<double> rotation =
+		ADNVectorMath::MakeRotationMatrix(frameVectorToUblas(canonicalFrame.e3), -phaseRadians);
+	basisRows = ADNVectorMath::ApplyTransformation(rotation, basisRows);
+	return ublas::trans(basisRows);
+
+}
+
+[[nodiscard]] TemplateToWorldTransform makeTemplateToWorldTransform(
+	const ADNBaseSegment& baseSegment,
+	const ADNFrameUtils::Frame& canonicalFrame) {
+
+	TemplateToWorldTransform transform;
+	transform.canonicalFrame = ADNFrameUtils::orthonormalized(canonicalFrame);
+	transform.phaseRadians =
+		ADNGeometrySynchronization::baseSegmentReconstructionPhaseRadians(baseSegment);
+	transform.basisMatrix =
+		templateBasisMatrixFromCanonicalFrame(transform.canonicalFrame, transform.phaseRadians);
+	transform.leftFrame =
+		ADNGeometrySynchronization::canonicalBaseSegmentFrameToNucleotideSideFrame(
+			transform.canonicalFrame,
+			ADNGeometrySynchronization::TemplateSide::Left,
+			transform.phaseRadians);
+	transform.rightFrame =
+		ADNGeometrySynchronization::canonicalBaseSegmentFrameToNucleotideSideFrame(
+			transform.canonicalFrame,
+			ADNGeometrySynchronization::TemplateSide::Right,
+			transform.phaseRadians);
+	return transform;
+
+}
+
+[[nodiscard]] TemplateToWorldTransform makeTemplateToWorldTransform(
+	const ADNBaseSegment& baseSegment) {
+
+	return makeTemplateToWorldTransform(
+		baseSegment,
+		ADNGeometrySynchronization::canonicalTemplateFrameFromCurrentGeometry(baseSegment));
+
+}
+
 [[nodiscard]] bool isRightSideNucleotide(SBPointer<ADNNucleotide> nucleotide) {
 
 	if (nucleotide == nullptr) return false;
@@ -348,44 +424,16 @@ void DASBackToTheAtom::SetNucleotidePosition(SBPointer<ADNBaseSegment> bs, bool 
 	ublas::row(input, 4) = ADNAuxiliary::SBPositionToUblas(nt_right->GetBackbonePosition());
 	ublas::row(input, 5) = ADNAuxiliary::SBPositionToUblas(nt_right->GetSidechainPosition());
 
-	// Calculate new residue positions in this system
-	// Rotate system so z goes in proper direction
-	ublas::matrix<double> subspace = CalculateBaseSegmentBasis(bs);
-	const ADNFrameUtils::Frame canonicalFrame = ADNFrameAdapters::sanitizedFrame(*bs);
-	const double reconstructionPhaseRadians =
-		ADNGeometrySynchronization::baseSegmentReconstructionPhaseRadians(*bs);
-	const ADNFrameUtils::Frame leftFrame =
-		ADNGeometrySynchronization::canonicalBaseSegmentFrameToNucleotideSideFrame(
-			canonicalFrame,
-			ADNGeometrySynchronization::TemplateSide::Left,
-			reconstructionPhaseRadians);
-	const ADNFrameUtils::Frame rightFrame =
-		ADNGeometrySynchronization::canonicalBaseSegmentFrameToNucleotideSideFrame(
-			canonicalFrame,
-			ADNGeometrySynchronization::TemplateSide::Right,
-			reconstructionPhaseRadians);
-
-	// to calculate untwisted positions
-	ublas::matrix<double> new_basisNoTwist = subspace;
-	// apply rotation to basis (rotation has to be negative)
-	// if number is too big, reset it
-	const double angle = -reconstructionPhaseRadians;
-	ublas::matrix<double> rot_mat = ADNVectorMath::MakeRotationMatrix(bs->GetE3(), angle);
-	ublas::matrix<double> new_basis = ADNVectorMath::ApplyTransformation(rot_mat, subspace);
-	// Apply transformation
-	new_basis = ublas::trans(new_basis);
-	ublas::matrix<double> new_pos = ADNVectorMath::ApplyTransformation(new_basis, input);
+	const TemplateToWorldTransform transform =
+		makeTemplateToWorldTransform(*bs, ADNFrameAdapters::sanitizedFrame(*bs));
+	ublas::matrix<double> new_pos = ADNVectorMath::ApplyTransformation(transform.basisMatrix, input);
 	new_pos = ADNVectorMath::Translate(new_pos, t_vec);
-	// Apply transformation for non twisted positions
-	new_basisNoTwist = ublas::trans(new_basisNoTwist);
-	ublas::matrix<double> new_posNoTwist = ADNVectorMath::ApplyTransformation(new_basisNoTwist, input);
-	new_posNoTwist = ADNVectorMath::Translate(new_posNoTwist, t_vec);
 
 	if (nt_l != nullptr) {
 
 		// Coarse reconstruction and atom placement share this side-frame
 		// convention; FindAtomsPositions later consumes the nucleotide frame directly.
-		ADNFrameAdapters::setFrame(*nt_l, leftFrame);
+		ADNFrameAdapters::setFrame(*nt_l, transform.leftFrame);
 
 		if (nt_l->GetStrand()->IsScaffold()) {
 
@@ -408,7 +456,7 @@ void DASBackToTheAtom::SetNucleotidePosition(SBPointer<ADNBaseSegment> bs, bool 
 
 		// Right-side nucleotides use the complementary side convention of the
 		// same base-pair plane. Keep this centralized for coarse and atomic models.
-		ADNFrameAdapters::setFrame(*nt_r, rightFrame);
+		ADNFrameAdapters::setFrame(*nt_r, transform.rightFrame);
 
 		if (nt_r->GetStrand()->IsScaffold()) {
 
