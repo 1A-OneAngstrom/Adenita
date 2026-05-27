@@ -43,6 +43,14 @@ enum class TemplateSide {
 	Right ///< Right nucleotide frame convention.
 };
 
+/// \brief Return the helical phase applied during base-segment reconstruction.
+///
+/// The returned angle is positive in the right-handed convention used by
+/// ADNFrameUtils. Legacy DASBackToTheAtom code stores the same operation as a
+/// negative angle in ADNVectorMath::MakeRotationMatrix, whose sign convention
+/// is opposite to ADNFrameUtils::rotationAroundAxis.
+SB_EXPORT [[nodiscard]] double baseSegmentReconstructionPhaseRadians(const ADNBaseSegment& baseSegment);
+
 /// \brief Reconstruct a nucleotide frame from its current geometry.
 SB_EXPORT void syncNucleotideFrameFromGeometry(ADNNucleotide& nucleotide);
 /// \brief Reconstruct a base-segment frame from its paired nucleotide geometry.
@@ -83,7 +91,9 @@ SB_EXPORT void rotateDoubleStrandGeometry(ADNDoubleStrand& strand, double radian
 ///
 /// The canonical frame is the phase-neutral frame consumed by
 /// DASBackToTheAtom. The returned side frame includes the helical phase and the
-/// right-side sign convention when \p side is \c TemplateSide::Right.
+/// right-side sign convention when \p side is \c TemplateSide::Right. Atom
+/// placement later consumes these nucleotide-side frames directly through
+/// ADNNucleotide::GetGlobalBasisTransformation.
 SB_EXPORT [[nodiscard]] ADNFrameUtils::Frame canonicalBaseSegmentFrameToNucleotideSideFrame(
 	const ADNFrameUtils::Frame& canonicalFrame,
 	TemplateSide side,
@@ -92,7 +102,9 @@ SB_EXPORT [[nodiscard]] ADNFrameUtils::Frame canonicalBaseSegmentFrameToNucleoti
 ///
 /// Use this before template reconstruction paths that call
 /// DASBackToTheAtom::SetNucleotidePosition or
-/// DASBackToTheAtom::UntwistNucleotidesPosition.
+/// DASBackToTheAtom::UntwistNucleotidesPosition. Geometry-aligned frames should
+/// not be passed directly to these paths because DASBackToTheAtom applies the
+/// helical phase itself.
 SB_EXPORT [[nodiscard]] ADNFrameUtils::Frame nucleotideSideFrameToCanonicalBaseSegmentFrame(
 	const ADNFrameUtils::Frame& nucleotideFrame,
 	TemplateSide side,

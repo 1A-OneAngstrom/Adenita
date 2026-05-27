@@ -1252,6 +1252,73 @@ void testTemplateFramePreparationTargetStateIsStable() {
 
 }
 
+void testTemplateFrameHandednessAcrossPhases() {
+
+	using namespace ADNFrameUtils;
+
+	constexpr double pi = 3.141592653589793238462643383279502884;
+	const Frame canonical = identityFrame();
+	const double phases[] = { 0.0, pi / 6.0, pi / 2.0, pi, -pi / 3.0 };
+	const ADNGeometrySynchronization::TemplateSide sides[] = {
+		ADNGeometrySynchronization::TemplateSide::Left,
+		ADNGeometrySynchronization::TemplateSide::Right
+	};
+
+	for (double phase : phases) {
+		for (ADNGeometrySynchronization::TemplateSide side : sides) {
+
+			const Frame sideFrame = ADNGeometrySynchronization::canonicalBaseSegmentFrameToNucleotideSideFrame(
+				canonical,
+				side,
+				phase);
+
+			requireTrue("template frame side handedness",
+				isOrthonormalRightHanded(sideFrame, 1.0e-9),
+				"Expected converted nucleotide-side frame to remain right-handed.");
+			requireTrue("template frame side determinant positive",
+				determinant(sideFrame) > 0.0,
+				"Expected converted nucleotide-side frame determinant to be positive.");
+
+		}
+	}
+
+}
+
+void testTemplateFrameBasePlaneNormalsStayCoplanar() {
+
+	using namespace ADNFrameUtils;
+
+	const Frame canonical = frameFromE2AndTangent(
+		Vec3{ 0.2, 0.8, 0.5 },
+		Vec3{ 0.9, -0.1, 0.7 });
+	const double phases[] = { 0.0, 0.37, 1.5707963267948966, -0.62 };
+
+	for (double phase : phases) {
+
+		const Frame leftSide = ADNGeometrySynchronization::canonicalBaseSegmentFrameToNucleotideSideFrame(
+			canonical,
+			ADNGeometrySynchronization::TemplateSide::Left,
+			phase);
+		const Frame rightSide = ADNGeometrySynchronization::canonicalBaseSegmentFrameToNucleotideSideFrame(
+			canonical,
+			ADNGeometrySynchronization::TemplateSide::Right,
+			phase);
+
+		const double normalAbsDot = std::abs(dot(normalized(leftSide.e3), normalized(rightSide.e3)));
+		const double pairDirectionLeftNormalAbsDot =
+			std::abs(dot(normalized(leftSide.e2), normalized(leftSide.e3)));
+
+		requireTrue("template frame base normals coplanar",
+			normalAbsDot > 0.999,
+			"Expected left and right base-plane normals to be parallel or antiparallel.");
+		requireTrue("template frame pair direction lies in plane",
+			pairDirectionLeftNormalAbsDot < 1.0e-9,
+			"Expected base-pair direction to lie in the base-pair plane.");
+
+	}
+
+}
+
 void testNucleotideSetPositionTranslatesBackboneAndSidechain() {
 
 	SBPointer<ADNNucleotide> nucleotide = new ADNNucleotide();
@@ -2951,6 +3018,8 @@ int main() {
 	testTemplateFramePreparationRoundTripLeftSide();
 	testTemplateFramePreparationRoundTripRightSide();
 	testTemplateFramePreparationTargetStateIsStable();
+	testTemplateFrameHandednessAcrossPhases();
+	testTemplateFrameBasePlaneNormalsStayCoplanar();
 	testNucleotideSetPositionTranslatesBackboneAndSidechain();
 	testGeometrySynchronizationDerivesNucleotideFrame();
 	testGeometryValidationRejectsStaleNucleotideFrame();

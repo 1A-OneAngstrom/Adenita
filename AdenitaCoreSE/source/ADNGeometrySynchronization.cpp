@@ -5,11 +5,13 @@
 #include "ADNConstants.hpp"
 #include "ADNDoubleStrand.hpp"
 #include "ADNFrameAdapters.hpp"
+#include "ADNLogger.hpp"
 #include "ADNNucleotide.hpp"
 #include "ADNPart.hpp"
 #include "ADNSingleStrand.hpp"
 
 #include <cmath>
+#include <string>
 
 namespace ADNGeometrySynchronization {
 
@@ -21,17 +23,6 @@ constexpr double pi = 3.141592653589793238462643383279502884;
 [[nodiscard]] double degreesToRadians(double degrees) {
 
 	return degrees * pi / 180.0;
-
-}
-
-[[nodiscard]] double baseSegmentTemplatePhaseRadians(const ADNBaseSegment& baseSegment) {
-
-	double initialTwistAngle = 0.0;
-	SBPointer<ADNDoubleStrand> doubleStrand = baseSegment.GetDoubleStrand();
-	if (doubleStrand != nullptr)
-		initialTwistAngle = doubleStrand->GetInitialTwistAngle();
-
-	return degreesToRadians(initialTwistAngle + baseSegment.GetNumber() * ADNConstants::BP_ROT);
 
 }
 
@@ -196,6 +187,18 @@ struct BaseSegmentNucleotideSides {
 
 }
 
+#ifndef NDEBUG
+void logInvalidConvertedFrame(const char* context, const ADNFrameUtils::Frame& frame) {
+
+	if (ADNFrameUtils::isOrthonormalRightHanded(frame, 1.0e-6)) return;
+
+	ADNLogger::LogDebug(std::string(context) +
+		": produced a non-right-handed Adenita frame with determinant " +
+		std::to_string(ADNFrameUtils::determinant(frame)) + ".");
+
+}
+#endif
+
 void addPartIfMissing(SBPointerIndexer<ADNPart>& parts, SBPointer<ADNPart> part) {
 
 	if (part != nullptr && !parts.hasIndex(part()))
@@ -236,6 +239,17 @@ void rotateNucleotideGeometry(ADNNucleotide& nucleotide,
 }
 
 } // namespace
+
+double baseSegmentReconstructionPhaseRadians(const ADNBaseSegment& baseSegment) {
+
+	double initialTwistAngle = 0.0;
+	SBPointer<ADNDoubleStrand> doubleStrand = baseSegment.GetDoubleStrand();
+	if (doubleStrand != nullptr)
+		initialTwistAngle = doubleStrand->GetInitialTwistAngle();
+
+	return degreesToRadians(initialTwistAngle + baseSegment.GetNumber() * ADNConstants::BP_ROT);
+
+}
 
 void syncNucleotideFrameFromGeometry(ADNNucleotide& nucleotide) {
 
@@ -438,6 +452,9 @@ ADNFrameUtils::Frame canonicalBaseSegmentFrameToNucleotideSideFrame(
 	TemplateSide side,
 	double phaseRadians) {
 
+	// Canonical base-segment frames are phase-neutral. DASBackToTheAtom and
+	// atom placement need side-specific nucleotide frames with the helical phase
+	// and complementary right-side sign convention already applied.
 	const ADNFrameUtils::Frame sanitizedCanonical = ADNFrameUtils::orthonormalized(canonicalFrame);
 	const ADNFrameUtils::Mat3 helicalPhase =
 		ADNFrameUtils::rotationAroundAxis(sanitizedCanonical.e3, phaseRadians);
@@ -450,7 +467,11 @@ ADNFrameUtils::Frame canonicalBaseSegmentFrameToNucleotideSideFrame(
 
 	}
 
-	return ADNFrameUtils::orthonormalized(sideFrame);
+	const ADNFrameUtils::Frame converted = ADNFrameUtils::orthonormalized(sideFrame);
+#ifndef NDEBUG
+	logInvalidConvertedFrame(__func__, converted);
+#endif
+	return converted;
 
 }
 
@@ -459,6 +480,9 @@ ADNFrameUtils::Frame nucleotideSideFrameToCanonicalBaseSegmentFrame(
 	TemplateSide side,
 	double phaseRadians) {
 
+	// Geometry-aligned nucleotide frames include side and phase information. To
+	// feed DASBackToTheAtom template reconstruction, remove both and recover the
+	// canonical base-segment frame expected by that code.
 	ADNFrameUtils::Frame leftSideFrame = ADNFrameUtils::orthonormalized(nucleotideFrame);
 	if (side == TemplateSide::Right) {
 
@@ -469,8 +493,12 @@ ADNFrameUtils::Frame nucleotideSideFrameToCanonicalBaseSegmentFrame(
 
 	const ADNFrameUtils::Mat3 undoHelicalPhase =
 		ADNFrameUtils::rotationAroundAxis(leftSideFrame.e3, -phaseRadians);
-	return ADNFrameUtils::orthonormalized(
+	const ADNFrameUtils::Frame converted = ADNFrameUtils::orthonormalized(
 		ADNFrameUtils::rotated(undoHelicalPhase, leftSideFrame));
+#ifndef NDEBUG
+	logInvalidConvertedFrame(__func__, converted);
+#endif
+	return converted;
 
 }
 
@@ -494,7 +522,7 @@ void prepareBaseSegmentFrameForTemplateReconstruction(ADNBaseSegment& baseSegmen
 		nucleotideSideFrameToCanonicalBaseSegmentFrame(
 			sourceFrame,
 			side,
-			baseSegmentTemplatePhaseRadians(baseSegment));
+			baseSegmentReconstructionPhaseRadians(baseSegment));
 
 	ADNFrameAdapters::setFrame(baseSegment, canonicalFrame);
 
