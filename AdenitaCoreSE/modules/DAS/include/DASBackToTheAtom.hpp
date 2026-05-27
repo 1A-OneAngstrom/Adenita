@@ -11,6 +11,7 @@
 #include "ADNNanorobot.hpp"
 #include "ADNVectorMath.hpp"
 #include "ADNBasicOperations.hpp"
+#include "ADNGeometrySynchronization.hpp"
 #include "DASPolyhedron.hpp"
 
 #undef foreach
@@ -86,6 +87,13 @@ public:
 
 private:
 
+    struct AtomTemplateSelection {
+        NtPair pair;
+        SBPointer<ADNNucleotide> nucleotide{ nullptr };
+        ADNGeometrySynchronization::TemplateSide side{ ADNGeometrySynchronization::TemplateSide::Left };
+        bool sideKnown{ false };
+    };
+
     SBPointer<ADNNucleotide> da_;
     SBPointer<ADNNucleotide> dt_;
     SBPointer<ADNNucleotide> dg_;
@@ -117,13 +125,14 @@ private:
     static void PositionLoopNucleotidesQBezier(SBPointer<ADNLoop> loop, SBPosition3 bsPositionPrev, SBPosition3 bsPositionNext, SBVector3 bsPrevE3, SBVector3 bsNextE3);
 
     void PlaceNucleotideFromTemplate(SBPointer<ADNBaseSegment> bs, SBPointer<ADNNucleotide> nt);
-    void PopulateNucleotideWithAllAtoms(SBPointer<ADNPart> origami, SBPointer<ADNNucleotide> nt, bool createFlag = false);
+    [[nodiscard]] AtomTemplateSelection SelectAtomTemplateForNucleotide(SBPointer<ADNNucleotide> nt) const;
+    void PopulateNucleotideWithAllAtoms(SBPointer<ADNPart> origami, SBPointer<ADNNucleotide> nt, const AtomTemplateSelection& selection, bool createFlag = false);
     void PrepareFramesForAtomicModel(SBPointer<ADNPart> origami);
 #ifndef NDEBUG
     bool ValidateGeneratedBasePairPlanes(SBPointer<ADNPart> part) const;
 #endif
     static void CreateBonds(SBPointer<ADNPart> origami, bool createFlag = false);
-    void FindAtomsPositions(SBPointer<ADNNucleotide> nt);
+    void FindAtomsPositions(SBPointer<ADNNucleotide> nt, const AtomTemplateSelection& selection);
 
     //! Untwist the nucleotide (remove the helix turn)
     /*!

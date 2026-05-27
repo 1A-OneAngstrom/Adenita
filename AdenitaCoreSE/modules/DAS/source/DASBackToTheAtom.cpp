@@ -19,12 +19,6 @@
 
 namespace {
 
-struct AtomTemplateSelection {
-	NtPair pair;
-	SBPointer<ADNNucleotide> nucleotide{ nullptr };
-	ADNGeometrySynchronization::TemplateSide side{ ADNGeometrySynchronization::TemplateSide::Left };
-};
-
 struct TemplateToWorldTransform {
 	ADNFrameUtils::Frame canonicalFrame;
 	double phaseRadians{ 0.0 };
@@ -111,6 +105,15 @@ struct TemplateToWorldTransform {
 
 }
 
+[[nodiscard]] SBPosition3 positionFromVec3(const ADNFrameUtils::Vec3& position) {
+
+	return SBPosition3(
+		SBQuantity::picometer(position.x),
+		SBQuantity::picometer(position.y),
+		SBQuantity::picometer(position.z));
+
+}
+
 [[nodiscard]] ADNFrameUtils::Vec3 baseSegmentTangent(SBPointer<ADNBaseSegment> baseSegment) {
 
 	if (baseSegment == nullptr) return ADNFrameUtils::Vec3{};
@@ -188,86 +191,6 @@ struct TemplateToWorldTransform {
 		leftSideFrame,
 		ADNGeometrySynchronization::TemplateSide::Left,
 		ADNGeometrySynchronization::baseSegmentReconstructionPhaseRadians(*baseSegment));
-
-}
-
-[[nodiscard]] bool isRightSideNucleotide(SBPointer<ADNNucleotide> nucleotide) {
-
-	if (nucleotide == nullptr) return false;
-	SBPointer<ADNBaseSegment> baseSegment = nucleotide->GetBaseSegment();
-	return baseSegment != nullptr && baseSegment->IsRight(nucleotide);
-
-}
-
-[[nodiscard]] AtomTemplateSelection selectAtomTemplateForNucleotide(SBPointer<ADNNucleotide> nucleotide,
-	const NtPair& daDt,
-	const NtPair& dtDa,
-	const NtPair& dcDg,
-	const NtPair& dgDc) {
-
-	const bool rightSide = isRightSideNucleotide(nucleotide);
-	AtomTemplateSelection selection;
-	selection.side = rightSide ?
-		ADNGeometrySynchronization::TemplateSide::Right :
-		ADNGeometrySynchronization::TemplateSide::Left;
-
-	const DNABlocks nucleotideType = nucleotide != nullptr ?
-		nucleotide->getNucleotideType() :
-		DNABlocks::DA;
-
-	if (rightSide) {
-
-		// Right-side residues must come from the right nucleotide of an ideal
-		// pair. Reusing left-side templates shifts backbone atoms even when the
-		// coarse nucleotide frame is correct.
-		selection.pair = dtDa;
-		selection.nucleotide = dtDa.second;
-		if (nucleotideType == DNABlocks::DT) {
-
-			selection.pair = daDt;
-			selection.nucleotide = daDt.second;
-
-		}
-		else if (nucleotideType == DNABlocks::DC) {
-
-			selection.pair = dgDc;
-			selection.nucleotide = dgDc.second;
-
-		}
-		else if (nucleotideType == DNABlocks::DG) {
-
-			selection.pair = dcDg;
-			selection.nucleotide = dcDg.second;
-
-		}
-
-	}
-	else {
-
-		selection.pair = daDt;
-		selection.nucleotide = daDt.first;
-		if (nucleotideType == DNABlocks::DC) {
-
-			selection.pair = dcDg;
-			selection.nucleotide = dcDg.first;
-
-		}
-		else if (nucleotideType == DNABlocks::DG) {
-
-			selection.pair = dgDc;
-			selection.nucleotide = dgDc.first;
-
-		}
-		else if (nucleotideType == DNABlocks::DT) {
-
-			selection.pair = dtDa;
-			selection.nucleotide = dtDa.first;
-
-		}
-
-	}
-
-	return selection;
 
 }
 
@@ -1243,67 +1166,125 @@ void DASBackToTheAtom::CreateBonds(SBPointer<ADNPart> origami, bool createFlag) 
 
 }
 
-void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt) {
+DASBackToTheAtom::AtomTemplateSelection DASBackToTheAtom::SelectAtomTemplateForNucleotide(
+	SBPointer<ADNNucleotide> nt) const {
 
-	if (nt == nullptr) return;
+	AtomTemplateSelection selection;
+	if (nt == nullptr) return selection;
 
-	auto bs = nt->GetBaseSegment();
+	bool rightSide = false;
+	SBPointer<ADNBaseSegment> baseSegment = nt->GetBaseSegment();
+	if (baseSegment != nullptr) {
 
-	// Save positions in matrix
-	const auto ntLeftAtoms = nt->GetAtoms();
-	const size_t cols = 3;
-	const size_t rows = ntLeftAtoms.size();
-	ublas::matrix<double> input(rows, cols);
-	int i = 0;
-	SB_FOR(SBPointer<ADNAtom> n, ntLeftAtoms) {
+		if (baseSegment->IsLeft(nt)) {
 
-		ublas::vector<double> ac_blas = ADNAuxiliary::SBPositionToUblas(n->getPosition());
-		ublas::row(input, i) = ac_blas;
-		++i;
+			selection.sideKnown = true;
+			rightSide = false;
+
+		}
+		else if (baseSegment->IsRight(nt)) {
+
+			selection.sideKnown = true;
+			rightSide = true;
+
+		}
 
 	}
 
-	// Calculate translation vector
-	ublas::vector<double> t_vec;
-	if (bs != nullptr) {
+	selection.side = rightSide ?
+		ADNGeometrySynchronization::TemplateSide::Right :
+		ADNGeometrySynchronization::TemplateSide::Left;
 
-		// to calculate the translation we need to take into account the base pair
-		// even if pair is not defined, thus we use the ideal base pairs. The
-		// selected pair must match the cloned atom side, otherwise the ideal
-		// center of mass and local atom coordinates come from different templates.
-		const AtomTemplateSelection selection = selectAtomTemplateForNucleotide(
-			nt,
-			da_dt_,
-			dt_da_,
-			dc_dg_,
-			dg_dc_);
-		ublas::matrix<double> bpPositions = CreatePositionsMatrix(selection.pair);
+	DNABlocks nucleotideType = nt->getNucleotideType();
+	if (nucleotideType == DNABlocks::DI)
+		nucleotideType = DNABlocks::DA;
 
-		// because atoms are fetched from bp, local coordinates refer to base pair c.o.m.
-		ublas::vector<double> sys_cm = ADNAuxiliary::SBPositionToUblas(bs->GetPosition());
-		t_vec = sys_cm - ADNVectorMath::CalculateCM(bpPositions);
+	if (rightSide) {
+
+		// Right-side residues must come from the right nucleotide of an ideal
+		// pair. Reusing left-side templates shifts backbone atoms even when the
+		// coarse nucleotide frame is correct.
+		selection.pair = dt_da_;
+		selection.nucleotide = dt_da_.second;
+		if (nucleotideType == DNABlocks::DT) {
+
+			selection.pair = da_dt_;
+			selection.nucleotide = da_dt_.second;
+
+		}
+		else if (nucleotideType == DNABlocks::DC) {
+
+			selection.pair = dg_dc_;
+			selection.nucleotide = dg_dc_.second;
+
+		}
+		else if (nucleotideType == DNABlocks::DG) {
+
+			selection.pair = dc_dg_;
+			selection.nucleotide = dc_dg_.second;
+
+		}
 
 	}
 	else {
 
-		// DM: if there is no base pair info (e.g., due to some building issues) then position atoms based on the nucleotide (its side chain and shift in the direction of the possible base pair center)
-		t_vec = ADNAuxiliary::SBPositionToUblas(nt->GetSidechainPosition() + 0.5 * (nt->GetSidechainPosition() - nt->GetBackbonePosition()));
+		selection.pair = da_dt_;
+		selection.nucleotide = da_dt_.first;
+		if (nucleotideType == DNABlocks::DT) {
+
+			selection.pair = dt_da_;
+			selection.nucleotide = dt_da_.first;
+
+		}
+		else if (nucleotideType == DNABlocks::DC) {
+
+			selection.pair = dc_dg_;
+			selection.nucleotide = dc_dg_.first;
+
+		}
+		else if (nucleotideType == DNABlocks::DG) {
+
+			selection.pair = dg_dc_;
+			selection.nucleotide = dg_dc_.first;
+
+		}
 
 	}
 
-	// Apply global basis
-	auto transformation = nt->GetGlobalBasisTransformation();
-	ublas::matrix<double> new_pos = ADNVectorMath::ApplyTransformation(transformation, input);
-	new_pos = ADNVectorMath::Translate(new_pos, t_vec);
+	return selection;
 
-	// Set new atom positions
-	int count = 0;
-	SB_FOR(SBPointer<ADNAtom> n, ntLeftAtoms) {
+}
 
-		SBPointer<ADNAtom> atom = n;
-		SBPosition3 pos = UblasToSBPosition(ublas::row(new_pos, count));
-		atom->setPosition(pos);
-		++count;
+void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
+	const AtomTemplateSelection& selection) {
+
+	if (nt == nullptr) return;
+	if (selection.nucleotide == nullptr) return;
+
+	const ADNFrameUtils::Frame frame = ADNFrameAdapters::sanitizedFrame(*nt);
+	const ADNFrameUtils::Vec3 worldCenter = positionToVec3(nt->GetPosition());
+	const ADNFrameUtils::Vec3 templateCenter = positionToVec3(selection.nucleotide->GetPosition());
+
+	auto generatedAtoms = nt->GetAtoms();
+	auto templateAtoms = selection.nucleotide->GetAtoms();
+
+	auto generatedIt = generatedAtoms.begin();
+	auto templateIt = templateAtoms.begin();
+	for (; generatedIt != generatedAtoms.end() && templateIt != templateAtoms.end();
+		++generatedIt, ++templateIt) {
+
+		SBPointer<ADNAtom> generatedAtom = *generatedIt;
+		SBPointer<ADNAtom> templateAtom = *templateIt;
+		if (generatedAtom == nullptr || templateAtom == nullptr) continue;
+
+		const ADNFrameUtils::Vec3 local =
+			positionToVec3(templateAtom->getPosition()) - templateCenter;
+		const ADNFrameUtils::Vec3 world =
+			worldCenter +
+			frame.e1 * local.x +
+			frame.e2 * local.y +
+			frame.e3 * local.z;
+		generatedAtom->setPosition(positionFromVec3(world));
 
 	}
 
@@ -1347,17 +1328,13 @@ void DASBackToTheAtom::PopulateWithMockAtoms(SBPointer<ADNPart> origami, bool po
 
 }
 
-void DASBackToTheAtom::PopulateNucleotideWithAllAtoms(SBPointer<ADNPart> origami, SBPointer<ADNNucleotide> nt, bool createFlag) {
+void DASBackToTheAtom::PopulateNucleotideWithAllAtoms(SBPointer<ADNPart> origami,
+	SBPointer<ADNNucleotide> nt,
+	const AtomTemplateSelection& selection,
+	bool createFlag) {
 
 	if (origami == nullptr) return;
 	if (nt == nullptr) return;
-
-	const AtomTemplateSelection selection = selectAtomTemplateForNucleotide(
-		nt,
-		da_dt_,
-		dt_da_,
-		dc_dg_,
-		dg_dc_);
 	if (selection.nucleotide == nullptr) return;
 
 	auto atoms = selection.nucleotide->GetAtoms();
@@ -1469,11 +1446,13 @@ void DASBackToTheAtom::GenerateAllAtomModel(SBPointer<ADNPart> origami, bool cre
 
 		}
 
-		// populate nucleotides with the correct atoms
-		PopulateNucleotideWithAllAtoms(origami, nt, createFlag);
+		const AtomTemplateSelection selection = SelectAtomTemplateForNucleotide(nt);
 
-		// find atomic positions
-		FindAtomsPositions(nt);
+		// Populate and place atoms with the same side-aware template. This keeps
+		// single-strand atoms centered on the existing nucleotide and prevents
+		// right-side residues from reusing left-side local coordinates.
+		PopulateNucleotideWithAllAtoms(origami, nt, selection, createFlag);
+		FindAtomsPositions(nt, selection);
 
 	}
 
