@@ -350,7 +350,9 @@ void SEAdenitaCoreSEApp::AddNtThreeP(int numNt) {
 
 		auto nts = ADNBasicOperations::AddNucleotidesThreePrime(part, ss, numNt, dir);
 		DASBackToTheAtom* btta = new DASBackToTheAtom();
-		btta->SetPositionsForNewNucleotides(part, nts);
+		btta->SetPositionsForNewNucleotides(part,
+			nts,
+			DASBackToTheAtom::NewNucleotidePlacementMode::PositionInputNucleotidesOnly);
 
 		SEAdenitaCoreSEApp::resetVisualModel();
 

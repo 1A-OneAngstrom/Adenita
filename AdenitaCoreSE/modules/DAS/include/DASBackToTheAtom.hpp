@@ -65,7 +65,7 @@ public:
 
     //! Sets the positions of a collection of nucleotides, meant to be called after modifications
     void SetPositionsForNewNucleotides(SBPointer<ADNPart> part, SBPointerIndexer<ADNNucleotide> nts,
-        NewNucleotidePlacementMode placementMode = NewNucleotidePlacementMode::ReconstructBaseSegments);
+        NewNucleotidePlacementMode placementMode);
 
     //void SetAllAtomsPositions(SBPointer<ADNPart> origami);
     // for cadnano

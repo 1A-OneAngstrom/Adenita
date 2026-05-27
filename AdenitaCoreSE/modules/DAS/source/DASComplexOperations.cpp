@@ -132,7 +132,9 @@ void DASOperations::CreateCrossover(SBPointer<ADNPart> part1, SBPointer<ADNPart>
 
 				joinStrand1->SetSequence(seq);
 				DASBackToTheAtom* btta = new DASBackToTheAtom();
-				btta->SetPositionsForNewNucleotides(pair.firstPart, joinStrand1->GetNucleotides());
+				btta->SetPositionsForNewNucleotides(pair.firstPart,
+					joinStrand1->GetNucleotides(),
+					DASBackToTheAtom::NewNucleotidePlacementMode::ReconstructBaseSegments);
 
 				// since we are modifying created parts, we need to call samson creator
 				// after generating atoms
@@ -156,7 +158,9 @@ void DASOperations::CreateCrossover(SBPointer<ADNPart> part1, SBPointer<ADNPart>
 				joinStrand1->SetSequence(seq);
 
 				DASBackToTheAtom* btta = new DASBackToTheAtom();
-				btta->SetPositionsForNewNucleotides(pair.firstPart, joinStrand1->GetNucleotides());
+				btta->SetPositionsForNewNucleotides(pair.firstPart,
+					joinStrand1->GetNucleotides(),
+					DASBackToTheAtom::NewNucleotidePlacementMode::ReconstructBaseSegments);
 
 				if (SAMSON::isHolding()) SAMSON::hold(res.ds());
 				res.ds->create();
