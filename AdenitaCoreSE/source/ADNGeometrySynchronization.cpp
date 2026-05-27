@@ -158,7 +158,7 @@ struct BaseSegmentNucleotideSides {
 }
 
 [[nodiscard]] SBPointer<ADNNucleotide> selectTemplateSourceNucleotide(const ADNBaseSegment& baseSegment,
-	const BaseSegmentNucleotideSides& sides,
+	BaseSegmentNucleotideSides sides,
 	TemplateSide& side) {
 
 	if (sides.left != nullptr && nucleotideBackboneSidechainGeometryAvailable(*sides.left)) {
