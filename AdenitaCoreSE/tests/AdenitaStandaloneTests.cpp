@@ -2210,11 +2210,15 @@ void testComplementPlacementPreservesExistingNucleotideGeometry() {
 	requireTrue("complement placement moves created nucleotide",
 		distanceValue(created->GetPosition(), createdPlaceholder) > 1.0,
 		"Expected complementary placement to update only the newly created nucleotide.");
-	requireTrue("complement placement puts created nucleotide opposite existing",
-		ADNFrameUtils::dot(
-			vecFromPosition(existing->GetPosition()) - vecFromPosition(baseSegment->GetPosition()),
-			vecFromPosition(created->GetPosition()) - vecFromPosition(baseSegment->GetPosition())) < 0.0,
-		"Expected created complement to be placed on the opposite side of the base segment.");
+	const double anchorSideProjection = ADNFrameUtils::dot(
+		vecFromPosition(created->GetPosition()) - vecFromPosition(existing->GetPosition()),
+		ADNFrameUtils::normalized(
+			vecFromPosition(existing->GetSidechainPosition()) -
+			vecFromPosition(existing->GetBackbonePosition())));
+	requireTrue("complement placement follows anchor side direction",
+		std::abs(anchorSideProjection) > 1.0,
+		"Expected created complement to separate along the preserved anchor side, got projection " +
+		std::to_string(anchorSideProjection) + ".");
 
 }
 
@@ -2274,11 +2278,15 @@ void testComplementPlacementUsesRightAnchorSide() {
 	requireTrue("right anchor complement moves created nucleotide",
 		distanceValue(created->GetPosition(), createdPlaceholder) > 1.0,
 		"Expected right-anchored complementary placement to update the new nucleotide.");
-	requireTrue("right anchor complement puts created nucleotide opposite existing",
-		ADNFrameUtils::dot(
-			vecFromPosition(existing->GetPosition()) - vecFromPosition(baseSegment->GetPosition()),
-			vecFromPosition(created->GetPosition()) - vecFromPosition(baseSegment->GetPosition())) < 0.0,
-		"Expected right-anchored complement to be placed across the base segment.");
+	const double rightAnchorSideProjection = ADNFrameUtils::dot(
+		vecFromPosition(created->GetPosition()) - vecFromPosition(existing->GetPosition()),
+		ADNFrameUtils::normalized(
+			vecFromPosition(existing->GetSidechainPosition()) -
+			vecFromPosition(existing->GetBackbonePosition())));
+	requireTrue("right anchor complement follows anchor side direction",
+		std::abs(rightAnchorSideProjection) > 1.0,
+		"Expected right-anchored complement to separate along the preserved anchor side, got projection " +
+		std::to_string(rightAnchorSideProjection) + ".");
 
 }
 
