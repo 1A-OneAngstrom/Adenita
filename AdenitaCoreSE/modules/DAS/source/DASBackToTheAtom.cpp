@@ -2,6 +2,7 @@
 #include "ADNBackbone.hpp"
 #include "ADNFrameAdapters.hpp"
 #include "ADNGeometrySynchronization.hpp"
+#include "ADNLogger.hpp"
 #include "ADNSidechain.hpp"
 
 #include "SBProxy.hpp"
@@ -9,6 +10,7 @@
 #include "SBStructuralModel.hpp"
 
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -24,6 +26,66 @@ void logInvalidBaseSegmentFrame(const char* context, SBPointer<ADNBaseSegment> b
 		!ADNGeometrySynchronization::validateBaseSegmentGeometry(*baseSegment))
 		ADNLogger::LogDebug(std::string(context) +
 			": reconstructing positions from a stale base-segment frame.");
+
+}
+
+[[nodiscard]] ADNFrameUtils::Vec3 positionToFrameVec3(const SBPosition3& position) {
+
+	return ADNFrameUtils::Vec3{
+		position[0].getValue(),
+		position[1].getValue(),
+		position[2].getValue()
+	};
+
+}
+
+[[nodiscard]] ADNFrameUtils::Vec3 sidechainPlaneNormal(SBPointer<ADNNucleotide> nucleotide) {
+
+	if (nucleotide == nullptr) return ADNFrameUtils::Vec3{};
+
+	std::vector<ADNFrameUtils::Vec3> points;
+	auto atoms = nucleotide->GetAtoms();
+	SB_FOR(SBPointer<ADNAtom> atom, atoms) {
+
+		if (atom != nullptr && !atom->IsInADNBackbone())
+			points.push_back(positionToFrameVec3(atom->getPosition()));
+
+	}
+
+	if (points.size() < 3) return ADNFrameUtils::Vec3{};
+
+	ADNFrameUtils::Vec3 center{};
+	for (const ADNFrameUtils::Vec3& point : points)
+		center = center + point;
+	center = center / static_cast<double>(points.size());
+
+	ublas::matrix<double> centered(points.size(), 3);
+	for (std::size_t i = 0; i < points.size(); ++i) {
+
+		const ADNFrameUtils::Vec3 point = points[i] - center;
+		centered(i, 0) = point.x;
+		centered(i, 1) = point.y;
+		centered(i, 2) = point.z;
+
+	}
+
+	const ublas::vector<double> normal = ADNVectorMath::CalculatePlane(centered);
+	return ADNFrameUtils::normalized(ADNFrameUtils::Vec3{ normal[0], normal[1], normal[2] });
+
+}
+
+[[nodiscard]] double frameDeterminant(SBPointer<ADNNucleotide> nucleotide) {
+
+	if (nucleotide == nullptr) return 0.0;
+	return ADNFrameUtils::determinant(ADNFrameAdapters::frameFromOrientable(*nucleotide));
+
+}
+
+[[nodiscard]] double clampedUnit(double value) {
+
+	if (value < -1.0) return -1.0;
+	if (value > 1.0) return 1.0;
+	return value;
 
 }
 #endif
@@ -1088,7 +1150,70 @@ void DASBackToTheAtom::GenerateAllAtomModel(SBPointer<ADNPart> origami, bool cre
 
 	}
 
+#ifndef NDEBUG
+	ValidateGeneratedBasePairPlanes(origami);
+#endif
+
 }
+
+#ifndef NDEBUG
+bool DASBackToTheAtom::ValidateGeneratedBasePairPlanes(SBPointer<ADNPart> part) const {
+
+	if (part == nullptr) return true;
+
+	bool valid = true;
+	auto baseSegments = part->GetBaseSegments();
+	SB_FOR(SBPointer<ADNBaseSegment> baseSegment, baseSegments) {
+
+		if (baseSegment == nullptr) continue;
+		SBPointer<ADNCell> cell = baseSegment->GetCell();
+		if (cell == nullptr || cell->GetCellType() != CellType::BasePair) continue;
+
+		SBPointer<ADNBasePair> basePair = static_cast<ADNBasePair*>(cell());
+		SBPointer<ADNNucleotide> left = basePair->GetLeftNucleotide();
+		SBPointer<ADNNucleotide> right = basePair->GetRightNucleotide();
+		if (left == nullptr || right == nullptr) continue;
+
+		const ADNFrameUtils::Vec3 leftNormal = sidechainPlaneNormal(left);
+		const ADNFrameUtils::Vec3 rightNormal = sidechainPlaneNormal(right);
+		if (ADNFrameUtils::isNearlyZero(leftNormal) ||
+			ADNFrameUtils::isNearlyZero(rightNormal))
+			continue;
+
+		const double normalAbsDot = std::abs(ADNFrameUtils::dot(leftNormal, rightNormal));
+		const ADNFrameUtils::Vec3 pairDirection = ADNFrameUtils::normalized(
+			positionToFrameVec3(right->GetPosition()) - positionToFrameVec3(left->GetPosition()));
+		const double pairDirectionPlaneAbsDot =
+			ADNFrameUtils::isNearlyZero(pairDirection) ? 0.0 :
+			std::max(
+				std::abs(ADNFrameUtils::dot(pairDirection, leftNormal)),
+				std::abs(ADNFrameUtils::dot(pairDirection, rightNormal)));
+		const double leftDeterminant = frameDeterminant(left);
+		const double rightDeterminant = frameDeterminant(right);
+
+		if (normalAbsDot <= 0.95 ||
+			pairDirectionPlaneAbsDot > 0.35 ||
+			leftDeterminant <= 0.0 ||
+			rightDeterminant <= 0.0) {
+
+			valid = false;
+			const double angleDegrees =
+				std::acos(clampedUnit(normalAbsDot)) * 180.0 / 3.141592653589793238462643383279502884;
+			ADNLogger::LogDebug("Generated base-pair plane diagnostic failed for base segment " +
+				std::to_string(baseSegment->GetNumber()) +
+				" (" + left->getName() + ", " + right->getName() + "): normal angle " +
+				std::to_string(angleDegrees) + " degrees, pair-normal dot " +
+				std::to_string(pairDirectionPlaneAbsDot) + ", determinants " +
+				std::to_string(leftDeterminant) + " / " + std::to_string(rightDeterminant) + ".");
+
+		}
+
+	}
+
+	return valid;
+
+}
+#endif
 
 std::tuple<SBPosition3, SBPosition3, SBPosition3> DASBackToTheAtom::CalculateCenters(SBPointer<ADNNucleotide> nt) {
 
