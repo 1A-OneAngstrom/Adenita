@@ -102,14 +102,6 @@ template <typename Vector3>
 
 }
 
-[[nodiscard]] bool nucleotideBackboneSidechainGeometryAvailable(const ADNNucleotide& nucleotide) {
-
-	return !ADNFrameUtils::isNearlyZero(
-		toVec3(nucleotide.GetSidechainPosition() - nucleotide.GetBackbonePosition()),
-		geometryEps);
-
-}
-
 [[nodiscard]] double alignedAbsDot(const ADNFrameUtils::Vec3& frameAxis,
 	const ADNFrameUtils::Vec3& geometryDirection,
 	double eps = geometryEps) {
@@ -148,42 +140,88 @@ struct BaseSegmentNucleotideSides {
 
 }
 
-[[nodiscard]] SBPointer<ADNNucleotide> selectTemplateSourceNucleotide(const ADNBaseSegment& baseSegment,
-	BaseSegmentNucleotideSides sides,
-	TemplateSide& side) {
+[[nodiscard]] ADNFrameUtils::Vec3 projectedPerpendicularToAxis(const ADNFrameUtils::Vec3& direction,
+	const ADNFrameUtils::Vec3& axis) {
 
-	if (sides.left != nullptr && nucleotideBackboneSidechainGeometryAvailable(*sides.left)) {
+	if (ADNFrameUtils::isNearlyZero(direction, geometryEps) ||
+		ADNFrameUtils::isNearlyZero(axis, geometryEps))
+		return direction;
 
-		side = TemplateSide::Left;
-		return sides.left;
+	const ADNFrameUtils::Vec3 unitAxis = ADNFrameUtils::normalized(axis, geometryEps);
+	return direction - unitAxis * ADNFrameUtils::dot(direction, unitAxis);
 
-	}
-	if (sides.right != nullptr && nucleotideBackboneSidechainGeometryAvailable(*sides.right)) {
+}
 
-		side = TemplateSide::Right;
-		return sides.right;
+[[nodiscard]] ADNFrameUtils::Vec3 backboneSidechainDirection(const ADNNucleotide& nucleotide) {
 
-	}
-	if (sides.left != nullptr && frameIsValid(*sides.left)) {
+	return toVec3(nucleotide.GetSidechainPosition() - nucleotide.GetBackbonePosition());
 
-		side = TemplateSide::Left;
-		return sides.left;
+}
 
-	}
-	if (sides.right != nullptr && frameIsValid(*sides.right)) {
+[[nodiscard]] ADNFrameUtils::Vec3 leftSideRadialDirection(BaseSegmentNucleotideSides sides) {
 
-		side = TemplateSide::Right;
-		return sides.right;
+	if (sides.left != nullptr && sides.right != nullptr) {
 
-	}
-	if (sides.first != nullptr) {
+		ADNFrameUtils::Vec3 radial =
+			toVec3(sides.right->GetPosition() - sides.left->GetPosition());
+		if (!ADNFrameUtils::isNearlyZero(radial, geometryEps))
+			return radial;
 
-		side = baseSegment.IsRight(sides.first) ? TemplateSide::Right : TemplateSide::Left;
-		return sides.first;
+		radial = toVec3(sides.right->GetSidechainPosition() - sides.left->GetSidechainPosition());
+		if (!ADNFrameUtils::isNearlyZero(radial, geometryEps))
+			return radial;
 
 	}
 
-	return nullptr;
+	if (sides.left != nullptr) {
+
+		const ADNFrameUtils::Vec3 radial = backboneSidechainDirection(*sides.left);
+		if (!ADNFrameUtils::isNearlyZero(radial, geometryEps))
+			return radial;
+
+	}
+
+	if (sides.right != nullptr) {
+
+		const ADNFrameUtils::Vec3 radial = backboneSidechainDirection(*sides.right);
+		if (!ADNFrameUtils::isNearlyZero(radial, geometryEps))
+			return -radial;
+
+	}
+
+	return ADNFrameUtils::Vec3{};
+
+}
+
+[[nodiscard]] ADNFrameUtils::Frame canonicalTemplateFrameFromBaseSegmentGeometry(
+	const ADNBaseSegment& baseSegment) {
+
+	const ADNFrameUtils::Frame fallback = repairedFallback(baseSegment);
+	const BaseSegmentNucleotideSides sides = baseSegmentNucleotideSides(baseSegment);
+
+	ADNFrameUtils::Vec3 axis = baseSegmentTangent(baseSegment);
+	if (ADNFrameUtils::isNearlyZero(axis, geometryEps))
+		axis = fallback.e3;
+
+	ADNFrameUtils::Vec3 radial = leftSideRadialDirection(sides);
+	if (ADNFrameUtils::isNearlyZero(radial, geometryEps))
+		radial = fallback.e2;
+
+	// DASBackToTheAtom reconstructs residues from base-pair templates. Its
+	// canonical frame must therefore follow the double-strand centerline, not a
+	// sugar-phosphate backbone tangent that can tilt the generated base plane.
+	ADNFrameUtils::Vec3 radialInBasePlane = projectedPerpendicularToAxis(radial, axis);
+	if (ADNFrameUtils::isNearlyZero(radialInBasePlane, geometryEps))
+		radialInBasePlane = projectedPerpendicularToAxis(fallback.e2, axis);
+	if (ADNFrameUtils::isNearlyZero(radialInBasePlane, geometryEps))
+		return fallback;
+
+	const ADNFrameUtils::Frame leftSideFrame =
+		ADNFrameUtils::frameFromE2AndTangent(radialInBasePlane, axis, fallback);
+	return nucleotideSideFrameToCanonicalBaseSegmentFrame(
+		leftSideFrame,
+		TemplateSide::Left,
+		baseSegmentReconstructionPhaseRadians(baseSegment));
 
 }
 
@@ -504,27 +542,8 @@ ADNFrameUtils::Frame nucleotideSideFrameToCanonicalBaseSegmentFrame(
 
 void prepareBaseSegmentFrameForTemplateReconstruction(ADNBaseSegment& baseSegment) {
 
-	const BaseSegmentNucleotideSides sides = baseSegmentNucleotideSides(baseSegment);
-	TemplateSide side = TemplateSide::Left;
-	SBPointer<ADNNucleotide> source = selectTemplateSourceNucleotide(baseSegment, sides, side);
-	if (source == nullptr) {
-
-		ADNFrameAdapters::sanitizeFrame(baseSegment);
-		return;
-
-	}
-
-	// DASBackToTheAtom applies the helical phase itself. Derive the base-segment
-	// template frame by removing that phase from a current nucleotide-side frame.
-	syncNucleotideFrameFromGeometry(*source);
-	const ADNFrameUtils::Frame sourceFrame = ADNFrameAdapters::sanitizedFrame(*source);
-	const ADNFrameUtils::Frame canonicalFrame =
-		nucleotideSideFrameToCanonicalBaseSegmentFrame(
-			sourceFrame,
-			side,
-			baseSegmentReconstructionPhaseRadians(baseSegment));
-
-	ADNFrameAdapters::setFrame(baseSegment, canonicalFrame);
+	ADNFrameAdapters::setFrame(baseSegment,
+		canonicalTemplateFrameFromBaseSegmentGeometry(baseSegment));
 
 }
 
