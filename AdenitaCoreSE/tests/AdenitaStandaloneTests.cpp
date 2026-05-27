@@ -503,7 +503,19 @@ SBPointer<ADNBaseSegment> createBasePairSegment(double x) {
 	SBPointer<ADNNucleotide> left = createSyntheticNucleotide(
 		SBResidue::ResidueType::DA, x, -0.5, 0.0, vector3(0.0, 1.0, 0.0));
 	SBPointer<ADNNucleotide> right = createSyntheticNucleotide(
-		SBResidue::ResidueType::DT, x, 0.5, 0.0, vector3(0.0, 1.0, 0.0));
+		SBResidue::ResidueType::DT, x, 0.5, 0.0, vector3(0.0, -1.0, 0.0));
+
+	left->SetBackbonePosition(positionAngstrom(x, -0.8, 0.0));
+	left->SetSidechainPosition(positionAngstrom(x, -0.2, 0.0));
+	left->SetE1(vector3(0.0, 0.0, -1.0));
+	left->SetE2(vector3(0.0, 1.0, 0.0));
+	left->SetE3(vector3(1.0, 0.0, 0.0));
+
+	right->SetBackbonePosition(positionAngstrom(x, 0.8, 0.0));
+	right->SetSidechainPosition(positionAngstrom(x, 0.2, 0.0));
+	right->SetE1(vector3(0.0, 0.0, -1.0));
+	right->SetE2(vector3(0.0, -1.0, 0.0));
+	right->SetE3(vector3(-1.0, 0.0, 0.0));
 
 	SBPointer<ADNBasePair> basePair = static_cast<ADNBasePair*>(baseSegment->GetCell()());
 	basePair->AddPair(left, right);
