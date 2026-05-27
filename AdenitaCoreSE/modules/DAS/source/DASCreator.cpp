@@ -24,7 +24,7 @@ namespace {
 
 }
 
-[[nodiscard]] ADNFrameUtils::Frame setDesignedFrame(
+ADNFrameUtils::Frame setDesignedFrame(
 	SBPointer<ADNBaseSegment> baseSegment,
 	const ADNFrameUtils::Vec3& axis,
 	const ADNFrameUtils::Vec3* preferredRadial) {
