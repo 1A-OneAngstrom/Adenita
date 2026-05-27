@@ -454,6 +454,24 @@ double pToPreviousO3Distance(SBPointer<ADNNucleotide> nucleotide) {
 
 }
 
+ADNFrameUtils::Vec3 averageGeneratedAtomPosition(SBPointer<ADNNucleotide> nucleotide) {
+
+	ADNFrameUtils::Vec3 sum{};
+	std::size_t count = 0;
+	auto atoms = nucleotide->GetAtoms();
+	SB_FOR(SBPointer<ADNAtom> atom, atoms) {
+
+		if (atom == nullptr) continue;
+		sum = sum + vecFromPosition(atom->getPosition());
+		++count;
+
+	}
+
+	if (count == 0) return ADNFrameUtils::Vec3{};
+	return sum / static_cast<double>(count);
+
+}
+
 void reconstructBackboneSidechainFromFrame(SBPointer<ADNNucleotide> nucleotide,
 	double halfDistance) {
 
@@ -1476,6 +1494,28 @@ void testCanonicalTemplateFrameFromCurrentGeometryTracksBaseSegmentAxis() {
 
 }
 
+void testCanonicalTemplateFrameFromCurrentGeometryDoesNotMutateBaseSegment() {
+
+	using namespace ADNFrameUtils;
+
+	BaseSegmentFrameFixture fixture = createBaseSegmentFrameFixture();
+	ADNGeometrySynchronization::syncBaseSegmentFrameFromGeometry(*fixture.baseSegment);
+	const Frame before = ADNFrameAdapters::sanitizedFrame(*fixture.baseSegment);
+
+	const Frame canonical =
+		ADNGeometrySynchronization::canonicalTemplateFrameFromCurrentGeometry(*fixture.baseSegment);
+	const Frame after = ADNFrameAdapters::sanitizedFrame(*fixture.baseSegment);
+
+	requireTrue("canonical template non mutating result valid",
+		isOrthonormalRightHanded(canonical, 1.0e-9),
+		"Expected non-mutating canonical template frame to be valid.");
+	requireFrameNear("canonical template leaves base segment frame unchanged",
+		after,
+		before,
+		1.0e-12);
+
+}
+
 void testNucleotideSetPositionTranslatesBackboneAndSidechain() {
 
 	SBPointer<ADNNucleotide> nucleotide = new ADNNucleotide();
@@ -1887,6 +1927,121 @@ void testDASReconstructionSideFramesRemainRightHanded() {
 	requireTrue("untwisted side base normals coplanar",
 		std::abs(dot(normalized(untwistedLeft.e3), normalized(untwistedRight.e3))) > 0.999,
 		"Expected untwisted nucleotide base normals to be parallel or antiparallel.");
+
+}
+
+void testComplementPlacementPreservesExistingNucleotideGeometry() {
+
+	SBPointer<ADNPart> part = new ADNPart();
+	SBPointer<ADNDoubleStrand> doubleStrand = new ADNDoubleStrand();
+	SBPointer<ADNSingleStrand> leftStrand = new ADNSingleStrand();
+	SBPointer<ADNSingleStrand> rightStrand = new ADNSingleStrand();
+	SBPointer<ADNBaseSegment> baseSegment = new ADNBaseSegment(CellType::BasePair);
+	baseSegment->SetPosition(positionAngstrom(0.0, 0.0, 0.0));
+
+	part->RegisterDoubleStrand(doubleStrand);
+	part->RegisterSingleStrand(leftStrand);
+	part->RegisterSingleStrand(rightStrand);
+	part->RegisterBaseSegmentEnd(doubleStrand, baseSegment);
+
+	SBPointer<ADNNucleotide> existing = createSyntheticNucleotide(
+		SBResidue::ResidueType::DA, 0.0, -0.5, 0.0, vector3(0.0, 1.0, 0.0));
+	existing->SetBackbonePosition(positionAngstrom(0.0, -0.8, 0.0));
+	existing->SetSidechainPosition(positionAngstrom(0.0, -0.2, 0.0));
+	SBPointer<ADNNucleotide> created = createSyntheticNucleotide(
+		SBResidue::ResidueType::DT, 3.0, 3.0, 3.0, vector3(0.0, -1.0, 0.0));
+
+	SBPointer<ADNBasePair> basePair = static_cast<ADNBasePair*>(baseSegment->GetCell()());
+	basePair->AddPair(existing, created);
+	existing->SetBaseSegment(baseSegment);
+	created->SetBaseSegment(baseSegment);
+	part->RegisterNucleotideThreePrime(leftStrand, existing);
+	part->RegisterNucleotideThreePrime(rightStrand, created);
+
+	const SBPosition3 existingPosition = existing->GetPosition();
+	const SBPosition3 existingBackbone = existing->GetBackbonePosition();
+	const SBPosition3 existingSidechain = existing->GetSidechainPosition();
+	const SBPosition3 createdPlaceholder = created->GetPosition();
+
+	SBPointerIndexer<ADNNucleotide> createdNucleotides;
+	createdNucleotides.addReferenceTarget(created());
+
+	DASBackToTheAtom btta;
+	btta.SetPositionsForNewNucleotides(part,
+		createdNucleotides,
+		DASBackToTheAtom::NewNucleotidePlacementMode::PositionInputNucleotidesOnly);
+
+	requirePositionNear("complement placement preserves existing center",
+		existing->GetPosition(),
+		existingPosition,
+		1.0e-9);
+	requirePositionNear("complement placement preserves existing backbone",
+		existing->GetBackbonePosition(),
+		existingBackbone,
+		1.0e-9);
+	requirePositionNear("complement placement preserves existing sidechain",
+		existing->GetSidechainPosition(),
+		existingSidechain,
+		1.0e-9);
+	requireTrue("complement placement moves created nucleotide",
+		distanceValue(created->GetPosition(), createdPlaceholder) > 1.0,
+		"Expected complementary placement to update only the newly created nucleotide.");
+
+}
+
+void testSingleStrandAtomGenerationUsesExistingNucleotideCenter() {
+
+	SBPointer<ADNPart> part = new ADNPart();
+	SBPointer<ADNDoubleStrand> doubleStrand = new ADNDoubleStrand();
+	SBPointer<ADNSingleStrand> strand = new ADNSingleStrand();
+	SBPointer<ADNBaseSegment> baseSegment = new ADNBaseSegment(CellType::BasePair);
+	baseSegment->SetPosition(positionAngstrom(0.0, 0.0, 0.0));
+
+	part->RegisterDoubleStrand(doubleStrand);
+	part->RegisterSingleStrand(strand);
+	part->RegisterBaseSegmentEnd(doubleStrand, baseSegment);
+
+	SBPointer<ADNNucleotide> nucleotide = createSyntheticNucleotide(
+		SBResidue::ResidueType::DA, 0.0, -5.0, 0.0, vector3(0.0, 1.0, 0.0));
+	nucleotide->SetBackbonePosition(positionAngstrom(0.0, -5.3, 0.0));
+	nucleotide->SetSidechainPosition(positionAngstrom(0.0, -4.7, 0.0));
+
+	SBPointer<ADNBasePair> basePair = static_cast<ADNBasePair*>(baseSegment->GetCell()());
+	basePair->SetLeftNucleotide(nucleotide);
+	nucleotide->SetBaseSegment(baseSegment);
+	part->RegisterNucleotideThreePrime(strand, nucleotide);
+
+	const SBPosition3 nucleotidePosition = nucleotide->GetPosition();
+	const SBPosition3 backbonePosition = nucleotide->GetBackbonePosition();
+	const SBPosition3 sidechainPosition = nucleotide->GetSidechainPosition();
+
+	DASBackToTheAtom btta;
+	btta.GenerateAllAtomModel(part, false);
+
+	requirePositionNear("single strand atom generation preserves center",
+		nucleotide->GetPosition(),
+		nucleotidePosition,
+		1.0e-9);
+	requirePositionNear("single strand atom generation preserves backbone",
+		nucleotide->GetBackbonePosition(),
+		backbonePosition,
+		1.0e-9);
+	requirePositionNear("single strand atom generation preserves sidechain",
+		nucleotide->GetSidechainPosition(),
+		sidechainPosition,
+		1.0e-9);
+	requireTrue("single strand atom generation adds atoms",
+		nucleotide->GetAtoms().size() > 0,
+		"Expected atom generation to populate the existing nucleotide.");
+
+	const ADNFrameUtils::Vec3 atomCenter = averageGeneratedAtomPosition(nucleotide);
+	const double distanceToNucleotide =
+		ADNFrameUtils::norm(atomCenter - vecFromPosition(nucleotide->GetPosition()));
+	const double distanceToBaseSegment =
+		ADNFrameUtils::norm(atomCenter - vecFromPosition(baseSegment->GetPosition()));
+	requireTrue("single strand atom generation uses nucleotide center",
+		distanceToNucleotide < distanceToBaseSegment,
+		"Expected generated atoms to stay closer to the existing nucleotide than to the absent complementary side.");
 
 }
 
@@ -3310,6 +3465,7 @@ int main() {
 	testTemplateFrameHandednessAcrossPhases();
 	testTemplateFrameBasePlaneNormalsStayCoplanar();
 	testCanonicalTemplateFrameFromCurrentGeometryTracksBaseSegmentAxis();
+	testCanonicalTemplateFrameFromCurrentGeometryDoesNotMutateBaseSegment();
 	testNucleotideSetPositionTranslatesBackboneAndSidechain();
 	testGeometrySynchronizationDerivesNucleotideFrame();
 	testGeometryValidationRejectsStaleNucleotideFrame();
@@ -3321,6 +3477,8 @@ int main() {
 	testTwisterTemplateReconstructionIsEquivariantAfterRigidTransform();
 	testTwisterTemplateReconstructionDoesNotAccumulatePhase();
 	testDASReconstructionSideFramesRemainRightHanded();
+	testComplementPlacementPreservesExistingNucleotideGeometry();
+	testSingleStrandAtomGenerationUsesExistingNucleotideCenter();
 	testAllAtomGenerationPreservesSynchronizedNucleotideGeometry();
 	testAllAtomGenerationAlignsBasePlanesAndBackboneAfterRigidTransform();
 	testCircularSingleStrandWrapsWithoutChangingSequenceOrder();
