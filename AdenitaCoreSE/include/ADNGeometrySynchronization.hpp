@@ -71,23 +71,38 @@ SB_EXPORT void syncDoubleStrandFramesBeforeGeometryEdit(ADNDoubleStrand& strand)
 /// \brief Synchronize a double strand after an Adenita geometry edit reconstructs positions.
 SB_EXPORT void syncDoubleStrandFramesAfterGeometryEdit(ADNDoubleStrand& strand);
 
-/// \brief Rotate current nucleotide geometry attached to a base segment around its local axis.
+/// \brief Apply a delta rotation to current nucleotide geometry around its local axis.
+///
+/// This helper preserves the current geometry and composes incremental editor
+/// rotations. It is not a DASBackToTheAtom template reconstruction boundary.
 SB_EXPORT void rotateBaseSegmentGeometry(ADNBaseSegment& baseSegment, double radians);
-/// \brief Rotate current nucleotide geometry attached to every base segment in a double strand.
+/// \brief Apply a delta rotation to every base segment in a double strand.
 SB_EXPORT void rotateDoubleStrandGeometry(ADNDoubleStrand& strand, double radians);
 
 /// \brief Convert a canonical base-segment template frame to a nucleotide-side frame.
+///
+/// The canonical frame is the phase-neutral frame consumed by
+/// DASBackToTheAtom. The returned side frame includes the helical phase and the
+/// right-side sign convention when \p side is \c TemplateSide::Right.
 SB_EXPORT [[nodiscard]] ADNFrameUtils::Frame canonicalBaseSegmentFrameToNucleotideSideFrame(
 	const ADNFrameUtils::Frame& canonicalFrame,
 	TemplateSide side,
 	double phaseRadians);
 /// \brief Convert a nucleotide-side frame to the canonical base-segment template frame.
+///
+/// Use this before template reconstruction paths that call
+/// DASBackToTheAtom::SetNucleotidePosition or
+/// DASBackToTheAtom::UntwistNucleotidesPosition.
 SB_EXPORT [[nodiscard]] ADNFrameUtils::Frame nucleotideSideFrameToCanonicalBaseSegmentFrame(
 	const ADNFrameUtils::Frame& nucleotideFrame,
 	TemplateSide side,
 	double phaseRadians);
 
 /// \brief Prepare a base-segment frame for DASBackToTheAtom template reconstruction.
+///
+/// This derives a phase-neutral base-segment frame from the current
+/// nucleotide-side geometry. Do not replace it with a geometry-aligned part
+/// synchronization immediately before calling a template reconstruction method.
 SB_EXPORT void prepareBaseSegmentFrameForTemplateReconstruction(ADNBaseSegment& baseSegment);
 /// \brief Prepare base-segment frames touched by a set of nucleotides.
 SB_EXPORT void prepareBaseSegmentFramesForTemplateReconstruction(

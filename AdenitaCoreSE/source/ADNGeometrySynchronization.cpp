@@ -263,6 +263,9 @@ void syncBaseSegmentFrameFromGeometry(ADNBaseSegment& baseSegment) {
 
 	BaseSegmentNucleotideSides sides = baseSegmentNucleotideSides(baseSegment);
 
+	// Geometry synchronization deliberately stores a frame aligned with the
+	// current pair/tangent geometry. Template reconstruction uses a different,
+	// phase-neutral convention prepared by prepareBaseSegmentFrameForTemplateReconstruction.
 	ADNFrameUtils::Vec3 e2{};
 	if (sides.left != nullptr && sides.right != nullptr) {
 
@@ -483,6 +486,8 @@ void prepareBaseSegmentFrameForTemplateReconstruction(ADNBaseSegment& baseSegmen
 
 	}
 
+	// DASBackToTheAtom applies the helical phase itself. Derive the base-segment
+	// template frame by removing that phase from a current nucleotide-side frame.
 	syncNucleotideFrameFromGeometry(*source);
 	const ADNFrameUtils::Frame sourceFrame = ADNFrameAdapters::sanitizedFrame(*source);
 	const ADNFrameUtils::Frame canonicalFrame =
