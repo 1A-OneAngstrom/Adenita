@@ -427,7 +427,6 @@ void logBaseSegmentGeometryDiagnostic(const char* context, SBPointer<ADNBaseSegm
 
 } // namespace
 
-
 DASBackToTheAtom::DASBackToTheAtom() {
 
 	//LoadNucleotides();
@@ -1362,7 +1361,8 @@ DASBackToTheAtom::AtomTemplateSelection DASBackToTheAtom::SelectAtomTemplateForN
 }
 
 void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
-	const AtomTemplateSelection& selection) {
+	const AtomTemplateSelection& selection,
+	std::map<ADNBaseSegment*, BaseSegmentAtomPlacementCache>& placementCache) {
 
 	if (nt == nullptr) return;
 	if (selection.nucleotide == nullptr) return;
@@ -1370,24 +1370,37 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 	ADNFrameUtils::Frame frame = ADNFrameAdapters::sanitizedFrame(*nt);
 	SBPointer<ADNBaseSegment> baseSegment = nt->GetBaseSegment();
 	bool usePairCenter = false;
-	TemplateToWorldTransform pairTransform;
+	BaseSegmentAtomPlacementCache placement;
 	if (baseSegment != nullptr && selection.sideKnown) {
 
 		SBPointer<ADNCell> cell = baseSegment->GetCell();
 		if (cell != nullptr && cell->GetCellType() == CellType::BasePair) {
 
-			SBPointer<ADNBasePair> basePair = static_cast<ADNBasePair*>(cell());
-			const bool paired =
-				basePair->GetLeftNucleotide() != nullptr &&
-				basePair->GetRightNucleotide() != nullptr;
-			// Use a temporary side-specific placement frame, but keep it local
-			// to atom generation. Persisting this frame would reintroduce the
-			// editor flattening regressions fixed in the coarse model.
-			const ADNFrameUtils::Frame canonicalFrame = paired ?
-				ADNGeometrySynchronization::canonicalTemplateFrameFromCurrentGeometry(*baseSegment) :
-				oneSidedCanonicalTemplateFrame(baseSegment, nt);
-			pairTransform = makeTemplateToWorldTransform(*baseSegment, canonicalFrame);
-			if (paired) {
+			auto cachedPlacement = placementCache.find(baseSegment());
+			if (cachedPlacement == placementCache.end()) {
+
+				SBPointer<ADNBasePair> basePair = static_cast<ADNBasePair*>(cell());
+				BaseSegmentAtomPlacementCache cacheEntry;
+				cacheEntry.paired =
+					basePair->GetLeftNucleotide() != nullptr &&
+					basePair->GetRightNucleotide() != nullptr;
+				// Atom generation consumes coarse geometry but must not repair
+				// or rewrite it. Cache local placement frames for this call so
+				// both nucleotide sides share the same non-mutating canonical
+				// frame.
+				const ADNFrameUtils::Frame canonicalFrame = cacheEntry.paired ?
+					ADNGeometrySynchronization::canonicalTemplateFrameFromCurrentGeometry(*baseSegment) :
+					oneSidedCanonicalTemplateFrame(baseSegment, nt);
+				const TemplateToWorldTransform transform =
+					makeTemplateToWorldTransform(*baseSegment, canonicalFrame);
+				cacheEntry.leftFrame = transform.leftFrame;
+				cacheEntry.rightFrame = transform.rightFrame;
+				cachedPlacement = placementCache.emplace(baseSegment(), cacheEntry).first;
+
+			}
+
+			placement = cachedPlacement->second;
+			if (placement.paired) {
 
 				usePairCenter = true;
 
@@ -1395,8 +1408,8 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 			else {
 
 				frame = selection.side == ADNGeometrySynchronization::TemplateSide::Right ?
-					pairTransform.rightFrame :
-					pairTransform.leftFrame;
+					placement.rightFrame :
+					placement.leftFrame;
 
 			}
 
@@ -1418,8 +1431,8 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 
 		const ADNFrameUtils::Frame sideFrame =
 			selection.side == ADNGeometrySynchronization::TemplateSide::Right ?
-			pairTransform.rightFrame :
-			pairTransform.leftFrame;
+			placement.rightFrame :
+			placement.leftFrame;
 		ublas::matrix<double> output =
 			ADNVectorMath::ApplyTransformation(frameColumnsToUblas(sideFrame), input);
 		output = ADNVectorMath::Translate(output,
@@ -1534,11 +1547,10 @@ void DASBackToTheAtom::GenerateAllAtomModel(SBPointer<ADNPart> origami, bool cre
 
 	if (origami == nullptr) return;
 
-	// Atom generation is a placement operation on existing coarse geometry. A
-	// geometry-aligned sync is safe here; phase-neutral template frames are not
-	// written into base segments or nucleotides before atom coordinates are set.
-	ADNGeometrySynchronization::syncPartFramesFromGeometry(*origami,
-		ADNGeometrySynchronization::SyncReason::BeforeGeometryEdit);
+	// Atom generation is a non-mutating placement operation on existing coarse
+	// geometry. It uses local cached template frames below instead of globally
+	// synchronizing or rewriting base-segment frames.
+	std::map<ADNBaseSegment*, BaseSegmentAtomPlacementCache> placementCache;
 
 	auto nts = origami->GetNucleotides();
 	SB_FOR(SBPointer<ADNNucleotide> nt, nts) {
@@ -1585,7 +1597,7 @@ void DASBackToTheAtom::GenerateAllAtomModel(SBPointer<ADNPart> origami, bool cre
 		// single-strand atoms centered on the existing nucleotide and prevents
 		// right-side residues from reusing left-side local coordinates.
 		PopulateNucleotideWithAllAtoms(origami, nt, selection, createFlag);
-		FindAtomsPositions(nt, selection);
+		FindAtomsPositions(nt, selection, placementCache);
 
 	}
 

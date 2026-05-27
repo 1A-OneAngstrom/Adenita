@@ -93,6 +93,11 @@ private:
         ADNGeometrySynchronization::TemplateSide side{ ADNGeometrySynchronization::TemplateSide::Left };
         bool sideKnown{ false };
     };
+    struct BaseSegmentAtomPlacementCache {
+        ADNFrameUtils::Frame leftFrame;
+        ADNFrameUtils::Frame rightFrame;
+        bool paired{ false };
+    };
 
     SBPointer<ADNNucleotide> da_;
     SBPointer<ADNNucleotide> dt_;
@@ -132,7 +137,9 @@ private:
     bool ValidateGeneratedBasePairPlanes(SBPointer<ADNPart> part) const;
 #endif
     static void CreateBonds(SBPointer<ADNPart> origami, bool createFlag = false);
-    void FindAtomsPositions(SBPointer<ADNNucleotide> nt, const AtomTemplateSelection& selection);
+    void FindAtomsPositions(SBPointer<ADNNucleotide> nt,
+        const AtomTemplateSelection& selection,
+        std::map<ADNBaseSegment*, BaseSegmentAtomPlacementCache>& placementCache);
 
     //! Untwist the nucleotide (remove the helix turn)
     /*!

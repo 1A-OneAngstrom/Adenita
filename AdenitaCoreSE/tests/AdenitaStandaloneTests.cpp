@@ -2353,6 +2353,8 @@ void testAllAtomGenerationPreservesSynchronizedNucleotideGeometry() {
 	const SBPosition3 leftSidechain = fixture.left->GetSidechainPosition();
 	const SBPosition3 rightBackbone = fixture.right->GetBackbonePosition();
 	const SBPosition3 rightSidechain = fixture.right->GetSidechainPosition();
+	const ADNFrameUtils::Frame baseSegmentFrame =
+		ADNFrameAdapters::frameFromOrientable(*fixture.baseSegment);
 
 	DASBackToTheAtom btta;
 	btta.GenerateAllAtomModel(fixture.part, false);
@@ -2373,6 +2375,10 @@ void testAllAtomGenerationPreservesSynchronizedNucleotideGeometry() {
 		fixture.right->GetSidechainPosition(),
 		rightSidechain,
 		1.0e-9);
+	requireFrameNear("all atom generation does not rewrite base frame",
+		ADNFrameAdapters::frameFromOrientable(*fixture.baseSegment),
+		baseSegmentFrame,
+		1.0e-12);
 	requireTrue("all atom generation adds atoms",
 		fixture.left->GetAtoms().size() > 0 && fixture.right->GetAtoms().size() > 0,
 		"Expected generated atomic details on both nucleotides.");
