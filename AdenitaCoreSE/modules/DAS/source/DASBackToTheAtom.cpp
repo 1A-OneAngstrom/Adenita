@@ -957,9 +957,58 @@ void DASBackToTheAtom::PopulateNucleotideWithAllAtoms(SBPointer<ADNPart> origami
 
 }
 
+void DASBackToTheAtom::PrepareFramesForAtomicModel(SBPointer<ADNPart> origami) {
+
+	if (origami == nullptr) return;
+
+	auto baseSegments = origami->GetBaseSegments();
+	SB_FOR(SBPointer<ADNBaseSegment> baseSegment, baseSegments) {
+
+		if (baseSegment == nullptr) continue;
+		SBPointer<ADNCell> cell = baseSegment->GetCell();
+		if (cell == nullptr || cell->GetCellType() != CellType::BasePair) continue;
+
+		// Atom placement consumes nucleotide frames directly. Convert current
+		// visible geometry to the canonical reconstruction frame, then write only
+		// phase-aware side frames back to the nucleotides without moving them.
+		ADNGeometrySynchronization::prepareBaseSegmentFrameForTemplateReconstruction(*baseSegment);
+		const ADNFrameUtils::Frame canonicalFrame = ADNFrameAdapters::sanitizedFrame(*baseSegment);
+		const double reconstructionPhaseRadians =
+			ADNGeometrySynchronization::baseSegmentReconstructionPhaseRadians(*baseSegment);
+
+		SBPointer<ADNBasePair> basePair = static_cast<ADNBasePair*>(cell());
+		SBPointer<ADNNucleotide> left = basePair->GetLeftNucleotide();
+		SBPointer<ADNNucleotide> right = basePair->GetRightNucleotide();
+
+		if (left != nullptr) {
+
+			ADNFrameAdapters::setFrame(*left,
+				ADNGeometrySynchronization::canonicalBaseSegmentFrameToNucleotideSideFrame(
+					canonicalFrame,
+					ADNGeometrySynchronization::TemplateSide::Left,
+					reconstructionPhaseRadians));
+
+		}
+
+		if (right != nullptr) {
+
+			ADNFrameAdapters::setFrame(*right,
+				ADNGeometrySynchronization::canonicalBaseSegmentFrameToNucleotideSideFrame(
+					canonicalFrame,
+					ADNGeometrySynchronization::TemplateSide::Right,
+					reconstructionPhaseRadians));
+
+		}
+
+	}
+
+}
+
 void DASBackToTheAtom::GenerateAllAtomModel(SBPointer<ADNPart> origami, bool createFlag) {
 
 	if (origami == nullptr) return;
+
+	PrepareFramesForAtomicModel(origami);
 
 	auto nts = origami->GetNucleotides();
 	SB_FOR(SBPointer<ADNNucleotide> nt, nts) {

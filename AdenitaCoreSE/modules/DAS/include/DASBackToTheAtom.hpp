@@ -111,6 +111,7 @@ private:
     static void PositionLoopNucleotidesQBezier(SBPointer<ADNLoop> loop, SBPosition3 bsPositionPrev, SBPosition3 bsPositionNext, SBVector3 bsPrevE3, SBVector3 bsNextE3);
 
     void PopulateNucleotideWithAllAtoms(SBPointer<ADNPart> origami, SBPointer<ADNNucleotide> nt, bool createFlag = false);
+    void PrepareFramesForAtomicModel(SBPointer<ADNPart> origami);
     static void CreateBonds(SBPointer<ADNPart> origami, bool createFlag = false);
     void FindAtomsPositions(SBPointer<ADNNucleotide> nt);
 

@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "ADNBaseSegment.hpp"
+#include "ADNAtom.hpp"
 #include "ADNCell.hpp"
 #include "ADNArray.hpp"
 #include "ADNConfig.hpp"
@@ -334,6 +335,39 @@ double backboneSidechainAbsDot(SBPointer<ADNNucleotide> nucleotide,
 		vecFromPosition(nucleotide->GetSidechainPosition()) -
 		vecFromPosition(nucleotide->GetBackbonePosition());
 	return std::abs(dot(normalized(backboneSidechain), normalized(direction)));
+
+}
+
+ADNFrameUtils::Vec3 sidechainPlaneNormal(SBPointer<ADNNucleotide> nucleotide) {
+
+	std::vector<ADNFrameUtils::Vec3> points;
+	auto atoms = nucleotide->GetAtoms();
+	SB_FOR(SBPointer<ADNAtom> atom, atoms) {
+
+		if (atom != nullptr && !atom->IsInADNBackbone())
+			points.push_back(vecFromPosition(atom->getPosition()));
+
+	}
+
+	if (points.size() < 3) return ADNFrameUtils::Vec3{};
+
+	ADNFrameUtils::Vec3 center{};
+	for (const ADNFrameUtils::Vec3& point : points)
+		center = center + point;
+	center = center / static_cast<double>(points.size());
+
+	ublas::matrix<double> centered(points.size(), 3);
+	for (std::size_t i = 0; i < points.size(); ++i) {
+
+		const ADNFrameUtils::Vec3 point = points[i] - center;
+		centered(i, 0) = point.x;
+		centered(i, 1) = point.y;
+		centered(i, 2) = point.z;
+
+	}
+
+	const ublas::vector<double> normal = ADNVectorMath::CalculatePlane(centered);
+	return ADNFrameUtils::normalized(ADNFrameUtils::Vec3{ normal[0], normal[1], normal[2] });
 
 }
 
@@ -1771,6 +1805,18 @@ void testAllAtomGenerationPreservesSynchronizedNucleotideGeometry() {
 	requireTrue("all atom generation adds atoms",
 		fixture.left->GetAtoms().size() > 0 && fixture.right->GetAtoms().size() > 0,
 		"Expected generated atomic details on both nucleotides.");
+
+	const ADNFrameUtils::Vec3 leftNormal = sidechainPlaneNormal(fixture.left);
+	const ADNFrameUtils::Vec3 rightNormal = sidechainPlaneNormal(fixture.right);
+	requireTrue("all atom generation left base plane normal",
+		!ADNFrameUtils::isNearlyZero(leftNormal),
+		"Expected generated left nucleotide base atoms to define a plane.");
+	requireTrue("all atom generation right base plane normal",
+		!ADNFrameUtils::isNearlyZero(rightNormal),
+		"Expected generated right nucleotide base atoms to define a plane.");
+	requireTrue("all atom generation base planes coplanar",
+		std::abs(ADNFrameUtils::dot(leftNormal, rightNormal)) > 0.95,
+		"Expected generated paired bases to be coplanar.");
 
 }
 
