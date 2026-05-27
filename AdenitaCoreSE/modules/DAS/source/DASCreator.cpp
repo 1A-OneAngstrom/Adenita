@@ -1,4 +1,42 @@
 #include "DASCreator.hpp"
+#include "ADNFrameAdapters.hpp"
+#include "ADNGeometrySynchronization.hpp"
+
+namespace {
+
+[[nodiscard]] ADNFrameUtils::Vec3 frameVecFromSBVector(const SBVector3& vector) {
+
+	return ADNFrameUtils::Vec3{
+		vector[0].getValue(),
+		vector[1].getValue(),
+		vector[2].getValue()
+	};
+
+}
+
+[[nodiscard]] ADNFrameUtils::Vec3 frameVecFromUblas(const ublas::vector<double>& vector) {
+
+	return ADNFrameUtils::Vec3{
+		vector.size() > 0 ? vector[0] : 0.0,
+		vector.size() > 1 ? vector[1] : 0.0,
+		vector.size() > 2 ? vector[2] : 0.0
+	};
+
+}
+
+[[nodiscard]] ADNFrameUtils::Frame setDesignedFrame(
+	SBPointer<ADNBaseSegment> baseSegment,
+	const ADNFrameUtils::Vec3& axis,
+	const ADNFrameUtils::Vec3* preferredRadial) {
+
+	const ADNFrameUtils::Frame frame =
+		ADNGeometrySynchronization::makeDesignedBaseSegmentFrame(axis, preferredRadial);
+	ADNFrameAdapters::setFrame(*baseSegment, frame);
+	return frame;
+
+}
+
+} // namespace
 
 //ADNPart * DASEditor::CreateTwoTubes(size_t length, SBPosition3 start, SBVector3 direction, SBVector3 sepDir) {
 //  ADNPart* part = new ADNPart();
@@ -338,9 +376,8 @@ SBPointer<ADNDoubleStrand> DASCreator::AddRingToADNPart(SBPointer<ADNPart> part,
 		pos += a * ADNAuxiliary::UblasVectorToSBVector(xVec);
 		pos += b * ADNAuxiliary::UblasVectorToSBVector(yVec);
 		bs->SetPosition(pos);
-		bs->SetE3(direction);
-		bs->SetE2(ADNAuxiliary::SBVectorToUblasVector(normal));
-		bs->SetE1(rVec);
+		const ADNFrameUtils::Vec3 ringNormal = frameVecFromSBVector(normal);
+		setDesignedFrame(bs, frameVecFromUblas(direction), &ringNormal);
 		bs->SetNumber(boost::numeric_cast<int>(j));
 
 		SBPointer<ADNBasePair> cell = new ADNBasePair();
@@ -413,12 +450,22 @@ RTDoubleStrand DASCreator::AddDoubleStrandToADNPart(SBPointer<ADNPart> part, con
 
 	}
 
+	ADNFrameUtils::Vec3 previousRadial{};
+	bool hasPreviousRadial = false;
+	const ADNFrameUtils::Vec3 axis = frameVecFromSBVector(direction);
+
 	for (size_t i = 0; i < length; ++i) {
 
 		SBPointer<ADNBaseSegment> bs = new ADNBaseSegment();
 
 		bs->SetPosition(pos);
-		bs->SetE3(ADNAuxiliary::SBVectorToUblasVector(direction));
+		// Fresh creator nucleotides are still degenerate placeholders. Seed a
+		// complete designed frame from the requested axis, then carry the radial
+		// direction forward to prevent frame flips along the strand.
+		const ADNFrameUtils::Frame frame =
+			setDesignedFrame(bs, axis, hasPreviousRadial ? &previousRadial : nullptr);
+		previousRadial = frame.e2;
+		hasPreviousRadial = true;
 		bs->SetNumber(boost::numeric_cast<int>(i));
 		SBPointer<ADNBasePair> cell = new ADNBasePair();
 
@@ -478,11 +525,20 @@ RTDoubleStrand DASCreator::AddSingleStrandToADNPart(SBPointer<ADNPart> part, con
 	SBPointer<ADNSingleStrand> ss = new ADNSingleStrand();
 	part->RegisterSingleStrand(ss);
 
+	ADNFrameUtils::Vec3 previousRadial{};
+	bool hasPreviousRadial = false;
+	const ADNFrameUtils::Vec3 axis = frameVecFromSBVector(direction);
+
 	for (size_t i = 0; i < length; ++i) {
 
 		SBPointer<ADNBaseSegment> bs = new ADNBaseSegment();
 		bs->SetPosition(pos);
-		bs->SetE3(ADNAuxiliary::SBVectorToUblasVector(direction));
+		// Single-strand creator output has no nondegenerate nucleotide geometry
+		// yet, so persist the construction frame before template placement.
+		const ADNFrameUtils::Frame frame =
+			setDesignedFrame(bs, axis, hasPreviousRadial ? &previousRadial : nullptr);
+		previousRadial = frame.e2;
+		hasPreviousRadial = true;
 		bs->SetNumber(boost::numeric_cast<int>(i));
 		part->RegisterBaseSegmentEnd(ds, bs);
 

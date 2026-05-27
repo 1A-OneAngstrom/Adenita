@@ -36,6 +36,7 @@
 #include "DASCadnano.hpp"
 #include "DASAlgorithms.hpp"
 #include "DASBackToTheAtom.hpp"
+#include "DASCreator.hpp"
 #include "DASDaedalus.hpp"
 #include "PIPrimer3.hpp"
 #include "SBCHeapExport.hpp"
@@ -2004,6 +2005,114 @@ void testDASReconstructionSideFramesRemainRightHanded() {
 
 }
 
+void testCreatorSingleStrandInitializesDesignedFrames() {
+
+	using namespace ADNFrameUtils;
+
+	SBPointer<ADNPart> part = new ADNPart();
+	const RTDoubleStrand created = DASCreator::AddSingleStrandToADNPart(
+		part,
+		4,
+		positionAngstrom(0.0, 0.0, 0.0),
+		SBVector3(0.0, 0.0, 1.0));
+
+	auto baseSegments = part->GetBaseSegments();
+	SB_FOR(SBPointer<ADNBaseSegment> baseSegment, baseSegments) {
+
+		requireTrue("single creator designed frame valid",
+			isOrthonormalRightHanded(ADNFrameAdapters::frameFromOrientable(*baseSegment), 1.0e-9),
+			"Expected creator base segments to have complete designed frames before reconstruction.");
+
+	}
+
+	DASBackToTheAtom btta;
+	btta.SetNucleotidesPositions(part);
+
+	auto nucleotides = created.ss1->GetNucleotides();
+	SB_FOR(SBPointer<ADNNucleotide> nucleotide, nucleotides) {
+
+		requireTrue("single creator nucleotide geometry nondegenerate",
+			distanceValue(nucleotide->GetBackbonePosition(), nucleotide->GetSidechainPosition()) > 1.0,
+			"Expected reconstructed single-strand nucleotide geometry to be nondegenerate.");
+
+	}
+
+	SBPointer<ADNNucleotide> first = created.ss1->GetFivePrime();
+	SBPointer<ADNNucleotide> second = first != nullptr ? first->GetNext(true) : nullptr;
+	requireTrue("single creator has neighboring nucleotides",
+		first != nullptr && second != nullptr,
+		"Expected test strand to contain neighboring nucleotides.");
+	if (first != nullptr && second != nullptr) {
+
+		const Vec3 firstRadial = normalized(
+			vecFromPosition(first->GetPosition()) -
+			vecFromPosition(first->GetBaseSegment()->GetPosition()));
+		const Vec3 secondRadial = normalized(
+			vecFromPosition(second->GetPosition()) -
+			vecFromPosition(second->GetBaseSegment()->GetPosition()));
+		const double phaseCosine = dot(firstRadial, secondRadial);
+		const double expectedCosine =
+			std::cos(ADNConstants::BP_ROT * 3.141592653589793238462643383279502884 / 180.0);
+		requireNear("single creator adjacent helical phase", phaseCosine, expectedCosine, 0.2);
+
+	}
+
+}
+
+void testCreatorDoubleStrandInitializesDesignedFrames() {
+
+	using namespace ADNFrameUtils;
+
+	SBPointer<ADNPart> part = new ADNPart();
+	const RTDoubleStrand created = DASCreator::AddDoubleStrandToADNPart(
+		part,
+		4,
+		positionAngstrom(0.0, 0.0, 0.0),
+		SBVector3(0.0, 0.0, 1.0));
+
+	auto baseSegments = part->GetBaseSegments();
+	SB_FOR(SBPointer<ADNBaseSegment> baseSegment, baseSegments) {
+
+		requireTrue("double creator designed frame valid",
+			isOrthonormalRightHanded(ADNFrameAdapters::frameFromOrientable(*baseSegment), 1.0e-9),
+			"Expected creator double-strand base segments to have complete designed frames.");
+
+	}
+
+	DASBackToTheAtom btta;
+	btta.SetNucleotidesPositions(part);
+
+	auto nucleotides = part->GetNucleotides();
+	SB_FOR(SBPointer<ADNNucleotide> nucleotide, nucleotides) {
+
+		requireTrue("double creator nucleotide geometry nondegenerate",
+			distanceValue(nucleotide->GetBackbonePosition(), nucleotide->GetSidechainPosition()) > 1.0,
+			"Expected reconstructed double-strand nucleotide geometry to be nondegenerate.");
+
+	}
+
+	SBPointer<ADNNucleotide> first = created.ss1->GetFivePrime();
+	SBPointer<ADNNucleotide> second = first != nullptr ? first->GetNext(true) : nullptr;
+	requireTrue("double creator has neighboring nucleotides",
+		first != nullptr && second != nullptr,
+		"Expected double-strand test to contain neighboring left-side nucleotides.");
+	if (first != nullptr && second != nullptr) {
+
+		const Vec3 firstRadial = normalized(
+			vecFromPosition(first->GetPosition()) -
+			vecFromPosition(first->GetBaseSegment()->GetPosition()));
+		const Vec3 secondRadial = normalized(
+			vecFromPosition(second->GetPosition()) -
+			vecFromPosition(second->GetBaseSegment()->GetPosition()));
+		const double phaseCosine = dot(firstRadial, secondRadial);
+		const double expectedCosine =
+			std::cos(ADNConstants::BP_ROT * 3.141592653589793238462643383279502884 / 180.0);
+		requireNear("double creator adjacent helical phase", phaseCosine, expectedCosine, 0.2);
+
+	}
+
+}
+
 void testComplementPlacementPreservesExistingNucleotideGeometry() {
 
 	SBPointer<ADNPart> part = new ADNPart();
@@ -3554,6 +3663,8 @@ int main() {
 	testTwisterTemplateReconstructionIsEquivariantAfterRigidTransform();
 	testTwisterTemplateReconstructionDoesNotAccumulatePhase();
 	testDASReconstructionSideFramesRemainRightHanded();
+	testCreatorSingleStrandInitializesDesignedFrames();
+	testCreatorDoubleStrandInitializesDesignedFrames();
 	testComplementPlacementPreservesExistingNucleotideGeometry();
 	testSingleStrandAtomGenerationUsesExistingNucleotideCenter();
 	testAllAtomGenerationPreservesSynchronizedNucleotideGeometry();
