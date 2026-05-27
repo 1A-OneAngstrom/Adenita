@@ -1088,7 +1088,8 @@ void SEAdenitaCoreSEApp::CreateBasePair() {
 		const SBPointerIndexer<ADNPart> affectedParts =
 			ADNGeometrySynchronization::collectPartsFromNucleotides(selectedNucleotides);
 
-		syncPartsBeforeGeometryEdit(affectedParts);
+		// Complementary-strand placement uses canonical template frames; do not
+		// replace them with one-sided geometry-aligned frames before reconstruction.
 		DASOperations::AddComplementaryStrands(nanorobot, selectedNucleotides);
 		syncPartsAfterGeometryEdit(affectedParts);
 		SEAdenitaCoreSEApp::resetVisualModel();
