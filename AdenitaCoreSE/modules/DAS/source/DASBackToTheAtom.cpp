@@ -254,6 +254,7 @@ void DASBackToTheAtom::SetPositionsForNewNucleotides(SBPointer<ADNPart> part, SB
 		}
 
 		auto bs = nt->GetBaseSegment();
+		if (bs == nullptr) continue;
 
 		auto bsAt = bs->GetCenterAtom();
 		if (!bsAt->isCreated()) {
@@ -263,6 +264,8 @@ void DASBackToTheAtom::SetPositionsForNewNucleotides(SBPointer<ADNPart> part, SB
 
 		}
 
+		// Complementary-strand placement uses phase-neutral base-segment frames.
+		ADNGeometrySynchronization::prepareBaseSegmentFrameForTemplateReconstruction(*bs);
 		SetNucleotidePosition(bs, true);
 
 	}
