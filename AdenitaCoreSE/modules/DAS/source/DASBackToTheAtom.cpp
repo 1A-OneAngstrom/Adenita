@@ -167,6 +167,64 @@ void logInvalidBaseSegmentFrame(const char* context, SBPointer<ADNBaseSegment> b
 
 }
 
+[[nodiscard]] ADNFrameUtils::Vec3 localBaseSegmentAxis(SBPointer<ADNBaseSegment> baseSegment) {
+
+	if (baseSegment == nullptr) return ADNFrameUtils::Vec3{};
+
+	SBPointer<ADNBaseSegment> previous = baseSegment->GetPrev(true);
+	SBPointer<ADNBaseSegment> next = baseSegment->GetNext(true);
+
+	ADNFrameUtils::Vec3 axis{};
+	if (previous != nullptr && next != nullptr)
+		axis = positionToFrameVec3(next->GetPosition()) - positionToFrameVec3(previous->GetPosition());
+	else if (next != nullptr)
+		axis = positionToFrameVec3(next->GetPosition()) - positionToFrameVec3(baseSegment->GetPosition());
+	else if (previous != nullptr)
+		axis = positionToFrameVec3(baseSegment->GetPosition()) - positionToFrameVec3(previous->GetPosition());
+
+	if (ADNFrameUtils::isNearlyZero(axis))
+		axis = ADNFrameAdapters::sanitizedFrame(*baseSegment).e3;
+
+	return ADNFrameUtils::normalized(axis);
+
+}
+
+[[nodiscard]] SBPointer<ADNAtom> firstAtomByName(SBPointer<ADNNucleotide> nucleotide,
+	const std::string& atomName) {
+
+	if (nucleotide == nullptr) return nullptr;
+	auto atoms = nucleotide->GetAtomsByName(atomName);
+	if (atoms.size() == 0) return nullptr;
+	return *atoms.begin();
+
+}
+
+[[nodiscard]] bool validateGeneratedBackboneLink(SBPointer<ADNBaseSegment> baseSegment,
+	SBPointer<ADNNucleotide> nucleotide) {
+
+	if (nucleotide == nullptr) return true;
+
+	SBPointer<ADNNucleotide> previous = nucleotide->GetPrev(true);
+	if (previous == nullptr) return true;
+
+	SBPointer<ADNAtom> phosphate = firstAtomByName(nucleotide, "P");
+	SBPointer<ADNAtom> previousO3 = firstAtomByName(previous, "O3'");
+	if (phosphate == nullptr || previousO3 == nullptr) return true;
+
+	const double distance = (phosphate->getPosition() - previousO3->getPosition()).norm().getValue();
+	constexpr double minPToO3DistancePm = 100.0;
+	constexpr double maxPToO3DistancePm = 250.0;
+	if (distance >= minPToO3DistancePm && distance <= maxPToO3DistancePm)
+		return true;
+
+	const int baseSegmentNumber = baseSegment != nullptr ? baseSegment->GetNumber() : -1;
+	ADNLogger::LogDebug("Generated backbone diagnostic failed for base segment " +
+		std::to_string(baseSegmentNumber) + " nucleotide " + nucleotide->getName() +
+		": P to previous O3' distance " + std::to_string(distance) + " pm.");
+	return false;
+
+}
+
 [[nodiscard]] double clampedUnit(double value) {
 
 	if (value < -1.0) return -1.0;
@@ -1279,11 +1337,21 @@ bool DASBackToTheAtom::ValidateGeneratedBasePairPlanes(SBPointer<ADNPart> part) 
 			std::max(
 				std::abs(ADNFrameUtils::dot(pairDirection, leftNormal)),
 				std::abs(ADNFrameUtils::dot(pairDirection, rightNormal)));
+		const ADNFrameUtils::Vec3 baseSegmentAxis = localBaseSegmentAxis(baseSegment);
+		const double axisNormalAbsDot =
+			ADNFrameUtils::isNearlyZero(baseSegmentAxis) ? 1.0 :
+			std::min(
+				std::abs(ADNFrameUtils::dot(baseSegmentAxis, leftNormal)),
+				std::abs(ADNFrameUtils::dot(baseSegmentAxis, rightNormal)));
 		const double leftDeterminant = frameDeterminant(left);
 		const double rightDeterminant = frameDeterminant(right);
 
+		// Base-ring normals should follow the local double-strand axis. Pair
+		// coplanarity alone is not enough: both bases can remain coplanar while
+		// the whole generated base-pair plane is tilted by a stale template axis.
 		if (normalAbsDot <= 0.95 ||
 			pairDirectionPlaneAbsDot > 0.35 ||
+			axisNormalAbsDot < 0.85 ||
 			leftDeterminant <= 0.0 ||
 			rightDeterminant <= 0.0) {
 
@@ -1294,10 +1362,16 @@ bool DASBackToTheAtom::ValidateGeneratedBasePairPlanes(SBPointer<ADNPart> part) 
 				std::to_string(baseSegment->GetNumber()) +
 				" (" + left->getName() + ", " + right->getName() + "): normal angle " +
 				std::to_string(angleDegrees) + " degrees, pair-normal dot " +
-				std::to_string(pairDirectionPlaneAbsDot) + ", determinants " +
+				std::to_string(pairDirectionPlaneAbsDot) + ", axis-normal dot " +
+				std::to_string(axisNormalAbsDot) + ", determinants " +
 				std::to_string(leftDeterminant) + " / " + std::to_string(rightDeterminant) + ".");
 
 		}
+
+		if (!validateGeneratedBackboneLink(baseSegment, left))
+			valid = false;
+		if (!validateGeneratedBackboneLink(baseSegment, right))
+			valid = false;
 
 	}
 
