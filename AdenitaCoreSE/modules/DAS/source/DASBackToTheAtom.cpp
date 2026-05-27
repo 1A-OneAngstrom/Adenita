@@ -284,6 +284,65 @@ void logInvalidBaseSegmentFrame(const char* context, SBPointer<ADNBaseSegment> b
 
 }
 
+#ifdef ADN_DEBUG_GEOMETRY
+void logBaseSegmentGeometryDiagnostic(const char* context, SBPointer<ADNBaseSegment> baseSegment) {
+
+	if (baseSegment == nullptr) return;
+	const int baseSegmentNumber = baseSegment->GetNumber();
+	if (baseSegmentNumber < 0 || baseSegmentNumber >= 5) return;
+
+	const ADNFrameUtils::Frame frame = ADNFrameAdapters::frameFromOrientable(*baseSegment);
+	const ADNFrameUtils::Vec3 axis = localBaseSegmentAxis(baseSegment);
+
+	std::ostringstream message;
+	message << context << " base segment " << baseSegmentNumber
+		<< " |E1|=" << ADNFrameUtils::norm(frame.e1)
+		<< " |E2|=" << ADNFrameUtils::norm(frame.e2)
+		<< " |E3|=" << ADNFrameUtils::norm(frame.e3)
+		<< " dot12=" << ADNFrameUtils::dot(frame.e1, frame.e2)
+		<< " dot13=" << ADNFrameUtils::dot(frame.e1, frame.e3)
+		<< " dot23=" << ADNFrameUtils::dot(frame.e2, frame.e3)
+		<< " det=" << ADNFrameUtils::determinant(frame)
+		<< " valid=" << ADNFrameUtils::isOrthonormalRightHanded(frame)
+		<< " axis=(" << axis.x << ", " << axis.y << ", " << axis.z << ")";
+
+	SBPointer<ADNCell> cell = baseSegment->GetCell();
+	if (cell != nullptr && cell->GetCellType() == CellType::BasePair) {
+
+		SBPointer<ADNBasePair> basePair = static_cast<ADNBasePair*>(cell());
+		SBPointer<ADNNucleotide> left = basePair->GetLeftNucleotide();
+		SBPointer<ADNNucleotide> right = basePair->GetRightNucleotide();
+
+		const auto logNucleotideDegeneracy = [&message](const char* side, SBPointer<ADNNucleotide> nucleotide) {
+
+			if (nucleotide == nullptr) return;
+			const ADNFrameUtils::Vec3 center = positionToFrameVec3(nucleotide->GetPosition());
+			const ADNFrameUtils::Vec3 backbone = positionToFrameVec3(nucleotide->GetBackbonePosition());
+			const ADNFrameUtils::Vec3 sidechain = positionToFrameVec3(nucleotide->GetSidechainPosition());
+			const bool degenerate =
+				ADNFrameUtils::norm(center - backbone) < 1.0e-6 &&
+				ADNFrameUtils::norm(center - sidechain) < 1.0e-6;
+			message << " " << side << "Degenerate=" << degenerate;
+
+		};
+
+		logNucleotideDegeneracy("left", left);
+		logNucleotideDegeneracy("right", right);
+
+		const ADNFrameUtils::Vec3 leftNormal = sidechainPlaneNormal(left);
+		const ADNFrameUtils::Vec3 rightNormal = sidechainPlaneNormal(right);
+		if (!ADNFrameUtils::isNearlyZero(leftNormal) && !ADNFrameUtils::isNearlyZero(axis))
+			message << " leftPlaneAxisDot=" << std::abs(ADNFrameUtils::dot(leftNormal, axis));
+		if (!ADNFrameUtils::isNearlyZero(rightNormal) && !ADNFrameUtils::isNearlyZero(axis))
+			message << " rightPlaneAxisDot=" << std::abs(ADNFrameUtils::dot(rightNormal, axis));
+
+	}
+
+	ADNLogger::LogDebug(message.str());
+
+}
+#endif
+
 [[nodiscard]] SBPointer<ADNAtom> firstAtomByName(SBPointer<ADNNucleotide> nucleotide,
 	const std::string& atomName) {
 
@@ -413,6 +472,9 @@ void DASBackToTheAtom::SetNucleotidePosition(SBPointer<ADNBaseSegment> bs, bool 
 #ifndef NDEBUG
 	logInvalidBaseSegmentFrame(__func__, bs);
 #endif
+#if defined(ADN_DEBUG_GEOMETRY) && !defined(NDEBUG)
+	logBaseSegmentGeometryDiagnostic("SetNucleotidePosition before", bs);
+#endif
 
 	SBPointer<ADNNucleotide> nt_left = nullptr;
 	SBPointer<ADNNucleotide> nt_right = nullptr;
@@ -491,6 +553,10 @@ void DASBackToTheAtom::SetNucleotidePosition(SBPointer<ADNBaseSegment> bs, bool 
 		nt_r->SetSidechainPosition(p_sc_right);
 
 	}
+
+#if defined(ADN_DEBUG_GEOMETRY) && !defined(NDEBUG)
+	logBaseSegmentGeometryDiagnostic("SetNucleotidePosition after", bs);
+#endif
 
 }
 
