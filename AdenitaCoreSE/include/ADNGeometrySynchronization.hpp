@@ -51,6 +51,21 @@ enum class TemplateSide {
 /// is opposite to ADNFrameUtils::rotationAroundAxis.
 SB_EXPORT [[nodiscard]] double baseSegmentReconstructionPhaseRadians(const ADNBaseSegment& baseSegment);
 
+/// \brief Build a persistent frame for newly designed base segments.
+///
+/// Designed creator output starts with a requested axis but degenerate
+/// nucleotide positions, so geometry-derived synchronization cannot recover a
+/// radial direction yet. This helper builds a stable right-handed frame from
+/// the axis and an optional radial seed. It is safe to persist on the base
+/// segment before nucleotide reconstruction.
+SB_EXPORT [[nodiscard]] ADNFrameUtils::Frame makeDesignedBaseSegmentFrame(
+	const ADNFrameUtils::Vec3& axis,
+	const ADNFrameUtils::Vec3* preferredRadial = nullptr);
+/// \brief Store a designed construction frame on a newly-created base segment.
+SB_EXPORT void initializeDesignedBaseSegmentFrame(ADNBaseSegment& baseSegment,
+	const ADNFrameUtils::Vec3& axis,
+	const ADNFrameUtils::Vec3* preferredRadial = nullptr);
+
 /// \brief Reconstruct a nucleotide frame from its current geometry.
 SB_EXPORT void syncNucleotideFrameFromGeometry(ADNNucleotide& nucleotide);
 /// \brief Reconstruct a base-segment frame from its paired nucleotide geometry.

@@ -152,6 +152,37 @@ struct BaseSegmentNucleotideSides {
 
 }
 
+[[nodiscard]] ADNFrameUtils::Vec3 deterministicPerpendicular(const ADNFrameUtils::Vec3& axis) {
+
+	const ADNFrameUtils::Vec3 unitAxis = ADNFrameUtils::normalized(axis, geometryEps);
+	if (ADNFrameUtils::isNearlyZero(unitAxis, geometryEps))
+		return ADNFrameUtils::Vec3{ 0.0, 1.0, 0.0 };
+
+	const ADNFrameUtils::Vec3 candidates[] = {
+		ADNFrameUtils::Vec3{ 1.0, 0.0, 0.0 },
+		ADNFrameUtils::Vec3{ 0.0, 1.0, 0.0 },
+		ADNFrameUtils::Vec3{ 0.0, 0.0, 1.0 }
+	};
+
+	ADNFrameUtils::Vec3 best = candidates[0];
+	double bestAlignment = std::abs(ADNFrameUtils::dot(unitAxis, candidates[0]));
+	for (const ADNFrameUtils::Vec3& candidate : candidates) {
+
+		const double alignment = std::abs(ADNFrameUtils::dot(unitAxis, candidate));
+		if (alignment < bestAlignment) {
+
+			best = candidate;
+			bestAlignment = alignment;
+
+		}
+
+	}
+
+	const ADNFrameUtils::Vec3 radial = projectedPerpendicularToAxis(best, unitAxis);
+	return ADNFrameUtils::normalized(radial, geometryEps);
+
+}
+
 [[nodiscard]] ADNFrameUtils::Vec3 backboneSidechainDirection(const ADNNucleotide& nucleotide) {
 
 	return toVec3(nucleotide.GetSidechainPosition() - nucleotide.GetBackbonePosition());
@@ -286,6 +317,44 @@ double baseSegmentReconstructionPhaseRadians(const ADNBaseSegment& baseSegment) 
 		initialTwistAngle = doubleStrand->GetInitialTwistAngle();
 
 	return degreesToRadians(initialTwistAngle + baseSegment.GetNumber() * ADNConstants::BP_ROT);
+
+}
+
+ADNFrameUtils::Frame makeDesignedBaseSegmentFrame(
+	const ADNFrameUtils::Vec3& axis,
+	const ADNFrameUtils::Vec3* preferredRadial) {
+
+	const ADNFrameUtils::Vec3 unitAxis = ADNFrameUtils::normalized(axis, geometryEps);
+	if (ADNFrameUtils::isNearlyZero(unitAxis, geometryEps))
+		return ADNFrameUtils::identityFrame();
+
+	ADNFrameUtils::Vec3 radial{};
+	if (preferredRadial != nullptr) {
+
+		radial = projectedPerpendicularToAxis(*preferredRadial, unitAxis);
+		radial = ADNFrameUtils::normalized(radial, geometryEps);
+
+	}
+
+	if (ADNFrameUtils::isNearlyZero(radial, geometryEps))
+		radial = deterministicPerpendicular(unitAxis);
+	if (ADNFrameUtils::isNearlyZero(radial, geometryEps))
+		return ADNFrameUtils::identityFrame();
+
+	// Designed construction frames are seeded from the requested centerline
+	// axis because fresh creator nucleotides still have coincident center,
+	// backbone, and sidechain positions. Geometry synchronization is reserved
+	// for already-positioned DNA after user edits.
+	return ADNFrameUtils::frameFromE2AndTangent(radial, unitAxis);
+
+}
+
+void initializeDesignedBaseSegmentFrame(ADNBaseSegment& baseSegment,
+	const ADNFrameUtils::Vec3& axis,
+	const ADNFrameUtils::Vec3* preferredRadial) {
+
+	ADNFrameAdapters::setFrame(baseSegment,
+		makeDesignedBaseSegmentFrame(axis, preferredRadial));
 
 }
 

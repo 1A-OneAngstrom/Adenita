@@ -1309,6 +1309,80 @@ void testFrameAdaptersSanitizeAndRotateOrientable() {
 
 }
 
+void testDesignedBaseSegmentFrameBuildsValidAxes() {
+
+	using namespace ADNFrameUtils;
+
+	const Vec3 axes[] = {
+		Vec3{ 1.0, 0.0, 0.0 },
+		Vec3{ 0.0, 1.0, 0.0 },
+		Vec3{ 0.0, 0.0, 1.0 },
+		Vec3{ 0.3, -0.4, 0.8 }
+	};
+
+	for (const Vec3& axis : axes) {
+
+		const Frame frame = ADNGeometrySynchronization::makeDesignedBaseSegmentFrame(axis);
+		requireTrue("designed frame valid",
+			isOrthonormalRightHanded(frame, 1.0e-9),
+			"Expected designed construction frame to be orthonormal and right-handed.");
+		requireVecNear("designed frame axis",
+			frame.e3,
+			normalized(axis),
+			1.0e-9);
+
+	}
+
+}
+
+void testDesignedBaseSegmentFrameUsesPreferredRadial() {
+
+	using namespace ADNFrameUtils;
+
+	const Vec3 axis{ 0.0, 0.0, 1.0 };
+	const Vec3 preferredRadial{ 1.0, 1.0, 1.0 };
+	const Frame frame = ADNGeometrySynchronization::makeDesignedBaseSegmentFrame(
+		axis,
+		&preferredRadial);
+	const Vec3 expectedRadial = normalized(Vec3{ 1.0, 1.0, 0.0 });
+
+	requireTrue("designed frame preferred radial valid",
+		isOrthonormalRightHanded(frame, 1.0e-9),
+		"Expected preferred-radial designed frame to remain valid.");
+	requireVecNear("designed frame preferred radial projection",
+		frame.e2,
+		expectedRadial,
+		1.0e-9);
+	requireVecNear("designed frame preferred radial axis",
+		frame.e3,
+		axis,
+		1.0e-9);
+
+}
+
+void testDesignedBaseSegmentFrameFallsBackFromParallelRadial() {
+
+	using namespace ADNFrameUtils;
+
+	const Vec3 axis{ 0.0, 0.0, 1.0 };
+	const Vec3 parallelRadial{ 0.0, 0.0, 4.0 };
+	const Frame frame = ADNGeometrySynchronization::makeDesignedBaseSegmentFrame(
+		axis,
+		&parallelRadial);
+
+	requireTrue("designed frame parallel fallback valid",
+		isOrthonormalRightHanded(frame, 1.0e-9),
+		"Expected designed frame to recover from a radial seed parallel to the axis.");
+	requireVecNear("designed frame parallel fallback axis",
+		frame.e3,
+		axis,
+		1.0e-9);
+	requireTrue("designed frame parallel fallback radial perpendicular",
+		std::abs(dot(frame.e2, axis)) < 1.0e-9,
+		"Expected fallback radial to be perpendicular to the requested axis.");
+
+}
+
 void testTemplateFramePreparationRoundTripLeftSide() {
 
 	using namespace ADNFrameUtils;
@@ -3459,6 +3533,9 @@ int main() {
 	testFrameUtilsRigidRotationPreservesDistances();
 	testFrameUtilsDerivesRotatedMockGeometryFrame();
 	testFrameAdaptersSanitizeAndRotateOrientable();
+	testDesignedBaseSegmentFrameBuildsValidAxes();
+	testDesignedBaseSegmentFrameUsesPreferredRadial();
+	testDesignedBaseSegmentFrameFallsBackFromParallelRadial();
 	testTemplateFramePreparationRoundTripLeftSide();
 	testTemplateFramePreparationRoundTripRightSide();
 	testTemplateFramePreparationTargetStateIsStable();
