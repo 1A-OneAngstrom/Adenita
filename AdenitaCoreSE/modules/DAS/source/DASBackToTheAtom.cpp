@@ -47,6 +47,12 @@ struct TemplateToWorldTransform {
 
 }
 
+[[nodiscard]] ublas::matrix<double> frameColumnsToUblas(const ADNFrameUtils::Frame& frame) {
+
+	return ublas::trans(frameRowsToUblas(frame));
+
+}
+
 [[nodiscard]] ublas::matrix<double> templateBasisMatrixFromCanonicalFrame(
 	const ADNFrameUtils::Frame& canonicalFrame,
 	double phaseRadians) {
@@ -1258,7 +1264,77 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 	if (nt == nullptr) return;
 	if (selection.nucleotide == nullptr) return;
 
-	const ADNFrameUtils::Frame frame = ADNFrameAdapters::sanitizedFrame(*nt);
+	ADNFrameUtils::Frame frame = ADNFrameAdapters::sanitizedFrame(*nt);
+	SBPointer<ADNBaseSegment> baseSegment = nt->GetBaseSegment();
+	bool usePairCenter = false;
+	TemplateToWorldTransform pairTransform;
+	if (baseSegment != nullptr && selection.sideKnown) {
+
+		SBPointer<ADNCell> cell = baseSegment->GetCell();
+		if (cell != nullptr && cell->GetCellType() == CellType::BasePair) {
+
+			SBPointer<ADNBasePair> basePair = static_cast<ADNBasePair*>(cell());
+			const bool paired =
+				basePair->GetLeftNucleotide() != nullptr &&
+				basePair->GetRightNucleotide() != nullptr;
+			// Use a temporary side-specific placement frame, but keep it local
+			// to atom generation. Persisting this frame would reintroduce the
+			// editor flattening regressions fixed in the coarse model.
+			const ADNFrameUtils::Frame canonicalFrame = paired ?
+				ADNGeometrySynchronization::canonicalTemplateFrameFromCurrentGeometry(*baseSegment) :
+				oneSidedCanonicalTemplateFrame(baseSegment, nt);
+			pairTransform = makeTemplateToWorldTransform(*baseSegment, canonicalFrame);
+			if (paired) {
+
+				usePairCenter = true;
+
+			}
+			else {
+
+				frame = selection.side == ADNGeometrySynchronization::TemplateSide::Right ?
+					pairTransform.rightFrame :
+					pairTransform.leftFrame;
+
+			}
+
+		}
+
+	}
+
+	if (usePairCenter) {
+
+		const auto generatedAtoms = nt->GetAtoms();
+		ublas::matrix<double> input(generatedAtoms.size(), 3);
+		int row = 0;
+		SB_FOR(SBPointer<ADNAtom> atom, generatedAtoms) {
+
+			ublas::row(input, row) = ADNAuxiliary::SBPositionToUblas(atom->getPosition());
+			++row;
+
+		}
+
+		const ADNFrameUtils::Frame sideFrame =
+			selection.side == ADNGeometrySynchronization::TemplateSide::Right ?
+			pairTransform.rightFrame :
+			pairTransform.leftFrame;
+		ublas::matrix<double> output =
+			ADNVectorMath::ApplyTransformation(frameColumnsToUblas(sideFrame), input);
+		output = ADNVectorMath::Translate(output,
+			ADNAuxiliary::SBPositionToUblas(baseSegment->GetPosition()) -
+			GetIdealPairCenterOfMass(selection.pair));
+
+		row = 0;
+		SB_FOR(SBPointer<ADNAtom> atom, generatedAtoms) {
+
+			atom->setPosition(UblasToSBPosition(ublas::row(output, row)));
+			++row;
+
+		}
+
+		return;
+
+	}
+
 	const ADNFrameUtils::Vec3 worldCenter = positionToVec3(nt->GetPosition());
 	const ADNFrameUtils::Vec3 templateCenter = positionToVec3(selection.nucleotide->GetPosition());
 
