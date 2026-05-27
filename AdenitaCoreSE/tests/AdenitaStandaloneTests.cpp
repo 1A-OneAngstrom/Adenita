@@ -1691,6 +1691,48 @@ void testTwisterTemplateReconstructionDoesNotAccumulatePhase() {
 
 }
 
+void testDASReconstructionSideFramesRemainRightHanded() {
+
+	using namespace ADNFrameUtils;
+
+	BaseSegmentFrameFixture fixture = createBaseSegmentFrameFixture();
+	fixture.doubleStrand->SetInitialTwistAngle(21.0);
+
+	DASBackToTheAtom btta;
+	ADNGeometrySynchronization::prepareBaseSegmentFrameForTemplateReconstruction(*fixture.baseSegment);
+	btta.SetNucleotidePosition(fixture.baseSegment, true);
+
+	const Frame twistedLeft = ADNFrameAdapters::sanitizedFrame(*getLeftNucleotide(fixture.baseSegment));
+	const Frame twistedRight = ADNFrameAdapters::sanitizedFrame(*getRightNucleotide(fixture.baseSegment));
+
+	requireTrue("twisted left frame right handed",
+		isOrthonormalRightHanded(twistedLeft, 1.0e-9),
+		"Expected twisted left nucleotide frame to remain right-handed.");
+	requireTrue("twisted right frame right handed",
+		isOrthonormalRightHanded(twistedRight, 1.0e-9),
+		"Expected twisted right nucleotide frame to remain right-handed.");
+	requireTrue("twisted side base normals coplanar",
+		std::abs(dot(normalized(twistedLeft.e3), normalized(twistedRight.e3))) > 0.999,
+		"Expected twisted nucleotide base normals to be parallel or antiparallel.");
+
+	ADNGeometrySynchronization::prepareBaseSegmentFrameForTemplateReconstruction(*fixture.baseSegment);
+	btta.UntwistNucleotidesPosition(fixture.baseSegment);
+
+	const Frame untwistedLeft = ADNFrameAdapters::sanitizedFrame(*getLeftNucleotide(fixture.baseSegment));
+	const Frame untwistedRight = ADNFrameAdapters::sanitizedFrame(*getRightNucleotide(fixture.baseSegment));
+
+	requireTrue("untwisted left frame right handed",
+		isOrthonormalRightHanded(untwistedLeft, 1.0e-9),
+		"Expected untwisted left nucleotide frame to remain right-handed.");
+	requireTrue("untwisted right frame right handed",
+		isOrthonormalRightHanded(untwistedRight, 1.0e-9),
+		"Expected untwisted right nucleotide frame to remain right-handed.");
+	requireTrue("untwisted side base normals coplanar",
+		std::abs(dot(normalized(untwistedLeft.e3), normalized(untwistedRight.e3))) > 0.999,
+		"Expected untwisted nucleotide base normals to be parallel or antiparallel.");
+
+}
+
 void testAllAtomGenerationPreservesSynchronizedNucleotideGeometry() {
 
 	AtomicGenerationFixture fixture = createAtomicGenerationFixture();
@@ -3030,6 +3072,7 @@ int main() {
 	testRotateDoubleStrandGeometryFullTurnReturnsToStart();
 	testTwisterTemplateReconstructionIsEquivariantAfterRigidTransform();
 	testTwisterTemplateReconstructionDoesNotAccumulatePhase();
+	testDASReconstructionSideFramesRemainRightHanded();
 	testAllAtomGenerationPreservesSynchronizedNucleotideGeometry();
 	testCircularSingleStrandWrapsWithoutChangingSequenceOrder();
 	testModernJsonValidation();
