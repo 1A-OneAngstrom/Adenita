@@ -1,36 +1,15 @@
 #include "SEDNATwisterEditor.hpp"
 #include "SEAdenitaCoreSEApp.hpp"
 
-#include "ADNConstants.hpp"
+#include "ADNFrameAdapters.hpp"
 #include "ADNGeometrySynchronization.hpp"
 #include "ADNSamsonContext.hpp"
+#include "DASBackToTheAtom.hpp"
 #include "MSVDisplayHelper.hpp"
 
 #include "SAMSON.hpp"
 
 #include "SBGRenderOpenGLFunctions.hpp"
-
-namespace {
-
-[[nodiscard]] double degreesToRadians(double degrees) {
-
-	constexpr double pi = 3.141592653589793238462643383279502884;
-	return degrees * pi / 180.0;
-
-}
-
-[[nodiscard]] double baseSegmentTwistPhaseRadians(const ADNBaseSegment& baseSegment) {
-
-	double initialTwistAngle = 0.0;
-	SBPointer<ADNDoubleStrand> doubleStrand = baseSegment.GetDoubleStrand();
-	if (doubleStrand != nullptr)
-		initialTwistAngle = doubleStrand->GetInitialTwistAngle();
-
-	return degreesToRadians(initialTwistAngle + baseSegment.GetNumber() * ADNConstants::BP_ROT);
-
-}
-
-} // namespace
 
 
 SEDNATwisterEditor::SEDNATwisterEditor() {
@@ -55,8 +34,15 @@ SEDNATwisterEditorGUI* SEDNATwisterEditor::getPropertyWidget() const { return st
 
 void SEDNATwisterEditor::setBendingType(BendingType type) {
 
+	clearTwisterFrameCache();
 	this->bendingType = type;
 	updateEditorText();
+
+}
+
+void SEDNATwisterEditor::clearTwisterFrameCache() {
+
+	twisterCanonicalFrameCache_.clear();
 
 }
 
@@ -87,22 +73,32 @@ void SEDNATwisterEditor::untwisting() {
 
 	}
 
-	SB_FOR(SBPointer<ADNPart> part, affectedParts) {
-
-		if (part != nullptr)
-			ADNGeometrySynchronization::syncPartFramesBeforeGeometryEdit(*part);
-
-	}
+	DASBackToTheAtom btta;
 
 	SB_FOR(SBPointer<ADNBaseSegment> baseSegment, affectedBaseSegments) {
 
 		if (baseSegment == nullptr) continue;
 
-		const double phase = baseSegmentTwistPhaseRadians(*baseSegment);
+		ADNBaseSegment* key = baseSegment();
+		auto cachedFrame = twisterCanonicalFrameCache_.find(key);
+		if (cachedFrame == twisterCanonicalFrameCache_.end()) {
+
+			ADNGeometrySynchronization::prepareBaseSegmentFrameForTemplateReconstruction(*baseSegment);
+			cachedFrame = twisterCanonicalFrameCache_.emplace(
+				key,
+				ADNFrameAdapters::sanitizedFrame(*baseSegment)).first;
+
+		}
+		else {
+
+			ADNFrameAdapters::setFrame(*baseSegment, cachedFrame->second);
+
+		}
+
 		if (forwardActionSphereActive)
-			ADNGeometrySynchronization::rotateBaseSegmentGeometry(*baseSegment, phase);
+			btta.UntwistNucleotidesPosition(baseSegment);
 		else if (reverseActionSphereActive)
-			ADNGeometrySynchronization::rotateBaseSegmentGeometry(*baseSegment, -phase);
+			btta.SetNucleotidePosition(baseSegment, true);
 
 	}
 
@@ -236,6 +232,7 @@ void SEDNATwisterEditor::beginEditing() {
 	altPressed = false;
 	forwardActionSphereActive = false;
 	reverseActionSphereActive = false;
+	clearTwisterFrameCache();
 
 }
 
@@ -247,6 +244,7 @@ void SEDNATwisterEditor::endEditing() {
 	altPressed = false;
 	forwardActionSphereActive = false;
 	reverseActionSphereActive = false;
+	clearTwisterFrameCache();
 
 	SEAdenitaCoreSEApp::getAdenitaApp()->getGUI()->clearHighlightEditor();
 
@@ -330,6 +328,7 @@ void SEDNATwisterEditor::mousePressEvent(QMouseEvent* event) {
 
 	if (isLeftButton) {
 
+		clearTwisterFrameCache();
 		updateForwardReverseState();
 
 		const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
@@ -356,6 +355,7 @@ void SEDNATwisterEditor::mouseReleaseEvent(QMouseEvent* event) {
 
 	if (isLeftButton) {
 
+		clearTwisterFrameCache();
 		event->accept();
 		SAMSON::requestViewportUpdate();
 

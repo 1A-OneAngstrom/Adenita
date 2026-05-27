@@ -488,6 +488,8 @@ ThreeNucleotideFrameFixture createThreeNucleotideFrameFixture() {
 struct BaseSegmentFrameFixture {
 	SBPointer<ADNPart> part;
 	SBPointer<ADNDoubleStrand> doubleStrand;
+	SBPointer<ADNSingleStrand> leftStrand;
+	SBPointer<ADNSingleStrand> rightStrand;
 	SBPointer<ADNBaseSegment> previous;
 	SBPointer<ADNBaseSegment> baseSegment;
 	SBPointer<ADNBaseSegment> next;
@@ -512,12 +514,19 @@ SBPointer<ADNBaseSegment> createBasePairSegment(double x) {
 
 }
 
+SBPointer<ADNNucleotide> getLeftNucleotide(SBPointer<ADNBaseSegment> baseSegment);
+SBPointer<ADNNucleotide> getRightNucleotide(SBPointer<ADNBaseSegment> baseSegment);
+
 BaseSegmentFrameFixture createBaseSegmentFrameFixture() {
 
 	BaseSegmentFrameFixture fixture;
 	fixture.part = new ADNPart();
 	fixture.doubleStrand = new ADNDoubleStrand();
+	fixture.leftStrand = new ADNSingleStrand();
+	fixture.rightStrand = new ADNSingleStrand();
 	fixture.part->RegisterDoubleStrand(fixture.doubleStrand);
+	fixture.part->RegisterSingleStrand(fixture.leftStrand);
+	fixture.part->RegisterSingleStrand(fixture.rightStrand);
 
 	fixture.previous = createBasePairSegment(-1.0);
 	fixture.baseSegment = createBasePairSegment(0.0);
@@ -526,6 +535,13 @@ BaseSegmentFrameFixture createBaseSegmentFrameFixture() {
 	fixture.part->RegisterBaseSegmentEnd(fixture.doubleStrand, fixture.previous);
 	fixture.part->RegisterBaseSegmentEnd(fixture.doubleStrand, fixture.baseSegment);
 	fixture.part->RegisterBaseSegmentEnd(fixture.doubleStrand, fixture.next);
+
+	fixture.part->RegisterNucleotideThreePrime(fixture.leftStrand, getLeftNucleotide(fixture.previous));
+	fixture.part->RegisterNucleotideThreePrime(fixture.leftStrand, getLeftNucleotide(fixture.baseSegment));
+	fixture.part->RegisterNucleotideThreePrime(fixture.leftStrand, getLeftNucleotide(fixture.next));
+	fixture.part->RegisterNucleotideThreePrime(fixture.rightStrand, getRightNucleotide(fixture.previous));
+	fixture.part->RegisterNucleotideThreePrime(fixture.rightStrand, getRightNucleotide(fixture.baseSegment));
+	fixture.part->RegisterNucleotideThreePrime(fixture.rightStrand, getRightNucleotide(fixture.next));
 
 	return fixture;
 
@@ -1509,7 +1525,7 @@ void testRotateDoubleStrandGeometryFullTurnReturnsToStart() {
 
 }
 
-void testTwisterBaseSegmentRotationIsEquivariantAfterRigidTransform() {
+void testTwisterTemplateReconstructionIsEquivariantAfterRigidTransform() {
 
 	using namespace ADNFrameUtils;
 
@@ -1528,15 +1544,18 @@ void testTwisterBaseSegmentRotationIsEquivariantAfterRigidTransform() {
 	rotateBaseSegmentGeometryOnlyRaw(transformedFixture.baseSegment, samsonMoveRotation);
 	rotateBaseSegmentGeometryOnlyRaw(transformedFixture.next, samsonMoveRotation);
 
-	ADNGeometrySynchronization::syncPartFramesBeforeGeometryEdit(*transformedFixture.part);
-
-	constexpr double pi = 3.141592653589793238462643383279502884;
-	const double phase = (12.0 + originalFixture.baseSegment->GetNumber() * ADNConstants::BP_ROT) * pi / 180.0;
-	ADNGeometrySynchronization::rotateBaseSegmentGeometry(*originalFixture.baseSegment, phase);
-	ADNGeometrySynchronization::rotateBaseSegmentGeometry(*transformedFixture.baseSegment, phase);
+	DASBackToTheAtom btta;
+	ADNGeometrySynchronization::prepareBaseSegmentFrameForTemplateReconstruction(*originalFixture.baseSegment);
+	ADNGeometrySynchronization::prepareBaseSegmentFrameForTemplateReconstruction(*transformedFixture.baseSegment);
+	btta.SetNucleotidePosition(originalFixture.baseSegment, true);
+	btta.SetNucleotidePosition(transformedFixture.baseSegment, true);
+	ADNGeometrySynchronization::syncPartFramesAfterGeometryEdit(*originalFixture.part);
+	ADNGeometrySynchronization::syncPartFramesAfterGeometryEdit(*transformedFixture.part);
 
 	SBPointer<ADNNucleotide> originalLeft = getLeftNucleotide(originalFixture.baseSegment);
+	SBPointer<ADNNucleotide> originalRight = getRightNucleotide(originalFixture.baseSegment);
 	SBPointer<ADNNucleotide> transformedLeft = getLeftNucleotide(transformedFixture.baseSegment);
+	SBPointer<ADNNucleotide> transformedRight = getRightNucleotide(transformedFixture.baseSegment);
 	const Frame originalFrame = ADNFrameAdapters::frameFromOrientable(*originalFixture.baseSegment);
 	const Frame transformedFrame = ADNFrameAdapters::frameFromOrientable(*transformedFixture.baseSegment);
 
@@ -1548,10 +1567,48 @@ void testTwisterBaseSegmentRotationIsEquivariantAfterRigidTransform() {
 		vecFromPosition(transformedLeft->GetSidechainPosition()),
 		rotatedAroundOrigin(samsonMoveRotation, originalLeft->GetSidechainPosition()),
 		1.0e-6);
+	requireVecNear("twister equivariant right backbone",
+		vecFromPosition(transformedRight->GetBackbonePosition()),
+		rotatedAroundOrigin(samsonMoveRotation, originalRight->GetBackbonePosition()),
+		1.0e-6);
+	requireVecNear("twister equivariant right sidechain",
+		vecFromPosition(transformedRight->GetSidechainPosition()),
+		rotatedAroundOrigin(samsonMoveRotation, originalRight->GetSidechainPosition()),
+		1.0e-6);
 	requireFrameNear("twister equivariant base segment frame",
 		transformedFrame,
 		rotated(samsonMoveRotation, originalFrame),
 		1.0e-8);
+
+}
+
+void testTwisterTemplateReconstructionDoesNotAccumulatePhase() {
+
+	BaseSegmentFrameFixture fixture = createBaseSegmentFrameFixture();
+	fixture.doubleStrand->SetInitialTwistAngle(17.0);
+	ADNGeometrySynchronization::syncPartFramesFromGeometry(*fixture.part,
+		ADNGeometrySynchronization::SyncReason::ManualRepair);
+	ADNGeometrySynchronization::prepareBaseSegmentFrameForTemplateReconstruction(*fixture.baseSegment);
+	const ADNFrameUtils::Frame canonicalFrame =
+		ADNFrameAdapters::sanitizedFrame(*fixture.baseSegment);
+
+	DASBackToTheAtom btta;
+	btta.SetNucleotidePosition(fixture.baseSegment, true);
+
+	SBPointer<ADNNucleotide> left = getLeftNucleotide(fixture.baseSegment);
+	SBPointer<ADNNucleotide> right = getRightNucleotide(fixture.baseSegment);
+	const SBPosition3 leftBackbone = left->GetBackbonePosition();
+	const SBPosition3 leftSidechain = left->GetSidechainPosition();
+	const SBPosition3 rightBackbone = right->GetBackbonePosition();
+	const SBPosition3 rightSidechain = right->GetSidechainPosition();
+
+	ADNFrameAdapters::setFrame(*fixture.baseSegment, canonicalFrame);
+	btta.SetNucleotidePosition(fixture.baseSegment, true);
+
+	requirePositionNear("twister target left backbone", left->GetBackbonePosition(), leftBackbone, 1.0e-9);
+	requirePositionNear("twister target left sidechain", left->GetSidechainPosition(), leftSidechain, 1.0e-9);
+	requirePositionNear("twister target right backbone", right->GetBackbonePosition(), rightBackbone, 1.0e-9);
+	requirePositionNear("twister target right sidechain", right->GetSidechainPosition(), rightSidechain, 1.0e-9);
 
 }
 
@@ -2890,7 +2947,8 @@ int main() {
 	testFrameUtilsRotationAroundAxisMatchesZRotation();
 	testRotateDoubleStrandGeometryPreservesDistancesAfterRigidTransform();
 	testRotateDoubleStrandGeometryFullTurnReturnsToStart();
-	testTwisterBaseSegmentRotationIsEquivariantAfterRigidTransform();
+	testTwisterTemplateReconstructionIsEquivariantAfterRigidTransform();
+	testTwisterTemplateReconstructionDoesNotAccumulatePhase();
 	testAllAtomGenerationPreservesSynchronizedNucleotideGeometry();
 	testCircularSingleStrandWrapsWithoutChangingSequenceOrder();
 	testModernJsonValidation();
