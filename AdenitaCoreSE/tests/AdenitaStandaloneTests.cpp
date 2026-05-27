@@ -2210,6 +2210,75 @@ void testComplementPlacementPreservesExistingNucleotideGeometry() {
 	requireTrue("complement placement moves created nucleotide",
 		distanceValue(created->GetPosition(), createdPlaceholder) > 1.0,
 		"Expected complementary placement to update only the newly created nucleotide.");
+	requireTrue("complement placement puts created nucleotide opposite existing",
+		ADNFrameUtils::dot(
+			vecFromPosition(existing->GetPosition()) - vecFromPosition(baseSegment->GetPosition()),
+			vecFromPosition(created->GetPosition()) - vecFromPosition(baseSegment->GetPosition())) < 0.0,
+		"Expected created complement to be placed on the opposite side of the base segment.");
+
+}
+
+void testComplementPlacementUsesRightAnchorSide() {
+
+	SBPointer<ADNPart> part = new ADNPart();
+	SBPointer<ADNDoubleStrand> doubleStrand = new ADNDoubleStrand();
+	SBPointer<ADNSingleStrand> leftStrand = new ADNSingleStrand();
+	SBPointer<ADNSingleStrand> rightStrand = new ADNSingleStrand();
+	SBPointer<ADNBaseSegment> baseSegment = new ADNBaseSegment(CellType::BasePair);
+	baseSegment->SetPosition(positionAngstrom(0.0, 0.0, 0.0));
+
+	part->RegisterDoubleStrand(doubleStrand);
+	part->RegisterSingleStrand(leftStrand);
+	part->RegisterSingleStrand(rightStrand);
+	part->RegisterBaseSegmentEnd(doubleStrand, baseSegment);
+
+	SBPointer<ADNNucleotide> created = createSyntheticNucleotide(
+		SBResidue::ResidueType::DA, -3.0, -3.0, -3.0, vector3(0.0, 1.0, 0.0));
+	SBPointer<ADNNucleotide> existing = createSyntheticNucleotide(
+		SBResidue::ResidueType::DT, 0.0, 0.5, 0.0, vector3(0.0, -1.0, 0.0));
+	existing->SetBackbonePosition(positionAngstrom(0.0, 0.8, 0.0));
+	existing->SetSidechainPosition(positionAngstrom(0.0, 0.2, 0.0));
+
+	SBPointer<ADNBasePair> basePair = static_cast<ADNBasePair*>(baseSegment->GetCell()());
+	basePair->AddPair(created, existing);
+	created->SetBaseSegment(baseSegment);
+	existing->SetBaseSegment(baseSegment);
+	part->RegisterNucleotideThreePrime(leftStrand, created);
+	part->RegisterNucleotideThreePrime(rightStrand, existing);
+
+	const SBPosition3 existingPosition = existing->GetPosition();
+	const SBPosition3 existingBackbone = existing->GetBackbonePosition();
+	const SBPosition3 existingSidechain = existing->GetSidechainPosition();
+	const SBPosition3 createdPlaceholder = created->GetPosition();
+
+	SBPointerIndexer<ADNNucleotide> createdNucleotides;
+	createdNucleotides.addReferenceTarget(created());
+
+	DASBackToTheAtom btta;
+	btta.SetPositionsForNewNucleotides(part,
+		createdNucleotides,
+		DASBackToTheAtom::NewNucleotidePlacementMode::PositionInputNucleotidesOnly);
+
+	requirePositionNear("right anchor complement preserves existing center",
+		existing->GetPosition(),
+		existingPosition,
+		1.0e-9);
+	requirePositionNear("right anchor complement preserves existing backbone",
+		existing->GetBackbonePosition(),
+		existingBackbone,
+		1.0e-9);
+	requirePositionNear("right anchor complement preserves existing sidechain",
+		existing->GetSidechainPosition(),
+		existingSidechain,
+		1.0e-9);
+	requireTrue("right anchor complement moves created nucleotide",
+		distanceValue(created->GetPosition(), createdPlaceholder) > 1.0,
+		"Expected right-anchored complementary placement to update the new nucleotide.");
+	requireTrue("right anchor complement puts created nucleotide opposite existing",
+		ADNFrameUtils::dot(
+			vecFromPosition(existing->GetPosition()) - vecFromPosition(baseSegment->GetPosition()),
+			vecFromPosition(created->GetPosition()) - vecFromPosition(baseSegment->GetPosition())) < 0.0,
+		"Expected right-anchored complement to be placed across the base segment.");
 
 }
 
@@ -3708,6 +3777,7 @@ int main() {
 	testCreatorDoubleStrandInitializesDesignedFrames();
 	testReconstructionRepairsE3OnlyCreatorFrame();
 	testComplementPlacementPreservesExistingNucleotideGeometry();
+	testComplementPlacementUsesRightAnchorSide();
 	testSingleStrandAtomGenerationUsesExistingNucleotideCenter();
 	testAllAtomGenerationPreservesSynchronizedNucleotideGeometry();
 	testAllAtomGenerationAlignsBasePlanesAndBackboneAfterRigidTransform();

@@ -203,29 +203,36 @@ struct TemplateToWorldTransform {
 	if (ADNFrameUtils::isNearlyZero(axis))
 		axis = fallback.e3;
 
+	const ADNGeometrySynchronization::TemplateSide side =
+		templateSideForNucleotide(baseSegment, anchor);
+	const ADNFrameUtils::Vec3 sideAxis =
+		side == ADNGeometrySynchronization::TemplateSide::Right ? -axis : axis;
 	ADNFrameUtils::Vec3 radial =
 		positionToVec3(anchor->GetSidechainPosition()) -
 		positionToVec3(anchor->GetBackbonePosition());
-	if (templateSideForNucleotide(baseSegment, anchor) == ADNGeometrySynchronization::TemplateSide::Right)
-		radial = -radial;
 	if (ADNFrameUtils::isNearlyZero(radial))
-		radial = fallback.e2;
+		radial = side == ADNGeometrySynchronization::TemplateSide::Right ? -fallback.e2 : fallback.e2;
 
 	// Complementary-strand creation happens after the new nucleotide has been
 	// attached to the base pair but before it has meaningful geometry. Derive
 	// the temporary template frame only from the preserved strand so the new
-	// placeholder cannot pull the original strand into an untwisted state.
+	// placeholder cannot pull the original strand into an untwisted state. The
+	// frame below is a side-specific nucleotide frame, not the stored
+	// base-segment frame. Passing the actual side avoids the hidden sign flips
+	// that mirror or flatten right-anchored complementary placement.
 	ADNFrameUtils::Vec3 radialInBasePlane = projectedPerpendicularToAxis(radial, axis);
 	if (ADNFrameUtils::isNearlyZero(radialInBasePlane))
-		radialInBasePlane = projectedPerpendicularToAxis(fallback.e2, axis);
+		radialInBasePlane = projectedPerpendicularToAxis(
+			side == ADNGeometrySynchronization::TemplateSide::Right ? -fallback.e2 : fallback.e2,
+			axis);
 	if (ADNFrameUtils::isNearlyZero(radialInBasePlane))
 		return fallback;
 
-	const ADNFrameUtils::Frame leftSideFrame =
-		ADNFrameUtils::frameFromE2AndTangent(radialInBasePlane, axis, fallback);
+	const ADNFrameUtils::Frame anchorSideFrame =
+		ADNFrameUtils::frameFromE2AndTangent(radialInBasePlane, sideAxis, fallback);
 	return ADNGeometrySynchronization::nucleotideSideFrameToCanonicalBaseSegmentFrame(
-		leftSideFrame,
-		ADNGeometrySynchronization::TemplateSide::Left,
+		anchorSideFrame,
+		side,
 		ADNGeometrySynchronization::baseSegmentReconstructionPhaseRadians(*baseSegment));
 
 }
