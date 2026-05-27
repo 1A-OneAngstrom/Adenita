@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ADNFrameUtils.hpp"
 #include "SBCHeapExport.hpp"
 #include "SBDDataGraphNode.hpp"
 #include "SBPointer.hpp"
@@ -36,6 +37,12 @@ struct SB_EXPORT FrameGeometryAlignment {
 	double tangentDirectionAbsDot{ 1.0 }; ///< Absolute dot product against the tangent direction.
 };
 
+/// \brief Side of a base pair used as a template-frame source.
+enum class TemplateSide {
+	Left, ///< Left nucleotide frame convention.
+	Right ///< Right nucleotide frame convention.
+};
+
 /// \brief Reconstruct a nucleotide frame from its current geometry.
 SB_EXPORT void syncNucleotideFrameFromGeometry(ADNNucleotide& nucleotide);
 /// \brief Reconstruct a base-segment frame from its paired nucleotide geometry.
@@ -68,6 +75,26 @@ SB_EXPORT void syncDoubleStrandFramesAfterGeometryEdit(ADNDoubleStrand& strand);
 SB_EXPORT void rotateBaseSegmentGeometry(ADNBaseSegment& baseSegment, double radians);
 /// \brief Rotate current nucleotide geometry attached to every base segment in a double strand.
 SB_EXPORT void rotateDoubleStrandGeometry(ADNDoubleStrand& strand, double radians);
+
+/// \brief Convert a canonical base-segment template frame to a nucleotide-side frame.
+SB_EXPORT [[nodiscard]] ADNFrameUtils::Frame canonicalBaseSegmentFrameToNucleotideSideFrame(
+	const ADNFrameUtils::Frame& canonicalFrame,
+	TemplateSide side,
+	double phaseRadians);
+/// \brief Convert a nucleotide-side frame to the canonical base-segment template frame.
+SB_EXPORT [[nodiscard]] ADNFrameUtils::Frame nucleotideSideFrameToCanonicalBaseSegmentFrame(
+	const ADNFrameUtils::Frame& nucleotideFrame,
+	TemplateSide side,
+	double phaseRadians);
+
+/// \brief Prepare a base-segment frame for DASBackToTheAtom template reconstruction.
+SB_EXPORT void prepareBaseSegmentFrameForTemplateReconstruction(ADNBaseSegment& baseSegment);
+/// \brief Prepare base-segment frames touched by a set of nucleotides.
+SB_EXPORT void prepareBaseSegmentFramesForTemplateReconstruction(
+	const SBPointerIndexer<ADNNucleotide>& nucleotides);
+/// \brief Prepare the given base-segment frames for DASBackToTheAtom template reconstruction.
+SB_EXPORT void prepareBaseSegmentFramesForTemplateReconstruction(
+	const SBPointerIndexer<ADNBaseSegment>& baseSegments);
 
 /// \brief Return unique owning parts for the given double strands.
 SB_EXPORT [[nodiscard]] SBPointerIndexer<ADNPart> collectPartsFromDoubleStrands(

@@ -2,6 +2,7 @@
 
 #include "ADNAtom.hpp"
 #include "ADNBaseSegment.hpp"
+#include "ADNConstants.hpp"
 #include "ADNDoubleStrand.hpp"
 #include "ADNFrameAdapters.hpp"
 #include "ADNNucleotide.hpp"
@@ -15,6 +16,24 @@ namespace ADNGeometrySynchronization {
 namespace {
 
 constexpr double geometryEps = 1.0e-10;
+constexpr double pi = 3.141592653589793238462643383279502884;
+
+[[nodiscard]] double degreesToRadians(double degrees) {
+
+	return degrees * pi / 180.0;
+
+}
+
+[[nodiscard]] double baseSegmentTemplatePhaseRadians(const ADNBaseSegment& baseSegment) {
+
+	double initialTwistAngle = 0.0;
+	SBPointer<ADNDoubleStrand> doubleStrand = baseSegment.GetDoubleStrand();
+	if (doubleStrand != nullptr)
+		initialTwistAngle = doubleStrand->GetInitialTwistAngle();
+
+	return degreesToRadians(initialTwistAngle + baseSegment.GetNumber() * ADNConstants::BP_ROT);
+
+}
 
 template <typename Vector3>
 [[nodiscard]] ADNFrameUtils::Vec3 toVec3(const Vector3& vector) {
@@ -92,6 +111,14 @@ template <typename Vector3>
 
 }
 
+[[nodiscard]] bool nucleotideBackboneSidechainGeometryAvailable(const ADNNucleotide& nucleotide) {
+
+	return !ADNFrameUtils::isNearlyZero(
+		toVec3(nucleotide.GetSidechainPosition() - nucleotide.GetBackbonePosition()),
+		geometryEps);
+
+}
+
 [[nodiscard]] double alignedAbsDot(const ADNFrameUtils::Vec3& frameAxis,
 	const ADNFrameUtils::Vec3& geometryDirection,
 	double eps = geometryEps) {
@@ -127,6 +154,45 @@ struct BaseSegmentNucleotideSides {
 	}
 
 	return sides;
+
+}
+
+[[nodiscard]] SBPointer<ADNNucleotide> selectTemplateSourceNucleotide(const ADNBaseSegment& baseSegment,
+	const BaseSegmentNucleotideSides& sides,
+	TemplateSide& side) {
+
+	if (sides.left != nullptr && nucleotideBackboneSidechainGeometryAvailable(*sides.left)) {
+
+		side = TemplateSide::Left;
+		return sides.left;
+
+	}
+	if (sides.right != nullptr && nucleotideBackboneSidechainGeometryAvailable(*sides.right)) {
+
+		side = TemplateSide::Right;
+		return sides.right;
+
+	}
+	if (sides.left != nullptr && frameIsValid(*sides.left)) {
+
+		side = TemplateSide::Left;
+		return sides.left;
+
+	}
+	if (sides.right != nullptr && frameIsValid(*sides.right)) {
+
+		side = TemplateSide::Right;
+		return sides.right;
+
+	}
+	if (sides.first != nullptr) {
+
+		side = baseSegment.IsRight(sides.first) ? TemplateSide::Right : TemplateSide::Left;
+		return sides.first;
+
+	}
+
+	return nullptr;
 
 }
 
@@ -359,6 +425,100 @@ void rotateDoubleStrandGeometry(ADNDoubleStrand& strand, double radians) {
 
 		if (baseSegment != nullptr)
 			rotateBaseSegmentGeometry(*baseSegment, radians);
+
+	}
+
+}
+
+ADNFrameUtils::Frame canonicalBaseSegmentFrameToNucleotideSideFrame(
+	const ADNFrameUtils::Frame& canonicalFrame,
+	TemplateSide side,
+	double phaseRadians) {
+
+	const ADNFrameUtils::Frame sanitizedCanonical = ADNFrameUtils::orthonormalized(canonicalFrame);
+	const ADNFrameUtils::Mat3 helicalPhase =
+		ADNFrameUtils::rotationAroundAxis(sanitizedCanonical.e3, phaseRadians);
+	ADNFrameUtils::Frame sideFrame = ADNFrameUtils::rotated(helicalPhase, sanitizedCanonical);
+
+	if (side == TemplateSide::Right) {
+
+		sideFrame.e2 = -sideFrame.e2;
+		sideFrame.e3 = -sideFrame.e3;
+
+	}
+
+	return ADNFrameUtils::orthonormalized(sideFrame);
+
+}
+
+ADNFrameUtils::Frame nucleotideSideFrameToCanonicalBaseSegmentFrame(
+	const ADNFrameUtils::Frame& nucleotideFrame,
+	TemplateSide side,
+	double phaseRadians) {
+
+	ADNFrameUtils::Frame leftSideFrame = ADNFrameUtils::orthonormalized(nucleotideFrame);
+	if (side == TemplateSide::Right) {
+
+		leftSideFrame.e2 = -leftSideFrame.e2;
+		leftSideFrame.e3 = -leftSideFrame.e3;
+
+	}
+
+	const ADNFrameUtils::Mat3 undoHelicalPhase =
+		ADNFrameUtils::rotationAroundAxis(leftSideFrame.e3, -phaseRadians);
+	return ADNFrameUtils::orthonormalized(
+		ADNFrameUtils::rotated(undoHelicalPhase, leftSideFrame));
+
+}
+
+void prepareBaseSegmentFrameForTemplateReconstruction(ADNBaseSegment& baseSegment) {
+
+	const BaseSegmentNucleotideSides sides = baseSegmentNucleotideSides(baseSegment);
+	TemplateSide side = TemplateSide::Left;
+	SBPointer<ADNNucleotide> source = selectTemplateSourceNucleotide(baseSegment, sides, side);
+	if (source == nullptr) {
+
+		ADNFrameAdapters::sanitizeFrame(baseSegment);
+		return;
+
+	}
+
+	syncNucleotideFrameFromGeometry(*source);
+	const ADNFrameUtils::Frame sourceFrame = ADNFrameAdapters::sanitizedFrame(*source);
+	const ADNFrameUtils::Frame canonicalFrame =
+		nucleotideSideFrameToCanonicalBaseSegmentFrame(
+			sourceFrame,
+			side,
+			baseSegmentTemplatePhaseRadians(baseSegment));
+
+	ADNFrameAdapters::setFrame(baseSegment, canonicalFrame);
+
+}
+
+void prepareBaseSegmentFramesForTemplateReconstruction(
+	const SBPointerIndexer<ADNNucleotide>& nucleotides) {
+
+	SBPointerIndexer<ADNBaseSegment> baseSegments;
+	SB_FOR(SBPointer<ADNNucleotide> nucleotide, nucleotides) {
+
+		if (nucleotide == nullptr) continue;
+		SBPointer<ADNBaseSegment> baseSegment = nucleotide->GetBaseSegment();
+		if (baseSegment != nullptr && !baseSegments.hasIndex(baseSegment()))
+			baseSegments.addReferenceTarget(baseSegment());
+
+	}
+
+	prepareBaseSegmentFramesForTemplateReconstruction(baseSegments);
+
+}
+
+void prepareBaseSegmentFramesForTemplateReconstruction(
+	const SBPointerIndexer<ADNBaseSegment>& baseSegments) {
+
+	SB_FOR(SBPointer<ADNBaseSegment> baseSegment, baseSegments) {
+
+		if (baseSegment != nullptr)
+			prepareBaseSegmentFrameForTemplateReconstruction(*baseSegment);
 
 	}
 

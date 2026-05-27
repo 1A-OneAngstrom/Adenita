@@ -1146,6 +1146,84 @@ void testFrameAdaptersSanitizeAndRotateOrientable() {
 
 }
 
+void testTemplateFramePreparationRoundTripLeftSide() {
+
+	using namespace ADNFrameUtils;
+
+	const Frame canonical = frameFromE2AndTangent(
+		Vec3{ 0.2, 0.9, 0.3 },
+		Vec3{ 1.0, 0.1, 0.7 });
+	const double phase = 0.73;
+	const Frame leftSide = ADNGeometrySynchronization::canonicalBaseSegmentFrameToNucleotideSideFrame(
+		canonical,
+		ADNGeometrySynchronization::TemplateSide::Left,
+		phase);
+	const Frame recovered = ADNGeometrySynchronization::nucleotideSideFrameToCanonicalBaseSegmentFrame(
+		leftSide,
+		ADNGeometrySynchronization::TemplateSide::Left,
+		phase);
+
+	requireTrue("template frame left target valid",
+		isOrthonormalRightHanded(leftSide, 1.0e-9),
+		"Expected left template target frame to remain valid.");
+	requireFrameNear("template frame left round trip", recovered, canonical, 1.0e-9);
+
+}
+
+void testTemplateFramePreparationRoundTripRightSide() {
+
+	using namespace ADNFrameUtils;
+
+	const Frame canonical = frameFromE2AndTangent(
+		Vec3{ -0.3, 0.8, 0.4 },
+		Vec3{ 0.7, -0.2, 1.0 });
+	const double phase = -0.51;
+	const Frame leftSide = ADNGeometrySynchronization::canonicalBaseSegmentFrameToNucleotideSideFrame(
+		canonical,
+		ADNGeometrySynchronization::TemplateSide::Left,
+		phase);
+	const Frame rightSide = ADNGeometrySynchronization::canonicalBaseSegmentFrameToNucleotideSideFrame(
+		canonical,
+		ADNGeometrySynchronization::TemplateSide::Right,
+		phase);
+	const Frame recovered = ADNGeometrySynchronization::nucleotideSideFrameToCanonicalBaseSegmentFrame(
+		rightSide,
+		ADNGeometrySynchronization::TemplateSide::Right,
+		phase);
+
+	requireVecNear("template frame right e1 sign", rightSide.e1, leftSide.e1, 1.0e-9);
+	requireVecNear("template frame right e2 sign", rightSide.e2, -leftSide.e2, 1.0e-9);
+	requireVecNear("template frame right e3 sign", rightSide.e3, -leftSide.e3, 1.0e-9);
+	requireFrameNear("template frame right round trip", recovered, canonical, 1.0e-9);
+
+}
+
+void testTemplateFramePreparationTargetStateIsStable() {
+
+	using namespace ADNFrameUtils;
+
+	const Frame canonical = frameFromE2AndTangent(
+		Vec3{ 0.1, -0.6, 0.8 },
+		Vec3{ 0.9, 0.3, 0.4 });
+	const double phase = 1.24;
+	const Frame rightTarget = ADNGeometrySynchronization::canonicalBaseSegmentFrameToNucleotideSideFrame(
+		canonical,
+		ADNGeometrySynchronization::TemplateSide::Right,
+		phase);
+	const Frame canonicalAgain = ADNGeometrySynchronization::nucleotideSideFrameToCanonicalBaseSegmentFrame(
+		rightTarget,
+		ADNGeometrySynchronization::TemplateSide::Right,
+		phase);
+	const Frame rightTargetAgain = ADNGeometrySynchronization::canonicalBaseSegmentFrameToNucleotideSideFrame(
+		canonicalAgain,
+		ADNGeometrySynchronization::TemplateSide::Right,
+		phase);
+
+	requireFrameNear("template frame canonical target is stable", canonicalAgain, canonical, 1.0e-9);
+	requireFrameNear("template frame side target is stable", rightTargetAgain, rightTarget, 1.0e-9);
+
+}
+
 void testNucleotideSetPositionTranslatesBackboneAndSidechain() {
 
 	SBPointer<ADNNucleotide> nucleotide = new ADNNucleotide();
@@ -2801,6 +2879,9 @@ int main() {
 	testFrameUtilsRigidRotationPreservesDistances();
 	testFrameUtilsDerivesRotatedMockGeometryFrame();
 	testFrameAdaptersSanitizeAndRotateOrientable();
+	testTemplateFramePreparationRoundTripLeftSide();
+	testTemplateFramePreparationRoundTripRightSide();
+	testTemplateFramePreparationTargetStateIsStable();
 	testNucleotideSetPositionTranslatesBackboneAndSidechain();
 	testGeometrySynchronizationDerivesNucleotideFrame();
 	testGeometryValidationRejectsStaleNucleotideFrame();
