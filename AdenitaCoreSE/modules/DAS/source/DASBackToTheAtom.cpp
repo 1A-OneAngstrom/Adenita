@@ -423,11 +423,9 @@ void DASBackToTheAtom::SetNucleotidePosition(SBPointer<ADNBaseSegment> bs, bool 
 	nt_left = pair.first;
 	nt_right = pair.second;
 
-	ublas::matrix<double> positions = CreatePositionsMatrix(pair);
-
 	// Place c.o.m. at bs position
 	ublas::vector<double> sys_cm = ADNAuxiliary::SBPositionToUblas(bs->GetPosition());
-	ublas::vector<double> t_vec = sys_cm - ADNVectorMath::CalculateCM(positions);
+	ublas::vector<double> t_vec = sys_cm - GetIdealPairCenterOfMass(pair);
 	ublas::matrix<double> input = ublas::matrix<double>(6, 3);
 
 	ublas::row(input, 0) = ADNAuxiliary::SBPositionToUblas(nt_left->GetPosition());
@@ -512,10 +510,9 @@ void DASBackToTheAtom::PlaceNucleotideFromTemplate(SBPointer<ADNBaseSegment> bs,
 	const TemplateToWorldTransform transform =
 		makeTemplateToWorldTransform(*bs, canonicalFrame);
 
-	ublas::matrix<double> pairPositions = CreatePositionsMatrix(pair);
 	ublas::vector<double> translation =
 		ADNAuxiliary::SBPositionToUblas(bs->GetPosition()) -
-		ADNVectorMath::CalculateCM(pairPositions);
+		GetIdealPairCenterOfMass(pair);
 
 	ublas::matrix<double> input(3, 3);
 	ublas::row(input, 0) = ADNAuxiliary::SBPositionToUblas(templateNucleotide->GetPosition());
@@ -2116,6 +2113,20 @@ NtPair DASBackToTheAtom::GetIdealBasePairNucleotides(DNABlocks nt_l, DNABlocks n
 	else if (pair_type == std::make_pair(DNABlocks::DT, DNABlocks::DA)) pair = dt_da_;
 
 	return pair;
+
+}
+
+ublas::vector<double> DASBackToTheAtom::GetIdealPairCenterOfMass(NtPair pair) const {
+
+	ADNNucleotide* key = pair.first();
+	auto it = idealPairCenterCache_.find(key);
+	if (it != idealPairCenterCache_.end())
+		return it->second;
+
+	const ublas::matrix<double> positions = CreatePositionsMatrix(pair);
+	const ublas::vector<double> center = ADNVectorMath::CalculateCM(positions);
+	idealPairCenterCache_[key] = center;
+	return center;
 
 }
 

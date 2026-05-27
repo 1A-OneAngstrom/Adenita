@@ -102,6 +102,7 @@ private:
     NtPair dt_da_;
     NtPair dc_dg_;
     NtPair dg_dc_;
+    mutable std::map<ADNNucleotide*, ublas::vector<double>> idealPairCenterCache_;
     /** Loads the four types of nucleotide as members
     */
     void LoadNucleotides();
@@ -146,6 +147,7 @@ private:
     //! Select the ideal NtPair corresponding to a pair
     NtPair GetIdealBasePairNucleotides(SBPointer<ADNNucleotide> nt_l, SBPointer<ADNNucleotide> nt_r) const;
     NtPair GetIdealBasePairNucleotides(DNABlocks nt_l, DNABlocks nt_r) const;
+    [[nodiscard]] ublas::vector<double> GetIdealPairCenterOfMass(NtPair pair) const;
 
     //! If not defined, set a local basis for the base segment and return it as a matrix
     static ublas::matrix<double> CalculateBaseSegmentBasis(SBPointer<ADNBaseSegment> bs);
