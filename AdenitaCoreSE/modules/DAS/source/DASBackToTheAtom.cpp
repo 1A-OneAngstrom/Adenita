@@ -149,6 +149,36 @@ struct TemplateToWorldTransform {
 
 }
 
+[[nodiscard]] ADNFrameUtils::Frame reconstructionFrameForBaseSegment(
+	SBPointer<ADNBaseSegment> baseSegment) {
+
+	if (baseSegment == nullptr)
+		return ADNFrameUtils::identityFrame();
+
+	const ADNFrameUtils::Frame storedFrame =
+		ADNFrameAdapters::frameFromOrientable(*baseSegment);
+	if (ADNFrameUtils::isOrthonormalRightHanded(storedFrame))
+		return storedFrame;
+
+	ADNFrameUtils::Vec3 axis = storedFrame.e3;
+	if (ADNFrameUtils::isNearlyZero(axis))
+		axis = baseSegmentTangent(baseSegment);
+	if (ADNFrameUtils::isNearlyZero(axis))
+		axis = ADNFrameUtils::identityFrame().e3;
+
+	const bool hasPreferredRadial = !ADNFrameUtils::isNearlyZero(storedFrame.e2);
+	const ADNFrameUtils::Frame repairedFrame =
+		ADNGeometrySynchronization::makeDesignedBaseSegmentFrame(
+			axis,
+			hasPreferredRadial ? &storedFrame.e2 : nullptr);
+	// SetNucleotidePosition is a reconstruction boundary, not atom generation.
+	// Persist the repair so creator output with only E3 initialized does not
+	// repeatedly depend on sanitized arbitrary radial defaults.
+	ADNFrameAdapters::setFrame(*baseSegment, repairedFrame);
+	return repairedFrame;
+
+}
+
 [[nodiscard]] ADNGeometrySynchronization::TemplateSide templateSideForNucleotide(
 	SBPointer<ADNBaseSegment> baseSegment,
 	SBPointer<ADNNucleotide> nucleotide) {
@@ -504,7 +534,7 @@ void DASBackToTheAtom::SetNucleotidePosition(SBPointer<ADNBaseSegment> bs, bool 
 	ublas::row(input, 5) = ADNAuxiliary::SBPositionToUblas(nt_right->GetSidechainPosition());
 
 	const TemplateToWorldTransform transform =
-		makeTemplateToWorldTransform(*bs, ADNFrameAdapters::sanitizedFrame(*bs));
+		makeTemplateToWorldTransform(*bs, reconstructionFrameForBaseSegment(bs));
 	ublas::matrix<double> new_pos = ADNVectorMath::ApplyTransformation(transform.basisMatrix, input);
 	new_pos = ADNVectorMath::Translate(new_pos, t_vec);
 

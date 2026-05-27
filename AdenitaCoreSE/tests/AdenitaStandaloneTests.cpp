@@ -2113,6 +2113,47 @@ void testCreatorDoubleStrandInitializesDesignedFrames() {
 
 }
 
+void testReconstructionRepairsE3OnlyCreatorFrame() {
+
+	using namespace ADNFrameUtils;
+
+	SBPointer<ADNPart> part = new ADNPart();
+	const RTDoubleStrand created = DASCreator::AddDoubleStrandToADNPart(
+		part,
+		2,
+		positionAngstrom(0.0, 0.0, 0.0),
+		SBVector3(0.0, 0.0, 1.0));
+
+	SBPointer<ADNBaseSegment> baseSegment = created.ds->GetFirstBaseSegment();
+	requireTrue("e3-only reconstruction has base segment",
+		baseSegment != nullptr,
+		"Expected creator test to produce a base segment.");
+	if (baseSegment == nullptr) return;
+
+	baseSegment->SetE1(vector3(0.0, 0.0, 0.0));
+	baseSegment->SetE2(vector3(0.0, 0.0, 0.0));
+	baseSegment->SetE3(vector3(0.0, 0.0, 1.0));
+
+	DASBackToTheAtom btta;
+	btta.SetNucleotidePosition(baseSegment, true);
+
+	requireTrue("e3-only reconstruction repairs base segment frame",
+		isOrthonormalRightHanded(ADNFrameAdapters::frameFromOrientable(*baseSegment), 1.0e-9),
+		"Expected reconstruction to persist a valid construction frame.");
+
+	SBPointer<ADNNucleotide> left = getLeftNucleotide(baseSegment);
+	SBPointer<ADNNucleotide> right = getRightNucleotide(baseSegment);
+	requireTrue("e3-only reconstruction left geometry",
+		left != nullptr &&
+		distanceValue(left->GetBackbonePosition(), left->GetSidechainPosition()) > 1.0,
+		"Expected repaired reconstruction to place the left nucleotide geometry.");
+	requireTrue("e3-only reconstruction right geometry",
+		right != nullptr &&
+		distanceValue(right->GetBackbonePosition(), right->GetSidechainPosition()) > 1.0,
+		"Expected repaired reconstruction to place the right nucleotide geometry.");
+
+}
+
 void testComplementPlacementPreservesExistingNucleotideGeometry() {
 
 	SBPointer<ADNPart> part = new ADNPart();
@@ -3665,6 +3706,7 @@ int main() {
 	testDASReconstructionSideFramesRemainRightHanded();
 	testCreatorSingleStrandInitializesDesignedFrames();
 	testCreatorDoubleStrandInitializesDesignedFrames();
+	testReconstructionRepairsE3OnlyCreatorFrame();
 	testComplementPlacementPreservesExistingNucleotideGeometry();
 	testSingleStrandAtomGenerationUsesExistingNucleotideCenter();
 	testAllAtomGenerationPreservesSynchronizedNucleotideGeometry();
