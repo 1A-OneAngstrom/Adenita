@@ -1354,58 +1354,15 @@ void DASBackToTheAtom::PopulateNucleotideWithAllAtoms(SBPointer<ADNPart> origami
 
 }
 
-void DASBackToTheAtom::PrepareFramesForAtomicModel(SBPointer<ADNPart> origami) {
-
-	if (origami == nullptr) return;
-
-	auto baseSegments = origami->GetBaseSegments();
-	SB_FOR(SBPointer<ADNBaseSegment> baseSegment, baseSegments) {
-
-		if (baseSegment == nullptr) continue;
-		SBPointer<ADNCell> cell = baseSegment->GetCell();
-		if (cell == nullptr || cell->GetCellType() != CellType::BasePair) continue;
-
-		// Atom placement consumes nucleotide frames directly. Derive a fresh
-		// canonical frame from visible geometry, then write only phase-aware side
-		// frames back to the nucleotides without moving coarse geometry.
-		const ADNFrameUtils::Frame canonicalFrame =
-			ADNGeometrySynchronization::canonicalTemplateFrameFromCurrentGeometry(*baseSegment);
-		const double reconstructionPhaseRadians =
-			ADNGeometrySynchronization::baseSegmentReconstructionPhaseRadians(*baseSegment);
-
-		SBPointer<ADNBasePair> basePair = static_cast<ADNBasePair*>(cell());
-		SBPointer<ADNNucleotide> left = basePair->GetLeftNucleotide();
-		SBPointer<ADNNucleotide> right = basePair->GetRightNucleotide();
-
-		if (left != nullptr) {
-
-			ADNFrameAdapters::setFrame(*left,
-				ADNGeometrySynchronization::canonicalBaseSegmentFrameToNucleotideSideFrame(
-					canonicalFrame,
-					ADNGeometrySynchronization::TemplateSide::Left,
-					reconstructionPhaseRadians));
-
-		}
-
-		if (right != nullptr) {
-
-			ADNFrameAdapters::setFrame(*right,
-				ADNGeometrySynchronization::canonicalBaseSegmentFrameToNucleotideSideFrame(
-					canonicalFrame,
-					ADNGeometrySynchronization::TemplateSide::Right,
-					reconstructionPhaseRadians));
-
-		}
-
-	}
-
-}
-
 void DASBackToTheAtom::GenerateAllAtomModel(SBPointer<ADNPart> origami, bool createFlag) {
 
 	if (origami == nullptr) return;
 
-	PrepareFramesForAtomicModel(origami);
+	// Atom generation is a placement operation on existing coarse geometry. A
+	// geometry-aligned sync is safe here; phase-neutral template frames are not
+	// written into base segments or nucleotides before atom coordinates are set.
+	ADNGeometrySynchronization::syncPartFramesFromGeometry(*origami,
+		ADNGeometrySynchronization::SyncReason::BeforeGeometryEdit);
 
 	auto nts = origami->GetNucleotides();
 	SB_FOR(SBPointer<ADNNucleotide> nt, nts) {

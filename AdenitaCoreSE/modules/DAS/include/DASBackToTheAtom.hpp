@@ -127,7 +127,6 @@ private:
     void PlaceNucleotideFromTemplate(SBPointer<ADNBaseSegment> bs, SBPointer<ADNNucleotide> nt);
     [[nodiscard]] AtomTemplateSelection SelectAtomTemplateForNucleotide(SBPointer<ADNNucleotide> nt) const;
     void PopulateNucleotideWithAllAtoms(SBPointer<ADNPart> origami, SBPointer<ADNNucleotide> nt, const AtomTemplateSelection& selection, bool createFlag = false);
-    void PrepareFramesForAtomicModel(SBPointer<ADNPart> origami);
 #ifndef NDEBUG
     bool ValidateGeneratedBasePairPlanes(SBPointer<ADNPart> part) const;
 #endif
