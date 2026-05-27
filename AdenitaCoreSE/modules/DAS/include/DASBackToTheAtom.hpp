@@ -25,6 +25,11 @@ class SB_EXPORT DASBackToTheAtom {
 
 public:
 
+    enum class NewNucleotidePlacementMode {
+        ReconstructBaseSegments,
+        PositionInputNucleotidesOnly
+    };
+
     DASBackToTheAtom();
     ~DASBackToTheAtom();
 
@@ -58,7 +63,8 @@ public:
     void UntwistNucleotidesPosition(SBPointer<ADNBaseSegment> bs);
 
     //! Sets the positions of a collection of nucleotides, meant to be called after modifications
-    void SetPositionsForNewNucleotides(SBPointer<ADNPart> part, SBPointerIndexer<ADNNucleotide> nts);
+    void SetPositionsForNewNucleotides(SBPointer<ADNPart> part, SBPointerIndexer<ADNNucleotide> nts,
+        NewNucleotidePlacementMode placementMode = NewNucleotidePlacementMode::ReconstructBaseSegments);
 
     //void SetAllAtomsPositions(SBPointer<ADNPart> origami);
     // for cadnano
@@ -110,6 +116,7 @@ private:
     static void PositionLoopNucleotides(SBPointer<ADNLoop> loop, SBPosition3 bsPositionPrev, SBPosition3 bsPositionNext);
     static void PositionLoopNucleotidesQBezier(SBPointer<ADNLoop> loop, SBPosition3 bsPositionPrev, SBPosition3 bsPositionNext, SBVector3 bsPrevE3, SBVector3 bsNextE3);
 
+    void PlaceNucleotideFromTemplate(SBPointer<ADNBaseSegment> bs, SBPointer<ADNNucleotide> nt);
     void PopulateNucleotideWithAllAtoms(SBPointer<ADNPart> origami, SBPointer<ADNNucleotide> nt, bool createFlag = false);
     void PrepareFramesForAtomicModel(SBPointer<ADNPart> origami);
 #ifndef NDEBUG

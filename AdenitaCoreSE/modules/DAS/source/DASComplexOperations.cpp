@@ -232,7 +232,8 @@ void DASOperations::AddComplementaryStrands(ADNNanorobot* nanorobot, SBPointerIn
 		if (nt->GetPair() == nullptr) {
 			if (prevPart != part) {
 				if (ss != nullptr) {
-					btta.SetPositionsForNewNucleotides(prevPart, nucleotides);
+					btta.SetPositionsForNewNucleotides(prevPart, nucleotides,
+						DASBackToTheAtom::NewNucleotidePlacementMode::PositionInputNucleotidesOnly);
 					if (SAMSON::isHolding()) SAMSON::hold(ss());
 					ss->create();
 					prevPart->DeregisterSingleStrand(ss);
@@ -274,7 +275,8 @@ void DASOperations::AddComplementaryStrands(ADNNanorobot* nanorobot, SBPointerIn
 
 			if (!selectedNucleotides.hasIndex(next())) {
 				if (ss != nullptr) {
-					btta.SetPositionsForNewNucleotides(part, nucleotides);
+					btta.SetPositionsForNewNucleotides(part, nucleotides,
+						DASBackToTheAtom::NewNucleotidePlacementMode::PositionInputNucleotidesOnly);
 					if (SAMSON::isHolding()) SAMSON::hold(ss());
 					ss->create();
 					part->DeregisterSingleStrand(ss);
@@ -287,7 +289,8 @@ void DASOperations::AddComplementaryStrands(ADNNanorobot* nanorobot, SBPointerIn
 		else {
 			// if ss has nucleotides create and start a new one
 			if (ss != nullptr) {
-				btta.SetPositionsForNewNucleotides(part, nucleotides);
+				btta.SetPositionsForNewNucleotides(part, nucleotides,
+					DASBackToTheAtom::NewNucleotidePlacementMode::PositionInputNucleotidesOnly);
 				if (SAMSON::isHolding()) SAMSON::hold(ss());
 				ss->create();
 				part->DeregisterSingleStrand(ss);

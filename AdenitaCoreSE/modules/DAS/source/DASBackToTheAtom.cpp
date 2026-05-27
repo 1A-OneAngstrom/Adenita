@@ -101,6 +101,96 @@ struct TemplateToWorldTransform {
 
 }
 
+[[nodiscard]] ADNFrameUtils::Vec3 positionToVec3(const SBPosition3& position) {
+
+	return ADNFrameUtils::Vec3{
+		position[0].getValue(),
+		position[1].getValue(),
+		position[2].getValue()
+	};
+
+}
+
+[[nodiscard]] ADNFrameUtils::Vec3 baseSegmentTangent(SBPointer<ADNBaseSegment> baseSegment) {
+
+	if (baseSegment == nullptr) return ADNFrameUtils::Vec3{};
+
+	SBPointer<ADNBaseSegment> previous = baseSegment->GetPrev(true);
+	SBPointer<ADNBaseSegment> next = baseSegment->GetNext(true);
+
+	if (previous != nullptr && next != nullptr)
+		return positionToVec3(next->GetPosition()) - positionToVec3(previous->GetPosition());
+	if (next != nullptr)
+		return positionToVec3(next->GetPosition()) - positionToVec3(baseSegment->GetPosition());
+	if (previous != nullptr)
+		return positionToVec3(baseSegment->GetPosition()) - positionToVec3(previous->GetPosition());
+
+	return ADNFrameUtils::Vec3{};
+
+}
+
+[[nodiscard]] ADNFrameUtils::Vec3 projectedPerpendicularToAxis(const ADNFrameUtils::Vec3& direction,
+	const ADNFrameUtils::Vec3& axis) {
+
+	if (ADNFrameUtils::isNearlyZero(direction) || ADNFrameUtils::isNearlyZero(axis))
+		return direction;
+
+	const ADNFrameUtils::Vec3 unitAxis = ADNFrameUtils::normalized(axis);
+	return direction - unitAxis * ADNFrameUtils::dot(direction, unitAxis);
+
+}
+
+[[nodiscard]] ADNGeometrySynchronization::TemplateSide templateSideForNucleotide(
+	SBPointer<ADNBaseSegment> baseSegment,
+	SBPointer<ADNNucleotide> nucleotide) {
+
+	if (baseSegment != nullptr && baseSegment->IsRight(nucleotide))
+		return ADNGeometrySynchronization::TemplateSide::Right;
+	return ADNGeometrySynchronization::TemplateSide::Left;
+
+}
+
+[[nodiscard]] ADNFrameUtils::Frame oneSidedCanonicalTemplateFrame(
+	SBPointer<ADNBaseSegment> baseSegment,
+	SBPointer<ADNNucleotide> anchor) {
+
+	if (baseSegment == nullptr || anchor == nullptr)
+		return baseSegment != nullptr ?
+			ADNGeometrySynchronization::canonicalTemplateFrameFromCurrentGeometry(*baseSegment) :
+			ADNFrameUtils::identityFrame();
+
+	const ADNFrameUtils::Frame fallback = ADNFrameAdapters::sanitizedFrame(*baseSegment);
+	ADNFrameUtils::Vec3 axis = baseSegmentTangent(baseSegment);
+	if (ADNFrameUtils::isNearlyZero(axis))
+		axis = fallback.e3;
+
+	ADNFrameUtils::Vec3 radial =
+		positionToVec3(anchor->GetSidechainPosition()) -
+		positionToVec3(anchor->GetBackbonePosition());
+	if (templateSideForNucleotide(baseSegment, anchor) == ADNGeometrySynchronization::TemplateSide::Right)
+		radial = -radial;
+	if (ADNFrameUtils::isNearlyZero(radial))
+		radial = fallback.e2;
+
+	// Complementary-strand creation happens after the new nucleotide has been
+	// attached to the base pair but before it has meaningful geometry. Derive
+	// the temporary template frame only from the preserved strand so the new
+	// placeholder cannot pull the original strand into an untwisted state.
+	ADNFrameUtils::Vec3 radialInBasePlane = projectedPerpendicularToAxis(radial, axis);
+	if (ADNFrameUtils::isNearlyZero(radialInBasePlane))
+		radialInBasePlane = projectedPerpendicularToAxis(fallback.e2, axis);
+	if (ADNFrameUtils::isNearlyZero(radialInBasePlane))
+		return fallback;
+
+	const ADNFrameUtils::Frame leftSideFrame =
+		ADNFrameUtils::frameFromE2AndTangent(radialInBasePlane, axis, fallback);
+	return ADNGeometrySynchronization::nucleotideSideFrameToCanonicalBaseSegmentFrame(
+		leftSideFrame,
+		ADNGeometrySynchronization::TemplateSide::Left,
+		ADNGeometrySynchronization::baseSegmentReconstructionPhaseRadians(*baseSegment));
+
+}
+
 [[nodiscard]] bool isRightSideNucleotide(SBPointer<ADNNucleotide> nucleotide) {
 
 	if (nucleotide == nullptr) return false;
@@ -477,11 +567,60 @@ void DASBackToTheAtom::SetNucleotidePosition(SBPointer<ADNBaseSegment> bs, bool 
 
 }
 
-void DASBackToTheAtom::SetPositionsForNewNucleotides(SBPointer<ADNPart> part, SBPointerIndexer<ADNNucleotide> nts) {
+void DASBackToTheAtom::PlaceNucleotideFromTemplate(SBPointer<ADNBaseSegment> bs, SBPointer<ADNNucleotide> nt) {
+
+	if (bs == nullptr || nt == nullptr) return;
+
+	SBPointer<ADNCell> cell = bs->GetCell();
+	if (cell == nullptr || cell->GetCellType() != CellType::BasePair) return;
+
+	SBPointer<ADNBasePair> basePair = static_cast<ADNBasePair*>(cell());
+	SBPointer<ADNNucleotide> left = basePair->GetLeftNucleotide();
+	SBPointer<ADNNucleotide> right = basePair->GetRightNucleotide();
+	if (left == nullptr && right == nullptr) return;
+
+	const NtPair pair = GetIdealBasePairNucleotides(left, right);
+	const bool placeRight = bs->IsRight(nt);
+	SBPointer<ADNNucleotide> templateNucleotide = placeRight ? pair.second : pair.first;
+	if (templateNucleotide == nullptr) return;
+
+	const ADNFrameUtils::Frame canonicalFrame =
+		oneSidedCanonicalTemplateFrame(bs, nt->GetPair());
+	const TemplateToWorldTransform transform =
+		makeTemplateToWorldTransform(*bs, canonicalFrame);
+
+	ublas::matrix<double> pairPositions = CreatePositionsMatrix(pair);
+	ublas::vector<double> translation =
+		ADNAuxiliary::SBPositionToUblas(bs->GetPosition()) -
+		ADNVectorMath::CalculateCM(pairPositions);
+
+	ublas::matrix<double> input(3, 3);
+	ublas::row(input, 0) = ADNAuxiliary::SBPositionToUblas(templateNucleotide->GetPosition());
+	ublas::row(input, 1) = ADNAuxiliary::SBPositionToUblas(templateNucleotide->GetBackbonePosition());
+	ublas::row(input, 2) = ADNAuxiliary::SBPositionToUblas(templateNucleotide->GetSidechainPosition());
+
+	ublas::matrix<double> output =
+		ADNVectorMath::ApplyTransformation(transform.basisMatrix, input);
+	output = ADNVectorMath::Translate(output, translation);
+
+	ADNFrameAdapters::setFrame(*nt, placeRight ? transform.rightFrame : transform.leftFrame);
+	nt->SetPosition(UblasToSBPosition(ublas::row(output, 0)));
+	nt->SetBackbonePosition(UblasToSBPosition(ublas::row(output, 1)));
+	nt->SetSidechainPosition(UblasToSBPosition(ublas::row(output, 2)));
+
+}
+
+void DASBackToTheAtom::SetPositionsForNewNucleotides(SBPointer<ADNPart> part,
+	SBPointerIndexer<ADNNucleotide> nts,
+	NewNucleotidePlacementMode placementMode) {
 
 	if (part == nullptr) return;
 
+	SBPointerIndexer<ADNBaseSegment> affectedBaseSegments;
+
 	SB_FOR(SBPointer<ADNNucleotide> nt, nts) {
+
+		if (nt == nullptr) continue;
 
 		// create mock atoms or all atoms
 		auto bb = nt->GetBackbone();
@@ -522,9 +661,31 @@ void DASBackToTheAtom::SetPositionsForNewNucleotides(SBPointer<ADNPart> part, SB
 
 		}
 
-		// Complementary-strand placement uses phase-neutral base-segment frames.
-		ADNGeometrySynchronization::prepareBaseSegmentFrameForTemplateReconstruction(*bs);
-		SetNucleotidePosition(bs, true);
+		if (placementMode == NewNucleotidePlacementMode::PositionInputNucleotidesOnly) {
+
+			PlaceNucleotideFromTemplate(bs, nt);
+
+		}
+		else if (!affectedBaseSegments.hasIndex(bs())) {
+
+			affectedBaseSegments.addReferenceTarget(bs());
+
+		}
+
+	}
+
+	if (placementMode == NewNucleotidePlacementMode::ReconstructBaseSegments) {
+
+		SB_FOR(SBPointer<ADNBaseSegment> bs, affectedBaseSegments) {
+
+			if (bs == nullptr) continue;
+			// Legacy creation paths rebuild both sides from a temporary template
+			// frame. New code should prefer PlaceNucleotideFromTemplate when it
+			// must preserve already positioned nucleotides.
+			ADNGeometrySynchronization::prepareBaseSegmentFrameForTemplateReconstruction(*bs);
+			SetNucleotidePosition(bs, true);
+
+		}
 
 	}
 
