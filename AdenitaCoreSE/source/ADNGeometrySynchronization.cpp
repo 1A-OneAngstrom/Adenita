@@ -193,7 +193,7 @@ struct BaseSegmentNucleotideSides {
 
 }
 
-[[nodiscard]] ADNFrameUtils::Frame canonicalTemplateFrameFromBaseSegmentGeometry(
+[[nodiscard]] ADNFrameUtils::Frame buildCanonicalTemplateFrameFromCurrentGeometry(
 	const ADNBaseSegment& baseSegment) {
 
 	const ADNFrameUtils::Frame fallback = repairedFallback(baseSegment);
@@ -540,10 +540,17 @@ ADNFrameUtils::Frame nucleotideSideFrameToCanonicalBaseSegmentFrame(
 
 }
 
+ADNFrameUtils::Frame canonicalTemplateFrameFromCurrentGeometry(
+	const ADNBaseSegment& baseSegment) {
+
+	return buildCanonicalTemplateFrameFromCurrentGeometry(baseSegment);
+
+}
+
 void prepareBaseSegmentFrameForTemplateReconstruction(ADNBaseSegment& baseSegment) {
 
 	ADNFrameAdapters::setFrame(baseSegment,
-		canonicalTemplateFrameFromBaseSegmentGeometry(baseSegment));
+		canonicalTemplateFrameFromCurrentGeometry(baseSegment));
 
 }
 

@@ -1121,11 +1121,11 @@ void DASBackToTheAtom::PrepareFramesForAtomicModel(SBPointer<ADNPart> origami) {
 		SBPointer<ADNCell> cell = baseSegment->GetCell();
 		if (cell == nullptr || cell->GetCellType() != CellType::BasePair) continue;
 
-		// Atom placement consumes nucleotide frames directly. Convert current
-		// visible geometry to the canonical reconstruction frame, then write only
-		// phase-aware side frames back to the nucleotides without moving them.
-		ADNGeometrySynchronization::prepareBaseSegmentFrameForTemplateReconstruction(*baseSegment);
-		const ADNFrameUtils::Frame canonicalFrame = ADNFrameAdapters::sanitizedFrame(*baseSegment);
+		// Atom placement consumes nucleotide frames directly. Derive a fresh
+		// canonical frame from visible geometry, then write only phase-aware side
+		// frames back to the nucleotides without moving coarse geometry.
+		const ADNFrameUtils::Frame canonicalFrame =
+			ADNGeometrySynchronization::canonicalTemplateFrameFromCurrentGeometry(*baseSegment);
 		const double reconstructionPhaseRadians =
 			ADNGeometrySynchronization::baseSegmentReconstructionPhaseRadians(*baseSegment);
 

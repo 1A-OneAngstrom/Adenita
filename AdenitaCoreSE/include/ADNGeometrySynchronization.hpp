@@ -110,6 +110,15 @@ SB_EXPORT [[nodiscard]] ADNFrameUtils::Frame nucleotideSideFrameToCanonicalBaseS
 	TemplateSide side,
 	double phaseRadians);
 
+/// \brief Derive the canonical DAS template frame from current coarse geometry.
+///
+/// The returned frame is phase-neutral and follows the base-segment centerline
+/// and base-pair radial direction. This helper does not mutate the base
+/// segment; use it when atom placement needs fresh frames without repositioning
+/// or rewriting coarse DNA geometry.
+SB_EXPORT [[nodiscard]] ADNFrameUtils::Frame canonicalTemplateFrameFromCurrentGeometry(
+	const ADNBaseSegment& baseSegment);
+
 /// \brief Prepare a base-segment frame for DASBackToTheAtom template reconstruction.
 ///
 /// This derives a phase-neutral base-segment frame from the current
