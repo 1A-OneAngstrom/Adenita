@@ -11,6 +11,7 @@
 
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -402,6 +403,41 @@ void logInvalidBaseSegmentFrame(const char* context, SBPointer<ADNBaseSegment> b
 }
 
 #ifdef ADN_DEBUG_GEOMETRY
+[[nodiscard]] double angularErrorDegrees(const ADNFrameUtils::Vec3& a,
+	const ADNFrameUtils::Vec3& b) {
+
+	if (ADNFrameUtils::isNearlyZero(a) || ADNFrameUtils::isNearlyZero(b))
+		return 0.0;
+
+	const double dot =
+		ADNFrameUtils::dot(ADNFrameUtils::normalized(a), ADNFrameUtils::normalized(b));
+	const double clamped = std::max(-1.0, std::min(1.0, dot));
+	return std::acos(clamped) * 180.0 / 3.141592653589793238462643383279502884;
+
+}
+
+[[nodiscard]] ADNFrameUtils::Vec3 outputRowToVec3(const ublas::matrix<double>& output,
+	std::size_t row) {
+
+	if (output.size1() <= row || output.size2() < 3)
+		return ADNFrameUtils::Vec3{};
+
+	return ADNFrameUtils::Vec3{
+		output(row, 0),
+		output(row, 1),
+		output(row, 2)
+	};
+
+}
+
+[[nodiscard]] std::string formatVec3(const ADNFrameUtils::Vec3& vector) {
+
+	std::ostringstream stream;
+	stream << "(" << vector.x << ", " << vector.y << ", " << vector.z << ")";
+	return stream.str();
+
+}
+
 void logBaseSegmentGeometryDiagnostic(const char* context, SBPointer<ADNBaseSegment> baseSegment) {
 
 	if (baseSegment == nullptr) return;
@@ -454,6 +490,87 @@ void logBaseSegmentGeometryDiagnostic(const char* context, SBPointer<ADNBaseSegm
 			message << " rightPlaneAxisDot=" << std::abs(ADNFrameUtils::dot(rightNormal, axis));
 
 	}
+
+	ADNLogger::LogDebug(message.str());
+
+}
+
+void logOneSidedPlacementDiagnostic(const char* context,
+	SBPointer<ADNBaseSegment> baseSegment,
+	SBPointer<ADNNucleotide> anchor,
+	SBPointer<ADNNucleotide> target,
+	const ADNFrameUtils::Frame& canonicalFrame,
+	const TemplateToWorldTransform& transform,
+	const ublas::matrix<double>& output) {
+
+	if (baseSegment == nullptr || anchor == nullptr || target == nullptr) return;
+	const int baseSegmentNumber = baseSegment->GetNumber();
+	if (baseSegmentNumber < 0 || baseSegmentNumber >= 5) return;
+
+	const ADNFrameUtils::Vec3 axis = ADNFrameUtils::normalized(canonicalFrame.e3);
+	const ADNFrameUtils::Vec3 center = positionToFrameVec3(baseSegment->GetPosition());
+	const ADNFrameUtils::Vec3 anchorCenter = positionToFrameVec3(anchor->GetPosition());
+	const ADNFrameUtils::Vec3 anchorBackbone = positionToFrameVec3(anchor->GetBackbonePosition());
+	const ADNFrameUtils::Vec3 anchorSidechain = positionToFrameVec3(anchor->GetSidechainPosition());
+	const ADNFrameUtils::Vec3 targetCenter = outputRowToVec3(output, 0);
+	const ADNFrameUtils::Vec3 targetBackbone = outputRowToVec3(output, 1);
+	const ADNFrameUtils::Vec3 targetSidechain = outputRowToVec3(output, 2);
+
+	const bool anchorIsLeft = baseSegment->IsLeft(anchor);
+	const bool targetIsLeft = baseSegment->IsLeft(target);
+	const ADNFrameUtils::Vec3 centerToAnchor =
+		projectedPerpendicularToAxis(anchorCenter - center, axis);
+	const ADNFrameUtils::Vec3 currentPairDirectionFromAnchor =
+		anchorIsLeft ? -centerToAnchor : centerToAnchor;
+
+	const ADNFrameUtils::Frame storedFrame =
+		ADNFrameAdapters::frameFromOrientable(*baseSegment);
+	const ADNFrameUtils::Mat3 phaseRotation =
+		ADNFrameUtils::rotationAroundAxis(axis, transform.phaseRadians);
+	const ADNFrameUtils::Vec3 storedCandidate =
+		projectedPerpendicularToAxis(
+			ADNFrameUtils::rotated(phaseRotation, storedFrame.e2),
+			axis);
+	const double storedAnchorDot =
+		ADNFrameUtils::isNearlyZero(storedCandidate) ||
+		ADNFrameUtils::isNearlyZero(currentPairDirectionFromAnchor) ?
+		0.0 :
+		ADNFrameUtils::dot(
+			ADNFrameUtils::normalized(storedCandidate),
+			ADNFrameUtils::normalized(currentPairDirectionFromAnchor));
+
+	const ADNFrameUtils::Vec3 anchorRadial =
+		projectedPerpendicularToAxis(anchorCenter - center, axis);
+	const ADNFrameUtils::Vec3 targetRadial =
+		projectedPerpendicularToAxis(targetCenter - center, axis);
+	const double radialDot =
+		ADNFrameUtils::isNearlyZero(anchorRadial) ||
+		ADNFrameUtils::isNearlyZero(targetRadial) ?
+		0.0 :
+		ADNFrameUtils::dot(
+			ADNFrameUtils::normalized(targetRadial),
+			ADNFrameUtils::normalized(anchorRadial));
+
+	std::ostringstream message;
+	message << context << " base segment " << baseSegmentNumber
+		<< " anchorSide=" << (anchorIsLeft ? "left" : "right")
+		<< " targetSide=" << (targetIsLeft ? "left" : "right")
+		<< " axis=" << formatVec3(axis)
+		<< " center=" << formatVec3(center)
+		<< " anchorCenter=" << formatVec3(anchorCenter)
+		<< " anchorBackbone=" << formatVec3(anchorBackbone)
+		<< " anchorSidechain=" << formatVec3(anchorSidechain)
+		<< " targetCenter=" << formatVec3(targetCenter)
+		<< " targetBackbone=" << formatVec3(targetBackbone)
+		<< " targetSidechain=" << formatVec3(targetSidechain)
+		<< " storedE2=" << formatVec3(storedFrame.e2)
+		<< " centerToAnchor=" << formatVec3(centerToAnchor)
+		<< " anchorPairDirection=" << formatVec3(currentPairDirectionFromAnchor)
+		<< " storedCandidate=" << formatVec3(storedCandidate)
+		<< " storedAnchorDot=" << storedAnchorDot
+		<< " storedAnchorAngleDeg="
+		<< angularErrorDegrees(storedCandidate, currentPairDirectionFromAnchor)
+		<< " targetAnchorRadialDot=" << radialDot;
 
 	ADNLogger::LogDebug(message.str());
 
@@ -767,6 +884,16 @@ void DASBackToTheAtom::PlaceNucleotideFromTemplate(SBPointer<ADNBaseSegment> bs,
 	};
 
 	applyPlacement();
+#ifdef ADN_DEBUG_GEOMETRY
+	logOneSidedPlacementDiagnostic(
+		"PlaceNucleotideFromTemplate initial",
+		bs,
+		nt->GetPair(),
+		nt,
+		canonicalFrame,
+		transform,
+		output);
+#endif
 	if (!placementIsOnOppositeSide()) {
 
 		canonicalFrame = ADNFrameUtils::frameFromE2AndTangent(
@@ -774,6 +901,16 @@ void DASBackToTheAtom::PlaceNucleotideFromTemplate(SBPointer<ADNBaseSegment> bs,
 			canonicalFrame.e3,
 			canonicalFrame);
 		applyPlacement();
+#ifdef ADN_DEBUG_GEOMETRY
+		logOneSidedPlacementDiagnostic(
+			"PlaceNucleotideFromTemplate retry",
+			bs,
+			nt->GetPair(),
+			nt,
+			canonicalFrame,
+			transform,
+			output);
+#endif
 #ifndef NDEBUG
 		if (!placementIsOnOppositeSide())
 			ADNLogger::LogDebug(std::string("PlaceNucleotideFromTemplate: complementary nucleotide remains on the anchor side after pair-direction retry."));
