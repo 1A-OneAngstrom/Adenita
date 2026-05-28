@@ -1892,10 +1892,12 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 			if (cachedPlacement == placementCache.end()) {
 
 				SBPointer<ADNBasePair> basePair = static_cast<ADNBasePair*>(cell());
+				SBPointer<ADNNucleotide> left = basePair->GetLeftNucleotide();
+				SBPointer<ADNNucleotide> right = basePair->GetRightNucleotide();
 				BaseSegmentAtomPlacementCache cacheEntry;
-				cacheEntry.paired =
-					basePair->GetLeftNucleotide() != nullptr &&
-					basePair->GetRightNucleotide() != nullptr;
+				const bool hasLeft = left != nullptr;
+				const bool hasRight = right != nullptr;
+				cacheEntry.paired = hasLeft && hasRight;
 				// Atom generation consumes coarse geometry but must not repair
 				// or rewrite it. Cache local placement frames for this call so
 				// both nucleotide sides share the same non-mutating canonical
@@ -1907,14 +1909,20 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 					makeTemplateToWorldTransform(*baseSegment, canonicalFrame);
 				cacheEntry.leftFrame = transform.leftFrame;
 				cacheEntry.rightFrame = transform.rightFrame;
-				if (cacheEntry.paired) {
 
+				if (ADNFrameUtils::isOrthonormalRightHanded(canonicalFrame)) {
+
+					// One-sided atom templates still live in ideal base-pair
+					// coordinates. Use the selected ideal pair as the center
+					// reference when the real complement is absent.
+					const NtPair idealPairForTransform = cacheEntry.paired ?
+						GetIdealBasePairNucleotides(left, right) :
+						selection.pair;
 					cacheEntry.pairBasisMatrix = transform.basisMatrix;
 					cacheEntry.pairTranslation =
 						ADNAuxiliary::SBPositionToUblas(baseSegment->GetPosition()) -
-						GetIdealPairCenterOfMass(GetIdealBasePairNucleotides(
-							basePair->GetLeftNucleotide(),
-							basePair->GetRightNucleotide()));
+						GetIdealPairCenterOfMass(idealPairForTransform);
+					cacheEntry.hasPairLevelTransform = true;
 
 				}
 				cachedPlacement = placementCache.emplace(baseSegment(), cacheEntry).first;
