@@ -143,6 +143,7 @@ private:
     void PopulateNucleotideWithAllAtoms(SBPointer<ADNPart> origami, SBPointer<ADNNucleotide> nt, const AtomTemplateSelection& selection, bool createFlag = false);
 #ifndef NDEBUG
     bool ValidateGeneratedBasePairPlanes(SBPointer<ADNPart> part) const;
+    bool ValidateGeneratedSingleStrandAtomGeometry(SBPointer<ADNPart> part) const;
 #endif
     static void CreateBonds(SBPointer<ADNPart> origami, bool createFlag = false);
     void FindAtomsPositions(SBPointer<ADNNucleotide> nt,

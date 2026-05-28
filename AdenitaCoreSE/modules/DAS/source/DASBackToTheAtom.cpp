@@ -2388,6 +2388,7 @@ void DASBackToTheAtom::GenerateAllAtomModel(SBPointer<ADNPart> origami, bool cre
 
 #ifndef NDEBUG
 	ValidateGeneratedBasePairPlanes(origami);
+	ValidateGeneratedSingleStrandAtomGeometry(origami);
 #endif
 
 }
@@ -2458,6 +2459,58 @@ bool DASBackToTheAtom::ValidateGeneratedBasePairPlanes(SBPointer<ADNPart> part) 
 		if (!validateGeneratedBackboneLink(baseSegment, left))
 			valid = false;
 		if (!validateGeneratedBackboneLink(baseSegment, right))
+			valid = false;
+
+	}
+
+	return valid;
+
+}
+
+bool DASBackToTheAtom::ValidateGeneratedSingleStrandAtomGeometry(SBPointer<ADNPart> part) const {
+
+	if (part == nullptr) return true;
+
+	bool valid = true;
+	auto baseSegments = part->GetBaseSegments();
+	SB_FOR(SBPointer<ADNBaseSegment> baseSegment, baseSegments) {
+
+		if (baseSegment == nullptr) continue;
+		SBPointer<ADNCell> cell = baseSegment->GetCell();
+		if (cell == nullptr || cell->GetCellType() != CellType::BasePair) continue;
+
+		SBPointer<ADNBasePair> basePair = static_cast<ADNBasePair*>(cell());
+		SBPointer<ADNNucleotide> left = basePair->GetLeftNucleotide();
+		SBPointer<ADNNucleotide> right = basePair->GetRightNucleotide();
+		if ((left == nullptr) == (right == nullptr)) continue;
+
+		SBPointer<ADNNucleotide> nucleotide = left != nullptr ? left : right;
+		SBPointer<ADNNucleotide> previous = nucleotide->GetPrev(true);
+		const ADNFrameUtils::Vec3 normal = sidechainPlaneNormal(nucleotide);
+		const ADNFrameUtils::Vec3 previousNormal = sidechainPlaneNormal(previous);
+
+		// One-sided strands do not have a paired residue for coplanarity checks.
+		// Compare neighboring generated base-ring normals instead, ignoring
+		// normal sign because plane fitting may choose either orientation.
+		if (!ADNFrameUtils::isNearlyZero(normal) &&
+			!ADNFrameUtils::isNearlyZero(previousNormal)) {
+
+			const double normalAlignment =
+				std::abs(ADNFrameUtils::dot(normal, previousNormal));
+			if (normalAlignment < 0.5) {
+
+				valid = false;
+				ADNLogger::LogDebug(
+					"Generated single-strand diagnostic failed for base segment " +
+					std::to_string(baseSegment->GetNumber()) + " nucleotide " +
+					nucleotide->getName() + ": ring-normal alignment " +
+					std::to_string(normalAlignment) + ".");
+
+			}
+
+		}
+
+		if (!validateGeneratedBackboneLink(baseSegment, nucleotide))
 			valid = false;
 
 	}
