@@ -12,11 +12,13 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <iostream>
 #include <sstream>
 #include <fstream>
 #include <cstdio>
 #include <filesystem>
+#include <limits>
 
 namespace {
 
@@ -189,6 +191,136 @@ struct TemplateToWorldTransform {
 		frame.e1 * local.x +
 		frame.e2 * local.y +
 		frame.e3 * local.z;
+
+}
+
+struct AtomPlacementMarkerScore {
+	double center{ std::numeric_limits<double>::infinity() };
+	double backbone{ std::numeric_limits<double>::infinity() };
+	double sidechain{ std::numeric_limits<double>::infinity() };
+	double total{ std::numeric_limits<double>::infinity() };
+};
+
+[[nodiscard]] ADNFrameUtils::Vec3 matrixRowToVec3(const ublas::matrix<double>& matrix,
+	std::size_t row) {
+
+	if (matrix.size1() <= row || matrix.size2() < 3)
+		return ADNFrameUtils::Vec3{};
+
+	return ADNFrameUtils::Vec3{
+		matrix(row, 0),
+		matrix(row, 1),
+		matrix(row, 2)
+	};
+
+}
+
+[[nodiscard]] ADNFrameUtils::Vec3 mapTemplatePointWithPairLevelTransform(
+	const ublas::matrix<double>& pairBasisMatrix,
+	const ublas::vector<double>& pairTranslation,
+	const ADNFrameUtils::Vec3& templatePoint) {
+
+	ublas::matrix<double> input(1, 3);
+	ublas::row(input, 0) = frameVectorToUblas(templatePoint);
+	ublas::matrix<double> output =
+		ADNVectorMath::ApplyTransformation(pairBasisMatrix, input);
+	output = ADNVectorMath::Translate(output, pairTranslation);
+	return matrixRowToVec3(output, 0);
+
+}
+
+[[nodiscard]] AtomPlacementMarkerScore scoreTemplateMarkerMapping(
+	SBPointer<ADNNucleotide> currentNucleotide,
+	SBPointer<ADNNucleotide> templateNucleotide,
+	const std::function<ADNFrameUtils::Vec3(const ADNFrameUtils::Vec3&)>& mapPoint) {
+
+	AtomPlacementMarkerScore score;
+	if (currentNucleotide == nullptr || templateNucleotide == nullptr)
+		return score;
+
+	score.center = ADNFrameUtils::norm(
+		mapPoint(positionToVec3(templateNucleotide->GetPosition())) -
+		positionToVec3(currentNucleotide->GetPosition()));
+	score.backbone = ADNFrameUtils::norm(
+		mapPoint(positionToVec3(templateNucleotide->GetBackbonePosition())) -
+		positionToVec3(currentNucleotide->GetBackbonePosition()));
+	score.sidechain = ADNFrameUtils::norm(
+		mapPoint(positionToVec3(templateNucleotide->GetSidechainPosition())) -
+		positionToVec3(currentNucleotide->GetSidechainPosition()));
+	score.total =
+		4.0 * score.center * score.center +
+		score.backbone * score.backbone +
+		score.sidechain * score.sidechain;
+	return score;
+
+}
+
+[[nodiscard]] bool markerScoreSupportsPairLevelPlacement(
+	const AtomPlacementMarkerScore& pairScore,
+	const AtomPlacementMarkerScore& localScore) {
+
+	constexpr double centerTolerancePm = 150.0;
+	if (!std::isfinite(pairScore.total))
+		return false;
+	if (!std::isfinite(localScore.total))
+		return true;
+
+	return
+		pairScore.total <= localScore.total * 1.25 ||
+		pairScore.center <= centerTolerancePm;
+
+}
+
+[[nodiscard]] bool oneSidedPairLevelPlacementMatchesMarkers(
+	SBPointer<ADNNucleotide> currentNucleotide,
+	SBPointer<ADNNucleotide> templateNucleotide,
+	const ublas::matrix<double>& pairBasisMatrix,
+	const ublas::vector<double>& pairTranslation,
+	const ADNFrameUtils::Frame& localFallbackFrame,
+	AtomPlacementMarkerScore& pairScore,
+	AtomPlacementMarkerScore& localScore) {
+
+	const auto pairLevelMapPoint = [&](const ADNFrameUtils::Vec3& templatePoint) {
+
+		return mapTemplatePointWithPairLevelTransform(
+			pairBasisMatrix,
+			pairTranslation,
+			templatePoint);
+
+	};
+	pairScore = scoreTemplateMarkerMapping(
+		currentNucleotide,
+		templateNucleotide,
+		pairLevelMapPoint);
+
+	if (currentNucleotide == nullptr || templateNucleotide == nullptr)
+		return markerScoreSupportsPairLevelPlacement(pairScore, localScore);
+
+	const ADNFrameUtils::Frame currentFrame =
+		nucleotidePlacementFrameFromCoarseGeometry(*currentNucleotide, localFallbackFrame);
+	const ADNFrameUtils::Frame templateFrame =
+		nucleotidePlacementFrameFromCoarseGeometry(
+			*templateNucleotide(),
+			ADNFrameAdapters::sanitizedFrame(*templateNucleotide()));
+	const ADNFrameUtils::Vec3 worldCenter =
+		positionToVec3(currentNucleotide->GetPosition());
+	const ADNFrameUtils::Vec3 templateCenter =
+		positionToVec3(templateNucleotide->GetPosition());
+
+	const auto localMapPoint = [&](const ADNFrameUtils::Vec3& templatePoint) {
+
+		const ADNFrameUtils::Vec3 templateDelta = templatePoint - templateCenter;
+		const ADNFrameUtils::Vec3 templateLocal =
+			toLocalCoordinates(templateDelta, templateFrame);
+		return worldCenter + fromLocalCoordinates(templateLocal, currentFrame);
+
+	};
+	localScore = scoreTemplateMarkerMapping(
+		currentNucleotide,
+		templateNucleotide,
+		localMapPoint);
+
+	return markerScoreSupportsPairLevelPlacement(pairScore, localScore);
 
 }
 
@@ -722,6 +854,26 @@ void logUnpairedAtomPlacementDiagnostic(SBPointer<ADNNucleotide> nucleotide,
 	auto atoms = nucleotide->GetAtomsByName(atomName);
 	if (atoms.size() == 0) return nullptr;
 	return *atoms.begin();
+
+}
+
+void logOneSidedPairLevelMarkerFallback(SBPointer<ADNBaseSegment> baseSegment,
+	SBPointer<ADNNucleotide> nucleotide,
+	const AtomPlacementMarkerScore& pairScore,
+	const AtomPlacementMarkerScore& localScore) {
+
+	const int baseSegmentNumber = baseSegment != nullptr ? baseSegment->GetNumber() : -1;
+	std::ostringstream message;
+	message << "FindAtomsPositions one-sided pair-level placement rejected by coarse markers"
+		<< " baseSegment=" << baseSegmentNumber
+		<< " nucleotide=" << (nucleotide != nullptr ? nucleotide->getName() : std::string("<null>"))
+		<< " pairScore(center/backbone/sidechain/total)="
+		<< pairScore.center << "/" << pairScore.backbone << "/"
+		<< pairScore.sidechain << "/" << pairScore.total
+		<< " localScore(center/backbone/sidechain/total)="
+		<< localScore.center << "/" << localScore.backbone << "/"
+		<< localScore.sidechain << "/" << localScore.total;
+	ADNLogger::LogDebug(message.str());
 
 }
 
@@ -1933,7 +2085,47 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 			placement = cachedPlacement->second;
 			if (placement.hasPairLevelTransform) {
 
-				usePairLevelTransform = true;
+				if (placement.paired) {
+
+					usePairLevelTransform = true;
+
+				}
+				else {
+
+					const ADNFrameUtils::Frame localFallbackFrame =
+						selection.side == ADNGeometrySynchronization::TemplateSide::Right ?
+						placement.rightFrame :
+						placement.leftFrame;
+					AtomPlacementMarkerScore pairScore;
+					AtomPlacementMarkerScore localScore;
+					// Pair-level placement preserves stacking, but one-sided
+					// segments can be malformed or manually edited. Compare
+					// the mapped ideal markers against the current coarse
+					// center/backbone/side-chain markers before committing to
+					// the base-segment transform.
+					usePairLevelTransform = oneSidedPairLevelPlacementMatchesMarkers(
+						nt,
+						selection.nucleotide,
+						placement.pairBasisMatrix,
+						placement.pairTranslation,
+						localFallbackFrame,
+						pairScore,
+						localScore);
+					if (!usePairLevelTransform) {
+
+						localFallbackFromOneSidedBaseSegment = true;
+						frame = localFallbackFrame;
+#ifndef NDEBUG
+						logOneSidedPairLevelMarkerFallback(
+							baseSegment,
+							nt,
+							pairScore,
+							localScore);
+#endif
+
+					}
+
+				}
 
 			}
 			else {
