@@ -687,9 +687,9 @@ BaseSegmentFrameFixture createBaseSegmentFrameFixture(double spacing = 1.0) {
 	fixture.part->RegisterNucleotideThreePrime(fixture.leftStrand, getLeftNucleotide(fixture.previous));
 	fixture.part->RegisterNucleotideThreePrime(fixture.leftStrand, getLeftNucleotide(fixture.baseSegment));
 	fixture.part->RegisterNucleotideThreePrime(fixture.leftStrand, getLeftNucleotide(fixture.next));
-	fixture.part->RegisterNucleotideThreePrime(fixture.rightStrand, getRightNucleotide(fixture.previous));
-	fixture.part->RegisterNucleotideThreePrime(fixture.rightStrand, getRightNucleotide(fixture.baseSegment));
 	fixture.part->RegisterNucleotideThreePrime(fixture.rightStrand, getRightNucleotide(fixture.next));
+	fixture.part->RegisterNucleotideThreePrime(fixture.rightStrand, getRightNucleotide(fixture.baseSegment));
+	fixture.part->RegisterNucleotideThreePrime(fixture.rightStrand, getRightNucleotide(fixture.previous));
 
 	return fixture;
 
