@@ -135,6 +135,21 @@ struct TemplateToWorldTransform {
 
 }
 
+[[nodiscard]] ADNFrameUtils::Vec3 atomPlacementBaseSegmentAxis(
+	SBPointer<ADNBaseSegment> baseSegment,
+	const ADNFrameUtils::Frame* fallbackFrame = nullptr) {
+
+	ADNFrameUtils::Vec3 axis = baseSegmentTangent(baseSegment);
+	if (ADNFrameUtils::isNearlyZero(axis) && fallbackFrame != nullptr)
+		axis = fallbackFrame->e3;
+	if (ADNFrameUtils::isNearlyZero(axis) && baseSegment != nullptr)
+		axis = ADNFrameAdapters::sanitizedFrame(*baseSegment).e3;
+	if (ADNFrameUtils::isNearlyZero(axis))
+		axis = ADNFrameUtils::identityFrame().e3;
+	return ADNFrameUtils::normalized(axis);
+
+}
+
 [[nodiscard]] ADNFrameUtils::Vec3 nucleotideTangent(const ADNNucleotide& nucleotide) {
 
 	SBPointer<ADNNucleotide> previous = nucleotide.GetPrev(true);
@@ -201,6 +216,24 @@ struct AtomPlacementMarkerScore {
 	double total{ std::numeric_limits<double>::infinity() };
 };
 
+struct OneSidedAtomPlacementCandidate {
+	ADNFrameUtils::Frame canonicalFrame;
+	TemplateToWorldTransform transform;
+	ublas::matrix<double> pairBasisMatrix;
+	ublas::vector<double> pairTranslation;
+	AtomPlacementMarkerScore markerScore;
+	double radialAlignment{ -1.0 };
+	bool valid{ false };
+	const char* label{ "" };
+};
+
+constexpr double oneSidedSameSideRadialAlignmentThreshold = 0.75;
+constexpr double oneSidedCenterTolerancePm = 150.0;
+
+[[nodiscard]] ADNFrameUtils::Vec3 projectedPerpendicularToAxis(
+	const ADNFrameUtils::Vec3& direction,
+	const ADNFrameUtils::Vec3& axis);
+
 [[nodiscard]] ADNFrameUtils::Vec3 matrixRowToVec3(const ublas::matrix<double>& matrix,
 	std::size_t row) {
 
@@ -255,46 +288,14 @@ struct AtomPlacementMarkerScore {
 
 }
 
-[[nodiscard]] bool markerScoreSupportsPairLevelPlacement(
-	const AtomPlacementMarkerScore& pairScore,
-	const AtomPlacementMarkerScore& localScore) {
-
-	constexpr double centerTolerancePm = 150.0;
-	if (!std::isfinite(pairScore.total))
-		return false;
-	if (!std::isfinite(localScore.total))
-		return true;
-
-	return
-		pairScore.total <= localScore.total * 1.25 ||
-		pairScore.center <= centerTolerancePm;
-
-}
-
-[[nodiscard]] bool oneSidedPairLevelPlacementMatchesMarkers(
+[[nodiscard]] AtomPlacementMarkerScore scoreLocalTemplateMarkerMapping(
 	SBPointer<ADNNucleotide> currentNucleotide,
 	SBPointer<ADNNucleotide> templateNucleotide,
-	const ublas::matrix<double>& pairBasisMatrix,
-	const ublas::vector<double>& pairTranslation,
-	const ADNFrameUtils::Frame& localFallbackFrame,
-	AtomPlacementMarkerScore& pairScore,
-	AtomPlacementMarkerScore& localScore) {
+	const ADNFrameUtils::Frame& localFallbackFrame) {
 
-	const auto pairLevelMapPoint = [&](const ADNFrameUtils::Vec3& templatePoint) {
-
-		return mapTemplatePointWithPairLevelTransform(
-			pairBasisMatrix,
-			pairTranslation,
-			templatePoint);
-
-	};
-	pairScore = scoreTemplateMarkerMapping(
-		currentNucleotide,
-		templateNucleotide,
-		pairLevelMapPoint);
-
+	AtomPlacementMarkerScore score;
 	if (currentNucleotide == nullptr || templateNucleotide == nullptr)
-		return markerScoreSupportsPairLevelPlacement(pairScore, localScore);
+		return score;
 
 	const ADNFrameUtils::Frame currentFrame =
 		nucleotidePlacementFrameFromCoarseGeometry(*currentNucleotide, localFallbackFrame);
@@ -315,12 +316,109 @@ struct AtomPlacementMarkerScore {
 		return worldCenter + fromLocalCoordinates(templateLocal, currentFrame);
 
 	};
-	localScore = scoreTemplateMarkerMapping(
+	return scoreTemplateMarkerMapping(
 		currentNucleotide,
 		templateNucleotide,
 		localMapPoint);
 
-	return markerScoreSupportsPairLevelPlacement(pairScore, localScore);
+}
+
+[[nodiscard]] double sameSideRadialAlignmentForMappedCenter(
+	SBPointer<ADNBaseSegment> baseSegment,
+	SBPointer<ADNNucleotide> currentNucleotide,
+	const ADNFrameUtils::Vec3& mappedCenter,
+	const ADNFrameUtils::Frame& fallbackFrame) {
+
+	if (baseSegment == nullptr || currentNucleotide == nullptr)
+		return -1.0;
+
+	const ADNFrameUtils::Vec3 axis =
+		atomPlacementBaseSegmentAxis(baseSegment, &fallbackFrame);
+	const ADNFrameUtils::Vec3 baseSegmentCenter =
+		positionToVec3(baseSegment->GetPosition());
+	const ADNFrameUtils::Vec3 currentRadial =
+		projectedPerpendicularToAxis(
+			positionToVec3(currentNucleotide->GetPosition()) - baseSegmentCenter,
+			axis);
+	const ADNFrameUtils::Vec3 mappedRadial =
+		projectedPerpendicularToAxis(mappedCenter - baseSegmentCenter, axis);
+	if (ADNFrameUtils::isNearlyZero(currentRadial) ||
+		ADNFrameUtils::isNearlyZero(mappedRadial))
+		return -1.0;
+
+	return ADNFrameUtils::dot(
+		ADNFrameUtils::normalized(currentRadial),
+		ADNFrameUtils::normalized(mappedRadial));
+
+}
+
+[[nodiscard]] bool markerScoreSupportsOneSidedPairLevelPlacement(
+	const AtomPlacementMarkerScore& pairScore,
+	const AtomPlacementMarkerScore& localScore,
+	double sameSideRadialAlignment) {
+
+	if (!std::isfinite(pairScore.total))
+		return false;
+	if (sameSideRadialAlignment <= oneSidedSameSideRadialAlignmentThreshold)
+		return false;
+	if (pairScore.center > oneSidedCenterTolerancePm)
+		return false;
+	if (!std::isfinite(localScore.total))
+		return true;
+
+	return
+		pairScore.total <= localScore.total * 2.0 ||
+		pairScore.center <= oneSidedCenterTolerancePm;
+
+}
+
+[[nodiscard]] OneSidedAtomPlacementCandidate makeOneSidedAtomPlacementCandidate(
+	SBPointer<ADNBaseSegment> baseSegment,
+	SBPointer<ADNNucleotide> currentNucleotide,
+	SBPointer<ADNNucleotide> templateNucleotide,
+	const ADNFrameUtils::Frame& canonicalFrame,
+	const ublas::vector<double>& pairTranslation,
+	const AtomPlacementMarkerScore& localScore,
+	const char* label) {
+
+	OneSidedAtomPlacementCandidate candidate;
+	candidate.label = label;
+	candidate.canonicalFrame = ADNFrameUtils::orthonormalized(canonicalFrame);
+	candidate.pairTranslation = pairTranslation;
+	if (baseSegment == nullptr || currentNucleotide == nullptr || templateNucleotide == nullptr)
+		return candidate;
+
+	candidate.transform =
+		makeTemplateToWorldTransform(*baseSegment, candidate.canonicalFrame);
+	candidate.pairBasisMatrix = candidate.transform.basisMatrix;
+
+	const auto pairLevelMapPoint = [&](const ADNFrameUtils::Vec3& templatePoint) {
+
+		return mapTemplatePointWithPairLevelTransform(
+			candidate.pairBasisMatrix,
+			candidate.pairTranslation,
+			templatePoint);
+
+	};
+	candidate.markerScore = scoreTemplateMarkerMapping(
+		currentNucleotide,
+		templateNucleotide,
+		pairLevelMapPoint);
+	const ADNFrameUtils::Vec3 mappedCenter =
+		pairLevelMapPoint(positionToVec3(templateNucleotide->GetPosition()));
+	candidate.radialAlignment =
+		sameSideRadialAlignmentForMappedCenter(
+			baseSegment,
+			currentNucleotide,
+			mappedCenter,
+			candidate.canonicalFrame);
+	candidate.valid =
+		markerScoreSupportsOneSidedPairLevelPlacement(
+			candidate.markerScore,
+			localScore,
+			candidate.radialAlignment);
+
+	return candidate;
 
 }
 
@@ -2139,27 +2237,146 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 				// or rewrite it. Cache local placement frames for this call so
 				// both nucleotide sides share the same non-mutating canonical
 				// frame.
-				const ADNFrameUtils::Frame canonicalFrame = cacheEntry.paired ?
-					ADNGeometrySynchronization::canonicalTemplateFrameFromCurrentGeometry(*baseSegment) :
-					oneSidedCanonicalTemplateFrame(baseSegment, nt);
-				const TemplateToWorldTransform transform =
-					makeTemplateToWorldTransform(*baseSegment, canonicalFrame);
-				cacheEntry.leftFrame = transform.leftFrame;
-				cacheEntry.rightFrame = transform.rightFrame;
+				if (cacheEntry.paired) {
 
-				if (ADNFrameUtils::isOrthonormalRightHanded(canonicalFrame)) {
+					const ADNFrameUtils::Frame canonicalFrame =
+						ADNGeometrySynchronization::canonicalTemplateFrameFromCurrentGeometry(*baseSegment);
+					const TemplateToWorldTransform transform =
+						makeTemplateToWorldTransform(*baseSegment, canonicalFrame);
+					cacheEntry.leftFrame = transform.leftFrame;
+					cacheEntry.rightFrame = transform.rightFrame;
 
-					// One-sided atom templates still live in ideal base-pair
-					// coordinates. Use the selected ideal pair as the center
-					// reference when the real complement is absent.
-					const NtPair idealPairForTransform = cacheEntry.paired ?
-						GetIdealBasePairNucleotides(left, right) :
-						selection.pair;
-					cacheEntry.pairBasisMatrix = transform.basisMatrix;
-					cacheEntry.pairTranslation =
+					if (ADNFrameUtils::isOrthonormalRightHanded(canonicalFrame)) {
+
+						const NtPair idealPairForTransform =
+							GetIdealBasePairNucleotides(left, right);
+						cacheEntry.pairBasisMatrix = transform.basisMatrix;
+						cacheEntry.pairTranslation =
+							ADNAuxiliary::SBPositionToUblas(baseSegment->GetPosition()) -
+							GetIdealPairCenterOfMass(idealPairForTransform);
+						cacheEntry.hasPairLevelTransform = true;
+
+					}
+
+				}
+				else {
+
+					// A one-sided pair-level transform is accepted only if the
+					// selected ideal nucleotide maps back onto the current
+					// nucleotide side. If the first frame maps it to the missing
+					// complementary side, try the e2-flipped frame before falling
+					// back to nucleotide-local placement.
+					const ADNFrameUtils::Frame canonicalFrame =
+						oneSidedCanonicalTemplateFrame(baseSegment, nt);
+					const TemplateToWorldTransform originalTransform =
+						makeTemplateToWorldTransform(*baseSegment, canonicalFrame);
+					cacheEntry.leftFrame = originalTransform.leftFrame;
+					cacheEntry.rightFrame = originalTransform.rightFrame;
+
+					const ublas::vector<double> pairTranslation =
 						ADNAuxiliary::SBPositionToUblas(baseSegment->GetPosition()) -
-						GetIdealPairCenterOfMass(idealPairForTransform);
-					cacheEntry.hasPairLevelTransform = true;
+						GetIdealPairCenterOfMass(selection.pair);
+					const ADNFrameUtils::Frame localFallbackFrame =
+						selection.side == ADNGeometrySynchronization::TemplateSide::Right ?
+						originalTransform.rightFrame :
+						originalTransform.leftFrame;
+					const AtomPlacementMarkerScore localScore =
+						scoreLocalTemplateMarkerMapping(
+							nt,
+							selection.nucleotide,
+							localFallbackFrame);
+
+					const OneSidedAtomPlacementCandidate originalCandidate =
+						makeOneSidedAtomPlacementCandidate(
+							baseSegment,
+							nt,
+							selection.nucleotide,
+							canonicalFrame,
+							pairTranslation,
+							localScore,
+							"original");
+					const ADNFrameUtils::Frame flippedFrame =
+						ADNFrameUtils::frameFromE2AndTangent(
+							-originalCandidate.canonicalFrame.e2,
+							originalCandidate.canonicalFrame.e3,
+							originalCandidate.canonicalFrame);
+					const OneSidedAtomPlacementCandidate flippedCandidate =
+						makeOneSidedAtomPlacementCandidate(
+							baseSegment,
+							nt,
+							selection.nucleotide,
+							flippedFrame,
+							pairTranslation,
+							localScore,
+							"e2-flipped");
+
+#if defined(ADN_DEBUG_GEOMETRY) && !defined(NDEBUG)
+					logOneSidedAtomPlacementCandidateDiagnostic(
+						originalCandidate.label,
+						baseSegment,
+						nt,
+						selection.side,
+						selection.pair,
+						selection.nucleotide,
+						originalCandidate.pairBasisMatrix,
+						originalCandidate.pairTranslation,
+						originalCandidate.markerScore,
+						localScore);
+					logOneSidedAtomPlacementCandidateDiagnostic(
+						flippedCandidate.label,
+						baseSegment,
+						nt,
+						selection.side,
+						selection.pair,
+						selection.nucleotide,
+						flippedCandidate.pairBasisMatrix,
+						flippedCandidate.pairTranslation,
+						flippedCandidate.markerScore,
+						localScore);
+#endif
+
+					OneSidedAtomPlacementCandidate bestCandidate;
+					bool hasBestCandidate = false;
+					const auto considerCandidate =
+						[&](const OneSidedAtomPlacementCandidate& candidate) {
+
+						if (!candidate.valid) return;
+						if (!hasBestCandidate ||
+							candidate.markerScore.total < bestCandidate.markerScore.total) {
+
+							bestCandidate = candidate;
+							hasBestCandidate = true;
+
+						}
+
+					};
+					considerCandidate(originalCandidate);
+					considerCandidate(flippedCandidate);
+
+					if (hasBestCandidate) {
+
+						cacheEntry.leftFrame = bestCandidate.transform.leftFrame;
+						cacheEntry.rightFrame = bestCandidate.transform.rightFrame;
+						cacheEntry.pairBasisMatrix = bestCandidate.pairBasisMatrix;
+						cacheEntry.pairTranslation = bestCandidate.pairTranslation;
+						cacheEntry.hasPairLevelTransform = true;
+
+					}
+#ifndef NDEBUG
+					else {
+
+						const AtomPlacementMarkerScore rejectedScore =
+							originalCandidate.markerScore.total <= flippedCandidate.markerScore.total ?
+							originalCandidate.markerScore :
+							flippedCandidate.markerScore;
+						logOneSidedPairLevelMarkerFallback(
+							baseSegment,
+							nt,
+							rejectedScore,
+							localScore);
+
+					}
+#endif
 
 				}
 				cachedPlacement = placementCache.emplace(baseSegment(), cacheEntry).first;
@@ -2169,93 +2386,7 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 			placement = cachedPlacement->second;
 			if (placement.hasPairLevelTransform) {
 
-				if (placement.paired) {
-
-					usePairLevelTransform = true;
-
-				}
-				else {
-
-					const ADNFrameUtils::Frame localFallbackFrame =
-						selection.side == ADNGeometrySynchronization::TemplateSide::Right ?
-						placement.rightFrame :
-						placement.leftFrame;
-#if defined(ADN_DEBUG_GEOMETRY) && !defined(NDEBUG)
-					{
-
-						AtomPlacementMarkerScore diagnosticPairScore;
-						AtomPlacementMarkerScore diagnosticLocalScore;
-						oneSidedPairLevelPlacementMatchesMarkers(
-							nt,
-							selection.nucleotide,
-							placement.pairBasisMatrix,
-							placement.pairTranslation,
-							localFallbackFrame,
-							diagnosticPairScore,
-							diagnosticLocalScore);
-						// Debug builds record the side decision before correction so
-						// wrong-side pair-level transforms are visible without changing
-						// placement behavior in this diagnostic phase.
-						logOneSidedAtomPlacementCandidateDiagnostic(
-							"current",
-							baseSegment,
-							nt,
-							selection.side,
-							selection.pair,
-							selection.nucleotide,
-							placement.pairBasisMatrix,
-							placement.pairTranslation,
-							diagnosticPairScore,
-							diagnosticLocalScore);
-
-					}
-#endif
-					if (ADNGeometrySynchronization::validateBaseSegmentGeometry(*baseSegment)) {
-
-						// When the base-segment frame agrees with current
-						// geometry, the one-sided nucleotide was reconstructed
-						// in base-segment space. Trust that context directly:
-						// ADNNucleotide::GetPosition() is derived from the
-						// backbone/side-chain markers and is not the same
-						// quantity as the ideal atom center of mass.
-						usePairLevelTransform = true;
-
-					}
-					else {
-
-						AtomPlacementMarkerScore pairScore;
-						AtomPlacementMarkerScore localScore;
-						// Pair-level placement preserves stacking, but
-						// one-sided segments can be malformed or manually
-						// edited. For stale geometry context, compare the
-						// mapped ideal markers against the current coarse
-						// center/backbone/side-chain markers before committing
-						// to the base-segment transform.
-						usePairLevelTransform = oneSidedPairLevelPlacementMatchesMarkers(
-							nt,
-							selection.nucleotide,
-							placement.pairBasisMatrix,
-							placement.pairTranslation,
-							localFallbackFrame,
-							pairScore,
-							localScore);
-						if (!usePairLevelTransform) {
-
-							localFallbackFromOneSidedBaseSegment = true;
-							frame = localFallbackFrame;
-#ifndef NDEBUG
-							logOneSidedPairLevelMarkerFallback(
-								baseSegment,
-								nt,
-								pairScore,
-								localScore);
-#endif
-
-						}
-
-					}
-
-				}
+				usePairLevelTransform = true;
 
 			}
 			else {
