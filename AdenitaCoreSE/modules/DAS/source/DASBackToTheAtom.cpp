@@ -2096,32 +2096,48 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 						selection.side == ADNGeometrySynchronization::TemplateSide::Right ?
 						placement.rightFrame :
 						placement.leftFrame;
-					AtomPlacementMarkerScore pairScore;
-					AtomPlacementMarkerScore localScore;
-					// Pair-level placement preserves stacking, but one-sided
-					// segments can be malformed or manually edited. Compare
-					// the mapped ideal markers against the current coarse
-					// center/backbone/side-chain markers before committing to
-					// the base-segment transform.
-					usePairLevelTransform = oneSidedPairLevelPlacementMatchesMarkers(
-						nt,
-						selection.nucleotide,
-						placement.pairBasisMatrix,
-						placement.pairTranslation,
-						localFallbackFrame,
-						pairScore,
-						localScore);
-					if (!usePairLevelTransform) {
+					if (ADNGeometrySynchronization::validateBaseSegmentGeometry(*baseSegment)) {
 
-						localFallbackFromOneSidedBaseSegment = true;
-						frame = localFallbackFrame;
-#ifndef NDEBUG
-						logOneSidedPairLevelMarkerFallback(
-							baseSegment,
+						// When the base-segment frame agrees with current
+						// geometry, the one-sided nucleotide was reconstructed
+						// in base-segment space. Trust that context directly:
+						// ADNNucleotide::GetPosition() is derived from the
+						// backbone/side-chain markers and is not the same
+						// quantity as the ideal atom center of mass.
+						usePairLevelTransform = true;
+
+					}
+					else {
+
+						AtomPlacementMarkerScore pairScore;
+						AtomPlacementMarkerScore localScore;
+						// Pair-level placement preserves stacking, but
+						// one-sided segments can be malformed or manually
+						// edited. For stale geometry context, compare the
+						// mapped ideal markers against the current coarse
+						// center/backbone/side-chain markers before committing
+						// to the base-segment transform.
+						usePairLevelTransform = oneSidedPairLevelPlacementMatchesMarkers(
 							nt,
+							selection.nucleotide,
+							placement.pairBasisMatrix,
+							placement.pairTranslation,
+							localFallbackFrame,
 							pairScore,
 							localScore);
+						if (!usePairLevelTransform) {
+
+							localFallbackFromOneSidedBaseSegment = true;
+							frame = localFallbackFrame;
+#ifndef NDEBUG
+							logOneSidedPairLevelMarkerFallback(
+								baseSegment,
+								nt,
+								pairScore,
+								localScore);
 #endif
+
+						}
 
 					}
 
