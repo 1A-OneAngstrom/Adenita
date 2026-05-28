@@ -1881,7 +1881,8 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 
 	ADNFrameUtils::Frame frame = ADNFrameAdapters::sanitizedFrame(*nt);
 	SBPointer<ADNBaseSegment> baseSegment = nt->GetBaseSegment();
-	bool usePairCenter = false;
+	bool usePairLevelTransform = false;
+	bool localFallbackFromOneSidedBaseSegment = false;
 	BaseSegmentAtomPlacementCache placement;
 	if (baseSegment != nullptr && selection.sideKnown) {
 
@@ -1930,26 +1931,31 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 			}
 
 			placement = cachedPlacement->second;
-			if (placement.paired) {
+			if (placement.hasPairLevelTransform) {
 
-				usePairCenter = true;
+				usePairLevelTransform = true;
 
 			}
 			else {
 
+				localFallbackFromOneSidedBaseSegment = !placement.paired;
 				frame = selection.side == ADNGeometrySynchronization::TemplateSide::Right ?
 					placement.rightFrame :
 					placement.leftFrame;
 #if defined(ADN_DEBUG_GEOMETRY) && !defined(NDEBUG)
-				SBPointer<ADNBasePair> basePair = static_cast<ADNBasePair*>(cell());
-				logOneSidedLocalFallbackDiagnostic(
-					baseSegment,
-					nt,
-					selection.side,
-					basePair->GetLeftNucleotide() != nullptr,
-					basePair->GetRightNucleotide() != nullptr,
-					placement.pairBasisMatrix.size1() != 0 && placement.pairBasisMatrix.size2() != 0,
-					placement.pairTranslation.size() != 0);
+				if (localFallbackFromOneSidedBaseSegment) {
+
+					SBPointer<ADNBasePair> basePair = static_cast<ADNBasePair*>(cell());
+					logOneSidedLocalFallbackDiagnostic(
+						baseSegment,
+						nt,
+						selection.side,
+						basePair->GetLeftNucleotide() != nullptr,
+						basePair->GetRightNucleotide() != nullptr,
+						placement.pairBasisMatrix.size1() != 0 && placement.pairBasisMatrix.size2() != 0,
+						placement.pairTranslation.size() != 0);
+
+				}
 #endif
 
 			}
@@ -1958,7 +1964,7 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 
 	}
 
-	if (usePairCenter) {
+	if (usePairLevelTransform) {
 
 		const auto generatedAtoms = nt->GetAtoms();
 		ublas::matrix<double> input(generatedAtoms.size(), 3);
@@ -1970,11 +1976,13 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 
 		}
 
-		// Paired atom templates are stored in ideal base-pair coordinates. Do
-		// not apply leftFrame/rightFrame here: that would reinterpret absolute
-		// pair coordinates as nucleotide-local coordinates and can collapse the
-		// right residue onto the left residue. Use the same pair-level transform
-		// as coarse SetNucleotidePosition.
+		// Paired and one-sided base-segment nucleotides both use ideal base-pair
+		// coordinates. A one-sided strand generates atoms only for the existing
+		// nucleotide, but the selected ideal nucleotide still belongs to an
+		// ideal pair coordinate system. Use the pair-level transform to preserve
+		// helical stacking and backbone continuity. The nucleotide-local
+		// transform below is only a fallback for isolated nucleotides without
+		// usable base-segment context.
 		ublas::matrix<double> output =
 			ADNVectorMath::ApplyTransformation(placement.pairBasisMatrix, input);
 		output = ADNVectorMath::Translate(output, placement.pairTranslation);
@@ -1991,11 +1999,9 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 
 	}
 
-	// Unpaired atom placement is nucleotide-local. The ideal atom deltas are
-	// stored in the selected template nucleotide's coordinate system, so convert
-	// them to that template frame before applying the current coarse geometry
-	// frame. This keeps backbone atoms on the backbone side and base atoms on the
-	// side-chain side for single strands.
+	// Fallback for isolated or malformed nucleotides. This preserves the local
+	// backbone/side-chain side assignment by mapping through nucleotide-local
+	// frames, but it does not enforce ideal helical stacking.
 	const ADNFrameUtils::Frame currentFrame =
 		nucleotidePlacementFrameFromCoarseGeometry(*nt, frame);
 	const ADNFrameUtils::Frame templateFrame =
@@ -2029,7 +2035,7 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 
 #if defined(ADN_DEBUG_GEOMETRY) && !defined(NDEBUG)
 	logUnpairedAtomPlacementDiagnostic(nt, selection.nucleotide, currentFrame, templateFrame);
-	if (baseSegment != nullptr && selection.sideKnown)
+	if (localFallbackFromOneSidedBaseSegment)
 		logOneSidedLocalFallbackGeometryDiagnostic(baseSegment, nt);
 #endif
 
