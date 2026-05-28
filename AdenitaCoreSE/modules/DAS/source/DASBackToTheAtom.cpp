@@ -1557,6 +1557,16 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 					makeTemplateToWorldTransform(*baseSegment, canonicalFrame);
 				cacheEntry.leftFrame = transform.leftFrame;
 				cacheEntry.rightFrame = transform.rightFrame;
+				if (cacheEntry.paired) {
+
+					cacheEntry.pairBasisMatrix = transform.basisMatrix;
+					cacheEntry.pairTranslation =
+						ADNAuxiliary::SBPositionToUblas(baseSegment->GetPosition()) -
+						GetIdealPairCenterOfMass(GetIdealBasePairNucleotides(
+							basePair->GetLeftNucleotide(),
+							basePair->GetRightNucleotide()));
+
+				}
 				cachedPlacement = placementCache.emplace(baseSegment(), cacheEntry).first;
 
 			}
@@ -1591,15 +1601,14 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 
 		}
 
-		const ADNFrameUtils::Frame sideFrame =
-			selection.side == ADNGeometrySynchronization::TemplateSide::Right ?
-			placement.rightFrame :
-			placement.leftFrame;
+		// Paired atom templates are stored in ideal base-pair coordinates. Do
+		// not apply leftFrame/rightFrame here: that would reinterpret absolute
+		// pair coordinates as nucleotide-local coordinates and can collapse the
+		// right residue onto the left residue. Use the same pair-level transform
+		// as coarse SetNucleotidePosition.
 		ublas::matrix<double> output =
-			ADNVectorMath::ApplyTransformation(frameColumnsToUblas(sideFrame), input);
-		output = ADNVectorMath::Translate(output,
-			ADNAuxiliary::SBPositionToUblas(baseSegment->GetPosition()) -
-			GetIdealPairCenterOfMass(selection.pair));
+			ADNVectorMath::ApplyTransformation(placement.pairBasisMatrix, input);
+		output = ADNVectorMath::Translate(output, placement.pairTranslation);
 
 		row = 0;
 		SB_FOR(SBPointer<ADNAtom> atom, generatedAtoms) {

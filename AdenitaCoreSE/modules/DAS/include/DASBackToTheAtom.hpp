@@ -96,6 +96,8 @@ private:
     struct BaseSegmentAtomPlacementCache {
         ADNFrameUtils::Frame leftFrame;
         ADNFrameUtils::Frame rightFrame;
+        ublas::matrix<double> pairBasisMatrix;
+        ublas::vector<double> pairTranslation;
         bool paired{ false };
     };
 
