@@ -2756,6 +2756,46 @@ void testRotatedSingleStrandAtomGenerationMapsBackboneAndSidechainMarkers() {
 
 }
 
+void testSingleStrandAtomGenerationPreservesTemplateStacking() {
+
+	SingleStrandAtomicMarkerFixture fixture = createSingleStrandAtomicMarkerFixture();
+
+	DASBackToTheAtom btta;
+	for (SBPointer<ADNBaseSegment> baseSegment : fixture.baseSegments)
+		btta.SetNucleotidePosition(baseSegment, false);
+
+	btta.GenerateAllAtomModel(fixture.part, false);
+
+	for (std::size_t index = 1; index < fixture.nucleotides.size(); ++index) {
+
+		SBPointer<ADNNucleotide> previous = fixture.nucleotides[index - 1];
+		SBPointer<ADNNucleotide> nucleotide = fixture.nucleotides[index];
+		const ADNFrameUtils::Vec3 previousNormal = sidechainPlaneNormal(previous);
+		const ADNFrameUtils::Vec3 normal = sidechainPlaneNormal(nucleotide);
+		requireTrue("single strand stacked previous base plane normal",
+			!ADNFrameUtils::isNearlyZero(previousNormal),
+			"Expected generated previous base atoms to define a plane.");
+		requireTrue("single strand stacked base plane normal",
+			!ADNFrameUtils::isNearlyZero(normal),
+			"Expected generated base atoms to define a plane.");
+
+		const double normalAlignment =
+			std::abs(ADNFrameUtils::dot(previousNormal, normal));
+		requireTrue("single strand generated base planes remain stacked",
+			normalAlignment > 0.5,
+			"Expected consecutive one-sided generated base planes to stay aligned, got " +
+			std::to_string(normalAlignment) + ".");
+
+		const double backboneLink = pToPreviousO3Distance(nucleotide);
+		requireTrue("single strand generated P-O3 distance",
+			backboneLink >= 100.0 && backboneLink <= 250.0,
+			"Expected one-sided generated P to previous O3' distance to remain plausible, got " +
+			std::to_string(backboneLink) + " pm.");
+
+	}
+
+}
+
 void testAllAtomGenerationPreservesSynchronizedNucleotideGeometry() {
 
 	AtomicGenerationFixture fixture = createAtomicGenerationFixture();
@@ -4241,6 +4281,7 @@ int main() {
 	testSingleStrandAtomGenerationUsesExistingNucleotideCenter();
 	testSingleStrandAtomGenerationMapsBackboneAndSidechainMarkers();
 	testRotatedSingleStrandAtomGenerationMapsBackboneAndSidechainMarkers();
+	testSingleStrandAtomGenerationPreservesTemplateStacking();
 	testAllAtomGenerationPreservesSynchronizedNucleotideGeometry();
 	testAllAtomGenerationAlignsBasePlanesAndBackboneAfterRigidTransform();
 	testCircularSingleStrandWrapsWithoutChangingSequenceOrder();
