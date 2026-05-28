@@ -1462,6 +1462,53 @@ void testTemplateFramePreparationTargetStateIsStable() {
 
 }
 
+void testTemplateFrameRoundTripsAcrossSidesAndPhases() {
+
+	using namespace ADNFrameUtils;
+
+	const Frame frames[] = {
+		identityFrame(),
+		frameFromE2AndTangent(Vec3{ 0.2, 0.8, 0.4 }, Vec3{ 0.7, -0.2, 1.0 }),
+		frameFromE2AndTangent(Vec3{ -0.4, 0.3, 0.9 }, Vec3{ 1.0, 0.6, -0.1 })
+	};
+	const double phases[] = { 0.0, 0.3, 1.0, -0.75 };
+	const ADNGeometrySynchronization::TemplateSide sides[] = {
+		ADNGeometrySynchronization::TemplateSide::Left,
+		ADNGeometrySynchronization::TemplateSide::Right
+	};
+
+	for (const Frame& canonical : frames) {
+		for (double phase : phases) {
+			for (ADNGeometrySynchronization::TemplateSide side : sides) {
+
+				const Frame sideFrame =
+					ADNGeometrySynchronization::canonicalBaseSegmentFrameToNucleotideSideFrame(
+						canonical,
+						side,
+						phase);
+				const Frame roundTrip =
+					ADNGeometrySynchronization::nucleotideSideFrameToCanonicalBaseSegmentFrame(
+						sideFrame,
+						side,
+						phase);
+
+				requireFrameNear("template frame multi round trip", roundTrip, canonical, 1.0e-9);
+				requireTrue("template frame multi side handedness",
+					isOrthonormalRightHanded(sideFrame, 1.0e-9),
+					"Expected side frame conversion to preserve handedness.");
+				requireTrue("template frame multi round-trip handedness",
+					isOrthonormalRightHanded(roundTrip, 1.0e-9),
+					"Expected recovered canonical frame to preserve handedness.");
+				requireTrue("template frame multi axis direction",
+					dot(normalized(roundTrip.e3), normalized(canonical.e3)) > 0.999,
+					"Expected side-frame round trip not to reverse the canonical axis.");
+
+			}
+		}
+	}
+
+}
+
 void testTemplateFrameHandednessAcrossPhases() {
 
 	using namespace ADNFrameUtils;
@@ -2219,6 +2266,13 @@ void testComplementPlacementPreservesExistingNucleotideGeometry() {
 		std::abs(anchorSideProjection) > 1.0,
 		"Expected created complement to separate along the preserved anchor side, got projection " +
 		std::to_string(anchorSideProjection) + ".");
+	const ADNFrameUtils::Vec3 existingRadial =
+		vecFromPosition(existing->GetPosition()) - vecFromPosition(baseSegment->GetPosition());
+	const ADNFrameUtils::Vec3 createdRadial =
+		vecFromPosition(created->GetPosition()) - vecFromPosition(baseSegment->GetPosition());
+	requireTrue("complement placement opposite radial side",
+		ADNFrameUtils::dot(existingRadial, createdRadial) < 0.0,
+		"Expected created complement to land on the opposite side of the base-segment center.");
 
 }
 
@@ -2287,6 +2341,13 @@ void testComplementPlacementUsesRightAnchorSide() {
 		std::abs(rightAnchorSideProjection) > 1.0,
 		"Expected right-anchored complement to separate along the preserved anchor side, got projection " +
 		std::to_string(rightAnchorSideProjection) + ".");
+	const ADNFrameUtils::Vec3 existingRadial =
+		vecFromPosition(existing->GetPosition()) - vecFromPosition(baseSegment->GetPosition());
+	const ADNFrameUtils::Vec3 createdRadial =
+		vecFromPosition(created->GetPosition()) - vecFromPosition(baseSegment->GetPosition());
+	requireTrue("right anchor complement opposite radial side",
+		ADNFrameUtils::dot(existingRadial, createdRadial) < 0.0,
+		"Expected right-anchored complement to land on the opposite side of the base-segment center.");
 
 }
 
@@ -2403,6 +2464,22 @@ void testAllAtomGenerationPreservesSynchronizedNucleotideGeometry() {
 		std::abs(ADNFrameUtils::dot(leftNormal, rightNormal)) > 0.95,
 		"Expected generated paired bases to be coplanar.");
 
+	const ADNFrameUtils::Vec3 leftAtomCenter = averageGeneratedAtomPosition(fixture.left);
+	const ADNFrameUtils::Vec3 rightAtomCenter = averageGeneratedAtomPosition(fixture.right);
+	const ADNFrameUtils::Vec3 midpoint = (leftAtomCenter + rightAtomCenter) / 2.0;
+	const ADNFrameUtils::Vec3 baseCenter = vecFromPosition(fixture.baseSegment->GetPosition());
+	const double atomCenterSeparation = ADNFrameUtils::norm(leftAtomCenter - rightAtomCenter);
+	const double midpointDistance = ADNFrameUtils::norm(midpoint - baseCenter);
+	const double maxResidueCenterDistance = std::max(
+		ADNFrameUtils::norm(leftAtomCenter - baseCenter),
+		ADNFrameUtils::norm(rightAtomCenter - baseCenter));
+	requireTrue("all atom generation paired atom centers distinct",
+		atomCenterSeparation > 100.0,
+		"Expected paired residue atom centers to remain distinct.");
+	requireTrue("all atom generation paired atom midpoint",
+		midpointDistance < maxResidueCenterDistance,
+		"Expected paired residue atom centers to bracket the base-segment center.");
+
 }
 
 void testAllAtomGenerationAlignsBasePlanesAndBackboneAfterRigidTransform() {
@@ -2469,6 +2546,22 @@ void testAllAtomGenerationAlignsBasePlanesAndBackboneAfterRigidTransform() {
 	requireTrue("all atom axis generation base planes follow axis",
 		std::min(std::abs(dot(leftNormal, axis)), std::abs(dot(rightNormal, axis))) > 0.85,
 		"Expected generated base-plane normals to follow the local base-segment axis.");
+
+	const Vec3 leftAtomCenter = averageGeneratedAtomPosition(left);
+	const Vec3 rightAtomCenter = averageGeneratedAtomPosition(right);
+	const Vec3 baseCenter = vecFromPosition(fixture.baseSegment->GetPosition());
+	const Vec3 midpoint = (leftAtomCenter + rightAtomCenter) / 2.0;
+	const double atomCenterSeparation = norm(leftAtomCenter - rightAtomCenter);
+	const double midpointDistance = norm(midpoint - baseCenter);
+	const double maxResidueCenterDistance = std::max(
+		norm(leftAtomCenter - baseCenter),
+		norm(rightAtomCenter - baseCenter));
+	requireTrue("all atom axis generation paired atom centers distinct",
+		atomCenterSeparation > 100.0,
+		"Expected transformed paired residue atom centers to remain distinct.");
+	requireTrue("all atom axis generation paired atom midpoint",
+		midpointDistance < maxResidueCenterDistance,
+		"Expected transformed paired residue atom centers to bracket the base-segment center.");
 
 	const double leftBackboneLink = pToPreviousO3Distance(left);
 	const double rightBackboneLink = pToPreviousO3Distance(right);
@@ -3772,6 +3865,7 @@ int main() {
 	testTemplateFramePreparationRoundTripLeftSide();
 	testTemplateFramePreparationRoundTripRightSide();
 	testTemplateFramePreparationTargetStateIsStable();
+	testTemplateFrameRoundTripsAcrossSidesAndPhases();
 	testTemplateFrameHandednessAcrossPhases();
 	testTemplateFrameBasePlaneNormalsStayCoplanar();
 	testCanonicalTemplateFrameFromCurrentGeometryTracksBaseSegmentAxis();
