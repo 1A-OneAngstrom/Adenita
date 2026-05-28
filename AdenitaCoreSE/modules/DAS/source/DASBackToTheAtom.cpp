@@ -706,13 +706,17 @@ void DASBackToTheAtom::PlaceNucleotideFromTemplate(SBPointer<ADNBaseSegment> bs,
 
 	const NtPair pair = GetIdealBasePairNucleotides(left, right);
 	const bool placeRight = bs->IsRight(nt);
+	const bool placeLeft = bs->IsLeft(nt);
+	if (!placeLeft && !placeRight) return;
 	SBPointer<ADNNucleotide> templateNucleotide = placeRight ? pair.second : pair.first;
 	if (templateNucleotide == nullptr) return;
 
-	const ADNFrameUtils::Frame canonicalFrame =
+	// This path is used by Create Base Pair. It preserves the existing anchor
+	// nucleotide and places only the newly-created complementary nucleotide.
+	// Ideal pair coordinates use the pair-level transform; side-specific frames
+	// are stored on the nucleotide only after placement.
+	ADNFrameUtils::Frame canonicalFrame =
 		oneSidedCanonicalTemplateFrame(bs, nt->GetPair());
-	const TemplateToWorldTransform transform =
-		makeTemplateToWorldTransform(*bs, canonicalFrame);
 
 	ublas::vector<double> translation =
 		ADNAuxiliary::SBPositionToUblas(bs->GetPosition()) -
@@ -723,9 +727,71 @@ void DASBackToTheAtom::PlaceNucleotideFromTemplate(SBPointer<ADNBaseSegment> bs,
 	ublas::row(input, 1) = ADNAuxiliary::SBPositionToUblas(templateNucleotide->GetBackbonePosition());
 	ublas::row(input, 2) = ADNAuxiliary::SBPositionToUblas(templateNucleotide->GetSidechainPosition());
 
-	ublas::matrix<double> output =
-		ADNVectorMath::ApplyTransformation(transform.basisMatrix, input);
-	output = ADNVectorMath::Translate(output, translation);
+	TemplateToWorldTransform transform;
+	ublas::matrix<double> output;
+	const auto applyPlacement = [&]() {
+
+		transform = makeTemplateToWorldTransform(*bs, canonicalFrame);
+		output = ADNVectorMath::ApplyTransformation(transform.basisMatrix, input);
+		output = ADNVectorMath::Translate(output, translation);
+
+	};
+
+	const auto outputPosition = [&]() {
+
+		return ADNFrameUtils::Vec3{
+			output(0, 0),
+			output(0, 1),
+			output(0, 2)
+		};
+
+	};
+
+	const auto placementIsOnOppositeSide = [&]() {
+
+		SBPointer<ADNNucleotide> anchor = nt->GetPair();
+		if (anchor == nullptr) return true;
+
+		const ADNFrameUtils::Vec3 center = positionToVec3(bs->GetPosition());
+		const ADNFrameUtils::Vec3 axis =
+			ADNFrameUtils::normalized(canonicalFrame.e3);
+		const ADNFrameUtils::Vec3 pairDirection =
+			projectedPerpendicularToAxis(
+				ADNFrameUtils::rotated(
+					ADNFrameUtils::rotationAroundAxis(axis, transform.phaseRadians),
+					canonicalFrame.e2),
+				axis);
+		if (ADNFrameUtils::isNearlyZero(pairDirection)) return true;
+
+		const ADNFrameUtils::Vec3 anchorRadial =
+			projectedPerpendicularToAxis(positionToVec3(anchor->GetPosition()) - center, axis);
+		const ADNFrameUtils::Vec3 targetRadial =
+			projectedPerpendicularToAxis(outputPosition() - center, axis);
+		if (ADNFrameUtils::isNearlyZero(anchorRadial)) return true;
+		if (ADNFrameUtils::isNearlyZero(targetRadial)) return false;
+
+		const double anchorSign = ADNFrameUtils::dot(anchorRadial, pairDirection);
+		const double targetSign = ADNFrameUtils::dot(targetRadial, pairDirection);
+		if (placeRight)
+			return anchorSign < 0.0 && targetSign > 0.0;
+		return anchorSign > 0.0 && targetSign < 0.0;
+
+	};
+
+	applyPlacement();
+	if (!placementIsOnOppositeSide()) {
+
+		canonicalFrame = ADNFrameUtils::frameFromE2AndTangent(
+			-canonicalFrame.e2,
+			canonicalFrame.e3,
+			canonicalFrame);
+		applyPlacement();
+#ifndef NDEBUG
+		if (!placementIsOnOppositeSide())
+			ADNLogger::LogDebug("PlaceNucleotideFromTemplate: complementary nucleotide remains on the anchor side after pair-direction retry.");
+#endif
+
+	}
 
 	ADNFrameAdapters::setFrame(*nt, placeRight ? transform.rightFrame : transform.leftFrame);
 	nt->SetPosition(UblasToSBPosition(ublas::row(output, 0)));
