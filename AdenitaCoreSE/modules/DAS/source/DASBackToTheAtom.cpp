@@ -202,38 +202,134 @@ struct TemplateToWorldTransform {
 	ADNFrameUtils::Vec3 axis = baseSegmentTangent(baseSegment);
 	if (ADNFrameUtils::isNearlyZero(axis))
 		axis = fallback.e3;
+	if (ADNFrameUtils::isNearlyZero(axis))
+		axis = ADNFrameUtils::identityFrame().e3;
+	axis = ADNFrameUtils::normalized(axis);
 
-	const ADNGeometrySynchronization::TemplateSide side =
-		templateSideForNucleotide(baseSegment, anchor);
-	const ADNFrameUtils::Vec3 sideAxis =
-		side == ADNGeometrySynchronization::TemplateSide::Right ? -axis : axis;
-	ADNFrameUtils::Vec3 radial =
-		positionToVec3(anchor->GetSidechainPosition()) -
-		positionToVec3(anchor->GetBackbonePosition());
-	if (ADNFrameUtils::isNearlyZero(radial))
-		radial = side == ADNGeometrySynchronization::TemplateSide::Right ? -fallback.e2 : fallback.e2;
-
-	// Complementary-strand creation happens after the new nucleotide has been
-	// attached to the base pair but before it has meaningful geometry. Derive
-	// the temporary template frame only from the preserved strand so the new
-	// placeholder cannot pull the original strand into an untwisted state. The
-	// frame below is a side-specific nucleotide frame, not the stored
-	// base-segment frame. Passing the actual side avoids the hidden sign flips
-	// that mirror or flatten right-anchored complementary placement.
-	ADNFrameUtils::Vec3 radialInBasePlane = projectedPerpendicularToAxis(radial, axis);
-	if (ADNFrameUtils::isNearlyZero(radialInBasePlane))
-		radialInBasePlane = projectedPerpendicularToAxis(
-			side == ADNGeometrySynchronization::TemplateSide::Right ? -fallback.e2 : fallback.e2,
-			axis);
-	if (ADNFrameUtils::isNearlyZero(radialInBasePlane))
+	const bool anchorIsLeft = baseSegment->IsLeft(anchor);
+	const bool anchorIsRight = baseSegment->IsRight(anchor);
+	if (!anchorIsLeft && !anchorIsRight)
 		return fallback;
 
-	const ADNFrameUtils::Frame anchorSideFrame =
-		ADNFrameUtils::frameFromE2AndTangent(radialInBasePlane, sideAxis, fallback);
-	return ADNGeometrySynchronization::nucleotideSideFrameToCanonicalBaseSegmentFrame(
-		anchorSideFrame,
-		side,
-		ADNGeometrySynchronization::baseSegmentReconstructionPhaseRadians(*baseSegment));
+	const double phaseRadians =
+		ADNGeometrySynchronization::baseSegmentReconstructionPhaseRadians(*baseSegment);
+	const ADNFrameUtils::Mat3 phaseRotation =
+		ADNFrameUtils::rotationAroundAxis(axis, phaseRadians);
+	const ADNFrameUtils::Mat3 undoPhaseRotation =
+		ADNFrameUtils::rotationAroundAxis(axis, -phaseRadians);
+
+	const auto currentDirectionFromCanonical = [&](const ADNFrameUtils::Vec3& direction) {
+
+		return projectedPerpendicularToAxis(
+			ADNFrameUtils::rotated(phaseRotation, direction),
+			axis);
+
+	};
+
+	const auto canonicalDirectionFromCurrent = [&](const ADNFrameUtils::Vec3& direction) {
+
+		return projectedPerpendicularToAxis(
+			ADNFrameUtils::rotated(undoPhaseRotation, direction),
+			axis);
+
+	};
+
+	const auto anchorSideMatches = [&](const ADNFrameUtils::Vec3& canonicalDirection) {
+
+		const ADNFrameUtils::Vec3 currentDirection =
+			currentDirectionFromCanonical(canonicalDirection);
+		const ADNFrameUtils::Vec3 centerToAnchor =
+			projectedPerpendicularToAxis(
+				positionToVec3(anchor->GetPosition()) -
+				positionToVec3(baseSegment->GetPosition()),
+				axis);
+		if (ADNFrameUtils::isNearlyZero(currentDirection) ||
+			ADNFrameUtils::isNearlyZero(centerToAnchor))
+			return true;
+
+		const double sideSign = ADNFrameUtils::dot(currentDirection, centerToAnchor);
+		return (anchorIsLeft && sideSign <= 0.0) ||
+			(anchorIsRight && sideSign >= 0.0);
+
+	};
+
+	const ADNFrameUtils::Vec3 centerToAnchor =
+		projectedPerpendicularToAxis(
+			positionToVec3(anchor->GetPosition()) -
+			positionToVec3(baseSegment->GetPosition()),
+			axis);
+	const ADNFrameUtils::Vec3 currentPairDirectionFromAnchor =
+		anchorIsLeft ? -centerToAnchor : centerToAnchor;
+
+	ADNFrameUtils::Vec3 e2;
+	const ADNFrameUtils::Frame storedFrame =
+		ADNFrameAdapters::frameFromOrientable(*baseSegment);
+	if (ADNFrameUtils::isOrthonormalRightHanded(storedFrame)) {
+
+		e2 = projectedPerpendicularToAxis(storedFrame.e2, axis);
+		if (!ADNFrameUtils::isNearlyZero(e2) && !anchorSideMatches(e2))
+			e2 = -e2;
+
+		if (!ADNFrameUtils::isNearlyZero(e2) &&
+			!ADNFrameUtils::isNearlyZero(currentPairDirectionFromAnchor)) {
+
+			const ADNFrameUtils::Vec3 currentFromStored =
+				currentDirectionFromCanonical(e2);
+			const double alignment =
+				ADNFrameUtils::dot(
+					ADNFrameUtils::normalized(currentFromStored),
+					ADNFrameUtils::normalized(currentPairDirectionFromAnchor));
+			if (alignment < 0.5)
+				e2 = ADNFrameUtils::Vec3{};
+
+		}
+
+	}
+
+	if (ADNFrameUtils::isNearlyZero(e2) &&
+		!ADNFrameUtils::isNearlyZero(currentPairDirectionFromAnchor))
+		e2 = canonicalDirectionFromCurrent(currentPairDirectionFromAnchor);
+
+	// This helper reconstructs a phase-neutral base-segment template frame from
+	// one existing nucleotide. The canonical e2 axis is the left-to-right
+	// base-pair direction. Do not use sidechain - backbone directly as this
+	// axis: that vector is nucleotide-local and usually points between the
+	// outer backbone and the inner base. Using it as the pair direction places
+	// the complementary nucleotide on the wrong side.
+	if (ADNFrameUtils::isNearlyZero(e2)) {
+
+		ADNFrameUtils::Vec3 localRadial =
+			positionToVec3(anchor->GetSidechainPosition()) -
+			positionToVec3(anchor->GetBackbonePosition());
+		localRadial = projectedPerpendicularToAxis(localRadial, axis);
+		if (!ADNFrameUtils::isNearlyZero(localRadial)) {
+
+			ADNFrameUtils::Vec3 currentPairDirection =
+				anchorIsLeft ? localRadial : -localRadial;
+			if (!ADNFrameUtils::isNearlyZero(centerToAnchor)) {
+
+				const double sideSign =
+					ADNFrameUtils::dot(currentPairDirection, centerToAnchor);
+				if ((anchorIsLeft && sideSign > 0.0) ||
+					(anchorIsRight && sideSign < 0.0))
+					currentPairDirection = -currentPairDirection;
+
+			}
+			e2 = canonicalDirectionFromCurrent(currentPairDirection);
+
+		}
+
+	}
+
+	if (ADNFrameUtils::isNearlyZero(e2))
+		e2 = projectedPerpendicularToAxis(fallback.e2, axis);
+	if (ADNFrameUtils::isNearlyZero(e2))
+		return fallback;
+
+	if (!anchorSideMatches(e2))
+		e2 = -e2;
+
+	return ADNFrameUtils::frameFromE2AndTangent(e2, axis, fallback);
 
 }
 
