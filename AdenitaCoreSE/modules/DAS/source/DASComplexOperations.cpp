@@ -236,6 +236,10 @@ void DASOperations::AddComplementaryStrands(ADNNanorobot* nanorobot, SBPointerIn
 		if (nt->GetPair() == nullptr) {
 			if (prevPart != part) {
 				if (ss != nullptr) {
+					// Complementary placement must receive only the newly-created
+					// nucleotides collected below. Passing preserved anchors here
+					// would let reconstruction move the side that Create Base Pair
+					// is expected to keep fixed.
 					btta.SetPositionsForNewNucleotides(prevPart, nucleotides,
 						DASBackToTheAtom::NewNucleotidePlacementMode::PositionInputNucleotidesOnly);
 					if (SAMSON::isHolding()) SAMSON::hold(ss());
@@ -279,6 +283,9 @@ void DASOperations::AddComplementaryStrands(ADNNanorobot* nanorobot, SBPointerIn
 
 			if (!selectedNucleotides.hasIndex(next())) {
 				if (ss != nullptr) {
+					// This batch contains only new complementary nucleotides, so
+					// SetPositionsForNewNucleotides can place the missing side
+					// without re-centering the selected anchor strand.
 					btta.SetPositionsForNewNucleotides(part, nucleotides,
 						DASBackToTheAtom::NewNucleotidePlacementMode::PositionInputNucleotidesOnly);
 					if (SAMSON::isHolding()) SAMSON::hold(ss());
@@ -293,6 +300,9 @@ void DASOperations::AddComplementaryStrands(ADNNanorobot* nanorobot, SBPointerIn
 		else {
 			// if ss has nucleotides create and start a new one
 			if (ss != nullptr) {
+				// Flush only the newly-created complementary nucleotides before
+				// starting another strand segment; selected nucleotides are the
+				// geometric anchors and are intentionally not in this indexer.
 				btta.SetPositionsForNewNucleotides(part, nucleotides,
 					DASBackToTheAtom::NewNucleotidePlacementMode::PositionInputNucleotidesOnly);
 				if (SAMSON::isHolding()) SAMSON::hold(ss());
