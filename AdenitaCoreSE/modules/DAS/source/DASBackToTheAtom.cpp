@@ -535,13 +535,10 @@ constexpr double oneSidedCenterTolerancePm = 150.0;
 	const ADNFrameUtils::Vec3 currentPairDirectionFromAnchor =
 		anchorIsLeft ? -centerToAnchor : centerToAnchor;
 
-	// One-sided complementary placement must use the current anchor nucleotide
-	// geometry as the authoritative source of the pair direction. The
-	// persistent base-segment frame of a one-sided segment may come from the
-	// nucleotide-local sidechain/backbone frame after synchronization,
-	// especially after SAMSON move or Rotate DNA. That frame is useful for
-	// persistence and editing, but it must not override center-to-anchor
-	// geometry when reconstructing the missing complementary nucleotide.
+	// For one-sided reconstruction, current anchor geometry is the authoritative
+	// source of the occupied radial side. A stored one-sided base-segment frame
+	// may come from nucleotide-local geometry after synchronization and can be
+	// phase-flipped for atom placement, so it is only a degenerate fallback.
 	ADNFrameUtils::Vec3 e2;
 	if (!ADNFrameUtils::isNearlyZero(currentPairDirectionFromAnchor))
 		e2 = canonicalDirectionFromCurrent(currentPairDirectionFromAnchor);
@@ -1158,6 +1155,39 @@ void logOneSidedLocalFallbackGeometryDiagnostic(SBPointer<ADNBaseSegment> baseSe
 	if (value < -1.0) return -1.0;
 	if (value > 1.0) return 1.0;
 	return value;
+
+}
+
+struct GeneratedResidueCenter {
+	ADNFrameUtils::Vec3 center;
+	bool available{ false };
+};
+
+[[nodiscard]] GeneratedResidueCenter generatedResidueCenter(
+	SBPointer<ADNNucleotide> nucleotide) {
+
+	GeneratedResidueCenter result;
+	if (nucleotide == nullptr) return result;
+
+	SBPointer<ADNAtom> backboneCenter = nucleotide->GetBackboneCenterAtom();
+	SBPointer<ADNAtom> sidechainCenter = nucleotide->GetSidechainCenterAtom();
+	std::size_t count = 0;
+	auto atoms = nucleotide->GetAtoms();
+	SB_FOR(SBPointer<ADNAtom> atom, atoms) {
+
+		if (atom == nullptr) continue;
+		if (backboneCenter != nullptr && atom() == backboneCenter()) continue;
+		if (sidechainCenter != nullptr && atom() == sidechainCenter()) continue;
+
+		result.center = result.center + positionToFrameVec3(atom->getPosition());
+		++count;
+
+	}
+
+	if (count == 0) return result;
+	result.center = result.center / static_cast<double>(count);
+	result.available = true;
+	return result;
 
 }
 #endif
@@ -2216,18 +2246,18 @@ DASBackToTheAtom::AtomTemplateSelection DASBackToTheAtom::SelectAtomTemplateForN
 				!baseSegment->IsRight(nt));
 		if (sideMismatch)
 			ADNLogger::LogDebug(
-				"Atom template side mismatch: current nucleotide side does not match selected template side.");
+				std::string("Atom template side mismatch: current nucleotide side does not match selected template side."));
 
 	}
 	if (selection.side == ADNGeometrySynchronization::TemplateSide::Left &&
 		selection.nucleotide != selection.pair.first)
-		ADNLogger::LogDebug("Atom template side mismatch: expected pair.first.");
+		ADNLogger::LogDebug(std::string("Atom template side mismatch: expected pair.first."));
 	if (selection.side == ADNGeometrySynchronization::TemplateSide::Right &&
 		selection.nucleotide != selection.pair.second)
-		ADNLogger::LogDebug("Atom template side mismatch: expected pair.second.");
+		ADNLogger::LogDebug(std::string("Atom template side mismatch: expected pair.second."));
 	if (selection.nucleotide != nullptr &&
 		selection.nucleotide->getNucleotideType() != nucleotideType)
-		ADNLogger::LogDebug("Atom template type mismatch: selected ideal nucleotide has a different base type.");
+		ADNLogger::LogDebug(std::string("Atom template type mismatch: selected ideal nucleotide has a different base type."));
 #endif
 
 	return selection;
@@ -2460,10 +2490,11 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 		// Paired and one-sided base-segment nucleotides both use ideal base-pair
 		// coordinates. A one-sided strand generates atoms only for the existing
 		// nucleotide, but the selected ideal nucleotide still belongs to an
-		// ideal pair coordinate system. Use the pair-level transform to preserve
-		// helical stacking and backbone continuity. The nucleotide-local
-		// transform below is only a fallback for isolated nucleotides without
-		// usable base-segment context.
+		// ideal pair coordinate system. One-sided cache entries reach this path
+		// only after same-side validation, so the pair-level transform can
+		// preserve helical stacking without moving atoms onto the missing strand.
+		// The nucleotide-local transform below is the fallback for isolated or
+		// invalid one-sided contexts.
 		ublas::matrix<double> output =
 			ADNVectorMath::ApplyTransformation(placement.pairBasisMatrix, input);
 		output = ADNVectorMath::Translate(output, placement.pairTranslation);
@@ -2794,6 +2825,54 @@ bool DASBackToTheAtom::ValidateGeneratedSingleStrandAtomGeometry(SBPointer<ADNPa
 					std::to_string(baseSegment->GetNumber()) + " nucleotide " +
 					nucleotide->getName() + ": ring-normal alignment " +
 					std::to_string(normalAlignment) + ".");
+
+			}
+
+		}
+
+		const ADNFrameUtils::Vec3 axis = localBaseSegmentAxis(baseSegment);
+		const ADNFrameUtils::Vec3 baseSegmentCenter =
+			positionToFrameVec3(baseSegment->GetPosition());
+		const ADNFrameUtils::Vec3 nucleotideCenter =
+			positionToFrameVec3(nucleotide->GetPosition());
+		const ADNFrameUtils::Vec3 currentRadial =
+			projectedPerpendicularToAxis(nucleotideCenter - baseSegmentCenter, axis);
+		const GeneratedResidueCenter residueCenter =
+			generatedResidueCenter(nucleotide);
+		if (residueCenter.available &&
+			!ADNFrameUtils::isNearlyZero(currentRadial)) {
+
+			const ADNFrameUtils::Vec3 atomResidueRadial =
+				projectedPerpendicularToAxis(
+					residueCenter.center - baseSegmentCenter,
+					axis);
+			if (!ADNFrameUtils::isNearlyZero(atomResidueRadial)) {
+
+				// A one-sided atomic residue must remain on the occupied coarse
+				// side. If its center is radially closer to the hypothetical
+				// complement, the pair-level transform selected the wrong side.
+				const double sideAlignment = ADNFrameUtils::dot(
+					ADNFrameUtils::normalized(atomResidueRadial),
+					ADNFrameUtils::normalized(currentRadial));
+				const ADNFrameUtils::Vec3 hypotheticalComplement =
+					baseSegmentCenter - currentRadial;
+				const double distanceToCurrent =
+					ADNFrameUtils::norm(residueCenter.center - nucleotideCenter);
+				const double distanceToComplement =
+					ADNFrameUtils::norm(residueCenter.center - hypotheticalComplement);
+				if (sideAlignment <= 0.0 ||
+					distanceToCurrent >= distanceToComplement) {
+
+					valid = false;
+					ADNLogger::LogDebug(
+						"Generated single-strand diagnostic failed for base segment " +
+						std::to_string(baseSegment->GetNumber()) + " nucleotide " +
+						nucleotide->getName() + ": atom residue side alignment " +
+						std::to_string(sideAlignment) + ", distance to current " +
+						std::to_string(distanceToCurrent) + " pm, distance to complement " +
+						std::to_string(distanceToComplement) + " pm.");
+
+				}
 
 			}
 
