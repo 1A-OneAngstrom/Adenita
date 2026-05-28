@@ -484,6 +484,67 @@ ADNFrameUtils::Vec3 averageGeneratedAtomPosition(SBPointer<ADNNucleotide> nucleo
 
 }
 
+double averageGeneratedAtomGroupDistanceToMarker(SBPointer<ADNNucleotide> nucleotide,
+	bool backboneGroup,
+	const ADNFrameUtils::Vec3& marker,
+	std::size_t& count) {
+
+	double sum = 0.0;
+	count = 0;
+	if (nucleotide == nullptr) return 0.0;
+
+	const SBPointer<ADNAtom> backboneCenter = nucleotide->GetBackboneCenterAtom();
+	const SBPointer<ADNAtom> sidechainCenter = nucleotide->GetSidechainCenterAtom();
+	auto atoms = nucleotide->GetAtoms();
+	SB_FOR(SBPointer<ADNAtom> atom, atoms) {
+
+		if (atom == nullptr) continue;
+		if (atom == backboneCenter || atom == sidechainCenter) continue;
+		if (atom->IsInADNBackbone() != backboneGroup) continue;
+
+		sum += ADNFrameUtils::norm(vecFromPosition(atom->getPosition()) - marker);
+		++count;
+
+	}
+
+	return count == 0 ? 0.0 : sum / static_cast<double>(count);
+
+}
+
+void requireGeneratedAtomGroupsFollowMarkers(const std::string& name,
+	SBPointer<ADNNucleotide> nucleotide) {
+
+	const ADNFrameUtils::Vec3 backbone = vecFromPosition(nucleotide->GetBackbonePosition());
+	const ADNFrameUtils::Vec3 sidechain = vecFromPosition(nucleotide->GetSidechainPosition());
+
+	std::size_t backboneToBackboneCount = 0;
+	std::size_t backboneToSidechainCount = 0;
+	std::size_t sidechainToBackboneCount = 0;
+	std::size_t sidechainToSidechainCount = 0;
+	const double backboneToBackbone =
+		averageGeneratedAtomGroupDistanceToMarker(nucleotide, true, backbone, backboneToBackboneCount);
+	const double backboneToSidechain =
+		averageGeneratedAtomGroupDistanceToMarker(nucleotide, true, sidechain, backboneToSidechainCount);
+	const double sidechainToBackbone =
+		averageGeneratedAtomGroupDistanceToMarker(nucleotide, false, backbone, sidechainToBackboneCount);
+	const double sidechainToSidechain =
+		averageGeneratedAtomGroupDistanceToMarker(nucleotide, false, sidechain, sidechainToSidechainCount);
+
+	requireTrue(name + " has generated backbone atoms",
+		backboneToBackboneCount > 0 && backboneToSidechainCount > 0,
+		"Expected generated backbone atoms to be available for marker-side comparison.");
+	requireTrue(name + " has generated sidechain atoms",
+		sidechainToBackboneCount > 0 && sidechainToSidechainCount > 0,
+		"Expected generated side-chain atoms to be available for marker-side comparison.");
+	requireTrue(name + " backbone atoms map to backbone side",
+		backboneToBackbone < backboneToSidechain,
+		"Expected generated backbone atoms to be closer to the backbone marker than to the side-chain marker.");
+	requireTrue(name + " sidechain atoms map to sidechain side",
+		sidechainToSidechain < sidechainToBackbone,
+		"Expected generated base atoms to be closer to the side-chain marker than to the backbone marker.");
+
+}
+
 void reconstructBackboneSidechainFromFrame(SBPointer<ADNNucleotide> nucleotide,
 	double halfDistance) {
 
@@ -764,6 +825,61 @@ AtomicGenerationFixture createAtomicGenerationFixture() {
 	fixture.part->RegisterBaseSegmentEnd(fixture.doubleStrand, fixture.baseSegment);
 
 	return fixture;
+
+}
+
+struct SingleStrandAtomicMarkerFixture {
+	SBPointer<ADNPart> part;
+	SBPointer<ADNDoubleStrand> doubleStrand;
+	SBPointer<ADNSingleStrand> strand;
+	std::vector<SBPointer<ADNBaseSegment>> baseSegments;
+	std::vector<SBPointer<ADNNucleotide>> nucleotides;
+	SBPointer<ADNNucleotide> target;
+};
+
+SingleStrandAtomicMarkerFixture createSingleStrandAtomicMarkerFixture() {
+
+	SingleStrandAtomicMarkerFixture fixture;
+	fixture.part = new ADNPart();
+	fixture.doubleStrand = new ADNDoubleStrand();
+	fixture.strand = new ADNSingleStrand();
+
+	fixture.part->RegisterDoubleStrand(fixture.doubleStrand);
+	fixture.part->RegisterSingleStrand(fixture.strand);
+
+	const double xPositions[] = { -3.4, 0.0, 3.4 };
+	for (double x : xPositions) {
+
+		SBPointer<ADNBaseSegment> baseSegment = new ADNBaseSegment(CellType::BasePair);
+		baseSegment->SetPosition(positionAngstrom(x, 0.0, 0.0));
+
+		SBPointer<ADNNucleotide> nucleotide = createSyntheticNucleotide(
+			SBResidue::ResidueType::DA, 0.0, 0.0, 0.0, vector3(0.0, 1.0, 0.0));
+		nucleotide->SetBackbonePosition(positionAngstrom(x, -8.0, 0.0));
+		nucleotide->SetSidechainPosition(positionAngstrom(x, -2.0, 0.0));
+
+		SBPointer<ADNBasePair> basePair = static_cast<ADNBasePair*>(baseSegment->GetCell()());
+		basePair->SetLeftNucleotide(nucleotide);
+		nucleotide->SetBaseSegment(baseSegment);
+
+		fixture.part->RegisterBaseSegmentEnd(fixture.doubleStrand, baseSegment);
+		fixture.part->RegisterNucleotideThreePrime(fixture.strand, nucleotide);
+		fixture.baseSegments.push_back(baseSegment);
+		fixture.nucleotides.push_back(nucleotide);
+
+	}
+
+	fixture.target = fixture.nucleotides[1];
+	return fixture;
+
+}
+
+void rotateSingleStrandAtomicMarkerFixtureGeometryOnly(
+	SingleStrandAtomicMarkerFixture& fixture,
+	const ADNFrameUtils::Mat3& rotation) {
+
+	for (SBPointer<ADNBaseSegment> baseSegment : fixture.baseSegments)
+		rotateBaseSegmentGeometryOnlyRaw(baseSegment, rotation);
 
 }
 
@@ -2605,6 +2721,41 @@ void testSingleStrandAtomGenerationUsesExistingNucleotideCenter() {
 
 }
 
+void testSingleStrandAtomGenerationMapsBackboneAndSidechainMarkers() {
+
+	SingleStrandAtomicMarkerFixture fixture = createSingleStrandAtomicMarkerFixture();
+
+	DASBackToTheAtom btta;
+	btta.GenerateAllAtomModel(fixture.part, false);
+
+	requireGeneratedAtomGroupsFollowMarkers("single strand atom marker mapping", fixture.target);
+
+}
+
+void testRotatedSingleStrandAtomGenerationMapsBackboneAndSidechainMarkers() {
+
+	SingleStrandAtomicMarkerFixture fixture = createSingleStrandAtomicMarkerFixture();
+
+	const ADNFrameUtils::Frame staleFrame =
+		ADNFrameAdapters::frameFromOrientable(*fixture.target);
+	const ADNFrameUtils::Mat3 samsonMoveRotation =
+		ADNFrameUtils::rotationAroundAxis(ADNFrameUtils::Vec3{ 0.4, -0.2, 1.0 }, 0.77);
+	rotateSingleStrandAtomicMarkerFixtureGeometryOnly(fixture, samsonMoveRotation);
+
+	const ADNFrameUtils::Vec3 markerDirection = ADNFrameUtils::normalized(
+		vecFromPosition(fixture.target->GetSidechainPosition()) -
+		vecFromPosition(fixture.target->GetBackbonePosition()));
+	requireTrue("rotated single strand fixture leaves stored frame stale",
+		std::abs(ADNFrameUtils::dot(ADNFrameUtils::normalized(staleFrame.e2), markerDirection)) < 0.95,
+		"Expected the rotated fixture to exercise geometry-derived placement instead of the stored frame.");
+
+	DASBackToTheAtom btta;
+	btta.GenerateAllAtomModel(fixture.part, false);
+
+	requireGeneratedAtomGroupsFollowMarkers("rotated single strand atom marker mapping", fixture.target);
+
+}
+
 void testAllAtomGenerationPreservesSynchronizedNucleotideGeometry() {
 
 	AtomicGenerationFixture fixture = createAtomicGenerationFixture();
@@ -4088,6 +4239,8 @@ int main() {
 	testComplementPlacementPrefersRightAnchorOverStoredFrame();
 	testComplementPlacementPrefersRotatedAnchorOverStoredFrame();
 	testSingleStrandAtomGenerationUsesExistingNucleotideCenter();
+	testSingleStrandAtomGenerationMapsBackboneAndSidechainMarkers();
+	testRotatedSingleStrandAtomGenerationMapsBackboneAndSidechainMarkers();
 	testAllAtomGenerationPreservesSynchronizedNucleotideGeometry();
 	testAllAtomGenerationAlignsBasePlanesAndBackboneAfterRigidTransform();
 	testCircularSingleStrandWrapsWithoutChangingSequenceOrder();
