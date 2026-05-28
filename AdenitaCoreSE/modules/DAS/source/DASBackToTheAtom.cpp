@@ -1622,6 +1622,9 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 
 	}
 
+	// Unpaired atom placement is local to the current nucleotide. It must not
+	// use the ideal pair center or a nonexistent complementary strand; the
+	// current nucleotide frame and center define the placement.
 	const ADNFrameUtils::Vec3 worldCenter = positionToVec3(nt->GetPosition());
 	const ADNFrameUtils::Vec3 templateCenter = positionToVec3(selection.nucleotide->GetPosition());
 
