@@ -2150,6 +2150,10 @@ DASBackToTheAtom::AtomTemplateSelection DASBackToTheAtom::SelectAtomTemplateForN
 	if (nucleotideType == DNABlocks::DI)
 		nucleotideType = DNABlocks::DA;
 
+	// The selected ideal nucleotide must match both base type and left/right
+	// side. Pair-level transforms assume pair.first is the left template and
+	// pair.second is the right template; using the complementary template side
+	// places atoms on the missing strand for one-sided base segments.
 	if (rightSide) {
 
 		// Right-side residues must come from the right nucleotide of an ideal
@@ -2201,6 +2205,30 @@ DASBackToTheAtom::AtomTemplateSelection DASBackToTheAtom::SelectAtomTemplateForN
 		}
 
 	}
+
+#ifndef NDEBUG
+	if (selection.sideKnown && baseSegment != nullptr) {
+
+		const bool sideMismatch =
+			(selection.side == ADNGeometrySynchronization::TemplateSide::Left &&
+				!baseSegment->IsLeft(nt)) ||
+			(selection.side == ADNGeometrySynchronization::TemplateSide::Right &&
+				!baseSegment->IsRight(nt));
+		if (sideMismatch)
+			ADNLogger::LogDebug(
+				"Atom template side mismatch: current nucleotide side does not match selected template side.");
+
+	}
+	if (selection.side == ADNGeometrySynchronization::TemplateSide::Left &&
+		selection.nucleotide != selection.pair.first)
+		ADNLogger::LogDebug("Atom template side mismatch: expected pair.first.");
+	if (selection.side == ADNGeometrySynchronization::TemplateSide::Right &&
+		selection.nucleotide != selection.pair.second)
+		ADNLogger::LogDebug("Atom template side mismatch: expected pair.second.");
+	if (selection.nucleotide != nullptr &&
+		selection.nucleotide->getNucleotideType() != nucleotideType)
+		ADNLogger::LogDebug("Atom template type mismatch: selected ideal nucleotide has a different base type.");
+#endif
 
 	return selection;
 
