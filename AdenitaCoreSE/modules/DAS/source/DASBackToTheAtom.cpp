@@ -246,34 +246,30 @@ struct TemplateToWorldTransform {
 	const ADNFrameUtils::Vec3 currentPairDirectionFromAnchor =
 		anchorIsLeft ? -centerToAnchor : centerToAnchor;
 
+	// One-sided complementary placement must use the current anchor nucleotide
+	// geometry as the authoritative source of the pair direction. The
+	// persistent base-segment frame of a one-sided segment may come from the
+	// nucleotide-local sidechain/backbone frame after synchronization,
+	// especially after SAMSON move or Rotate DNA. That frame is useful for
+	// persistence and editing, but it must not override center-to-anchor
+	// geometry when reconstructing the missing complementary nucleotide.
 	ADNFrameUtils::Vec3 e2;
-	const ADNFrameUtils::Frame storedFrame =
-		ADNFrameAdapters::frameFromOrientable(*baseSegment);
-	if (ADNFrameUtils::isOrthonormalRightHanded(storedFrame)) {
+	if (!ADNFrameUtils::isNearlyZero(currentPairDirectionFromAnchor))
+		e2 = canonicalDirectionFromCurrent(currentPairDirectionFromAnchor);
 
-		e2 = projectedPerpendicularToAxis(storedFrame.e2, axis);
-		if (!ADNFrameUtils::isNearlyZero(e2) && !anchorSideMatches(e2))
-			e2 = -e2;
+	if (ADNFrameUtils::isNearlyZero(e2)) {
 
-		if (!ADNFrameUtils::isNearlyZero(e2) &&
-			!ADNFrameUtils::isNearlyZero(currentPairDirectionFromAnchor)) {
+		const ADNFrameUtils::Frame storedFrame =
+			ADNFrameAdapters::frameFromOrientable(*baseSegment);
+		if (ADNFrameUtils::isOrthonormalRightHanded(storedFrame)) {
 
-			const ADNFrameUtils::Vec3 currentFromStored =
-				currentDirectionFromCanonical(e2);
-			const double alignment =
-				ADNFrameUtils::dot(
-					ADNFrameUtils::normalized(currentFromStored),
-					ADNFrameUtils::normalized(currentPairDirectionFromAnchor));
-			if (alignment < 0.5)
-				e2 = ADNFrameUtils::Vec3{};
+			e2 = projectedPerpendicularToAxis(storedFrame.e2, axis);
+			if (!ADNFrameUtils::isNearlyZero(e2) && !anchorSideMatches(e2))
+				e2 = -e2;
 
 		}
 
 	}
-
-	if (ADNFrameUtils::isNearlyZero(e2) &&
-		!ADNFrameUtils::isNearlyZero(currentPairDirectionFromAnchor))
-		e2 = canonicalDirectionFromCurrent(currentPairDirectionFromAnchor);
 
 	// This helper reconstructs a phase-neutral base-segment template frame from
 	// one existing nucleotide. The canonical e2 axis is the left-to-right
@@ -817,7 +813,9 @@ void DASBackToTheAtom::PlaceNucleotideFromTemplate(SBPointer<ADNBaseSegment> bs,
 	if (templateNucleotide == nullptr) return;
 
 	// This path is used by Create Base Pair. It preserves the existing anchor
-	// nucleotide and places only the newly-created complementary nucleotide.
+	// nucleotide and places only the newly-created complementary nucleotide. For
+	// moved or rotated single strands, the placement frame is derived from the
+	// actual anchor geometry instead of a generic synchronized one-sided frame.
 	// Ideal pair coordinates use the pair-level transform; side-specific frames
 	// are stored on the nucleotide only after placement.
 	ADNFrameUtils::Frame canonicalFrame =
