@@ -763,6 +763,90 @@ void logOneSidedPlacementDiagnostic(const char* context,
 
 }
 
+void logOneSidedAtomPlacementCandidateDiagnostic(const char* candidateLabel,
+	SBPointer<ADNBaseSegment> baseSegment,
+	SBPointer<ADNNucleotide> nucleotide,
+	ADNGeometrySynchronization::TemplateSide selectedSide,
+	NtPair selectedPair,
+	SBPointer<ADNNucleotide> templateNucleotide,
+	const ublas::matrix<double>& pairBasisMatrix,
+	const ublas::vector<double>& pairTranslation,
+	const AtomPlacementMarkerScore& pairScore,
+	const AtomPlacementMarkerScore& localScore) {
+
+	static int loggedCount = 0;
+	if (loggedCount >= 40) return;
+	if (baseSegment == nullptr || nucleotide == nullptr || templateNucleotide == nullptr) return;
+
+	const ADNFrameUtils::Vec3 axis = localBaseSegmentAxis(baseSegment);
+	const ADNFrameUtils::Vec3 baseSegmentCenter = positionToFrameVec3(baseSegment->GetPosition());
+	const ADNFrameUtils::Vec3 currentCenter = positionToFrameVec3(nucleotide->GetPosition());
+	const ADNFrameUtils::Vec3 currentBackbone = positionToFrameVec3(nucleotide->GetBackbonePosition());
+	const ADNFrameUtils::Vec3 currentSidechain = positionToFrameVec3(nucleotide->GetSidechainPosition());
+	const ADNFrameUtils::Vec3 mappedCenter =
+		mapTemplatePointWithPairLevelTransform(
+			pairBasisMatrix,
+			pairTranslation,
+			positionToFrameVec3(templateNucleotide->GetPosition()));
+	const ADNFrameUtils::Vec3 mappedBackbone =
+		mapTemplatePointWithPairLevelTransform(
+			pairBasisMatrix,
+			pairTranslation,
+			positionToFrameVec3(templateNucleotide->GetBackbonePosition()));
+	const ADNFrameUtils::Vec3 mappedSidechain =
+		mapTemplatePointWithPairLevelTransform(
+			pairBasisMatrix,
+			pairTranslation,
+			positionToFrameVec3(templateNucleotide->GetSidechainPosition()));
+	const ADNFrameUtils::Vec3 currentRadial =
+		projectedPerpendicularToAxis(currentCenter - baseSegmentCenter, axis);
+	const ADNFrameUtils::Vec3 mappedRadial =
+		projectedPerpendicularToAxis(mappedCenter - baseSegmentCenter, axis);
+	const double radialDot =
+		ADNFrameUtils::isNearlyZero(currentRadial) ||
+		ADNFrameUtils::isNearlyZero(mappedRadial) ?
+		0.0 :
+		ADNFrameUtils::dot(
+			ADNFrameUtils::normalized(mappedRadial),
+			ADNFrameUtils::normalized(currentRadial));
+
+	const bool actualLeft = baseSegment->IsLeft(nucleotide);
+	const bool actualRight = baseSegment->IsRight(nucleotide);
+	const bool templateIsPairFirst =
+		selectedPair.first != nullptr && templateNucleotide() == selectedPair.first();
+	const bool templateIsPairSecond =
+		selectedPair.second != nullptr && templateNucleotide() == selectedPair.second();
+
+	std::ostringstream message;
+	message << "FindAtomsPositions one-sided atom candidate"
+		<< " candidate=" << (candidateLabel != nullptr ? candidateLabel : "<null>")
+		<< " baseSegment=" << baseSegment->GetNumber()
+		<< " nucleotide=" << nucleotide->getName()
+		<< " nucleotideType=" << static_cast<int>(nucleotide->getNucleotideType())
+		<< " actualSide=" << (actualLeft ? "left" : (actualRight ? "right" : "unknown"))
+		<< " selectedTemplateSide="
+		<< (selectedSide == ADNGeometrySynchronization::TemplateSide::Right ? "right" : "left")
+		<< " templateIsPairFirst=" << templateIsPairFirst
+		<< " templateIsPairSecond=" << templateIsPairSecond
+		<< " baseSegmentCenter=" << formatVec3(baseSegmentCenter)
+		<< " currentCenter=" << formatVec3(currentCenter)
+		<< " currentBackbone=" << formatVec3(currentBackbone)
+		<< " currentSidechain=" << formatVec3(currentSidechain)
+		<< " mappedCenter=" << formatVec3(mappedCenter)
+		<< " mappedBackbone=" << formatVec3(mappedBackbone)
+		<< " mappedSidechain=" << formatVec3(mappedSidechain)
+		<< " radialDot=" << radialDot
+		<< " pairScore(center/backbone/sidechain/total)="
+		<< pairScore.center << "/" << pairScore.backbone << "/"
+		<< pairScore.sidechain << "/" << pairScore.total
+		<< " localScore(center/backbone/sidechain/total)="
+		<< localScore.center << "/" << localScore.backbone << "/"
+		<< localScore.sidechain << "/" << localScore.total;
+	ADNLogger::LogDebug(message.str());
+	++loggedCount;
+
+}
+
 [[nodiscard]] double averageAtomGroupDistanceToMarker(SBPointer<ADNNucleotide> nucleotide,
 	bool backboneGroup,
 	const ADNFrameUtils::Vec3& marker,
@@ -2096,6 +2180,36 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 						selection.side == ADNGeometrySynchronization::TemplateSide::Right ?
 						placement.rightFrame :
 						placement.leftFrame;
+#if defined(ADN_DEBUG_GEOMETRY) && !defined(NDEBUG)
+					{
+
+						AtomPlacementMarkerScore diagnosticPairScore;
+						AtomPlacementMarkerScore diagnosticLocalScore;
+						oneSidedPairLevelPlacementMatchesMarkers(
+							nt,
+							selection.nucleotide,
+							placement.pairBasisMatrix,
+							placement.pairTranslation,
+							localFallbackFrame,
+							diagnosticPairScore,
+							diagnosticLocalScore);
+						// Debug builds record the side decision before correction so
+						// wrong-side pair-level transforms are visible without changing
+						// placement behavior in this diagnostic phase.
+						logOneSidedAtomPlacementCandidateDiagnostic(
+							"current",
+							baseSegment,
+							nt,
+							selection.side,
+							selection.pair,
+							selection.nucleotide,
+							placement.pairBasisMatrix,
+							placement.pairTranslation,
+							diagnosticPairScore,
+							diagnosticLocalScore);
+
+					}
+#endif
 					if (ADNGeometrySynchronization::validateBaseSegmentGeometry(*baseSegment)) {
 
 						// When the base-segment frame agrees with current
