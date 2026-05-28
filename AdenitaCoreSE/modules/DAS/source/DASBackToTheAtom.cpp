@@ -47,12 +47,6 @@ struct TemplateToWorldTransform {
 
 }
 
-[[nodiscard]] ublas::matrix<double> frameColumnsToUblas(const ADNFrameUtils::Frame& frame) {
-
-	return ublas::trans(frameRowsToUblas(frame));
-
-}
-
 [[nodiscard]] ublas::matrix<double> templateBasisMatrixFromCanonicalFrame(
 	const ADNFrameUtils::Frame& canonicalFrame,
 	double phaseRadians) {
@@ -176,16 +170,6 @@ struct TemplateToWorldTransform {
 	// repeatedly depend on sanitized arbitrary radial defaults.
 	ADNFrameAdapters::setFrame(*baseSegment, repairedFrame);
 	return repairedFrame;
-
-}
-
-[[nodiscard]] ADNGeometrySynchronization::TemplateSide templateSideForNucleotide(
-	SBPointer<ADNBaseSegment> baseSegment,
-	SBPointer<ADNNucleotide> nucleotide) {
-
-	if (baseSegment != nullptr && baseSegment->IsRight(nucleotide))
-		return ADNGeometrySynchronization::TemplateSide::Right;
-	return ADNGeometrySynchronization::TemplateSide::Left;
 
 }
 
@@ -646,12 +630,14 @@ void DASBackToTheAtom::SetNucleotidePosition(SBPointer<ADNBaseSegment> bs, bool 
 		// convention; FindAtomsPositions later consumes the nucleotide frame directly.
 		ADNFrameAdapters::setFrame(*nt_l, transform.leftFrame);
 
+#if defined(ADN_DEBUG_GEOMETRY) && !defined(NDEBUG)
 		if (nt_l->GetStrand()->IsScaffold()) {
 
 			std::string msg = "Left: " + std::to_string(nt_l->GetE3()[0]) + " " + std::to_string(nt_l->GetE3()[1]) + " " + std::to_string(nt_l->GetE3()[2]);
 			ADNLogger::LogDebug(msg);
 
 		}
+#endif
 
 		// Set new residue positions
 		SBPosition3 p_left = UblasToSBPosition(ublas::row(new_pos, 0));
@@ -669,12 +655,14 @@ void DASBackToTheAtom::SetNucleotidePosition(SBPointer<ADNBaseSegment> bs, bool 
 		// same base-pair plane. Keep this centralized for coarse and atomic models.
 		ADNFrameAdapters::setFrame(*nt_r, transform.rightFrame);
 
+#if defined(ADN_DEBUG_GEOMETRY) && !defined(NDEBUG)
 		if (nt_r->GetStrand()->IsScaffold()) {
 
 			std::string msg = "Right: " + std::to_string(nt_r->GetE3()[0]) + " " + std::to_string(nt_r->GetE3()[1]) + " " + std::to_string(nt_r->GetE3()[2]);
 			ADNLogger::LogDebug(msg);
 
 		}
+#endif
 
 		// Set positions
 		SBPosition3 p_right = UblasToSBPosition(ublas::row(new_pos, 3));
