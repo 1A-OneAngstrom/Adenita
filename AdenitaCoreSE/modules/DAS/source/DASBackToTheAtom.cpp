@@ -776,7 +776,7 @@ void DASBackToTheAtom::PlaceNucleotideFromTemplate(SBPointer<ADNBaseSegment> bs,
 		applyPlacement();
 #ifndef NDEBUG
 		if (!placementIsOnOppositeSide())
-			ADNLogger::LogDebug("PlaceNucleotideFromTemplate: complementary nucleotide remains on the anchor side after pair-direction retry.");
+			ADNLogger::LogDebug(std::string("PlaceNucleotideFromTemplate: complementary nucleotide remains on the anchor side after pair-direction retry."));
 #endif
 
 	}
