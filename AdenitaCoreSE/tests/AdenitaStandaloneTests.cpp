@@ -339,6 +339,17 @@ double backboneSidechainAbsDot(SBPointer<ADNNucleotide> nucleotide,
 
 }
 
+ADNFrameUtils::Vec3 projectedPerpendicularToAxis(const ADNFrameUtils::Vec3& direction,
+	const ADNFrameUtils::Vec3& axis) {
+
+	if (ADNFrameUtils::isNearlyZero(direction) || ADNFrameUtils::isNearlyZero(axis))
+		return direction;
+
+	const ADNFrameUtils::Vec3 unitAxis = ADNFrameUtils::normalized(axis);
+	return direction - unitAxis * ADNFrameUtils::dot(direction, unitAxis);
+
+}
+
 ADNFrameUtils::Vec3 sidechainPlaneNormal(SBPointer<ADNNucleotide> nucleotide) {
 
 	std::vector<ADNFrameUtils::Vec3> points;
@@ -2201,6 +2212,154 @@ void testReconstructionRepairsE3OnlyCreatorFrame() {
 
 }
 
+struct OneSidedComplementFixture {
+	SBPointer<ADNPart> part;
+	SBPointer<ADNDoubleStrand> doubleStrand;
+	SBPointer<ADNSingleStrand> leftStrand;
+	SBPointer<ADNSingleStrand> rightStrand;
+	SBPointer<ADNBaseSegment> baseSegment;
+	SBPointer<ADNNucleotide> anchor;
+	SBPointer<ADNNucleotide> created;
+	bool anchorIsLeft{ true };
+};
+
+OneSidedComplementFixture createOneSidedComplementFixture(bool anchorIsLeft) {
+
+	OneSidedComplementFixture fixture;
+	fixture.part = new ADNPart();
+	fixture.doubleStrand = new ADNDoubleStrand();
+	fixture.leftStrand = new ADNSingleStrand();
+	fixture.rightStrand = new ADNSingleStrand();
+	fixture.baseSegment = new ADNBaseSegment(CellType::BasePair);
+	fixture.baseSegment->SetPosition(positionAngstrom(0.0, 0.0, 0.0));
+	fixture.anchorIsLeft = anchorIsLeft;
+
+	fixture.part->RegisterDoubleStrand(fixture.doubleStrand);
+	fixture.part->RegisterSingleStrand(fixture.leftStrand);
+	fixture.part->RegisterSingleStrand(fixture.rightStrand);
+	fixture.part->RegisterBaseSegmentEnd(fixture.doubleStrand, fixture.baseSegment);
+
+	SBPointer<ADNBasePair> basePair =
+		static_cast<ADNBasePair*>(fixture.baseSegment->GetCell()());
+	if (anchorIsLeft) {
+
+		fixture.anchor = createSyntheticNucleotide(
+			SBResidue::ResidueType::DA, 0.0, -0.5, 0.0, vector3(0.0, 1.0, 0.0));
+		fixture.anchor->SetBackbonePosition(positionAngstrom(0.0, -0.8, 0.0));
+		fixture.anchor->SetSidechainPosition(positionAngstrom(0.0, -0.2, 0.0));
+		fixture.created = createSyntheticNucleotide(
+			SBResidue::ResidueType::DT, 3.0, 3.0, 3.0, vector3(0.0, -1.0, 0.0));
+		basePair->AddPair(fixture.anchor, fixture.created);
+		fixture.part->RegisterNucleotideThreePrime(fixture.leftStrand, fixture.anchor);
+		fixture.part->RegisterNucleotideThreePrime(fixture.rightStrand, fixture.created);
+
+	}
+	else {
+
+		fixture.created = createSyntheticNucleotide(
+			SBResidue::ResidueType::DA, -3.0, -3.0, -3.0, vector3(0.0, 1.0, 0.0));
+		fixture.anchor = createSyntheticNucleotide(
+			SBResidue::ResidueType::DT, 0.0, 0.5, 0.0, vector3(0.0, -1.0, 0.0));
+		fixture.anchor->SetBackbonePosition(positionAngstrom(0.0, 0.8, 0.0));
+		fixture.anchor->SetSidechainPosition(positionAngstrom(0.0, 0.2, 0.0));
+		basePair->AddPair(fixture.created, fixture.anchor);
+		fixture.part->RegisterNucleotideThreePrime(fixture.leftStrand, fixture.created);
+		fixture.part->RegisterNucleotideThreePrime(fixture.rightStrand, fixture.anchor);
+
+	}
+
+	fixture.anchor->SetBaseSegment(fixture.baseSegment);
+	fixture.created->SetBaseSegment(fixture.baseSegment);
+	return fixture;
+
+}
+
+void setMisleadingOneSidedBaseSegmentFrame(SBPointer<ADNBaseSegment> baseSegment) {
+
+	constexpr double fortyDegreesRadians = 0.6981317007977318;
+	const ADNFrameUtils::Vec3 misleadingPairDirection{
+		std::sin(fortyDegreesRadians),
+		std::cos(fortyDegreesRadians),
+		0.0
+	};
+	const ADNFrameUtils::Frame frame =
+		ADNFrameUtils::frameFromE2AndTangent(
+			misleadingPairDirection,
+			ADNFrameUtils::Vec3{ 0.0, 0.0, 1.0 });
+	ADNFrameAdapters::setFrame(*baseSegment, frame);
+
+}
+
+void rotateOneSidedComplementFixture(OneSidedComplementFixture& fixture,
+	const ADNFrameUtils::Mat3& rotation) {
+
+	rotateBaseSegmentGeometryOnlyRaw(fixture.baseSegment, rotation);
+	ADNFrameAdapters::rotateFrame(*fixture.baseSegment, rotation);
+	ADNFrameAdapters::rotateFrame(*fixture.anchor, rotation);
+	ADNFrameAdapters::rotateFrame(*fixture.created, rotation);
+
+}
+
+void placeCreatedComplement(OneSidedComplementFixture& fixture) {
+
+	SBPointerIndexer<ADNNucleotide> createdNucleotides;
+	createdNucleotides.addReferenceTarget(fixture.created());
+
+	DASBackToTheAtom btta;
+	btta.SetPositionsForNewNucleotides(fixture.part,
+		createdNucleotides,
+		DASBackToTheAtom::NewNucleotidePlacementMode::PositionInputNucleotidesOnly);
+
+}
+
+void requireComplementUsesAnchorDirection(const std::string& name,
+	OneSidedComplementFixture& fixture) {
+
+	using namespace ADNFrameUtils;
+
+	const Frame storedFrame = ADNFrameAdapters::sanitizedFrame(*fixture.baseSegment);
+	const Vec3 axis = normalized(storedFrame.e3);
+	const Vec3 center = vecFromPosition(fixture.baseSegment->GetPosition());
+	const Vec3 centerToAnchor =
+		projectedPerpendicularToAxis(
+			vecFromPosition(fixture.anchor->GetPosition()) - center,
+			axis);
+	const Vec3 pairDirection =
+		fixture.anchorIsLeft ? -centerToAnchor : centerToAnchor;
+	const Vec3 expectedTargetDirection =
+		fixture.anchorIsLeft ? pairDirection : -pairDirection;
+	const Vec3 misleadingTargetDirection =
+		fixture.anchorIsLeft ? storedFrame.e2 : -storedFrame.e2;
+	const Vec3 targetRadial =
+		projectedPerpendicularToAxis(
+			vecFromPosition(fixture.created->GetPosition()) - center,
+			axis);
+
+	const double misleadingAlignment =
+		dot(normalized(misleadingTargetDirection), normalized(expectedTargetDirection));
+	requireTrue(name + " fixture stores misleading one-sided frame",
+		misleadingAlignment < 0.85,
+		"Expected the stored frame to be far enough from the anchor-derived target direction.");
+
+	const double targetAlignment =
+		dot(normalized(targetRadial), normalized(expectedTargetDirection));
+	requireTrue(name + " target follows anchor-derived direction",
+		targetAlignment > 0.90 && targetAlignment > misleadingAlignment + 0.10,
+		"Expected target radial alignment to prefer anchor geometry; got " +
+		std::to_string(targetAlignment) + " vs stored " +
+		std::to_string(misleadingAlignment) + ".");
+
+	const ADNGeometrySynchronization::FrameGeometryAlignment frameAlignment =
+		ADNGeometrySynchronization::analyzeNucleotideFrameAlignment(
+			*fixture.created,
+			0.98,
+			0.70);
+	requireTrue(name + " target frame follows placed geometry",
+		frameAlignment.frameValid && frameAlignment.primaryDirectionAligned,
+		"Expected the new complement frame to match its placed backbone/sidechain geometry.");
+
+}
+
 void testComplementPlacementPreservesExistingNucleotideGeometry() {
 
 	SBPointer<ADNPart> part = new ADNPart();
@@ -2348,6 +2507,45 @@ void testComplementPlacementUsesRightAnchorSide() {
 	requireTrue("right anchor complement opposite radial side",
 		ADNFrameUtils::dot(existingRadial, createdRadial) < 0.0,
 		"Expected right-anchored complement to land on the opposite side of the base-segment center.");
+
+}
+
+void testComplementPlacementPrefersLeftAnchorOverStoredFrame() {
+
+	OneSidedComplementFixture fixture = createOneSidedComplementFixture(true);
+	setMisleadingOneSidedBaseSegmentFrame(fixture.baseSegment);
+
+	placeCreatedComplement(fixture);
+
+	requireComplementUsesAnchorDirection("left anchor complement", fixture);
+
+}
+
+void testComplementPlacementPrefersRightAnchorOverStoredFrame() {
+
+	OneSidedComplementFixture fixture = createOneSidedComplementFixture(false);
+	setMisleadingOneSidedBaseSegmentFrame(fixture.baseSegment);
+
+	placeCreatedComplement(fixture);
+
+	requireComplementUsesAnchorDirection("right anchor complement", fixture);
+
+}
+
+void testComplementPlacementPrefersRotatedAnchorOverStoredFrame() {
+
+	OneSidedComplementFixture fixture = createOneSidedComplementFixture(true);
+	setMisleadingOneSidedBaseSegmentFrame(fixture.baseSegment);
+
+	const ADNFrameUtils::Mat3 rotation =
+		ADNFrameUtils::rotationAroundAxis(
+			ADNFrameUtils::Vec3{ 0.4, -0.2, 1.0 },
+			0.77);
+	rotateOneSidedComplementFixture(fixture, rotation);
+
+	placeCreatedComplement(fixture);
+
+	requireComplementUsesAnchorDirection("rotated left anchor complement", fixture);
 
 }
 
@@ -3886,6 +4084,9 @@ int main() {
 	testReconstructionRepairsE3OnlyCreatorFrame();
 	testComplementPlacementPreservesExistingNucleotideGeometry();
 	testComplementPlacementUsesRightAnchorSide();
+	testComplementPlacementPrefersLeftAnchorOverStoredFrame();
+	testComplementPlacementPrefersRightAnchorOverStoredFrame();
+	testComplementPlacementPrefersRotatedAnchorOverStoredFrame();
 	testSingleStrandAtomGenerationUsesExistingNucleotideCenter();
 	testAllAtomGenerationPreservesSynchronizedNucleotideGeometry();
 	testAllAtomGenerationAlignsBasePlanesAndBackboneAfterRigidTransform();
