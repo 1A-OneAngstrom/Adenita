@@ -817,7 +817,8 @@ void DASBackToTheAtom::PlaceNucleotideFromTemplate(SBPointer<ADNBaseSegment> bs,
 	// moved or rotated single strands, the placement frame is derived from the
 	// actual anchor geometry instead of a generic synchronized one-sided frame.
 	// Ideal pair coordinates use the pair-level transform; side-specific frames
-	// are stored on the nucleotide only after placement.
+	// are provisional until the new strand batch is synchronized from the
+	// placed center/backbone/sidechain geometry.
 	ADNFrameUtils::Frame canonicalFrame =
 		oneSidedCanonicalTemplateFrame(bs, nt->GetPair());
 
@@ -916,10 +917,10 @@ void DASBackToTheAtom::PlaceNucleotideFromTemplate(SBPointer<ADNBaseSegment> bs,
 
 	}
 
-	ADNFrameAdapters::setFrame(*nt, placeRight ? transform.rightFrame : transform.leftFrame);
 	nt->SetPosition(UblasToSBPosition(ublas::row(output, 0)));
 	nt->SetBackbonePosition(UblasToSBPosition(ublas::row(output, 1)));
 	nt->SetSidechainPosition(UblasToSBPosition(ublas::row(output, 2)));
+	ADNFrameAdapters::setFrame(*nt, placeRight ? transform.rightFrame : transform.leftFrame);
 
 }
 
@@ -930,6 +931,7 @@ void DASBackToTheAtom::SetPositionsForNewNucleotides(SBPointer<ADNPart> part,
 	if (part == nullptr) return;
 
 	SBPointerIndexer<ADNBaseSegment> affectedBaseSegments;
+	std::vector<SBPointer<ADNNucleotide>> placedNucleotides;
 
 	SB_FOR(SBPointer<ADNNucleotide> nt, nts) {
 
@@ -977,11 +979,26 @@ void DASBackToTheAtom::SetPositionsForNewNucleotides(SBPointer<ADNPart> part,
 		if (placementMode == NewNucleotidePlacementMode::PositionInputNucleotidesOnly) {
 
 			PlaceNucleotideFromTemplate(bs, nt);
+			placedNucleotides.push_back(nt);
 
 		}
 		else if (!affectedBaseSegments.hasIndex(bs())) {
 
 			affectedBaseSegments.addReferenceTarget(bs());
+
+		}
+
+	}
+
+	if (placementMode == NewNucleotidePlacementMode::PositionInputNucleotidesOnly) {
+
+		// Newly-created complementary strands are positioned as a batch. Sync
+		// their frames only after all centers/backbones/sidechains are placed so
+		// tangent reconstruction can see neighboring new nucleotides.
+		for (SBPointer<ADNNucleotide> nucleotide : placedNucleotides) {
+
+			if (nucleotide != nullptr)
+				ADNGeometrySynchronization::syncNucleotideFrameFromGeometry(*nucleotide);
 
 		}
 
