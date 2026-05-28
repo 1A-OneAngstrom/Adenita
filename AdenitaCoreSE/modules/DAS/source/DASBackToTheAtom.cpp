@@ -133,6 +133,65 @@ struct TemplateToWorldTransform {
 
 }
 
+[[nodiscard]] ADNFrameUtils::Vec3 nucleotideTangent(const ADNNucleotide& nucleotide) {
+
+	SBPointer<ADNNucleotide> previous = nucleotide.GetPrev(true);
+	SBPointer<ADNNucleotide> next = nucleotide.GetNext(true);
+
+	if (previous != nullptr && next != nullptr)
+		return positionToVec3(next->GetPosition()) - positionToVec3(previous->GetPosition());
+	if (next != nullptr)
+		return positionToVec3(next->GetPosition()) - positionToVec3(nucleotide.GetPosition());
+	if (previous != nullptr)
+		return positionToVec3(nucleotide.GetPosition()) - positionToVec3(previous->GetPosition());
+
+	return ADNFrameUtils::Vec3{};
+
+}
+
+[[nodiscard]] ADNFrameUtils::Frame nucleotidePlacementFrameFromCoarseGeometry(
+	const ADNNucleotide& nucleotide,
+	const ADNFrameUtils::Frame& fallback) {
+
+	const ADNFrameUtils::Frame repairedFallback = ADNFrameUtils::orthonormalized(fallback);
+
+	ADNFrameUtils::Vec3 e2 =
+		positionToVec3(nucleotide.GetSidechainPosition()) -
+		positionToVec3(nucleotide.GetBackbonePosition());
+	if (ADNFrameUtils::isNearlyZero(e2))
+		e2 = repairedFallback.e2;
+
+	ADNFrameUtils::Vec3 tangent = nucleotideTangent(nucleotide);
+	if (ADNFrameUtils::isNearlyZero(tangent))
+		tangent = repairedFallback.e3;
+
+	return ADNFrameUtils::frameFromE2AndTangent(e2, tangent, repairedFallback);
+
+}
+
+[[nodiscard]] ADNFrameUtils::Vec3 toLocalCoordinates(
+	const ADNFrameUtils::Vec3& worldDelta,
+	const ADNFrameUtils::Frame& frame) {
+
+	return ADNFrameUtils::Vec3{
+		ADNFrameUtils::dot(worldDelta, frame.e1),
+		ADNFrameUtils::dot(worldDelta, frame.e2),
+		ADNFrameUtils::dot(worldDelta, frame.e3)
+	};
+
+}
+
+[[nodiscard]] ADNFrameUtils::Vec3 fromLocalCoordinates(
+	const ADNFrameUtils::Vec3& local,
+	const ADNFrameUtils::Frame& frame) {
+
+	return
+		frame.e1 * local.x +
+		frame.e2 * local.y +
+		frame.e3 * local.z;
+
+}
+
 [[nodiscard]] ADNFrameUtils::Vec3 projectedPerpendicularToAxis(const ADNFrameUtils::Vec3& direction,
 	const ADNFrameUtils::Vec3& axis) {
 
@@ -569,6 +628,89 @@ void logOneSidedPlacementDiagnostic(const char* context,
 		<< " targetAnchorRadialDot=" << radialDot;
 
 	ADNLogger::LogDebug(message.str());
+
+}
+
+[[nodiscard]] double averageAtomGroupDistanceToMarker(SBPointer<ADNNucleotide> nucleotide,
+	bool backboneGroup,
+	const ADNFrameUtils::Vec3& marker,
+	std::size_t& count) {
+
+	count = 0;
+	double sum = 0.0;
+
+	if (nucleotide == nullptr) return 0.0;
+	auto atoms = nucleotide->GetAtoms();
+	SB_FOR(SBPointer<ADNAtom> atom, atoms) {
+
+		if (atom == nullptr) continue;
+		if (atom->IsInADNBackbone() != backboneGroup) continue;
+
+		sum += ADNFrameUtils::norm(positionToFrameVec3(atom->getPosition()) - marker);
+		++count;
+
+	}
+
+	return count == 0 ? 0.0 : sum / static_cast<double>(count);
+
+}
+
+void logUnpairedAtomPlacementDiagnostic(SBPointer<ADNNucleotide> nucleotide,
+	SBPointer<ADNNucleotide> templateNucleotide,
+	const ADNFrameUtils::Frame& currentFrame,
+	const ADNFrameUtils::Frame& templateFrame) {
+
+	static int loggedCount = 0;
+	if (loggedCount >= 5) return;
+	if (nucleotide == nullptr || templateNucleotide == nullptr) return;
+
+	const ADNFrameUtils::Vec3 currentCenter = positionToFrameVec3(nucleotide->GetPosition());
+	const ADNFrameUtils::Vec3 currentBackbone = positionToFrameVec3(nucleotide->GetBackbonePosition());
+	const ADNFrameUtils::Vec3 currentSidechain = positionToFrameVec3(nucleotide->GetSidechainPosition());
+	const ADNFrameUtils::Vec3 templateCenter = positionToFrameVec3(templateNucleotide->GetPosition());
+	const ADNFrameUtils::Vec3 templateBackbone = positionToFrameVec3(templateNucleotide->GetBackbonePosition());
+	const ADNFrameUtils::Vec3 templateSidechain = positionToFrameVec3(templateNucleotide->GetSidechainPosition());
+	const ADNFrameUtils::Vec3 currentBackboneToSidechain = currentSidechain - currentBackbone;
+	const ADNFrameUtils::Vec3 templateBackboneToSidechain = templateSidechain - templateBackbone;
+
+	std::size_t backboneToBackboneCount = 0;
+	std::size_t backboneToSidechainCount = 0;
+	std::size_t sidechainToBackboneCount = 0;
+	std::size_t sidechainToSidechainCount = 0;
+	const double backboneToBackbone =
+		averageAtomGroupDistanceToMarker(nucleotide, true, currentBackbone, backboneToBackboneCount);
+	const double backboneToSidechain =
+		averageAtomGroupDistanceToMarker(nucleotide, true, currentSidechain, backboneToSidechainCount);
+	const double sidechainToBackbone =
+		averageAtomGroupDistanceToMarker(nucleotide, false, currentBackbone, sidechainToBackboneCount);
+	const double sidechainToSidechain =
+		averageAtomGroupDistanceToMarker(nucleotide, false, currentSidechain, sidechainToSidechainCount);
+
+	std::ostringstream message;
+	message << "Unpaired atom placement nucleotide " << nucleotide->getName()
+		<< " center=" << formatVec3(currentCenter)
+		<< " backbone=" << formatVec3(currentBackbone)
+		<< " sidechain=" << formatVec3(currentSidechain)
+		<< " templateCenter=" << formatVec3(templateCenter)
+		<< " templateBackbone=" << formatVec3(templateBackbone)
+		<< " templateSidechain=" << formatVec3(templateSidechain)
+		<< " currentE2=" << formatVec3(currentFrame.e2)
+		<< " templateE2=" << formatVec3(templateFrame.e2)
+		<< " currentE2MarkerDot=" << ADNFrameUtils::dot(
+			ADNFrameUtils::normalized(currentFrame.e2),
+			ADNFrameUtils::normalized(currentBackboneToSidechain))
+		<< " templateE2MarkerDot=" << ADNFrameUtils::dot(
+			ADNFrameUtils::normalized(templateFrame.e2),
+			ADNFrameUtils::normalized(templateBackboneToSidechain))
+		<< " backboneAtoms=" << backboneToBackboneCount
+		<< " backboneAvgToBackbone=" << backboneToBackbone
+		<< " backboneAvgToSidechain=" << backboneToSidechain
+		<< " sidechainAtoms=" << sidechainToSidechainCount
+		<< " sidechainAvgToBackbone=" << sidechainToBackbone
+		<< " sidechainAvgToSidechain=" << sidechainToSidechain;
+
+	ADNLogger::LogDebug(message.str());
+	++loggedCount;
 
 }
 #endif
