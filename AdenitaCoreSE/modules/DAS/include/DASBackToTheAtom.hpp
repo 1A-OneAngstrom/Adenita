@@ -98,6 +98,12 @@ private:
         ADNFrameUtils::Frame rightFrame;
         ublas::matrix<double> pairBasisMatrix;
         ublas::vector<double> pairTranslation;
+        // paired means both nucleotides exist. A one-sided base segment can
+        // still have a valid pair-level atom transform because the existing
+        // nucleotide is selected from an ideal base-pair template. Use
+        // hasPairLevelTransform to decide whether atom coordinates can be
+        // mapped from ideal pair space.
+        bool hasPairLevelTransform{ false };
         bool paired{ false };
     };
 
