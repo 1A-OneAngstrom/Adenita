@@ -725,6 +725,74 @@ void logUnpairedAtomPlacementDiagnostic(SBPointer<ADNNucleotide> nucleotide,
 
 }
 
+#ifdef ADN_DEBUG_GEOMETRY
+void logOneSidedLocalFallbackDiagnostic(SBPointer<ADNBaseSegment> baseSegment,
+	SBPointer<ADNNucleotide> nucleotide,
+	ADNGeometrySynchronization::TemplateSide side,
+	bool hasLeft,
+	bool hasRight,
+	bool pairBasisInitialized,
+	bool pairTranslationInitialized) {
+
+	static int loggedCount = 0;
+	if (loggedCount >= 20) return;
+
+	const int baseSegmentNumber = baseSegment != nullptr ? baseSegment->GetNumber() : -1;
+	std::ostringstream message;
+	message << "FindAtomsPositions one-sided base segment is using local fallback"
+		<< " baseSegment=" << baseSegmentNumber
+		<< " nucleotide=" << (nucleotide != nullptr ? nucleotide->getName() : std::string("<null>"))
+		<< " side=" << (side == ADNGeometrySynchronization::TemplateSide::Right ? "right" : "left")
+		<< " hasLeft=" << hasLeft
+		<< " hasRight=" << hasRight
+		<< " pairBasisInitialized=" << pairBasisInitialized
+		<< " pairTranslationInitialized=" << pairTranslationInitialized;
+	ADNLogger::LogDebug(message.str());
+	++loggedCount;
+
+}
+
+void logOneSidedLocalFallbackGeometryDiagnostic(SBPointer<ADNBaseSegment> baseSegment,
+	SBPointer<ADNNucleotide> nucleotide) {
+
+	static int loggedCount = 0;
+	if (loggedCount >= 20) return;
+	if (nucleotide == nullptr) return;
+
+	const ADNFrameUtils::Vec3 normal = sidechainPlaneNormal(nucleotide);
+	SBPointer<ADNNucleotide> previous = nucleotide->GetPrev(true);
+	const ADNFrameUtils::Vec3 previousNormal = sidechainPlaneNormal(previous);
+	const bool hasNormalAlignment =
+		!ADNFrameUtils::isNearlyZero(normal) &&
+		!ADNFrameUtils::isNearlyZero(previousNormal);
+	const double normalAlignment = hasNormalAlignment ?
+		std::abs(ADNFrameUtils::dot(normal, previousNormal)) :
+		0.0;
+
+	SBPointer<ADNAtom> phosphate = firstAtomByName(nucleotide, "P");
+	SBPointer<ADNAtom> previousO3 = firstAtomByName(previous, "O3'");
+	const bool hasBackboneLink = phosphate != nullptr && previousO3 != nullptr;
+	const double backboneLinkDistance = hasBackboneLink ?
+		(phosphate->getPosition() - previousO3->getPosition()).norm().getValue() :
+		0.0;
+
+	const int baseSegmentNumber = baseSegment != nullptr ? baseSegment->GetNumber() : -1;
+	std::ostringstream message;
+	message << "FindAtomsPositions one-sided local fallback geometry"
+		<< " baseSegment=" << baseSegmentNumber
+		<< " nucleotide=" << nucleotide->getName()
+		<< " ringNormal=" << formatVec3(normal)
+		<< " previousRingNormal=" << formatVec3(previousNormal)
+		<< " hasPreviousNormal=" << hasNormalAlignment
+		<< " normalAbsDot=" << normalAlignment
+		<< " hasPToPreviousO3=" << hasBackboneLink
+		<< " pToPreviousO3DistancePm=" << backboneLinkDistance;
+	ADNLogger::LogDebug(message.str());
+	++loggedCount;
+
+}
+#endif
+
 [[nodiscard]] bool validateGeneratedBackboneLink(SBPointer<ADNBaseSegment> baseSegment,
 	SBPointer<ADNNucleotide> nucleotide) {
 
@@ -1864,6 +1932,17 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 				frame = selection.side == ADNGeometrySynchronization::TemplateSide::Right ?
 					placement.rightFrame :
 					placement.leftFrame;
+#if defined(ADN_DEBUG_GEOMETRY) && !defined(NDEBUG)
+				SBPointer<ADNBasePair> basePair = static_cast<ADNBasePair*>(cell());
+				logOneSidedLocalFallbackDiagnostic(
+					baseSegment,
+					nt,
+					selection.side,
+					basePair->GetLeftNucleotide() != nullptr,
+					basePair->GetRightNucleotide() != nullptr,
+					placement.pairBasisMatrix.size1() != 0 && placement.pairBasisMatrix.size2() != 0,
+					placement.pairTranslation.size() != 0);
+#endif
 
 			}
 
@@ -1942,6 +2021,8 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 
 #if defined(ADN_DEBUG_GEOMETRY) && !defined(NDEBUG)
 	logUnpairedAtomPlacementDiagnostic(nt, selection.nucleotide, currentFrame, templateFrame);
+	if (baseSegment != nullptr && selection.sideKnown)
+		logOneSidedLocalFallbackGeometryDiagnostic(baseSegment, nt);
 #endif
 
 }
