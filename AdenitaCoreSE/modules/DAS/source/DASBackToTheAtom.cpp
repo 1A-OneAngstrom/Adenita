@@ -1904,9 +1904,17 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 
 	}
 
-	// Unpaired atom placement is local to the current nucleotide. It must not
-	// use the ideal pair center or a nonexistent complementary strand; the
-	// current nucleotide frame and center define the placement.
+	// Unpaired atom placement is nucleotide-local. The ideal atom deltas are
+	// stored in the selected template nucleotide's coordinate system, so convert
+	// them to that template frame before applying the current coarse geometry
+	// frame. This keeps backbone atoms on the backbone side and base atoms on the
+	// side-chain side for single strands.
+	const ADNFrameUtils::Frame currentFrame =
+		nucleotidePlacementFrameFromCoarseGeometry(*nt, frame);
+	const ADNFrameUtils::Frame templateFrame =
+		nucleotidePlacementFrameFromCoarseGeometry(
+			*selection.nucleotide(),
+			ADNFrameAdapters::sanitizedFrame(*selection.nucleotide()));
 	const ADNFrameUtils::Vec3 worldCenter = positionToVec3(nt->GetPosition());
 	const ADNFrameUtils::Vec3 templateCenter = positionToVec3(selection.nucleotide->GetPosition());
 
@@ -1922,16 +1930,19 @@ void DASBackToTheAtom::FindAtomsPositions(SBPointer<ADNNucleotide> nt,
 		SBPointer<ADNAtom> templateAtom = *templateIt;
 		if (generatedAtom == nullptr || templateAtom == nullptr) continue;
 
-		const ADNFrameUtils::Vec3 local =
+		const ADNFrameUtils::Vec3 templateDelta =
 			positionToVec3(templateAtom->getPosition()) - templateCenter;
+		const ADNFrameUtils::Vec3 templateLocal =
+			toLocalCoordinates(templateDelta, templateFrame);
 		const ADNFrameUtils::Vec3 world =
-			worldCenter +
-			frame.e1 * local.x +
-			frame.e2 * local.y +
-			frame.e3 * local.z;
+			worldCenter + fromLocalCoordinates(templateLocal, currentFrame);
 		generatedAtom->setPosition(positionFromVec3(world));
 
 	}
+
+#if defined(ADN_DEBUG_GEOMETRY) && !defined(NDEBUG)
+	logUnpairedAtomPlacementDiagnostic(nt, selection.nucleotide, currentFrame, templateFrame);
+#endif
 
 }
 
