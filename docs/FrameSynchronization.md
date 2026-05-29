@@ -8,6 +8,8 @@ For every persisted or synchronized frame:
 - The axes are mutually orthogonal.
 - The frame is right-handed with positive determinant for columns `[e1 e2 e3]`.
 
+Frame validity is necessary but not sufficient. A frame can remain orthonormal after a SAMSON move while no longer matching the current backbone, sidechain, base-pair, or strand tangent geometry. Adenita validates both the mathematical frame and its alignment with reconstructible geometry before using cached axes as geometry anchors.
+
 Rigid transforms must update positions and frames together:
 
 ```text
@@ -25,7 +27,16 @@ Current synchronization boundaries:
 
 - after native SAMSON unserialization;
 - before and after Adenita JSON save/load;
-- after Adenita atom position structural events;
+- after deferred Adenita structural position / transform events;
+- before and after Adenita editors that reconstruct geometry from geometry-aligned cached frames;
 - when code explicitly requests manual frame repair.
+
+There are three frame conventions that should not be mixed:
+
+- Geometry-aligned synchronization frames are reconstructed from the current nucleotide or base-segment geometry and are used as the durable in-memory state after SAMSON moves, serialization, and most editor edits.
+- Canonical template reconstruction frames are phase-neutral base-segment frames consumed by `DASBackToTheAtom`. `Create base pair` and `Twister` prepare these frames explicitly with `prepareBaseSegmentFrameForTemplateReconstruction` before calling template reconstruction.
+- Delta geometry rotations operate directly on current positions and frames. `Rotate DNA` uses this path so partial rotations compose without rebuilding from ideal templates.
+
+Do not run a generic pre-edit part synchronization immediately before a `DASBackToTheAtom` template reconstruction call. That replaces the phase-neutral template frame with a geometry-aligned frame, after which `DASBackToTheAtom` applies the helical phase a second time. Post-edit synchronization remains appropriate because it returns the model to geometry-aligned frames after reconstruction.
 
 Native `serialize` methods write sanitized frame copies without mutating object state.

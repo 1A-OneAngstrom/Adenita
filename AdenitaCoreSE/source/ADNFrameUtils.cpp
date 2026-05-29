@@ -277,4 +277,26 @@ Mat3 rotationZ(double radians) noexcept {
 
 }
 
+Mat3 rotationAroundAxis(const Vec3& axis, double radians) noexcept {
+
+	const Vec3 normalizedAxis = normalized(axis);
+	if (isNearlyZero(normalizedAxis)) return rotationZ(0.0);
+
+	const double x = normalizedAxis.x;
+	const double y = normalizedAxis.y;
+	const double z = normalizedAxis.z;
+	const double c = std::cos(radians);
+	const double s = std::sin(radians);
+	const double oneMinusC = 1.0 - c;
+
+	return Mat3{
+		{
+			{ c + x * x * oneMinusC, x * y * oneMinusC - z * s, x * z * oneMinusC + y * s },
+			{ y * x * oneMinusC + z * s, c + y * y * oneMinusC, y * z * oneMinusC - x * s },
+			{ z * x * oneMinusC - y * s, z * y * oneMinusC + x * s, c + z * z * oneMinusC }
+		}
+	};
+
+}
+
 } // namespace ADNFrameUtils

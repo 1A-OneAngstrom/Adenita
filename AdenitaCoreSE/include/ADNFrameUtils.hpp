@@ -106,6 +106,10 @@ SB_EXPORT [[nodiscard]] Frame frameFromE2AndTangent(const Vec3& e2,
 
 /// \brief Return the rotation matrix for a rotation about the Z axis.
 SB_EXPORT [[nodiscard]] Mat3 rotationZ(double radians) noexcept;
+/// \brief Return the rotation matrix for a rotation about an arbitrary axis.
+///
+/// If \p axis is degenerate, the identity rotation is returned.
+SB_EXPORT [[nodiscard]] Mat3 rotationAroundAxis(const Vec3& axis, double radians) noexcept;
 //@}
 
 } // namespace ADNFrameUtils

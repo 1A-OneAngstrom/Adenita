@@ -1,4 +1,20 @@
 #include "ADNBasicOperations.hpp"
+#include "ADNFrameAdapters.hpp"
+#include "ADNGeometrySynchronization.hpp"
+
+namespace {
+
+[[nodiscard]] ADNFrameUtils::Vec3 frameVecFromSBVector(const SBVector3& vector) {
+
+    return ADNFrameUtils::Vec3{
+        vector[0].getValue(),
+        vector[1].getValue(),
+        vector[2].getValue()
+    };
+
+}
+
+} // namespace
 
 
 SBPointer<ADNSingleStrand> ADNBasicOperations::MergeSingleStrands(SBPointer<ADNPart> part1, SBPointer<ADNPart> part2, SBPointer<ADNSingleStrand> first_strand, SBPointer<ADNSingleStrand> second_strand) {
@@ -147,7 +163,11 @@ SBPointerIndexer<ADNNucleotide> ADNBasicOperations::AddNucleotidesThreePrime(SBP
                 ds->AddBaseSegmentBeginning(nextBs);
             }
             nextBs->SetPosition(pos);
-            nextBs->SetE3(ADNAuxiliary::SBVectorToUblasVector(dir));
+            ADNFrameUtils::Frame previousFrame = ADNFrameAdapters::sanitizedFrame(*bs);
+            ADNGeometrySynchronization::initializeDesignedBaseSegmentFrame(
+                *nextBs,
+                frameVecFromSBVector(dir),
+                &previousFrame.e2);
 
         }
         SBPointer<ADNBasePair> bp = static_cast<ADNBasePair*>(nextBs->GetCell()());
