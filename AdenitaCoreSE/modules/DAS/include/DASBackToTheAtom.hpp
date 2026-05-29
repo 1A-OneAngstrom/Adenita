@@ -11,6 +11,7 @@
 #include "ADNNanorobot.hpp"
 #include "ADNVectorMath.hpp"
 #include "ADNBasicOperations.hpp"
+#include "ADNGeometrySynchronization.hpp"
 #include "DASPolyhedron.hpp"
 
 #undef foreach
@@ -24,6 +25,11 @@ typedef std::pair<SBPointer<ADNNucleotide>, SBPointer<ADNNucleotide>> NtPair;
 class SB_EXPORT DASBackToTheAtom {
 
 public:
+
+    enum class NewNucleotidePlacementMode {
+        ReconstructBaseSegments,
+        PositionInputNucleotidesOnly
+    };
 
     DASBackToTheAtom();
     ~DASBackToTheAtom();
@@ -58,7 +64,8 @@ public:
     void UntwistNucleotidesPosition(SBPointer<ADNBaseSegment> bs);
 
     //! Sets the positions of a collection of nucleotides, meant to be called after modifications
-    void SetPositionsForNewNucleotides(SBPointer<ADNPart> part, SBPointerIndexer<ADNNucleotide> nts);
+    void SetPositionsForNewNucleotides(SBPointer<ADNPart> part, SBPointerIndexer<ADNNucleotide> nts,
+        NewNucleotidePlacementMode placementMode);
 
     //void SetAllAtomsPositions(SBPointer<ADNPart> origami);
     // for cadnano
@@ -80,6 +87,26 @@ public:
 
 private:
 
+    struct AtomTemplateSelection {
+        NtPair pair;
+        SBPointer<ADNNucleotide> nucleotide{ nullptr };
+        ADNGeometrySynchronization::TemplateSide side{ ADNGeometrySynchronization::TemplateSide::Left };
+        bool sideKnown{ false };
+    };
+    struct BaseSegmentAtomPlacementCache {
+        ADNFrameUtils::Frame leftFrame;
+        ADNFrameUtils::Frame rightFrame;
+        ublas::matrix<double> pairBasisMatrix;
+        ublas::vector<double> pairTranslation;
+        // paired means both nucleotides exist. A one-sided base segment can
+        // still have a valid pair-level atom transform because the existing
+        // nucleotide is selected from an ideal base-pair template. Use
+        // hasPairLevelTransform to decide whether atom coordinates can be
+        // mapped from ideal pair space.
+        bool hasPairLevelTransform{ false };
+        bool paired{ false };
+    };
+
     SBPointer<ADNNucleotide> da_;
     SBPointer<ADNNucleotide> dt_;
     SBPointer<ADNNucleotide> dg_;
@@ -88,6 +115,7 @@ private:
     NtPair dt_da_;
     NtPair dc_dg_;
     NtPair dg_dc_;
+    mutable std::map<ADNNucleotide*, ublas::vector<double>> idealPairCenterCache_;
     /** Loads the four types of nucleotide as members
     */
     void LoadNucleotides();
@@ -110,9 +138,17 @@ private:
     static void PositionLoopNucleotides(SBPointer<ADNLoop> loop, SBPosition3 bsPositionPrev, SBPosition3 bsPositionNext);
     static void PositionLoopNucleotidesQBezier(SBPointer<ADNLoop> loop, SBPosition3 bsPositionPrev, SBPosition3 bsPositionNext, SBVector3 bsPrevE3, SBVector3 bsNextE3);
 
-    void PopulateNucleotideWithAllAtoms(SBPointer<ADNPart> origami, SBPointer<ADNNucleotide> nt, bool createFlag = false);
+    void PlaceNucleotideFromTemplate(SBPointer<ADNBaseSegment> bs, SBPointer<ADNNucleotide> nt);
+    [[nodiscard]] AtomTemplateSelection SelectAtomTemplateForNucleotide(SBPointer<ADNNucleotide> nt) const;
+    void PopulateNucleotideWithAllAtoms(SBPointer<ADNPart> origami, SBPointer<ADNNucleotide> nt, const AtomTemplateSelection& selection, bool createFlag = false);
+#ifndef NDEBUG
+    bool ValidateGeneratedBasePairPlanes(SBPointer<ADNPart> part) const;
+    bool ValidateGeneratedSingleStrandAtomGeometry(SBPointer<ADNPart> part) const;
+#endif
     static void CreateBonds(SBPointer<ADNPart> origami, bool createFlag = false);
-    void FindAtomsPositions(SBPointer<ADNNucleotide> nt);
+    void FindAtomsPositions(SBPointer<ADNNucleotide> nt,
+        const AtomTemplateSelection& selection,
+        std::map<ADNBaseSegment*, BaseSegmentAtomPlacementCache>& placementCache);
 
     //! Untwist the nucleotide (remove the helix turn)
     /*!
@@ -127,6 +163,7 @@ private:
     //! Select the ideal NtPair corresponding to a pair
     NtPair GetIdealBasePairNucleotides(SBPointer<ADNNucleotide> nt_l, SBPointer<ADNNucleotide> nt_r) const;
     NtPair GetIdealBasePairNucleotides(DNABlocks nt_l, DNABlocks nt_r) const;
+    [[nodiscard]] ublas::vector<double> GetIdealPairCenterOfMass(NtPair pair) const;
 
     //! If not defined, set a local basis for the base segment and return it as a matrix
     static ublas::matrix<double> CalculateBaseSegmentBasis(SBPointer<ADNBaseSegment> bs);

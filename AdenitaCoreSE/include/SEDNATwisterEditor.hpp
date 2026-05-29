@@ -6,10 +6,14 @@
 
 #include "SBAction.hpp"
 
+#include "ADNFrameUtils.hpp"
 #include "ADNNanorobot.hpp"
-#include "DASBackToTheAtom.hpp"
+
+#include <unordered_map>
 
 /// This class implements an editor
+
+class ADNBaseSegment;
 
 class SB_EXPORT SEDNATwisterEditor : public SBGEditor {
 
@@ -103,6 +107,7 @@ private:
 	void														untwisting();
 	void														makeInvisible();
 	SBPosition3													getSnappedPosition(const SBPosition3& currentPosition);
+	void														clearTwisterFrameCache();
 
 	void														updateEditorText();
 	void														updateForwardReverseState();
@@ -115,6 +120,7 @@ private:
 	bool														forwardActionSphereActive{ false };
 	bool														reverseActionSphereActive{ false };
 	bool														snappingIsActive{ true };
+	std::unordered_map<ADNBaseSegment*, ADNFrameUtils::Frame>	twisterCanonicalFrameCache_;
 
 	/// \name Display
 	//@{

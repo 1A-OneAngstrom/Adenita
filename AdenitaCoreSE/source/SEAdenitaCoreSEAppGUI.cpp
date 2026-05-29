@@ -19,6 +19,7 @@
 #include "SEMergePartsEditor.hpp"
 
 #include "ADNSamsonContext.hpp"
+#include "ADNGeometrySynchronization.hpp"
 #include "DASPolyhedron.hpp"
 
 #include <cmath>
@@ -998,16 +999,22 @@ void SEAdenitaCoreSEAppGUI::onGenerateAtomicModel() {
 
 		SAMSON::beginHolding("Add atomic model");
 
+		bool generatedAtomicModel = false;
 		SB_FOR(SBPointer<ADNPart> part, parts) {
 
+			if (part == nullptr) continue;
 			if (!addToAll && !part->getSelectionFlag()) continue;
 
-			btta.SetNucleotidesPositions(part);
+			ADNGeometrySynchronization::syncPartFramesBeforeGeometryEdit(*part);
 			btta.GenerateAllAtomModel(part, true);
+			ADNGeometrySynchronization::syncPartFramesAfterGeometryEdit(*part);
+			generatedAtomicModel = true;
 
 		}
 
 		SAMSON::endHolding();
+		if (generatedAtomicModel)
+			SEAdenitaCoreSEApp::resetVisualModel();
 
 	}
 

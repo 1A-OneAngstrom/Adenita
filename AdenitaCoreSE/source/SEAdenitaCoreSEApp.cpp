@@ -21,6 +21,13 @@ namespace {
 
 bool g_pendingSAMLoadVisualModelReset = false;
 
+[[nodiscard]] double degreesToRadians(double degrees) {
+
+	constexpr double pi = 3.141592653589793238462643383279502884;
+	return degrees * pi / 180.0;
+
+}
+
 class ScopedGeometrySyncGuard {
 
 public:
@@ -44,25 +51,25 @@ private:
 
 };
 
-void syncFramesForAtomPositionChange(SBNode* node) {
+void syncPartsBeforeGeometryEdit(const SBPointerIndexer<ADNPart>& parts) {
 
-	SBPointer<ADNAtom> atom = dynamic_cast<ADNAtom*>(node);
-	if (atom == nullptr) return;
+	SB_FOR(SBPointer<ADNPart> part, parts) {
 
-	SBPointer<ADNNucleotide> nucleotide = dynamic_cast<ADNNucleotide*>(atom->getNucleotide());
-	if (nucleotide != nullptr) {
-
-		ADNGeometrySynchronization::syncNucleotideFrameFromGeometry(*nucleotide);
-		SBPointer<ADNBaseSegment> baseSegment = nucleotide->GetBaseSegment();
-		if (baseSegment != nullptr)
-			ADNGeometrySynchronization::syncBaseSegmentFrameFromGeometry(*baseSegment);
-		return;
+		if (part != nullptr)
+			ADNGeometrySynchronization::syncPartFramesBeforeGeometryEdit(*part);
 
 	}
 
-	SBPointer<ADNBaseSegment> baseSegment = dynamic_cast<ADNBaseSegment*>(atom->getParent());
-	if (baseSegment != nullptr)
-		ADNGeometrySynchronization::syncBaseSegmentFrameFromGeometry(*baseSegment);
+}
+
+void syncPartsAfterGeometryEdit(const SBPointerIndexer<ADNPart>& parts) {
+
+	SB_FOR(SBPointer<ADNPart> part, parts) {
+
+		if (part != nullptr)
+			ADNGeometrySynchronization::syncPartFramesAfterGeometryEdit(*part);
+
+	}
 
 }
 
@@ -343,7 +350,9 @@ void SEAdenitaCoreSEApp::AddNtThreeP(int numNt) {
 
 		auto nts = ADNBasicOperations::AddNucleotidesThreePrime(part, ss, numNt, dir);
 		DASBackToTheAtom* btta = new DASBackToTheAtom();
-		btta->SetPositionsForNewNucleotides(part, nts);
+		btta->SetPositionsForNewNucleotides(part,
+			nts,
+			DASBackToTheAtom::NewNucleotidePlacementMode::PositionInputNucleotidesOnly);
 
 		SEAdenitaCoreSEApp::resetVisualModel();
 
@@ -653,21 +662,22 @@ void SEAdenitaCoreSEApp::BreakSingleStrand(bool fivePrimeMode) {
 
 void SEAdenitaCoreSEApp::TwistDoubleHelix(SBPointerIndexer<ADNDoubleStrand> dss, double angle) {
 
-	DASBackToTheAtom btta = DASBackToTheAtom();
-	SEConfig& config = SEConfig::GetInstance();
+	const SBPointerIndexer<ADNPart> affectedParts =
+		ADNGeometrySynchronization::collectPartsFromDoubleStrands(dss);
+
+	syncPartsBeforeGeometryEdit(affectedParts);
 
 	SB_FOR(SBPointer<ADNDoubleStrand> ds, dss) {
 
+		if (ds == nullptr) continue;
+
 		double newDeg = ds->GetInitialTwistAngle() + angle;
 		ADNBasicOperations::TwistDoubleHelix(ds, newDeg);
-		// recalculate positions
-		btta.SetDoubleStrandPositions(ds);
-		if (config.use_atomic_details) {
-			// todo: calculate all atoms just for a double strand
-			//btta.GenerateAllAtomModel(ds);
-		}
+		ADNGeometrySynchronization::rotateDoubleStrandGeometry(*ds, -degreesToRadians(angle));
 
 	}
+
+	syncPartsAfterGeometryEdit(affectedParts);
 
 	if (dss.size() > 0) SEAdenitaCoreSEApp::resetVisualModel();
 
@@ -798,21 +808,24 @@ void SEAdenitaCoreSEApp::TwistDoubleHelix() {
 	if (nanorobot == nullptr) return;
 	auto dss = nanorobot->GetSelectedDoubleStrands();
 
-	DASBackToTheAtom btta = DASBackToTheAtom();
-	SEConfig& config = SEConfig::GetInstance();
+	const SBPointerIndexer<ADNPart> affectedParts =
+		ADNGeometrySynchronization::collectPartsFromDoubleStrands(dss);
+
+	syncPartsBeforeGeometryEdit(affectedParts);
 
 	SB_FOR(SBPointer<ADNDoubleStrand> ds, dss) {
 
+		if (ds == nullptr) continue;
+
 		double newDeg = ds->GetInitialTwistAngle() + deg;
 		ADNBasicOperations::TwistDoubleHelix(ds, newDeg);
-		// recalculate positions
-		btta.SetDoubleStrandPositions(ds);
-		if (config.use_atomic_details) {
-			// todo: calculate all atoms just for a double strand
-			//btta.GenerateAllAtomModel(ds);
-		}
+		ADNGeometrySynchronization::rotateDoubleStrandGeometry(*ds, -degreesToRadians(deg));
 
 	}
+
+	syncPartsAfterGeometryEdit(affectedParts);
+
+	if (dss.size() > 0) SEAdenitaCoreSEApp::resetVisualModel();
 
 }
 
@@ -1074,7 +1087,13 @@ void SEAdenitaCoreSEApp::CreateBasePair() {
 	auto selectedNucleotides = nanorobot->GetSelectedNucleotides();
 	if (selectedNucleotides.size() > 0) {
 
+		const SBPointerIndexer<ADNPart> affectedParts =
+			ADNGeometrySynchronization::collectPartsFromNucleotides(selectedNucleotides);
+
+		// Complementary-strand placement uses canonical template frames; do not
+		// replace them with one-sided geometry-aligned frames before reconstruction.
 		DASOperations::AddComplementaryStrands(nanorobot, selectedNucleotides);
+		syncPartsAfterGeometryEdit(affectedParts);
 		SEAdenitaCoreSEApp::resetVisualModel();
 
 	}
@@ -1083,6 +1102,61 @@ void SEAdenitaCoreSEApp::CreateBasePair() {
 		SAMSON::informUser(QString("Adenita: Create base pair"), QString("Please select the nucleotides or single strands whose pairs you want to create."));
 
 	}
+
+}
+
+void SEAdenitaCoreSEApp::MarkGeometryDirty(SBNode* node) {
+
+	if (node == nullptr) return;
+
+	SBPointer<ADNPart> part = ADNGeometrySynchronization::findOwningPart(node);
+	if (part == nullptr) return;
+
+	if (!dirtyGeometryParts_.hasIndex(part()))
+		dirtyGeometryParts_.addReferenceTarget(part());
+
+	if (geometrySyncPending_) return;
+
+	geometrySyncPending_ = true;
+
+	QObject* receiver = QCoreApplication::instance();
+	if (receiver == nullptr) {
+
+		FlushDeferredGeometrySynchronization();
+		return;
+
+	}
+
+	QTimer::singleShot(0, receiver, [this]() {
+
+		FlushDeferredGeometrySynchronization();
+
+		});
+
+}
+
+void SEAdenitaCoreSEApp::FlushDeferredGeometrySynchronization() {
+
+	geometrySyncPending_ = false;
+	if (dirtyGeometryParts_.size() == 0) return;
+	if (geometrySyncInProgress_) return;
+
+	SBPointerIndexer<ADNPart> parts = dirtyGeometryParts_;
+	dirtyGeometryParts_.clear();
+
+	ScopedGeometrySyncGuard guard(geometrySyncInProgress_);
+
+	SB_FOR(SBPointer<ADNPart> part, parts) {
+
+		if (part != nullptr)
+			ADNGeometrySynchronization::syncPartFramesFromGeometry(
+				*part,
+				ADNGeometrySynchronization::SyncReason::AfterStructuralPositionChange);
+
+	}
+
+	SEAdenitaCoreSEApp::requestVisualModelUpdate();
+	SAMSON::requestViewportUpdate();
 
 }
 
@@ -1144,19 +1218,17 @@ void SEAdenitaCoreSEApp::onStructuralEvent(SBStructuralEvent* structuralEvent) {
 
 	const SBStructuralEvent::Type eventType = structuralEvent->getType();
 	SBNode* node = structuralEvent->getAuxiliaryNode();
+	if (!node) node = dynamic_cast<SBNode*>(structuralEvent->getSender());
 	if (!node) return;
 	if (node->getProxy()->getElementUUID() != SBUUID(SB_ELEMENT_UUID)) return;
 
 	const std::string nodeClassName = node->getProxy()->getName();
 
-	if (eventType == SBStructuralEvent::AtomPositionChanged) {
+	if (eventType == SBStructuralEvent::AtomPositionChanged ||
+		eventType == SBStructuralEvent::TransformChanged) {
 
-		if (!geometrySyncInProgress_) {
-
-			ScopedGeometrySyncGuard guard(geometrySyncInProgress_);
-			syncFramesForAtomPositionChange(node);
-
-		}
+		if (!geometrySyncInProgress_)
+			MarkGeometryDirty(node);
 		return;
 
 	}
