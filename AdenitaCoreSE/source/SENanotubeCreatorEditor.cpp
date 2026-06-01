@@ -285,6 +285,7 @@ void SENanotubeCreatorEditor::display() {
 
 	}
 
+	tempPart = nullptr;
 	if (config.preview_editor) tempPart = generateNanotube(true);
 
 	if (tempPart != nullptr) {

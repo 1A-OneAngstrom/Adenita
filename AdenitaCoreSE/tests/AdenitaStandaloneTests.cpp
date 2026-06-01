@@ -39,6 +39,7 @@
 #include "DASCreator.hpp"
 #include "DASDaedalus.hpp"
 #include "PIPrimer3.hpp"
+#include "SELatticeCreatorEditorMath.hpp"
 #include "SBCHeapExport.hpp"
 
 #include "rapidjson/document.h"
@@ -3578,6 +3579,31 @@ void testDaedalusEdgeSizeQuantizationBoundaries() {
 
 }
 
+void testLatticeTriangleLengthInterpolation() {
+
+	using SELatticeCreatorEditorMath::calculateTriangleLatticeLength;
+
+	requireEqual("triangle taper starts at zero",
+		calculateTriangleLatticeLength(0, 4, 30),
+		0);
+	requireEqual("triangle taper first interior row",
+		calculateTriangleLatticeLength(1, 4, 30),
+		10);
+	requireEqual("triangle taper second interior row",
+		calculateTriangleLatticeLength(2, 4, 30),
+		20);
+	requireEqual("triangle taper reaches full length",
+		calculateTriangleLatticeLength(3, 4, 30),
+		30);
+	requireEqual("triangle taper rounds to nearest base pair",
+		calculateTriangleLatticeLength(1, 3, 11),
+		6);
+	requireEqual("triangle taper single row is full length",
+		calculateTriangleLatticeLength(0, 1, 42),
+		42);
+
+}
+
 void testBaseSegmentSetCellReplacesChild() {
 
 	ADNBaseSegment baseSegment;
@@ -4292,6 +4318,7 @@ int main() {
 	testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks();
 	testGenerateSequenceHonorsLengthAlphabetAndMaxGs();
 	testDaedalusEdgeSizeQuantizationBoundaries();
+	testLatticeTriangleLengthInterpolation();
 	testBaseSegmentSetCellReplacesChild();
 	testLoopPairSettersReplaceOnlySelectedChild();
 	testSerializedNodeValidation();

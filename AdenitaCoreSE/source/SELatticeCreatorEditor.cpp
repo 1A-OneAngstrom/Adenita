@@ -1,10 +1,195 @@
 #include "SELatticeCreatorEditor.hpp"
 #include "SEAdenitaCoreSEApp.hpp"
 #include "MSVDisplayHelper.hpp"
+#include "SELatticeCreatorEditorMath.hpp"
 
 #include "SAMSON.hpp"
 
 #include "SBGRenderOpenGLFunctions.hpp"
+
+#include <algorithm>
+#include <cmath>
+
+namespace {
+
+struct LatticeMeasurements {
+
+	SBQuantity::nanometer x = SBQuantity::nanometer(0.0);
+	SBQuantity::nanometer y = SBQuantity::nanometer(0.0);
+	SBQuantity::nanometer z = SBQuantity::nanometer(0.0);
+	int xNumStrands{ 1 };
+	int yNumStrands{ 1 };
+	int numBps{ 1 };
+
+};
+
+struct LatticeBuildData {
+
+	LatticeMeasurements measurements;
+	SBVector3 columnAxis = SBVector3(0.0, 1.0, 0.0);
+	SBVector3 rowAxis = SBVector3(0.0, 0.0, 1.0);
+	SBVector3 strandAxis = SBVector3(1.0, 0.0, 0.0);
+
+};
+
+SBVector3 normalizedCrossProduct(const SBVector3& v, const SBVector3& w, const SBVector3& fallback) {
+
+	const double x = v[1].getValue() * w[2].getValue() - v[2].getValue() * w[1].getValue();
+	const double y = v[2].getValue() * w[0].getValue() - v[0].getValue() * w[2].getValue();
+	const double z = v[0].getValue() * w[1].getValue() - v[1].getValue() * w[0].getValue();
+	const double norm = std::sqrt(x * x + y * y + z * z);
+
+	if (norm < 1.0e-9) return fallback;
+
+	return SBVector3(x / norm, y / norm, z / norm);
+
+}
+
+SBVector3 signedAxis(const SBVector3& axis, double signedLength) {
+
+	if (signedLength < 0.0) return -axis;
+	return axis;
+
+}
+
+double signedProjectionInNanometers(const SBPosition3& vector, const SBVector3& axis) {
+
+	const auto projection = vector[0] * axis[0] + vector[1] * axis[1] + vector[2] * axis[2];
+	return SBQuantity::nanometer(projection).getValue();
+
+}
+
+SBVector3 signedNormalAxisFromHeightDrag(const SBVector3& normalAxis, const SBPosition3& heightVector) {
+
+	const double signedHeight = signedProjectionInNanometers(heightVector, normalAxis);
+	if (std::abs(signedHeight) < 0.1) return normalAxis;
+	return signedAxis(normalAxis, signedHeight);
+
+}
+
+LatticeMeasurements calculateLatticeMeasurements(
+	const SBPosition3& firstPosition,
+	const SBPosition3& secondPosition,
+	const SBPosition3& thirdPosition,
+	const SBPosition3& currentPosition,
+	bool heightSelected,
+	const SBVector3& columnAxis,
+	const SBVector3& rowAxis,
+	int maxXDoubleStrands,
+	int maxYDoubleStrands,
+	int maxZBasePairs) {
+
+	const SBPosition3 currentPos = secondPosition - firstPosition;
+	const double signedRowLength = signedProjectionInNanometers(currentPos, rowAxis);
+	const double signedColumnLength = signedProjectionInNanometers(currentPos, columnAxis);
+
+	LatticeMeasurements measurements;
+	measurements.x = SBQuantity::nanometer(std::abs(signedRowLength));
+	measurements.y = SBQuantity::nanometer(std::abs(signedColumnLength));
+	measurements.z = heightSelected ?
+		(thirdPosition - firstPosition).norm() :
+		(currentPosition - firstPosition).norm();
+
+	measurements.xNumStrands = static_cast<int>(std::round((measurements.x / SBQuantity::nanometer(ADNConstants::DH_DIAMETER)).getValue()));
+	measurements.yNumStrands = static_cast<int>(std::round((measurements.y / SBQuantity::nanometer(ADNConstants::DH_DIAMETER)).getValue()));
+	measurements.numBps = static_cast<int>(std::round((measurements.z / SBQuantity::nanometer(ADNConstants::BP_RISE)).getValue()));
+
+	measurements.xNumStrands = std::clamp(measurements.xNumStrands, 1, maxXDoubleStrands);
+	measurements.yNumStrands = std::clamp(measurements.yNumStrands, 1, maxYDoubleStrands);
+	measurements.numBps = std::clamp(measurements.numBps, 1, maxZBasePairs);
+
+	return measurements;
+
+}
+
+LatticeBuildData calculateLatticeBuildData(
+	const SBPosition3& firstPosition,
+	const SBPosition3& secondPosition,
+	const SBPosition3& thirdPosition,
+	const SBPosition3& currentPosition,
+	bool lengthSelected,
+	bool heightSelected,
+	const SBVector3& baseColumnAxis,
+	const SBVector3& baseRowAxis,
+	const SBVector3& baseNormalAxis,
+	int maxXDoubleStrands,
+	int maxYDoubleStrands,
+	int maxZBasePairs) {
+
+	const SBPosition3 crossSectionVector = secondPosition - firstPosition;
+	const double signedRowLength = signedProjectionInNanometers(crossSectionVector, baseRowAxis);
+	const double signedColumnLength = signedProjectionInNanometers(crossSectionVector, baseColumnAxis);
+
+	LatticeBuildData buildData;
+	buildData.measurements = calculateLatticeMeasurements(
+		firstPosition,
+		secondPosition,
+		thirdPosition,
+		currentPosition,
+		heightSelected,
+		baseColumnAxis,
+		baseRowAxis,
+		maxXDoubleStrands,
+		maxYDoubleStrands,
+		maxZBasePairs);
+
+	// VGrid returns positive local distances as (strand axis, lattice column, lattice row).
+	// The user drag supplies the signs, so the same local grid can extend into negative
+	// world directions without changing Cadnano lattice spacing.
+	buildData.columnAxis = signedAxis(baseColumnAxis, signedColumnLength);
+	buildData.rowAxis = signedAxis(baseRowAxis, signedRowLength);
+
+	const SBPosition3 heightVector = heightSelected ?
+		(thirdPosition - firstPosition) :
+		(currentPosition - firstPosition);
+	// Keep local z perpendicular to the cross-section plane locked by the first drag.
+	// The second drag keeps its old role of setting height, with only its sign projected
+	// onto the plane normal used to choose the growth direction when available.
+	buildData.strandAxis = lengthSelected ?
+		signedNormalAxisFromHeightDrag(baseNormalAxis, heightVector) :
+		baseNormalAxis;
+
+	return buildData;
+
+}
+
+SBPosition3 transformLocalGridPosition(
+	const SBPosition3& origin,
+	const SBPosition3& localPosition,
+	const LatticeBuildData& buildData) {
+
+	return origin
+		+ localPosition[0] * buildData.strandAxis
+		+ localPosition[1] * buildData.columnAxis
+		+ localPosition[2] * buildData.rowAxis;
+
+}
+
+void updateLatticeText(const LatticeMeasurements& measurements, LatticeType latticeType, std::string& xyText, std::string& zText) {
+
+	xyText = "x: ";
+	xyText += std::to_string(measurements.xNumStrands);
+	xyText += " ds / ";
+	auto xLen = SBQuantity::nanometer(measurements.x).getValue();
+	if (latticeType == LatticeType::Honeycomb)
+		xLen *= 1.5;
+	xyText += std::to_string(static_cast<int>(xLen));
+	xyText += " nm; ";
+	xyText += "y: ";
+	xyText += std::to_string(measurements.yNumStrands);
+	xyText += " ds / ";
+	xyText += std::to_string(static_cast<int>(SBQuantity::nanometer(measurements.y).getValue()));
+	xyText += " nm; ";
+
+	zText = "z: ";
+	zText += std::to_string(measurements.numBps);
+	zText += " bps / ";
+	zText += std::to_string(static_cast<int>(SBQuantity::nanometer(measurements.z).getValue()));
+	zText += " nm; ";
+
+}
+
+} // namespace
 
 
 SELatticeCreatorEditor::SELatticeCreatorEditor() {
@@ -47,76 +232,42 @@ SBPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*/
 
 	SBPointer<ADNPart> part = nullptr;
 
-	const SBPosition3 currentPos = secondPosition - firstPosition;
+	if (!crossSectionFrameLocked) updateCrossSectionFrameFromCamera();
 
-	SBPosition3 xPos = currentPos;
-	xPos[1].setValue(0);
-	SBPosition3 yPos = currentPos;
-	yPos[2].setValue(0);
-  
-	const SBQuantity::nanometer x = xPos.norm();
-	const SBQuantity::nanometer y = yPos.norm();
-	SBQuantity::nanometer z = SBQuantity::nanometer(3.4);
-
-	if (!heightSelected) {
-
-		const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
-		z = (currentPosition - firstPosition).norm();
-
-	}
-	else if (heightSelected) {
-
-		z = (thirdPosition - firstPosition).norm();
-
-	}
-  
-	auto xNumStrands = round((x / SBQuantity::nanometer(ADNConstants::DH_DIAMETER)).getValue());
-	auto yNumStrands = round((y / SBQuantity::nanometer(ADNConstants::DH_DIAMETER)).getValue());
-	auto numBps = round((z / SBQuantity::nanometer(ADNConstants::BP_RISE)).getValue());
-
-	if (xNumStrands < 1) xNumStrands = 1;
-	if (yNumStrands < 1) yNumStrands = 1;
-	if (numBps < 1) numBps = 1;
-
-	if (xNumStrands > maxXDoubleStrands)  xNumStrands = maxXDoubleStrands;
-	if (yNumStrands > maxYDoubleStrands)  yNumStrands = maxYDoubleStrands;
-	if (numBps > maxZBasePairs)  numBps = maxZBasePairs;
-
-	xyText = "x: ";
-	xyText += std::to_string(int(xNumStrands));
-	xyText += " ds / ";
-	auto xLen = SBQuantity::nanometer(x).getValue();
-	if (latticeType == LatticeType::Honeycomb)
-		xLen *= 1.5;
-	xyText += std::to_string(int(xLen));
-	xyText += " nm; ";
-	xyText += "y: ";
-	xyText += std::to_string(int(yNumStrands));
-	xyText += " ds / ";
-	xyText += std::to_string(int(SBQuantity::nanometer(y).getValue()));
-	xyText += " nm; ";
-	zText = "z: ";
-	zText += std::to_string(int(numBps));
-	zText += " bps / ";
-	zText += std::to_string(int(SBQuantity::nanometer(z).getValue()));
-	zText += " nm; ";
+	const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+	const LatticeBuildData buildData = calculateLatticeBuildData(
+		firstPosition,
+		secondPosition,
+		thirdPosition,
+		currentPosition,
+		lengthSelected,
+		heightSelected,
+		latticeColumnAxis,
+		latticeRowAxis,
+		latticeNormalAxis,
+		maxXDoubleStrands,
+		maxYDoubleStrands,
+		maxZBasePairs);
+	updateLatticeText(buildData.measurements, latticeType, xyText, zText);
 
 	part = new ADNPart();
 
-	SBVector3 dir = SBVector3(1, 0, 0);
-	for (int xt = 0; xt < xNumStrands; xt++) {
+	for (int xt = 0; xt < buildData.measurements.xNumStrands; xt++) {
 
-		for (int yt = 0; yt < yNumStrands; yt++) {
+		for (int yt = 0; yt < buildData.measurements.yNumStrands; yt++) {
 
-			auto pos = vGrid.GetGridCellPos3D(0, xt, yt);
-			pos += firstPosition;
+			const SBPosition3 localPos = vGrid.GetGridCellPos3D(0, xt, yt);
+			const SBPosition3 pos = transformLocalGridPosition(firstPosition, localPos, buildData);
 
-			int zLength = numBps;
+			int zLength = buildData.measurements.numBps;
 			if (zPattern == ZLatticePattern::TRIANGLE) {
-				zLength = (xt / xNumStrands) * numBps;
+				zLength = SELatticeCreatorEditorMath::calculateTriangleLatticeLength(
+					xt,
+					buildData.measurements.xNumStrands,
+					buildData.measurements.numBps);
 			}
 
-			if (zLength > 0) auto ds = DASCreator::CreateDoubleStrand(part, zLength, pos, dir, mock);
+			if (zLength > 0) auto ds = DASCreator::CreateDoubleStrand(part, zLength, pos, buildData.strandAxis, mock);
 
 		}
 
@@ -256,8 +407,30 @@ void SELatticeCreatorEditor::resetData() {
 	firstPosition = SBPosition3();
 	secondPosition = SBPosition3();
 	thirdPosition = SBPosition3();
+	latticeColumnAxis = SBVector3(0.0, 1.0, 0.0);
+	latticeRowAxis = SBVector3(0.0, 0.0, 1.0);
+	latticeNormalAxis = SBVector3(1.0, 0.0, 0.0);
+	crossSectionFrameLocked = false;
 	displayFlag = false;
 	tempPart = nullptr;
+
+}
+
+void SELatticeCreatorEditor::updateCrossSectionFrameFromCamera() {
+
+	auto camera = SAMSON::getActiveCamera();
+	if (camera == nullptr) {
+
+		latticeColumnAxis = SBVector3(0.0, 1.0, 0.0);
+		latticeRowAxis = SBVector3(0.0, 0.0, 1.0);
+		latticeNormalAxis = SBVector3(1.0, 0.0, 0.0);
+		return;
+
+	}
+
+	latticeColumnAxis = camera->getBasisX().normalizedVersion();
+	latticeRowAxis = camera->getBasisY().normalizedVersion();
+	latticeNormalAxis = normalizedCrossProduct(latticeColumnAxis, latticeRowAxis, SBVector3(1.0, 0.0, 0.0));
 
 }
 
@@ -278,29 +451,29 @@ void SELatticeCreatorEditor::display() {
 
 	SEConfig& config = SEConfig::GetInstance();
 
-	const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
-
-	tempPart = generateLattice(true);
-
-	if (tempPart != nullptr) {
-
-		glEnable(GL_DEPTH_TEST);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		ADNDisplayHelper::displayPart(tempPart);
-
-		glDisable(GL_BLEND);
-		glDisable(GL_DEPTH_TEST);
-
-	}
+	if (!crossSectionFrameLocked) updateCrossSectionFrameFromCamera();
 
 	const SBPosition3 offset = SBPosition3(SBQuantity::angstrom(5), SBQuantity::angstrom(5), SBQuantity::angstrom(5));
+	const SBPosition3 currentPosition = SAMSON::getWorldPositionFromViewportPosition(SAMSON::getMousePositionInViewport());
+	const LatticeBuildData buildData = calculateLatticeBuildData(
+		firstPosition,
+		secondPosition,
+		thirdPosition,
+		currentPosition,
+		lengthSelected,
+		heightSelected,
+		latticeColumnAxis,
+		latticeRowAxis,
+		latticeNormalAxis,
+		maxXDoubleStrands,
+		maxYDoubleStrands,
+		maxZBasePairs);
+	updateLatticeText(buildData.measurements, latticeType, xyText, zText);
 
 	if (!lengthSelected) {
 
 		ADNDisplayHelper::displayLine(firstPosition, currentPosition);
-			
+
 		const SBPosition3 xyPos = currentPosition + offset;
 		ADNDisplayHelper::displayText(xyPos, xyText);
 
@@ -312,6 +485,22 @@ void SELatticeCreatorEditor::display() {
 
 		const SBPosition3 zPos = currentPosition + offset;
 		ADNDisplayHelper::displayText(zPos, zText);
+
+	}
+
+	tempPart = nullptr;
+	if (config.preview_editor) tempPart = generateLattice(true);
+
+	if (tempPart != nullptr) {
+
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		ADNDisplayHelper::displayPart(tempPart);
+
+		glDisable(GL_BLEND);
+		glDisable(GL_DEPTH_TEST);
 
 	}
 
@@ -354,6 +543,7 @@ void SELatticeCreatorEditor::mousePressEvent(QMouseEvent* event) {
 			resetData();
 
 			SAMSON::getActiveCamera()->rightView();
+			updateCrossSectionFrameFromCamera();
 			firstPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
 			secondPosition = firstPosition;
 			thirdPosition = firstPosition;
@@ -416,6 +606,12 @@ void SELatticeCreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
 				resetData();
 
 			}
+			else {
+
+				updateCrossSectionFrameFromCamera();
+				crossSectionFrameLocked = true;
+
+			}
 
 			//SAMSON::getActiveCamera()->topView();
 			SAMSON::requestViewportUpdate();
@@ -471,6 +667,7 @@ void SELatticeCreatorEditor::mouseMoveEvent(QMouseEvent* event) {
 
 		if (hasLeftButton) {
 
+			if (!crossSectionFrameLocked) updateCrossSectionFrameFromCamera();
 			secondPosition = SAMSON::getWorldPositionFromViewportPosition(event->pos().x(), event->pos().y());
 			event->accept();
 			//SAMSON::requestViewportUpdate();
