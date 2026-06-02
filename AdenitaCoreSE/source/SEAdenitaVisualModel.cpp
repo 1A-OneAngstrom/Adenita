@@ -16,10 +16,129 @@
 
 //#include "SBGRenderOpenGLFunctions.hpp"
 
+#define ADN_VISUAL_MODEL_PERF_TRACE 0
+
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <set>
+
+#if ADN_VISUAL_MODEL_PERF_TRACE
+#include <QDebug>
+#include <QElapsedTimer>
+
+namespace {
+
+#define ADN_JOIN_IMPL(a, b) a##b
+#define ADN_JOIN(a, b) ADN_JOIN_IMPL(a, b)
+
+struct ADNPerfCounter {
+	const char* name;
+	quint64 calls{ 0 };
+	qint64 nanos{ 0 };
+};
+
+class ADNScopedPerfTimer {
+public:
+
+	explicit ADNScopedPerfTimer(ADNPerfCounter& counter) : counter_(counter) { timer_.start(); }
+	~ADNScopedPerfTimer() {
+		++counter_.calls;
+		counter_.nanos += timer_.nsecsElapsed();
+	}
+
+private:
+
+	ADNPerfCounter& counter_;
+	QElapsedTimer timer_;
+
+};
+
+struct ADNPerfCounters {
+
+	ADNPerfCounters() { reportTimer.start(); }
+
+	void maybeReport() {
+
+		if (reportTimer.elapsed() < 2000) return;
+
+		logCounter(display);
+		logCounter(displayTransition);
+		logCounter(onBaseEvent);
+		logCounter(onStructuralEvent);
+		logCounter(requestUpdate);
+		logCounter(update);
+		logCounter(prepareDiscreteScalesDim);
+		logCounter(prepareDimensions);
+		logCounter(setScale);
+		logCounter(setDimension);
+		logCounter(changeHighlightFlag);
+
+		resetCounter(display);
+		resetCounter(displayTransition);
+		resetCounter(onBaseEvent);
+		resetCounter(onStructuralEvent);
+		resetCounter(requestUpdate);
+		resetCounter(update);
+		resetCounter(prepareDiscreteScalesDim);
+		resetCounter(prepareDimensions);
+		resetCounter(setScale);
+		resetCounter(setDimension);
+		resetCounter(changeHighlightFlag);
+		reportTimer.restart();
+
+	}
+
+	ADNPerfCounter display{ "display" };
+	ADNPerfCounter displayTransition{ "displayTransition" };
+	ADNPerfCounter onBaseEvent{ "onBaseEvent" };
+	ADNPerfCounter onStructuralEvent{ "onStructuralEvent" };
+	ADNPerfCounter requestUpdate{ "requestUpdate" };
+	ADNPerfCounter update{ "update" };
+	ADNPerfCounter prepareDiscreteScalesDim{ "prepareDiscreteScalesDim" };
+	ADNPerfCounter prepareDimensions{ "prepareDimensions" };
+	ADNPerfCounter setScale{ "setScale" };
+	ADNPerfCounter setDimension{ "setDimension" };
+	ADNPerfCounter changeHighlightFlag{ "changeHighlightFlag" };
+	QElapsedTimer reportTimer;
+
+private:
+
+	static void logCounter(const ADNPerfCounter& counter) {
+
+		if (counter.calls == 0) return;
+
+		qDebug().noquote() << QString("Adenita visual model perf: %1 calls=%2 total_ms=%3")
+			.arg(counter.name)
+			.arg(counter.calls)
+			.arg(counter.nanos / 1000000.0, 0, 'f', 3);
+
+	}
+
+	static void resetCounter(ADNPerfCounter& counter) {
+
+		counter.calls = 0;
+		counter.nanos = 0;
+
+	}
+
+};
+
+ADNPerfCounters& getADNPerfCounters() {
+
+	static ADNPerfCounters counters;
+	return counters;
+
+}
+
+}
+
+#define ADN_PERF_SCOPE(counter) ADNScopedPerfTimer ADN_JOIN(adnPerfTimer, __LINE__)(getADNPerfCounters().counter)
+#define ADN_PERF_REPORT() getADNPerfCounters().maybeReport()
+#else
+#define ADN_PERF_SCOPE(counter) do {} while(false)
+#define ADN_PERF_REPORT() do {} while(false)
+#endif
 
 SB_OPENGL_FUNCTIONS* SEAdenitaVisualModel::gl = nullptr;
 
@@ -163,6 +282,8 @@ void SEAdenitaVisualModel::onErase() {
 float		SEAdenitaVisualModel::getScale() const { return scale_; }
 void		SEAdenitaVisualModel::setScale(float scale) {
 
+	ADN_PERF_SCOPE(setScale);
+
 	prepareDiscreteScalesDim();
 
 	//if (this->scale_ == scale) return;
@@ -238,6 +359,8 @@ std::string	SEAdenitaVisualModel::getDiscreteScaleItemText(const int index) cons
 
 float		SEAdenitaVisualModel::getDimension() const { return dim_; }
 void		SEAdenitaVisualModel::setDimension(float dimension) {
+
+	ADN_PERF_SCOPE(setDimension);
 
 	//if (this->dim_ == dimension) return;
 
@@ -441,6 +564,8 @@ void SEAdenitaVisualModel::initAtoms(bool createIndex /*= true*/) {
 
 void SEAdenitaVisualModel::requestUpdate() {
 
+	ADN_PERF_SCOPE(requestUpdate);
+
 	isUpdateRequested = true;
 	SAMSON::requestViewportUpdate();
 
@@ -453,6 +578,8 @@ void SEAdenitaVisualModel::requestVisualModelUpdate() {
 }
 
 void SEAdenitaVisualModel::update() {
+
+	ADN_PERF_SCOPE(update);
 
 	if (!nanorobot_) return;
 
@@ -821,6 +948,8 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getBaseSegmentIndices() {
 
 void SEAdenitaVisualModel::prepareDiscreteScalesDim() {
 
+	ADN_PERF_SCOPE(prepareDiscreteScalesDim);
+
 	isPrepareDiscreteScalesDimRequested = false;
 
 	prepareAtoms();
@@ -833,6 +962,8 @@ void SEAdenitaVisualModel::prepareDiscreteScalesDim() {
 }
 
 void SEAdenitaVisualModel::prepareDimensions() {
+
+	ADN_PERF_SCOPE(prepareDimensions);
 
 	if (!nanorobot_) return;
 
@@ -961,6 +1092,8 @@ unsigned int* SEAdenitaVisualModel::getCylinderRenderFlags(ADNArray<unsigned int
 }
 
 void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass) {
+
+	ADN_PERF_SCOPE(displayTransition);
 
 	//ADNArray<unsigned int> capData = ADNArray<unsigned int>(nodeIndices_.GetNumElements());
 	//if (nCylinders_ > 0) {
@@ -1382,6 +1515,8 @@ void SEAdenitaVisualModel::replaceColors(ADNArray<float>& colors, const std::vec
 }
 
 void SEAdenitaVisualModel::changeHighlightFlag() {
+
+	ADN_PERF_SCOPE(changeHighlightFlag);
 
 	if (!nanorobot_) return;
 
@@ -2270,6 +2405,9 @@ std::string SEAdenitaVisualModel::getHighlightItemText(const int index) const {
 }
 
 void SEAdenitaVisualModel::display(SBNode::RenderingPass renderingPass) {
+
+	ADN_PERF_SCOPE(display);
+	ADN_PERF_REPORT();
 
 	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop. This is the main function of your visual model. 
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
@@ -3565,6 +3703,8 @@ void SEAdenitaVisualModel::collectAmbientOcclusion(const SBPosition3& boxOrigin,
 
 void SEAdenitaVisualModel::onBaseEvent(SBBaseEvent* baseEvent) {
 
+	ADN_PERF_SCOPE(onBaseEvent);
+
 	// SAMSON Element generator pro tip: implement this function if you need to handle base events (e.g. when a node for which you provide a visual representation emits a base signal, such as when it is erased)
 
 	const SBBaseEvent::Type eventType = baseEvent->getType();
@@ -3615,6 +3755,8 @@ void SEAdenitaVisualModel::onDocumentEvent(SBDocumentEvent* documentEvent) {
 }
 
 void SEAdenitaVisualModel::onStructuralEvent(SBStructuralEvent* structuralEvent) {
+
+	ADN_PERF_SCOPE(onStructuralEvent);
 
 	// SAMSON Element generator pro tip: implement this function if you need to handle structural events (e.g. when a structural node for which you provide a visual representation is updated)
 
