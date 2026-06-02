@@ -25,10 +25,10 @@ public:
 public slots:
 
 	void														onChangeScaffold(int idx);
+	void														onSetCustomScaffold();
 	void														onSetPathNtthal();
 	void														accept();
 	void														reject();
-	void														onResetToDefault();
 
 private:
 
@@ -38,5 +38,6 @@ private:
 
 	void														populateUi();
 	void														setupHelpText();
+	void														updateCustomScaffoldControls();
 
 };

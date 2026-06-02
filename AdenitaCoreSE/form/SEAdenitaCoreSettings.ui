@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>540</width>
+    <height>420</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,8 +18,8 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>400</width>
-    <height>300</height>
+    <width>520</width>
+    <height>380</height>
    </size>
   </property>
   <property name="focusPolicy">
@@ -30,171 +30,254 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QFormLayout" name="formLayout">
-     <item row="0" column="0">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Scaffold</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QComboBox" name="comboBoxScaffold">
-       <item>
+    <widget class="QGroupBox" name="groupBoxScaffoldSequence">
+     <property name="title">
+      <string>Scaffold sequence</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayoutScaffold">
+      <item>
+       <layout class="QFormLayout" name="formLayoutScaffold">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Default scaffold sequence:</string>
+          </property>
+          <property name="buddy">
+           <cstring>comboBoxScaffold</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="comboBoxScaffold">
+          <item>
+           <property name="text">
+            <string>m13mp18</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>p7249</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Custom</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Custom scaffold FASTA:</string>
+          </property>
+          <property name="buddy">
+           <cstring>lineEditCustomScaffold</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayoutCustomScaffold">
+          <item>
+           <widget class="QLineEdit" name="lineEditCustomScaffold">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonSetCustomScaffold">
+            <property name="minimumSize">
+             <size>
+              <width>75</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Browse...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="2" column="0" colspan="2">
+         <widget class="QCheckBox" name="checkBoxAutoScaffold">
+          <property name="text">
+           <string>Apply selected scaffold sequence automatically</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBoxViewportDisplay">
+     <property name="title">
+      <string>Viewport display</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayoutViewport">
+      <item>
+       <widget class="QCheckBox" name="checkBoxOverlay">
         <property name="text">
-         <string>m13mp18</string>
+         <string>Show Adenita overlays and editor guides (not active yet)</string>
         </property>
-       </item>
-       <item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBoxXODisplay">
         <property name="text">
-         <string>p7249</string>
+         <string>Show possible crossover positions (not active yet)</string>
         </property>
-       </item>
-       <item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="checkBoxInterpolateDim">
         <property name="text">
-         <string>Custom</string>
+         <string>Smooth 1D/2D/3D view transitions (not active yet)</string>
         </property>
-       </item>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Custom scaffold</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="lineEditCustomScaffold">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="readOnly">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="QCheckBox" name="checkBoxAutoScaffold">
-     <property name="text">
-      <string>Automatically set the scaffold sequence</string>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="checkBoxOverlay">
-     <property name="text">
-      <string>Show overlay</string>
+    <widget class="QGroupBox" name="groupBoxModelGeneration">
+     <property name="title">
+      <string>Model generation</string>
      </property>
+     <layout class="QVBoxLayout" name="verticalLayoutModel">
+      <item>
+       <widget class="QCheckBox" name="checkBoxGenerateAtomicDetails">
+        <property name="text">
+         <string>Generate atom-level DNA models when creating structures</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QFormLayout" name="formLayoutModel">
+        <item row="0" column="0">
+         <widget class="QLabel" name="labelMeshAlgorithm">
+          <property name="text">
+           <string>Wireframe mesh algorithm:</string>
+          </property>
+          <property name="buddy">
+           <cstring>radioButtonDaedalusMesh</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayoutMesh">
+          <item>
+           <widget class="QRadioButton" name="radioButtonDaedalusMesh">
+            <property name="text">
+             <string>Daedalus</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButtonIterativeMesh">
+            <property name="text">
+             <string>Iterative</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacerMesh">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="checkBoxXODisplay">
-     <property name="text">
-      <string>Display possible crossovers</string>
+    <widget class="QGroupBox" name="groupBoxThermodynamicCalculations">
+     <property name="title">
+      <string>Thermodynamic calculations</string>
      </property>
+     <layout class="QVBoxLayout" name="verticalLayoutThermodynamics">
+      <item>
+       <layout class="QFormLayout" name="formLayoutThermodynamics">
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>ntthal executable:</string>
+          </property>
+          <property name="buddy">
+           <cstring>lineEditNtthal</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <layout class="QHBoxLayout" name="horizontalLayoutNtthal">
+          <item>
+           <widget class="QLineEdit" name="lineEditNtthal">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonSetPathNtthal">
+            <property name="minimumSize">
+             <size>
+              <width>75</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Browse...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="checkBoxInterpolateDim">
-     <property name="text">
-      <string>Interpolate Dimensions</string>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QCheckBox" name="checkBoxGenerateAtomicDetails">
-     <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Check to generate atomic model when creating DNA structures with Adenita.&lt;/p&gt;&lt;p&gt;Please note that when using this option the generation will be slower since it is necessary to generate all the atoms.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="text">
-      <string>Generate atomic model</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <layout class="QHBoxLayout" name="horizontalLayoutButtons">
      <item>
-      <widget class="QRadioButton" name="radioButtonDaedalusMesh">
-       <property name="text">
-        <string>Daedalus mesh model</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="radioButtonIterativeMesh">
-       <property name="text">
-        <string>Iterative Mesh Model</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>Path to ntthal:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLineEdit" name="lineEditNtthal">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="readOnly">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButtonSetPathNtthal">
-       <property name="minimumSize">
-        <size>
-         <width>75</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>100</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Browse...</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <spacer name="horizontalSpacer_2">
+      <spacer name="horizontalSpacerButtons">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -221,7 +304,7 @@
         </size>
        </property>
        <property name="text">
-        <string>OK</string>
+        <string>Save</string>
        </property>
       </widget>
      </item>
@@ -244,32 +327,24 @@
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QPushButton" name="pushButtonReset">
-       <property name="minimumSize">
-        <size>
-         <width>75</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>100</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>Reset</string>
-       </property>
-      </widget>
-     </item>
     </layout>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>comboBoxScaffold</tabstop>
+  <tabstop>pushButtonSetCustomScaffold</tabstop>
+  <tabstop>checkBoxAutoScaffold</tabstop>
+  <tabstop>checkBoxOverlay</tabstop>
+  <tabstop>checkBoxXODisplay</tabstop>
+  <tabstop>checkBoxInterpolateDim</tabstop>
+  <tabstop>checkBoxGenerateAtomicDetails</tabstop>
+  <tabstop>radioButtonDaedalusMesh</tabstop>
+  <tabstop>radioButtonIterativeMesh</tabstop>
+  <tabstop>pushButtonSetPathNtthal</tabstop>
+  <tabstop>pushButtonOK</tabstop>
+  <tabstop>pushButtonCancel</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
- <slots>
-  <slot>onSetPathNtthal()</slot>
- </slots>
 </ui>
