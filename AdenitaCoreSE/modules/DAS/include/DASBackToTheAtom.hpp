@@ -28,7 +28,10 @@ public:
 
     enum class NewNucleotidePlacementMode {
         ReconstructBaseSegments,
-        PositionInputNucleotidesOnly
+        PositionInputNucleotidesOnly,
+        /// Register mock atoms and refresh frames while preserving caller-set
+        /// nucleotide, backbone, sidechain, and base-segment positions.
+        PreserveInputGeometry
     };
 
     DASBackToTheAtom();

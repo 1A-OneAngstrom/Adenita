@@ -1506,6 +1506,7 @@ void DASBackToTheAtom::SetPositionsForNewNucleotides(SBPointer<ADNPart> part,
 
 	SBPointerIndexer<ADNBaseSegment> affectedBaseSegments;
 	std::vector<SBPointer<ADNNucleotide>> placedNucleotides;
+	std::vector<SBPointer<ADNNucleotide>> preservedNucleotides;
 
 	SB_FOR(SBPointer<ADNNucleotide> nt, nts) {
 
@@ -1556,9 +1557,12 @@ void DASBackToTheAtom::SetPositionsForNewNucleotides(SBPointer<ADNPart> part,
 			placedNucleotides.push_back(nt);
 
 		}
-		else if (!affectedBaseSegments.hasIndex(bs())) {
+		else {
 
-			affectedBaseSegments.addReferenceTarget(bs());
+			if (placementMode == NewNucleotidePlacementMode::PreserveInputGeometry)
+				preservedNucleotides.push_back(nt);
+			if (!affectedBaseSegments.hasIndex(bs()))
+				affectedBaseSegments.addReferenceTarget(bs());
 
 		}
 
@@ -1575,6 +1579,29 @@ void DASBackToTheAtom::SetPositionsForNewNucleotides(SBPointer<ADNPart> part,
 				ADNGeometrySynchronization::syncNucleotideFrameFromGeometry(*nucleotide);
 
 		}
+
+	}
+
+	if (placementMode == NewNucleotidePlacementMode::PreserveInputGeometry) {
+
+		// Explicit-position creator paths already placed coarse geometry.
+		// Only rebuild frames from that geometry so downstream atom placement
+		// sees stable local bases without moving the visible linker.
+		for (SBPointer<ADNNucleotide> nucleotide : preservedNucleotides) {
+
+			if (nucleotide != nullptr)
+				ADNGeometrySynchronization::syncNucleotideFrameFromGeometry(*nucleotide);
+
+		}
+
+		SB_FOR(SBPointer<ADNBaseSegment> bs, affectedBaseSegments) {
+
+			if (bs != nullptr)
+				ADNGeometrySynchronization::syncBaseSegmentFrameFromGeometry(*bs);
+
+		}
+
+		return;
 
 	}
 
