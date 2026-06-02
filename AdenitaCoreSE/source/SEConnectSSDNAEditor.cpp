@@ -9,6 +9,58 @@
 
 #include "SAMSON.hpp"
 
+#include <algorithm>
+#include <cmath>
+
+namespace {
+
+constexpr int kAutoSequenceMaxLength = 500;
+
+[[nodiscard]] bool isFinitePosition(const SBPosition3& position) {
+
+	return std::isfinite(position[0].getValue()) &&
+		std::isfinite(position[1].getValue()) &&
+		std::isfinite(position[2].getValue());
+
+}
+
+[[nodiscard]] SBPosition3 nucleotideConnectorPoint(SBPointer<ADNNucleotide> nucleotide) {
+
+	if (nucleotide == nullptr) return SBPosition3();
+
+	if (nucleotide->GetBackbone() != nullptr) {
+
+		const SBPosition3& position = nucleotide->GetBackbonePosition();
+		if (isFinitePosition(position)) return position;
+
+	}
+
+	const SBPosition3 position = nucleotide->GetPosition();
+	if (isFinitePosition(position)) return position;
+
+	SBPointer<ADNBaseSegment> baseSegment = nucleotide->GetBaseSegment();
+	if (baseSegment != nullptr && isFinitePosition(baseSegment->GetPosition()))
+		return baseSegment->GetPosition();
+
+	return SBPosition3();
+
+}
+
+[[nodiscard]] int estimateAutoSequenceLength(SBPointer<ADNNucleotide> startNucleotide,
+	SBPointer<ADNNucleotide> endNucleotide) {
+
+	// Match the preview/manual insertion anchor points and clamp accidental
+	// very-long insertions from distant endpoint selections.
+	const auto distance =
+		(nucleotideConnectorPoint(endNucleotide) - nucleotideConnectorPoint(startNucleotide)).norm();
+	const int estimatedLength =
+		static_cast<int>(std::round((distance / SBQuantity::nanometer(ADNConstants::BP_RISE)).getValue())) - 1;
+	return std::min(kAutoSequenceMaxLength, std::max(0, estimatedLength));
+
+}
+
+} // namespace
+
 
 SEConnectSSDNAEditor::SEConnectSSDNAEditor() {
 
@@ -312,8 +364,7 @@ void SEConnectSSDNAEditor::mouseReleaseEvent(QMouseEvent* event) {
 					}
 					else {
 
-						auto dist = (endNucleotide->GetBaseSegment()->GetPosition() - startNucleotide->GetBaseSegment()->GetPosition()).norm();
-						const int length = round((dist / SBQuantity::nanometer(ADNConstants::BP_RISE)).getValue()) - 6;
+						const int length = estimateAutoSequenceLength(startNucleotide, endNucleotide);
 
 						for (int i = 0; i < length; ++i)
 							seq += "N";
