@@ -348,7 +348,7 @@ QString SELatticeCreatorEditor::getToolTip() const {
 	
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Create double strand DNA on a square or honeycomb lattice"); 
+	return QObject::tr("Create double-strand DNA on a square or honeycomb lattice with X/Y helix counts and Z base-pair length limits.");
 
 }
 

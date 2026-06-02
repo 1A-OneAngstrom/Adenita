@@ -96,7 +96,7 @@ QString SETwistHelixEditor::getToolTip() const {
 	
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Rotate double strand DNA along helical axis.<br>Hold <b>Alt</b> to rotate in the opposite direction."); 
+	return QObject::tr("Rotate a double-strand DNA helix by the selected angle around its helical axis. Hold Alt to apply the opposite direction.");
 
 }
 

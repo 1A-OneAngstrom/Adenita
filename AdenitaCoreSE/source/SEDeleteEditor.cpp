@@ -72,7 +72,7 @@ QString SEDeleteEditor::getToolTip() const {
 	
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Delete nucleotides from Adenita models"); 
+	return QObject::tr("Delete the highlighted Adenita nucleotide. Click a nucleotide to remove it from its strand; empty strands/base segments are cleaned up automatically.");
 
 }
 

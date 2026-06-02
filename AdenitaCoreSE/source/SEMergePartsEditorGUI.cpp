@@ -19,6 +19,7 @@ SEMergePartsEditorGUI::SEMergePartsEditorGUI(SEMergePartsEditor* editor) {
 
 	this->editor = editor;
 	ui.setupUi(this);
+	setupHelpText();
 
 	connect(ui.comboBoxMergeComponent1, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SEMergePartsEditorGUI::onComboBoxMergeComponent1CurrentIndexChanged);
 	connect(ui.comboBoxMergeComponent2, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &SEMergePartsEditorGUI::onComboBoxMergeComponent2CurrentIndexChanged);
@@ -46,6 +47,37 @@ void SEMergePartsEditorGUI::saveSettings(SBGSettings* settings) {
 	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
+
+}
+
+void SEMergePartsEditorGUI::setupHelpText() {
+
+	ui.pushButtonRefresh->setToolTip(
+		tr("Refresh the component and element lists from the current document."));
+	ui.groupBoxMergeComponents->setToolTip(
+		tr("Merge two selected components into one component."));
+	ui.label_2->setToolTip(
+		tr("First component to merge."));
+	ui.comboBoxMergeComponent1->setToolTip(
+		tr("First component to merge. Refresh the list after changing the document."));
+	ui.label_3->setToolTip(
+		tr("Second component to merge."));
+	ui.comboBoxMergeComponent2->setToolTip(
+		tr("Second component to merge. It will be combined with the first selected component."));
+	ui.pushButtonMerge->setToolTip(
+		tr("Merge the two selected components."));
+	ui.groupBoxMoveComponents->setToolTip(
+		tr("Move one strand or component into another component."));
+	ui.label_5->setToolTip(
+		tr("Strand or component to move."));
+	ui.comboBoxMoveElement->setToolTip(
+		tr("Strand or component to move into the destination component."));
+	ui.label_6->setToolTip(
+		tr("Destination component."));
+	ui.comboBoxMoveToComponent->setToolTip(
+		tr("Destination component that receives the selected strand or component."));
+	ui.pushButtonMove->setToolTip(
+		tr("Move the selected strand or component into the destination component."));
 
 }
 

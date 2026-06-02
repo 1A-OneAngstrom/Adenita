@@ -65,8 +65,9 @@ public slots:
 
 private:
 
+	void														setupHelpText();
+
 	Ui::SENanotubeCreatorEditorGUIClass							ui;
 	SENanotubeCreatorEditor*									editor{ nullptr };
 
 };
-

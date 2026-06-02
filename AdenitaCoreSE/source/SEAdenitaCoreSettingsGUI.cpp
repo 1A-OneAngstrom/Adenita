@@ -2,10 +2,10 @@
 #include "ADNConfig.hpp"
 
 
-
 SEAdenitaCoreSettingsGUI::SEAdenitaCoreSettingsGUI(QWidget* parent, Qt::WindowFlags f) : QDialog(parent, f) {
 
 	ui.setupUi(this);
+	setupHelpText();
 
 	populateUi();
 
@@ -39,6 +39,39 @@ void SEAdenitaCoreSettingsGUI::populateUi() {
 	ui.comboBoxScaffold->setCurrentIndex(c.scaffType);
 	ui.radioButtonDaedalusMesh->setChecked(!c.custom_mesh_model);
 	ui.radioButtonIterativeMesh->setChecked(c.custom_mesh_model);
+
+}
+
+void SEAdenitaCoreSettingsGUI::setupHelpText() {
+
+	ui.label->setToolTip(
+		tr("Scaffold sequence used for DNA origami designs. Choose m13mp18, p7249, or Custom."));
+	ui.comboBoxScaffold->setToolTip(
+		tr("Scaffold sequence used for DNA origami designs. Choose Custom to provide a sequence file."));
+	ui.label_2->setToolTip(
+		tr("Path to the custom scaffold sequence used when Custom scaffold is selected."));
+	ui.lineEditCustomScaffold->setToolTip(
+		tr("Path to the custom scaffold sequence used when Custom scaffold is selected."));
+	ui.checkBoxAutoScaffold->setToolTip(
+		tr("Automatically assign the selected scaffold sequence to new compatible Adenita structures."));
+	ui.checkBoxOverlay->setToolTip(
+		tr("Show Adenita viewport overlays for editor previews and design guidance."));
+	ui.checkBoxXODisplay->setToolTip(
+		tr("Display possible crossover positions in the viewport."));
+	ui.checkBoxInterpolateDim->setToolTip(
+		tr("Interpolate displayed dimensions for smoother Adenita visual geometry."));
+	ui.checkBoxGenerateAtomicDetails->setToolTip(
+		tr("Generate atomic models when creating DNA structures. This is slower because all atoms must be created."));
+	ui.radioButtonDaedalusMesh->setToolTip(
+		tr("Use the Daedalus mesh processing model for wireframe DNA generation."));
+	ui.radioButtonIterativeMesh->setToolTip(
+		tr("Use the iterative mesh processing model for wireframe DNA generation."));
+	ui.label_3->setToolTip(
+		tr("Path to the ntthal executable used for melting temperature and Gibbs free energy calculations."));
+	ui.lineEditNtthal->setToolTip(
+		tr("Path to the ntthal executable used for melting temperature and Gibbs free energy calculations."));
+	ui.pushButtonSetPathNtthal->setToolTip(
+		tr("Browse for the ntthal executable."));
 
 }
 

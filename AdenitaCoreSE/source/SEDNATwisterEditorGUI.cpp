@@ -6,6 +6,7 @@ SEDNATwisterEditorGUI::SEDNATwisterEditorGUI(SEDNATwisterEditor* editor) {
 
 	this->editor = editor;
 	ui.setupUi(this);
+	setupHelpText();
 
 	QObject::connect(ui.rdbUntwist, &QRadioButton::clicked, this, &SEDNATwisterEditorGUI::setUntwistTwist);
 	QObject::connect(ui.rdbInvisible, &QRadioButton::clicked, this, &SEDNATwisterEditorGUI::setInvisibleVisible);
@@ -33,6 +34,23 @@ void SEDNATwisterEditorGUI::saveSettings(SBGSettings *settings) {
 	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
+
+}
+
+void SEDNATwisterEditorGUI::setupHelpText() {
+
+	ui.rdbUntwist->setToolTip(
+		tr("Brush mode: remove the helical twist from double-strand DNA inside the sphere, making the two strands easier to inspect as parallel lines. Hold Alt while applying to restore/twist back."));
+	ui.rdbInvisible->setToolTip(
+		tr("Brush mode: hide nucleotides inside the sphere. Hold Alt while applying to make affected nucleotides visible again."));
+	ui.btnResetUntwist->setToolTip(
+		tr("Reset is not implemented yet. This button is hidden until a full restore operation is added."));
+	ui.btnResetInvisible->setToolTip(
+		tr("Reset is not implemented yet. This button is hidden until a full show-all operation is added."));
+
+	// Keep no-op reset controls out of the UI until their document-wide operations exist.
+	ui.btnResetUntwist->setVisible(false);
+	ui.btnResetInvisible->setVisible(false);
 
 }
 
@@ -72,7 +90,7 @@ QString SEDNATwisterEditorGUI::getName() const {
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your editor inside SAMSON
 
-	return "Adenita Twister Editor"; 
+	return tr("DNA Twister / Visibility Brush");
 
 }
 

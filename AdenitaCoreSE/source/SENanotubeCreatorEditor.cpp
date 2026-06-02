@@ -187,7 +187,7 @@ QString SENanotubeCreatorEditor::getToolTip() const {
 	
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("DNA Nanotube Creator"); 
+	return QObject::tr("Create DNA nanotubes with configurable radius, base-pair length, helix count, and routing style.");
 
 }
 

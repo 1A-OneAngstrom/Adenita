@@ -8,6 +8,7 @@ SEDSDNACreatorEditorGUI::SEDSDNACreatorEditorGUI(SEDSDNACreatorEditor* editor) {
 
 	this->editor = editor;
 	ui.setupUi(this);
+	setupHelpText();
 
 }
 
@@ -64,6 +65,39 @@ void SEDSDNACreatorEditorGUI::saveSettings(SBGSettings *settings) {
 	settings->saveValue("boxHeight", ui.doubleSpinBoxHeight->value());
 	settings->saveValue("boxWidth", ui.doubleSpinBoxWidth->value());
 	settings->saveValue("boxDepth", ui.doubleSpinBoxDepth->value());
+
+}
+
+void SEDSDNACreatorEditorGUI::setupHelpText() {
+
+	ui.radioButtonSSDNA->setToolTip(
+		tr("Create a single-strand DNA segment. Drag in the viewport to set direction and, unless Manual length is enabled, length."));
+	ui.radioButtonDSDNA->setToolTip(
+		tr("Create a double-strand DNA segment. Drag in the viewport to set direction and, unless Manual length is enabled, length."));
+	ui.checkBoxCircular->setToolTip(
+		tr("Create a circular DNA strand or double-strand ring. Drag sets the radius unless Manual length is enabled."));
+	ui.checkBoxManual->setToolTip(
+		tr("Use the numeric length instead of measuring length from the drag distance. The drag still sets direction for linear strands or radius orientation for circular strands."));
+	ui.label_4->setToolTip(
+		tr("Number of nucleotides for ssDNA, or base pairs for dsDNA."));
+	ui.spinBoxNumberNucleotides->setToolTip(
+		tr("Number of nucleotides for ssDNA, or base pairs for dsDNA. Used when Manual length is enabled."));
+	ui.checkBoxSetScaffold->setToolTip(
+		tr("Ask for a sequence after creating the strand, then apply it to the created strand."));
+	ui.groupBoxShowBox->setToolTip(
+		tr("Show a size guide box in the viewport. This is a visual guide, not a clipping volume."));
+	ui.label->setToolTip(
+		tr("Height of the viewport size guide box in nanometers."));
+	ui.doubleSpinBoxHeight->setToolTip(
+		tr("Height of the viewport size guide box in nanometers."));
+	ui.label_2->setToolTip(
+		tr("Width of the viewport size guide box in nanometers."));
+	ui.doubleSpinBoxWidth->setToolTip(
+		tr("Width of the viewport size guide box in nanometers."));
+	ui.label_3->setToolTip(
+		tr("Length/depth of the viewport size guide box in nanometers."));
+	ui.doubleSpinBoxDepth->setToolTip(
+		tr("Length/depth of the viewport size guide box in nanometers."));
 
 }
 
@@ -150,7 +184,7 @@ QString SEDSDNACreatorEditorGUI::getName() const {
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your editor inside SAMSON
 
-	return "DNA Creator"; 
+	return tr("DNA Strands Creator");
 
 }
 

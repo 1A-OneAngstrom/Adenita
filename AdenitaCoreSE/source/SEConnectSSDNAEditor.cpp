@@ -155,7 +155,7 @@ QString SEConnectSSDNAEditor::getToolTip() const {
 	
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Connect and create crossovers"); 
+	return QObject::tr("Connect DNA strand endpoints and optionally insert a single- or double-strand linker.");
 
 }
 

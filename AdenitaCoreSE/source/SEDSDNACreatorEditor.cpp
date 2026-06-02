@@ -292,7 +292,7 @@ QString SEDSDNACreatorEditor::getToolTip() const {
 
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Add single and double strand DNA to your model");
+	return QObject::tr("Create single- or double-strand DNA, optionally circular, with drag-based or manual length.");
 
 }
 

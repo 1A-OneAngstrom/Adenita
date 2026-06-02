@@ -60,8 +60,9 @@ public slots:
 
 private:
 
+	void														setupHelpText();
+
 	Ui::SEDNATwisterEditorGUIClass								ui;
 	SEDNATwisterEditor*											editor{ nullptr };
 
 };
-

@@ -64,6 +64,7 @@ public slots:
 
 private:
 
+	void														setupHelpText();
 	void														updateAngleInEditor();													///< Update the angle in the editor based on the value in GUI
 
 	Ui::SETwistHelixEditorGUIClass								ui;

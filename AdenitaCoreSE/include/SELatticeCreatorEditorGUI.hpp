@@ -63,8 +63,9 @@ public slots:
 
 private:
 
+	void														setupHelpText();
+
 	Ui::SELatticeCreatorEditorGUIClass							ui;
 	SELatticeCreatorEditor*										editor{ nullptr };
 
 };
-
