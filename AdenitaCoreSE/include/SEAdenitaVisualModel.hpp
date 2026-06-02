@@ -195,7 +195,9 @@ private:
 	ADNArray<unsigned int>										getNucleotideIndices();
 	ADNArray<unsigned int>										getBaseSegmentIndices();
 
-	void														changeHighlightFlag();													///< scale 9: display polyhedron
+	void														changeHighlightFlag();													///< Refreshes SAMSON selection / hover flags without rebuilding geometry
+	void														refreshInteractionRenderStateFullScan();
+	void														synchronizeCurrentInteractionFlags();
 	bool														isHighlightFlagChangeRequested{ true };
 
 	void														orderVisibility();

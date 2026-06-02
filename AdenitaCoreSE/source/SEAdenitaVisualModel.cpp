@@ -1562,55 +1562,51 @@ void SEAdenitaVisualModel::changeHighlightFlag() {
 
 	isHighlightFlagChangeRequested = false;
 
-	auto parts = nanorobot_->GetParts();
+	refreshInteractionRenderStateFullScan();
 
-	if (scale_ < static_cast<float>(Scale::NUCLEOTIDES)) {
+}
 
-		for (auto it = atomMap_.begin(); it != atomMap_.end(); it++) {
+void SEAdenitaVisualModel::refreshInteractionRenderStateFullScan() {
 
-			auto a = it->first;
-			const auto index = it->second;
+	if (!nanorobot_) return;
 
-			if (a == nullptr) continue;
-			if (index >= flagsAtom_.GetNumElements()) continue;
+	for (auto it = atomMap_.begin(); it != atomMap_.end(); it++) {
 
-			flagsAtom_(index) = a->getInheritedFlags();
+		auto a = it->first;
+		const auto index = it->second;
 
-		}
+		if (a == nullptr) continue;
+		if (index >= flagsAtom_.GetNumElements()) continue;
 
-	}
-	else if (scale_ >= static_cast<float>(Scale::NUCLEOTIDES) && scale_ < static_cast<float>(Scale::DOUBLE_STRANDS)) {
-
-		for (auto it = ntMap_.begin(); it != ntMap_.end(); it++) {
-
-			auto nt = it->first;
-			const auto index = it->second;
-
-			if (nt == nullptr) continue;
-			if (index >= flagsNt_.GetNumElements()) continue;
-
-			flagsNt_(index) = nt->getInheritedFlags();
-
-		}
-
-	}
-	else if (scale_ >= static_cast<float>(Scale::DOUBLE_STRANDS)) {
-
-		for (auto it = bsMap_.begin(); it != bsMap_.end(); it++) {
-
-			auto bs = it->first;
-			const auto index = it->second;
-
-			if (bs == nullptr) continue;
-			if (index >= flagsDS_.GetNumElements()) continue;
-
-			flagsDS_(index) = bs->getInheritedFlags();
-
-		}
+		flagsAtom_(index) = a->getInheritedFlags();
 
 	}
 
-	for (int i = 0; i < nodeDataBasePairing_.GetNumElements(); ++i) {
+	for (auto it = ntMap_.begin(); it != ntMap_.end(); it++) {
+
+		auto nt = it->first;
+		const auto index = it->second;
+
+		if (nt == nullptr) continue;
+		if (index >= flagsNt_.GetNumElements()) continue;
+
+		flagsNt_(index) = nt->getInheritedFlags();
+
+	}
+
+	for (auto it = bsMap_.begin(); it != bsMap_.end(); it++) {
+
+		auto bs = it->first;
+		const auto index = it->second;
+
+		if (bs == nullptr) continue;
+		if (index >= flagsDS_.GetNumElements()) continue;
+
+		flagsDS_(index) = bs->getInheritedFlags();
+
+	}
+
+	for (std::size_t i = 0; i < nodeDataBasePairing_.GetNumElements(); ++i) {
 
 		ADNNucleotide* nt = static_cast<ADNNucleotide*>(nodeDataBasePairing_(i));
 		if (nt == nullptr) continue;
@@ -1620,11 +1616,38 @@ void SEAdenitaVisualModel::changeHighlightFlag() {
 
 	}
 
-	// Interaction flags live in the prepared base arrays; reapply the current
-	// transition without rebuilding positions, radii, colors, or dimensions.
-	applyScale(scale_, true, false);
+	synchronizeCurrentInteractionFlags();
 
-	changed();
+}
+
+void SEAdenitaVisualModel::synchronizeCurrentInteractionFlags() {
+
+	auto copyFlags = [](const ADNArray<unsigned int>& source, ADNArray<unsigned int>& target) {
+
+		const std::size_t numberOfFlags = std::min(source.GetNumElements(), target.GetNumElements());
+		for (std::size_t i = 0; i < numberOfFlags; ++i)
+			target(i) = source(i);
+
+	};
+
+	// Keep the currently displayed transition flags in step with the prepared
+	// base flags, without calling the transition preparation functions that
+	// allocate and rewrite geometry arrays.
+	if (scale_ < static_cast<float>(Scale::NUCLEOTIDES)) {
+
+		copyFlags(flagsAtom_, flags_);
+
+	}
+	else if (scale_ >= static_cast<float>(Scale::NUCLEOTIDES) && scale_ < static_cast<float>(Scale::DOUBLE_STRANDS)) {
+
+		copyFlags(flagsNt_, flags_);
+
+	}
+	else if (scale_ >= static_cast<float>(Scale::DOUBLE_STRANDS)) {
+
+		copyFlags(flagsDS_, flags_);
+
+	}
 
 }
 
@@ -2460,17 +2483,28 @@ void SEAdenitaVisualModel::display(SBNode::RenderingPass renderingPass) {
 
 		if (!nanorobot_) return;
 
-		if (isUpdateRequested) update();
-		if (isHighlightFlagChangeRequested) changeHighlightFlag();
+		if (isUpdateRequested) {
 
-		// The setup pass should only consume explicit geometry dirtiness. Editor
-		// names are not a reliable proxy for Adenita coordinate changes and made
-		// navigation capable of triggering full rebuilds every frame.
-		if (isPrepareDiscreteScalesDimRequested) {
+			update();
 
-			applyScale(scale_, true, false);
+		}
+		else {
 
-			changed();
+			// The setup pass should only consume explicit geometry dirtiness.
+			// Editor names are not a reliable proxy for Adenita coordinate
+			// changes and made navigation capable of triggering full rebuilds
+			// every frame.
+			if (isPrepareDiscreteScalesDimRequested) {
+
+				applyScale(scale_, true, false);
+
+				changed();
+
+			}
+
+			if (isHighlightFlagChangeRequested)
+				changeHighlightFlag();
+
 
 		}
 
@@ -3749,19 +3783,24 @@ void SEAdenitaVisualModel::onBaseEvent(SBBaseEvent* baseEvent) {
 
 	// SAMSON Element generator pro tip: implement this function if you need to handle base events (e.g. when a node for which you provide a visual representation emits a base signal, such as when it is erased)
 
+	if (baseEvent == nullptr) return;
+
 	const SBBaseEvent::Type eventType = baseEvent->getType();
 
 	if (eventType == SBBaseEvent::HighlightingFlagChanged || eventType == SBBaseEvent::SelectionFlagChanged) {
 
+		// Hover and selection only affect inherited SAMSON render flags. Keep
+		// them out of the structural / prepared-geometry rebuild paths.
 		isHighlightFlagChangeRequested = true;
-		//changeHighlightFlag();
+		SAMSON::requestViewportUpdate();
+		return;
 
 	}
 	else if (eventType == SBBaseEvent::VisibilityFlagChanged || eventType == SBBaseEvent::MaterialChanged) {
 
 		isPrepareDiscreteScalesDimRequested = true;
-		//prepareDiscreteScalesDim();
-		//setScale(scale_);// , false);
+		SAMSON::requestViewportUpdate();
+		return;
 
 	}
 
