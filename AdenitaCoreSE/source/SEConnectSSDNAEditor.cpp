@@ -28,7 +28,7 @@ constexpr int kAutoSequenceMaxLength = 500;
 
 	if (nucleotide == nullptr) return SBPosition3();
 
-	if (nucleotide->GetBackbone() != nullptr) {
+	if (nucleotide->GetBackbone().isValid()) {
 
 		const SBPosition3& position = nucleotide->GetBackbonePosition();
 		if (isFinitePosition(position)) return position;

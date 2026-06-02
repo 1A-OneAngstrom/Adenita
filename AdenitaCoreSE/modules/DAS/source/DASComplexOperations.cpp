@@ -43,6 +43,19 @@ struct EndpointConnector {
 
 }
 
+[[nodiscard]] ADNFrameUtils::Vec3 frameVecFromPositionDelta(
+	const SBPosition3& start,
+	const SBPosition3& end) {
+
+	const auto delta = end - start;
+	return ADNFrameUtils::Vec3{
+		delta[0].getValue(),
+		delta[1].getValue(),
+		delta[2].getValue()
+	};
+
+}
+
 [[nodiscard]] SBVector3 sbVectorFromFrameVec(const ADNFrameUtils::Vec3& vector) {
 
 	return SBVector3(vector.x, vector.y, vector.z);
@@ -53,7 +66,7 @@ struct EndpointConnector {
 
 	if (nucleotide == nullptr) return SBPosition3();
 
-	if (nucleotide->GetBackbone() != nullptr) {
+	if (nucleotide->GetBackbone().isValid()) {
 
 		const SBPosition3& position = nucleotide->GetBackbonePosition();
 		if (isFinitePosition(position)) return position;
@@ -93,7 +106,7 @@ struct EndpointConnector {
 [[nodiscard]] ADNFrameUtils::Vec3 geometryRadialCandidate(SBPointer<ADNNucleotide> nucleotide) {
 
 	if (nucleotide == nullptr) return ADNFrameUtils::Vec3{};
-	return frameVecFromSBVector(nucleotide->GetSidechainPosition() - nucleotide->GetBackbonePosition());
+	return frameVecFromPositionDelta(nucleotide->GetBackbonePosition(), nucleotide->GetSidechainPosition());
 
 }
 
@@ -131,7 +144,7 @@ struct EndpointConnector {
 
 	connector.start = nucleotideConnectorPoint(start3p);
 	connector.end = nucleotideConnectorPoint(end5p);
-	SBVector3 delta = connector.end - connector.start;
+	auto delta = connector.end - connector.start;
 
 	if (!hasUsableLength(delta.norm())) {
 
@@ -187,7 +200,7 @@ struct EndpointConnector {
 
 	std::vector<SBPosition3> positions;
 	positions.reserve(count);
-	const SBVector3 delta = connector.end - connector.start;
+	const auto delta = connector.end - connector.start;
 	for (size_t i = 0; i < count; ++i) {
 
 		const double t = static_cast<double>(i + 1) / static_cast<double>(count + 1);
@@ -309,7 +322,7 @@ void DASOperations::CreateCrossover(SBPointer<ADNPart> part1, SBPointer<ADNPart>
 		if (!orderConnectionEndpoints(nt1, nt2, start3p, end5p)) return;
 		if (!computeEndpointConnector(start3p, end5p, manualSingleStrandConnector)) {
 
-			ADNLogger::LogDebug("CreateCrossover skipped manual ssDNA insertion because the endpoint connector is degenerate.");
+			ADNLogger::LogDebug(std::string("CreateCrossover skipped manual ssDNA insertion because the endpoint connector is degenerate."));
 			return;
 
 		}

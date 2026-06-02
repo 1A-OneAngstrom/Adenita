@@ -26,6 +26,19 @@ constexpr double kExplicitSingleStrandSidechainOffsetNm = 0.05;
 
 }
 
+[[nodiscard]] ADNFrameUtils::Vec3 frameVecFromPositionDelta(
+	const SBPosition3& start,
+	const SBPosition3& end) {
+
+	const auto delta = end - start;
+	return ADNFrameUtils::Vec3{
+		delta[0].getValue(),
+		delta[1].getValue(),
+		delta[2].getValue()
+	};
+
+}
+
 [[nodiscard]] SBVector3 sbVectorFromFrameVec(const ADNFrameUtils::Vec3& vector) {
 
 	return SBVector3(vector.x, vector.y, vector.z);
@@ -39,7 +52,7 @@ constexpr double kExplicitSingleStrandSidechainOffsetNm = 0.05;
 	if (backbonePositions.size() > 1) {
 
 		const ADNFrameUtils::Vec3 positionAxis =
-			frameVecFromSBVector(backbonePositions.back() - backbonePositions.front());
+			frameVecFromPositionDelta(backbonePositions.front(), backbonePositions.back());
 		if (!ADNFrameUtils::isNearlyZero(positionAxis))
 			return positionAxis;
 
