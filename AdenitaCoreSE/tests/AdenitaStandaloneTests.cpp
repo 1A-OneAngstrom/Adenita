@@ -2329,6 +2329,182 @@ void testReconstructionRepairsE3OnlyCreatorFrame() {
 
 }
 
+void testPreserveInputGeometryKeepsExplicitSingleStrandPositions() {
+
+	using namespace ADNFrameUtils;
+
+	SBPointer<ADNPart> part = new ADNPart();
+	const std::vector<SBPosition3> backbonePositions = {
+		positionAngstrom(3.0, 0.0, 0.0),
+		positionAngstrom(6.0, 0.0, 0.0),
+		positionAngstrom(9.0, 0.0, 0.0)
+	};
+	const RTDoubleStrand created = DASCreator::AddSingleStrandToADNPart(
+		part,
+		backbonePositions,
+		SBVector3(1.0, 0.0, 0.0),
+		SBVector3(0.0, 1.0, 0.0));
+
+	requireTrue("preserve input geometry has created strand",
+		created.ss1 != nullptr,
+		"Expected explicit-position creator to return a single strand.");
+	if (created.ss1 == nullptr) return;
+
+	std::vector<SBPosition3> capturedBackbones;
+	std::vector<SBPosition3> capturedSidechains;
+	std::vector<SBPosition3> capturedBaseSegments;
+	auto nucleotides = created.ss1->GetNucleotides();
+	SB_FOR(SBPointer<ADNNucleotide> nucleotide, nucleotides) {
+
+		capturedBackbones.push_back(nucleotide->GetBackbonePosition());
+		capturedSidechains.push_back(nucleotide->GetSidechainPosition());
+		capturedBaseSegments.push_back(nucleotide->GetBaseSegment()->GetPosition());
+
+	}
+
+	DASBackToTheAtom btta;
+	btta.SetPositionsForNewNucleotides(part,
+		nucleotides,
+		DASBackToTheAtom::NewNucleotidePlacementMode::PreserveInputGeometry);
+
+	std::size_t index = 0;
+	SB_FOR(SBPointer<ADNNucleotide> nucleotide, nucleotides) {
+
+		requirePositionNear("preserve input geometry backbone " + std::to_string(index),
+			nucleotide->GetBackbonePosition(),
+			capturedBackbones[index],
+			1.0e-9);
+		requirePositionNear("preserve input geometry sidechain " + std::to_string(index),
+			nucleotide->GetSidechainPosition(),
+			capturedSidechains[index],
+			1.0e-9);
+		requirePositionNear("preserve input geometry base segment " + std::to_string(index),
+			nucleotide->GetBaseSegment()->GetPosition(),
+			capturedBaseSegments[index],
+			1.0e-9);
+		requireTrue("preserve input geometry nucleotide frame valid",
+			isOrthonormalRightHanded(ADNFrameAdapters::frameFromOrientable(*nucleotide), 1.0e-9),
+			"Expected preserve mode to sync a valid nucleotide frame.");
+		requireTrue("preserve input geometry base segment frame valid",
+			isOrthonormalRightHanded(ADNFrameAdapters::frameFromOrientable(*nucleotide->GetBaseSegment()), 1.0e-9),
+			"Expected preserve mode to sync a valid base-segment frame.");
+		++index;
+
+	}
+
+}
+
+void testExplicitSingleStrandCreatorPlacesAxisAlignedBackbones() {
+
+	using namespace ADNFrameUtils;
+
+	SBPointer<ADNPart> part = new ADNPart();
+	const std::vector<SBPosition3> backbonePositions = {
+		positionAngstrom(3.0, 0.0, 0.0),
+		positionAngstrom(6.0, 0.0, 0.0),
+		positionAngstrom(9.0, 0.0, 0.0)
+	};
+	const RTDoubleStrand created = DASCreator::AddSingleStrandToADNPart(
+		part,
+		backbonePositions,
+		SBVector3(1.0, 0.0, 0.0),
+		SBVector3(0.0, 1.0, 0.0));
+
+	requireTrue("explicit single creator has strand",
+		created.ss1 != nullptr,
+		"Expected explicit-position creator to return a single strand.");
+	if (created.ss1 == nullptr) return;
+
+	std::size_t index = 0;
+	auto nucleotides = created.ss1->GetNucleotides();
+	SB_FOR(SBPointer<ADNNucleotide> nucleotide, nucleotides) {
+
+		requirePositionNear("explicit single creator backbone " + std::to_string(index),
+			nucleotide->GetBackbonePosition(),
+			backbonePositions[index],
+			1.0e-9);
+		requirePositionNear("explicit single creator base segment " + std::to_string(index),
+			nucleotide->GetBaseSegment()->GetPosition(),
+			backbonePositions[index],
+			1.0e-9);
+		requireTrue("explicit single creator sidechain nondegenerate",
+			distanceValue(nucleotide->GetBackbonePosition(), nucleotide->GetSidechainPosition()) > 0.0,
+			"Expected explicit-position creator to add a sidechain marker offset.");
+		requireTrue("explicit single creator nucleotide frame valid",
+			isOrthonormalRightHanded(ADNFrameAdapters::frameFromOrientable(*nucleotide), 1.0e-9),
+			"Expected explicit-position creator to initialize nucleotide frames.");
+		++index;
+
+	}
+
+	requireEqual("explicit single creator nucleotide count",
+		index,
+		backbonePositions.size());
+
+}
+
+void testExplicitSingleStrandCreatorPlacesDiagonalBackbones() {
+
+	using namespace ADNFrameUtils;
+
+	const SBPosition3 connectorStartPosition = positionAngstrom(1.0, 2.0, 3.0);
+	const SBPosition3 connectorEndPosition = positionAngstrom(5.0, 7.0, 11.0);
+	const Vec3 connectorStart = vecFromPosition(connectorStartPosition);
+	const Vec3 connectorEnd = vecFromPosition(connectorEndPosition);
+	const Vec3 connectorDelta = connectorEnd - connectorStart;
+	const std::vector<SBPosition3> backbonePositions = {
+		positionFromRawVec(connectorStart + connectorDelta * 0.25),
+		positionFromRawVec(connectorStart + connectorDelta * 0.50),
+		positionFromRawVec(connectorStart + connectorDelta * 0.75)
+	};
+
+	SBPointer<ADNPart> part = new ADNPart();
+	const RTDoubleStrand created = DASCreator::AddSingleStrandToADNPart(
+		part,
+		backbonePositions,
+		SBVector3(connectorDelta.x, connectorDelta.y, connectorDelta.z),
+		SBVector3(0.0, 0.0, 1.0));
+
+	requireTrue("explicit diagonal creator has strand",
+		created.ss1 != nullptr,
+		"Expected explicit-position creator to return a single strand.");
+	if (created.ss1 == nullptr) return;
+
+	double previousT = -1.0;
+	std::size_t index = 0;
+	auto nucleotides = created.ss1->GetNucleotides();
+	SB_FOR(SBPointer<ADNNucleotide> nucleotide, nucleotides) {
+
+		const Vec3 actual = vecFromPosition(nucleotide->GetBackbonePosition());
+		const Vec3 relative = actual - connectorStart;
+		const double t = dot(relative, connectorDelta) / squaredNorm(connectorDelta);
+		const Vec3 perpendicular = relative - connectorDelta * t;
+
+		requirePositionNear("explicit diagonal creator backbone " + std::to_string(index),
+			nucleotide->GetBackbonePosition(),
+			backbonePositions[index],
+			1.0e-9);
+		requireNear("explicit diagonal creator perpendicular distance " + std::to_string(index),
+			norm(perpendicular),
+			0.0,
+			1.0e-9);
+		requireTrue("explicit diagonal creator monotonic parameter",
+			t > previousT && t > 0.0 && t < 1.0,
+			"Expected diagonal linker samples to progress along the connector.");
+		requireTrue("explicit diagonal creator base segment frame valid",
+			isOrthonormalRightHanded(ADNFrameAdapters::frameFromOrientable(*nucleotide->GetBaseSegment()), 1.0e-9),
+			"Expected explicit-position creator to initialize base-segment frames.");
+		previousT = t;
+		++index;
+
+	}
+
+	requireEqual("explicit diagonal creator nucleotide count",
+		index,
+		backbonePositions.size());
+
+}
+
 struct OneSidedComplementFixture {
 	SBPointer<ADNPart> part;
 	SBPointer<ADNDoubleStrand> doubleStrand;
@@ -4299,6 +4475,9 @@ int main() {
 	testCreatorSingleStrandInitializesDesignedFrames();
 	testCreatorDoubleStrandInitializesDesignedFrames();
 	testReconstructionRepairsE3OnlyCreatorFrame();
+	testPreserveInputGeometryKeepsExplicitSingleStrandPositions();
+	testExplicitSingleStrandCreatorPlacesAxisAlignedBackbones();
+	testExplicitSingleStrandCreatorPlacesDiagonalBackbones();
 	testComplementPlacementPreservesExistingNucleotideGeometry();
 	testComplementPlacementUsesRightAnchorSide();
 	testComplementPlacementPrefersLeftAnchorOverStoredFrame();
