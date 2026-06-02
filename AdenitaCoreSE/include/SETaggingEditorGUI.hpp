@@ -3,6 +3,7 @@
 #include "SBCHeapExport.hpp"
 #include "SBGWindowWidget.hpp" 
 #include "ui_SETaggingEditorGUI.h"
+#include "ADNMixins.hpp"
 
 class SETaggingEditor;
 
@@ -29,6 +30,7 @@ public:
 	//@{
 
 	SETaggingEditor*											getEditor() const;														///< Returns a pointer to the editor
+	void														setTargetBaseFromEditor(DNABlocks type);
 
 	//@}
 
@@ -54,11 +56,15 @@ public:
 public slots:
 
 	void														onModeChanged();
+	void														onTargetBaseChanged(int index);
 
 private:
+
+	void														setupHelpText();
+	void														updateTargetBaseControls();
+	void														setTargetBaseIndex(int index);
 
 	Ui::SETaggingEditorGUIClass									ui;
 	SETaggingEditor*											editor{ nullptr };
 
 };
-

@@ -8,6 +8,7 @@ SETwistHelixEditorGUI::SETwistHelixEditorGUI(SETwistHelixEditor* editor) {
 
 	this->editor = editor;
 	ui.setupUi(this);
+	setupHelpText();
 
 }
 
@@ -51,6 +52,25 @@ void SETwistHelixEditorGUI::saveSettings(SBGSettings *settings) {
 
 	settings->saveValue("angle", ui.doubleSpinBoxAngle->value());
 	settings->saveValue("nTurns", ui.spinBoxTurns->value());
+
+}
+
+void SETwistHelixEditorGUI::setupHelpText() {
+
+	ui.label->setToolTip(
+		tr("Choose a rotation amount and click a double strand to apply it. Hold Alt while clicking to reverse the direction."));
+	ui.radioButtonMinusBP->setToolTip(
+		tr("Rotate by one base-pair step in the negative helical direction. One bp step is the canonical per-base rotation used by Adenita."));
+	ui.radioButtonPlusBP->setToolTip(
+		tr("Rotate by one base-pair step in the positive helical direction. Hold Alt while clicking to apply the opposite sign."));
+	ui.radioButtonTwistAngle->setToolTip(
+		tr("Use a custom rotation angle in degrees. Positive and negative values rotate in opposite helical directions."));
+	ui.doubleSpinBoxAngle->setToolTip(
+		tr("Custom rotation angle in degrees. The value is applied to the clicked double strand; Alt reverses it."));
+	ui.radioButtonTwistTurns->setToolTip(
+		tr("Use an integer number of base-pair steps. This is not a full 360-degree turn: one step is one base-pair rotation increment."));
+	ui.spinBoxTurns->setToolTip(
+		tr("Number of base-pair steps to rotate. Negative values rotate in the opposite direction."));
 
 }
 
@@ -142,7 +162,7 @@ QString SETwistHelixEditorGUI::getName() const {
 	// SAMSON Element generator pro tip: this string will be the GUI title. 
 	// Modify this function to have a user-friendly description of your editor inside SAMSON
 
-	return "Rotate DNA Editor"; 
+	return tr("Rotate Double-Strand DNA");
 
 }
 

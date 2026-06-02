@@ -113,6 +113,7 @@ private:
 	SBPointer<ADNPart>											generateLattice(bool mock = false);
 
 	void														sendPartToAdenita(SBPointer<ADNPart> lattice);
+	void														updateCrossSectionFrameFromCamera();
 
 	LatticeType													latticeType = LatticeType::Honeycomb;
 	VGrid														vGrid;
@@ -124,6 +125,10 @@ private:
 	SBPosition3													firstPosition;
 	SBPosition3													secondPosition;
 	SBPosition3													thirdPosition;
+	SBVector3													latticeColumnAxis = SBVector3(0.0, 1.0, 0.0);
+	SBVector3													latticeRowAxis = SBVector3(0.0, 0.0, 1.0);
+	SBVector3													latticeNormalAxis = SBVector3(1.0, 0.0, 0.0);
+	bool														crossSectionFrameLocked = false;
 	bool														displayFlag = false;
 	SBPointer<ADNPart>											tempPart = nullptr;
 

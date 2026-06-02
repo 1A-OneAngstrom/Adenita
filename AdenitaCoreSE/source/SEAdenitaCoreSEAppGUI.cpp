@@ -1431,8 +1431,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getEditSequencesButtons() {
 		auto btnTaggingEditor = new QToolButton(this);
 		btnTaggingEditor->setObjectName(QStringLiteral("btnTaggingEditor"));
 		btnTaggingEditor->setText("Tag\nnucleotides\n");
-		btnTaggingEditor->setToolTip("<b>Tag nucleotides</b><br/><br/>"
-			"Tag nucleotides or modify their base. The tag will appear when exporting sequences.");
+		btnTaggingEditor->setToolTip("<b>Tag or mutate nucleotides</b><br/><br/>"
+			"Set export tags on nucleotides or mutate clicked nucleotides to a chosen base.");
 		btnTaggingEditor->setIconSize(QSize(24, 24));
 		btnTaggingEditor->setCheckable(true);
 		btnTaggingEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1484,8 +1484,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		btnBreakEditor->setToolTip("<b>Break editor</b><br/><br/>"
 			"Break single strand DNA (ssDNA) between two consecutive nucleotides of the same strand.<br/><br/>"
 			"The editor has two modes (you can switch between them in the editor's interface):<br/>"
-			"- 5' side: break between the clicked nucleotide and its previous nucleotide.<br/>"
-			"- 3' side: break between the clicked nucleotide and its next nucleotide.<br/><br/>"
+			"- Cut before clicked nucleotide (toward 5'): break between the clicked nucleotide and its previous nucleotide.<br/>"
+			"- Cut after clicked nucleotide (toward 3'): break between the clicked nucleotide and its next nucleotide.<br/><br/>"
 			"Hover preview shows the two nucleotides and bond that will be cut.");
 		btnBreakEditor->setIconSize(QSize(24, 24));
 		btnBreakEditor->setCheckable(true);
@@ -1496,7 +1496,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		auto btnDeleteEditor = new QToolButton(this);
 		btnDeleteEditor->setObjectName(QStringLiteral("btnDeleteEditor"));
 		btnDeleteEditor->setText("Delete");
-		btnDeleteEditor->setToolTip("<b>Delete editor</b><br/><br/>Delete nucleotides from Adenita models");
+		btnDeleteEditor->setToolTip("<b>Delete editor</b><br/><br/>"
+			"Delete the highlighted Adenita nucleotide. Empty strands and base segments are cleaned up automatically.");
 		btnDeleteEditor->setIconSize(QSize(24, 24));
 		btnDeleteEditor->setCheckable(true);
 		btnDeleteEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1506,7 +1507,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		auto btnConnectEditor = new QToolButton(this);
 		btnConnectEditor->setObjectName(QStringLiteral("btnConnectEditor"));
 		btnConnectEditor->setText("Connect");
-		btnConnectEditor->setToolTip("<b>Connect editor</b><br/><br/>Connect and create crossovers");
+		btnConnectEditor->setToolTip("<b>Connect DNA strands</b><br/><br/>"
+			"Connect DNA strand endpoints and optionally insert a single- or double-strand linker.");
 		btnConnectEditor->setIconSize(QSize(24, 24));
 		btnConnectEditor->setCheckable(true);
 		btnConnectEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1517,7 +1519,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		btnMergePartsEditor->setObjectName(QStringLiteral("btnMergePartsEditor"));
 		btnMergePartsEditor->setText("Merge parts");
 		btnMergePartsEditor->setToolTip("<b>Merge parts editor</b><br/><br/>"
-			"Merge components. Reorganize several components into one, or reassign single and double strands to other components. List of components and strands needs to be updated manually.");
+			"Refresh, merge, or move Adenita strands and components in the current document.");
 		btnMergePartsEditor->setIconSize(QSize(24, 24));
 		btnMergePartsEditor->setCheckable(true);
 		btnMergePartsEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1527,8 +1529,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		auto btnDNATwisterEditor = new QToolButton(this);
 		btnDNATwisterEditor->setObjectName(QStringLiteral("btnDNATwisterEditor"));
 		btnDNATwisterEditor->setText("Rotate DNA");
-		btnDNATwisterEditor->setToolTip("<b>DNA rotation/twist editor</b><br/><br/>"
-			"Rotate double strand DNA along helical axis - modify the twist angle of a double-strand along the helical axis.<br>Hold <b>Alt</b> to rotate in the opposite direction.");
+		btnDNATwisterEditor->setToolTip("<b>Rotate double-strand DNA</b><br/><br/>"
+			"Rotate a double-strand DNA helix by the selected angle around its helical axis. Hold <b>Alt</b> to apply the opposite direction.");
 		btnDNATwisterEditor->setIconSize(QSize(24, 24));
 		btnDNATwisterEditor->setCheckable(true);
 		btnDNATwisterEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1538,8 +1540,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getModelingButtons() {
 		auto btnTwisterEditor = new QToolButton(this);
 		btnTwisterEditor->setObjectName(QStringLiteral("btnTwisterEditor"));
 		btnTwisterEditor->setText("Twister");
-		btnTwisterEditor->setToolTip("<b>Twister editor</b><br/><br/>"
-			"Double Strand DNA Visualization Twister.<br/>Remove entire the twist of a double strand locally to observe the single strands that compose it as parallel lines. Twist back after.");
+		btnTwisterEditor->setToolTip("<b>DNA twister / visibility brush</b><br/><br/>"
+			"Locally untwist or retwist double-strand DNA, or hide/show nucleotides with a spherical brush.");
 		btnTwisterEditor->setIconSize(QSize(24, 24));
 		btnTwisterEditor->setCheckable(true);
 		btnTwisterEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1601,8 +1603,8 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getCreatorsButtons() {
 		QToolButton* btnDsDNACreatorEditor = new QToolButton;
 		btnDsDNACreatorEditor->setObjectName(QStringLiteral("btnDsDNACreatorEditor"));
 		btnDsDNACreatorEditor->setText("DNA strand\ncreator");
-		btnDsDNACreatorEditor->setToolTip("<b>Double and single strand DNA creator editor</b><br/><br/>"
-			"Add a new single or double strand DNA (ssDNA or dsDNA) as a component to the design. The strands can be either linear or circular.");
+		btnDsDNACreatorEditor->setToolTip("<b>DNA strands creator</b><br/><br/>"
+			"Create single- or double-strand DNA, optionally circular, with drag-based or manual length.");
 		btnDsDNACreatorEditor->setIconSize(QSize(24, 24));
 		btnDsDNACreatorEditor->setCheckable(true);
 		btnDsDNACreatorEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1613,7 +1615,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getCreatorsButtons() {
 		btnNanotubeCreator->setObjectName(QStringLiteral("btnNanotubeCreator"));
 		btnNanotubeCreator->setText("Nanotube\ncreator");
 		btnNanotubeCreator->setToolTip("<b>Nanotube creator</b><br/><br/>"
-			"DNA Nanotube Creator. Add a nanotube composed of double strands.");
+			"Create DNA nanotubes with configurable radius, base-pair length, helix count, and routing style.");
 		btnNanotubeCreator->setIconSize(QSize(24, 24));
 		btnNanotubeCreator->setCheckable(true);
 		btnNanotubeCreator->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1624,7 +1626,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getCreatorsButtons() {
 		btnLatticeCreatorEditor->setObjectName(QStringLiteral("btnLatticeCreatorEditor"));
 		btnLatticeCreatorEditor->setText("Lattice\ncreator");
 		btnLatticeCreatorEditor->setToolTip("<b>Lattice creator editor</b><br/><br/>"
-			"Create dsDNA on a square or honeycomb lattice - add a lattice of double strands as a component.");
+			"Create double-strand DNA on a square or honeycomb lattice with X/Y helix counts and Z base-pair length limits.");
 		btnLatticeCreatorEditor->setIconSize(QSize(24, 24));
 		btnLatticeCreatorEditor->setCheckable(true);
 		btnLatticeCreatorEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -1635,7 +1637,7 @@ std::vector<QToolButton*> SEAdenitaCoreSEAppGUI::getCreatorsButtons() {
 		btnWireframeEditor->setObjectName(QStringLiteral("btnWireframeEditor"));
 		btnWireframeEditor->setText("Wireframe\ncreator");
 		btnWireframeEditor->setToolTip("<b>Wireframe creator editor</b><br/><br/>"
-			"Generate a wireframe DNA nanostructures from the given shapes and add it to the design (uses the Daedalus algorithm).");
+			"Create wireframe DNA nanostructures from shape templates using the Daedalus-based workflow.");
 		btnWireframeEditor->setIconSize(QSize(24, 24));
 		btnWireframeEditor->setCheckable(true);
 		btnWireframeEditor->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);

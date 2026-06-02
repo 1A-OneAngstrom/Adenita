@@ -204,7 +204,7 @@ QString SEMergePartsEditor::getToolTip() const {
 
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Merge components");
+	return QObject::tr("Refresh, merge, or move Adenita strands and components in the current document.");
 
 }
 

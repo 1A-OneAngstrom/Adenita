@@ -87,7 +87,7 @@ QString SETaggingEditor::getToolTip() const {
 
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Tag nucleotides or change their base. The tag will appear when exporting sequences.");
+	return QObject::tr("Set export tags on nucleotides or mutate clicked nucleotides to a chosen base.");
 
 }
 
@@ -243,6 +243,8 @@ void SETaggingEditor::wheelEvent(QWheelEvent* event) {
 
 			QPoint numSteps = numDegrees / 15;
 			nucleotideType = getNucleotideType(numSteps);
+			// Ctrl+wheel remains a shortcut, but the property widget should show the active base.
+			getPropertyWidget()->setTargetBaseFromEditor(nucleotideType);
 			event->accept();
 
 		}
@@ -280,6 +282,18 @@ SBPointer<ADNNucleotide> SETaggingEditor::GetHighlightedNucleotide() const {
 void SETaggingEditor::setTaggingMode(TaggingMode mode) {
 
 	this->taggingMode = mode;
+
+}
+
+void SETaggingEditor::setNucleotideType(DNABlocks type) {
+
+	this->nucleotideType = type;
+
+}
+
+DNABlocks SETaggingEditor::getNucleotideType() const {
+
+	return nucleotideType;
 
 }
 

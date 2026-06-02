@@ -5,6 +5,8 @@
 #include "ADNBasicOperations.hpp"
 #include "DASLattices.hpp"
 
+#include <vector>
+
 
 // type of editor enumeration
 namespace DASCreator {
@@ -137,6 +139,15 @@ namespace DASCreator {
       \param direction of the double strand
     */
     SB_EXPORT RTDoubleStrand AddSingleStrandToADNPart(SBPointer<ADNPart> part, const size_t length, SBPosition3 start, SBVector3 direction);
+    //! Helper function that creates a single strand from explicit visual anchor positions.
+    /*!
+      \param the ADNPart to which the single strand will be added
+      \param backbonePositions positions used by the visual model for each nucleotide
+      \param tangent stable strand tangent used to seed local frames
+      \param radial stable radial direction used to make sidechain markers nondegenerate
+    */
+    SB_EXPORT RTDoubleStrand AddSingleStrandToADNPart(SBPointer<ADNPart> part, const std::vector<SBPosition3>& backbonePositions,
+        SBVector3 tangent, SBVector3 radial);
 
     //* Generates a crippled cuboid for viewing purposes
     //*/

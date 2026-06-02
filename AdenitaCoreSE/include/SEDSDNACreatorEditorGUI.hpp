@@ -68,8 +68,9 @@ public slots:
 
 private:
 
+	void														setupHelpText();
+
 	Ui::SEDSDNACreatorEditorGUIClass							ui;
 	SEDSDNACreatorEditor*										editor{ nullptr };
 
 };
-

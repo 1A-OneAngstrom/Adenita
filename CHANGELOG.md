@@ -2,11 +2,70 @@
 
 All notable changes to Adenita are documented in this file.
 
+## [0.27.0] - 2026-06-02
+
+### Summary
+
+This release improves Adenita’s lattice creation, ssDNA linker creation, and editor usability.
+
+The *Lattice Creator* now handles preview overlays and drag directions more reliably, including negative directions. Manual ssDNA linker creation has been updated to use endpoint backbone geometry, so inserted single strands and crossovers better follow the user-selected endpoints. Adenita editor and settings dialogs also received clearer labels, improved layout, and more contextual help for new users.
+
+Adenita is distributed as a SAMSON extension source release, not as a standalone executable.
+
+**Full Changelog**: <https://github.com/1A-OneAngstrom/Adenita/compare/v0.26.0...v0.27.0>
+
+### Highlights
+
+- Fixed *Lattice Creator* preview overlay rendering so axes and measurements remain visible over preview geometry.
+- Improved *Lattice Creator* direction handling, including negative drag directions.
+- Fixed triangular lattice row-length interpolation.
+- Improved manual ssDNA linker / crossover creation using endpoint backbone geometry.
+- Added explicit-position single-strand creation for connector-driven linker paths.
+- Added a preserve-input nucleotide placement mode to avoid unwanted geometry reconstruction.
+- Improved Connect ssDNA auto-fill length estimation.
+- Added standalone regression tests for lattice interpolation and endpoint-aware ssDNA linker creation.
+- Improved editor labels, tooltips, and contextual help across Adenita editors.
+- Reorganized and clarified the Adenita settings dialog.
+
+### Added
+
+- Preserve-input nucleotide placement mode.
+- Explicit-position single-strand creation from caller-provided backbone positions.
+- Endpoint-aware ssDNA linker regression tests.
+- Testable helper for triangular lattice row interpolation.
+- Additional editor UI help text.
+
+### Changed
+
+- Lattice preview rendering now preserves OpenGL state more carefully.
+- Lattice measurements are drawn as an overlay so they remain readable.
+- Lattice creation now uses signed user-derived axes for preview and final generation.
+- Manual ssDNA insertion now uses endpoint backbone geometry.
+- Connection auto-fill length estimation now matches connector geometry.
+- Editor and settings dialogs now use clearer wording and more guidance.
+
+### Fixed
+
+- Lattice preview axes and values being hidden by preview spheres.
+- Lattice creation ignoring negative drag directions.
+- Triangular lattice length interpolation.
+- Endpoint linker helper unit handling.
+- Manual ssDNA linker placement being affected by less reliable center-based geometry estimates.
+
+### Tests
+
+This release adds standalone regression coverage for:
+
+- triangular lattice interpolation;
+- preserve-input geometry;
+- explicit-position single-strand creation;
+- straight and diagonal endpoint-aware ssDNA linker paths.
+
 ## [0.26.0] - 2026-05-29
 
 ### Summary
 
-This release fixes rotation-related geometry reconstruction issues in Adenita. After a DNA structure is moved or rotated with SAMSON, Adenita editors now preserve the transformed geometry more reliably instead of reconstructing parts of the model from stale local frames. The changes particularly affect *Rotate DNA*, *Twist / Untwist* DNA strand, *Create base pairs*, complementary-strand placement, and atomic model generation.
+This release fixes rotation-related geometry reconstruction issues in Adenita. After a DNA structure is moved or rotated with SAMSON, Adenita editors now preserve the transformed geometry more reliably instead of reconstructing parts of the model from stale local frames. The changes particularly affect *Rotate DNA*, *Twist / Untwist- DNA strand, *Create base pairs*, complementary-strand placement, and atomic model generation.
 
 Adenita remains distributed as a SAMSON extension source release, not as a standalone executable.
 
@@ -16,9 +75,9 @@ Adenita remains distributed as a SAMSON extension source release, not as a stand
 
 - Fixed rotated DNA structures being flattened or partially reset when using Adenita geometry editors after a SAMSON move / rotate operation.
 - Fixed stale cached nucleotide and base-segment frames that could remain mathematically valid while no longer matching the current geometry.
-- Fixed *Rotate DNA* behavior so current geometry and frames are rotated consistently, avoiding reconstruction from stale template frames.
-- Fixed *Twist / Untwist DNA* strand behavior on transformed structures by synchronizing affected geometry and using target-state reconstruction.
-- Fixed *Create base pairs* behavior on transformed or one-sided structures by separating geometry-aligned frames from template reconstruction frames.
+- Fixed *Rotate DNA- behavior so current geometry and frames are rotated consistently, avoiding reconstruction from stale template frames.
+- Fixed *Twist / Untwist DNA- strand behavior on transformed structures by synchronizing affected geometry and using target-state reconstruction.
+- Fixed *Create base pairs- behavior on transformed or one-sided structures by separating geometry-aligned frames from template reconstruction frames.
 - Fixed complementary-strand placement so existing selected strands are preserved and newly created complementary nucleotides are placed from the current anchor geometry.
 - Fixed one-sided complementary placement when the stored base-segment frame is misleading or inconsistent with the anchor side.
 - Fixed side-aware atom template selection so right-strand and one-sided atomic generation uses the appropriate ideal nucleotide templates.
@@ -42,7 +101,7 @@ Adenita remains distributed as a SAMSON extension source release, not as a stand
 ### Added
 
 - Added standalone regression coverage for stale nucleotide and base-segment frame detection.
-- Added standalone regression coverage for rotated geometry edits, including *Rotate DNA*, *Twist DNA* behavior, and transformed atom placement.
+- Added standalone regression coverage for rotated geometry edits, including *Rotate DNA*, *Twist DNA- behavior, and transformed atom placement.
 - Added tests for phase-aware template-frame round trips, handedness, and base-plane consistency.
 - Added tests for complementary placement from left, right, and rotated anchors.
 - Added tests for one-sided atomic stacking, pair-level atom transforms, and side consistency.
@@ -55,12 +114,3 @@ Adenita remains distributed as a SAMSON extension source release, not as a stand
 - `SEAdenitaCoreSEApp` now batches structural synchronization and requests visual / viewport updates after deferred synchronization.
 - `SEDNATwisterEditor` now collects affected base segments and owning parts before applying local twist / untwist operations.
 - `SEAdenitaVisualModel` update handling was adjusted to react to atom additions / removals as well as atom position changes.
-
-### Version
-
-- Updated Adenita extension version from `0.25.0` to `0.26.0`.
-
-### Compatibility / distribution
-
-- Requires the normal Adenita developer build environment for this repository: SAMSON SDK, Qt, CMake, Boost, and a compatible compiler.
-- This release is intended as a SAMSON extension source release.

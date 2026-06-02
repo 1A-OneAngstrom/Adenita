@@ -60,8 +60,10 @@ public slots:
 
 private:
 
+	void														setupHelpText();
+	void														updateSequenceControls();
+
 	Ui::SEConnectSSDNAEditorGUIClass							ui;
 	SEConnectSSDNAEditor*										editor{ nullptr };
 
 };
-

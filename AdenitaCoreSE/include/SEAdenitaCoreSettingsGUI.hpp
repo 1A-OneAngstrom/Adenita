@@ -25,10 +25,10 @@ public:
 public slots:
 
 	void														onChangeScaffold(int idx);
+	void														onSetCustomScaffold();
 	void														onSetPathNtthal();
 	void														accept();
 	void														reject();
-	void														onResetToDefault();
 
 private:
 
@@ -37,6 +37,7 @@ private:
 	SBGWindow*													dialogWindow{ nullptr };
 
 	void														populateUi();
+	void														setupHelpText();
+	void														updateCustomScaffoldControls();
 
 };
-

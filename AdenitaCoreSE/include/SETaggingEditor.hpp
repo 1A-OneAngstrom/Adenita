@@ -102,6 +102,8 @@ public:
 	//@}
 
 	void														setTaggingMode(TaggingMode mode);
+	void														setNucleotideType(DNABlocks type);
+	DNABlocks													getNucleotideType() const;
 
 private:
 

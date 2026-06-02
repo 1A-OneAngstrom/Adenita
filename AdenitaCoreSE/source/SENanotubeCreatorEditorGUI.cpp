@@ -6,6 +6,7 @@ SENanotubeCreatorEditorGUI::SENanotubeCreatorEditorGUI(SENanotubeCreatorEditor* 
 
 	this->editor = editor;
 	ui.setupUi(this);
+	setupHelpText();
 
 }
 
@@ -28,6 +29,31 @@ void SENanotubeCreatorEditorGUI::saveSettings(SBGSettings* settings) {
 	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
+
+}
+
+void SENanotubeCreatorEditorGUI::setupHelpText() {
+
+	ui.label_3->setToolTip(
+		tr("Length of the nanotube in base pairs."));
+	ui.spinBoxNumberOfBasePairs->setToolTip(
+		tr("Length of the nanotube in base pairs."));
+	ui.label_4->setToolTip(
+		tr("Number of double-strand DNA helices around the nanotube."));
+	ui.spinBoxNumberOfDSDNA->setToolTip(
+		tr("Number of double-strand DNA helices around the nanotube. Changing this updates the radius."));
+	ui.label_2->setToolTip(
+		tr("Nanotube radius in nanometers."));
+	ui.doubleSpinBoxRadius->setToolTip(
+		tr("Nanotube radius in nanometers. Changing this updates the number of dsDNA helices."));
+	ui.label->setToolTip(
+		tr("Routing style used for the nanotube scaffold and strand path."));
+	ui.comboBoxRouting->setToolTip(
+		tr("Routing style: None leaves routing unspecified; Seamless, Tiles, and Non-seamless choose predefined nanotube routing strategies."));
+	ui.chkPredefined->setToolTip(
+		tr("Use the numeric radius and length values instead of taking them from the viewport drag."));
+	ui.txtInfo->setToolTip(
+		tr("Preview information for the nanotube dimensions inferred from the current drag or predefined size."));
 
 }
 

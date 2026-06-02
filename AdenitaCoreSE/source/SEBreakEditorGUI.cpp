@@ -7,6 +7,7 @@ SEBreakEditorGUI::SEBreakEditorGUI(SEBreakEditor* editor) {
 
 	this->editor = editor;
 	ui.setupUi(this);
+	setupHelpText();
 
 }
 
@@ -37,6 +38,17 @@ void SEBreakEditorGUI::saveSettings(SBGSettings *settings) {
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
 
 	settings->saveValue("isFivePrime", ui.radioButtonFivePrime->isChecked());
+
+}
+
+void SEBreakEditorGUI::setupHelpText() {
+
+	ui.label->setToolTip(
+		tr("Choose which side of the clicked nucleotide should be cut."));
+	ui.radioButtonThreePrime->setToolTip(
+		tr("Cut the bond between the clicked nucleotide and the next nucleotide toward the 3' end. The hover preview highlights the exact bond."));
+	ui.radioButtonFivePrime->setToolTip(
+		tr("Cut the bond between the previous nucleotide and the clicked nucleotide, i.e. toward the 5' side. The hover preview highlights the exact bond."));
 
 }
 

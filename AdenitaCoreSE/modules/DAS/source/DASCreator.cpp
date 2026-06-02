@@ -4,6 +4,8 @@
 
 namespace {
 
+constexpr double kExplicitSingleStrandSidechainOffsetNm = 0.05;
+
 [[nodiscard]] ADNFrameUtils::Vec3 frameVecFromSBVector(const SBVector3& vector) {
 
 	return ADNFrameUtils::Vec3{
@@ -24,6 +26,46 @@ namespace {
 
 }
 
+[[nodiscard]] ADNFrameUtils::Vec3 frameVecFromPositionDelta(
+	const SBPosition3& start,
+	const SBPosition3& end) {
+
+	const auto delta = end - start;
+	return ADNFrameUtils::Vec3{
+		delta[0].getValue(),
+		delta[1].getValue(),
+		delta[2].getValue()
+	};
+
+}
+
+[[nodiscard]] SBVector3 sbVectorFromFrameVec(const ADNFrameUtils::Vec3& vector) {
+
+	return SBVector3(vector.x, vector.y, vector.z);
+
+}
+
+[[nodiscard]] ADNFrameUtils::Vec3 strandAxisFromExplicitPositions(
+	const std::vector<SBPosition3>& backbonePositions,
+	const SBVector3& tangent) {
+
+	if (backbonePositions.size() > 1) {
+
+		const ADNFrameUtils::Vec3 positionAxis =
+			frameVecFromPositionDelta(backbonePositions.front(), backbonePositions.back());
+		if (!ADNFrameUtils::isNearlyZero(positionAxis))
+			return positionAxis;
+
+	}
+
+	const ADNFrameUtils::Vec3 tangentAxis = frameVecFromSBVector(tangent);
+	if (!ADNFrameUtils::isNearlyZero(tangentAxis))
+		return tangentAxis;
+
+	return ADNFrameUtils::Vec3{ 0.0, 0.0, 1.0 };
+
+}
+
 ADNFrameUtils::Frame setDesignedFrame(
 	SBPointer<ADNBaseSegment> baseSegment,
 	const ADNFrameUtils::Vec3& axis,
@@ -33,6 +75,16 @@ ADNFrameUtils::Frame setDesignedFrame(
 		ADNGeometrySynchronization::makeDesignedBaseSegmentFrame(axis, preferredRadial);
 	ADNFrameAdapters::setFrame(*baseSegment, frame);
 	return frame;
+
+}
+
+void setNucleotideCenterMarkerFromBackboneAndSidechain(SBPointer<ADNNucleotide> nucleotide) {
+
+	if (nucleotide == nullptr) return;
+
+	const SBPosition3 center =
+		(nucleotide->GetBackbonePosition() + nucleotide->GetSidechainPosition()) * 0.5;
+	nucleotide->PositionableSB::SetPosition(center);
 
 }
 
@@ -575,6 +627,67 @@ RTDoubleStrand DASCreator::AddSingleStrandToADNPart(SBPointer<ADNPart> part, con
 	ss->SetDefaultName();
 
 	RTDoubleStrand res;
+	res.ds = ds;
+	res.ss1 = ss;
+	return res;
+
+}
+
+RTDoubleStrand DASCreator::AddSingleStrandToADNPart(SBPointer<ADNPart> part,
+	const std::vector<SBPosition3>& backbonePositions,
+	SBVector3 tangent,
+	SBVector3 radial) {
+
+	RTDoubleStrand res;
+	if (part == nullptr || backbonePositions.empty()) return res;
+
+	SBPointer<ADNDoubleStrand> ds = new ADNDoubleStrand();
+	part->RegisterDoubleStrand(ds);
+
+	SBPointer<ADNSingleStrand> ss = new ADNSingleStrand();
+	part->RegisterSingleStrand(ss);
+
+	ADNFrameUtils::Vec3 previousRadial = frameVecFromSBVector(radial);
+	const ADNFrameUtils::Vec3 axis = strandAxisFromExplicitPositions(backbonePositions, tangent);
+
+	for (size_t i = 0; i < backbonePositions.size(); ++i) {
+
+		const SBPosition3& backbonePosition = backbonePositions[i];
+
+		SBPointer<ADNBaseSegment> bs = new ADNBaseSegment();
+		bs->SetPosition(backbonePosition);
+		const ADNFrameUtils::Frame frame = setDesignedFrame(bs, axis, &previousRadial);
+		previousRadial = frame.e2;
+		bs->SetNumber(boost::numeric_cast<int>(i));
+		part->RegisterBaseSegmentEnd(ds, bs);
+
+		SBPointer<ADNBasePair> bp = new ADNBasePair();
+		bs->SetCell(bp());
+
+		SBPointer<ADNNucleotide> nt = new ADNNucleotide();
+		nt->Init();
+		part->RegisterNucleotideThreePrime(ss, nt);
+		nt->setNucleotideType(DNABlocks::DI);
+
+		// Adenita's visual model draws strand vertices from backbone
+		// positions. Keep the requested linker samples on the backbone and use
+		// a small sidechain offset only to make frame recovery nondegenerate.
+		nt->SetBackbonePosition(backbonePosition);
+		nt->SetSidechainPosition(
+			backbonePosition +
+			SBQuantity::nanometer(kExplicitSingleStrandSidechainOffsetNm) *
+			sbVectorFromFrameVec(frame.e2));
+		setNucleotideCenterMarkerFromBackboneAndSidechain(nt);
+		nt->SetBaseSegment(bs);
+		ADNFrameAdapters::setFrame(*nt,
+			ADNFrameUtils::frameFromE2AndTangent(frame.e2, frame.e3, frame));
+
+		bp->SetLeftNucleotide(nt);
+
+	}
+
+	ss->SetDefaultName();
+
 	res.ds = ds;
 	res.ss1 = ss;
 	return res;

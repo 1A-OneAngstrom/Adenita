@@ -57,8 +57,9 @@ public slots:
 
 private:
 
+	void														setupHelpText();
+
 	Ui::SEBreakEditorGUIClass									ui;
 	SEBreakEditor*												editor{ nullptr };
 
 };
-

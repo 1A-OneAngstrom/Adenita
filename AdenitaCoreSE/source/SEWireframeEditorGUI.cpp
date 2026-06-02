@@ -53,6 +53,8 @@ void SEWireframeEditorGUI::initializeUI() {
 
 	ui.radioButtonCuboid->setIcon(cubeIcon);
 
+	setupHelpText();
+
 #ifndef ADENITA_DEBUG
 	ui.radioButtonHelix->setVisible(false);
 	ui.radioButtonStickman->setVisible(false);
@@ -89,6 +91,41 @@ void SEWireframeEditorGUI::saveSettings(SBGSettings *settings) {
 	if (settings == nullptr) return;
 
 	// SAMSON Element generator pro tip: complete this function so your editor can save its GUI state from one session to the next
+
+}
+
+void SEWireframeEditorGUI::setupHelpText() {
+
+	ui.radioButtonTetrahedron->setToolTip(
+		tr("Create a Tetrahedron wireframe DNA structure using the Daedalus-based wireframe workflow."));
+	ui.radioButtonCube->setToolTip(
+		tr("Create a Cube wireframe DNA structure using the Daedalus-based wireframe workflow."));
+	ui.radioButtonCuboid->setToolTip(
+		tr("Create a Cuboid wireframe DNA structure using the Daedalus-based wireframe workflow."));
+	ui.radioButtonOctahedron->setToolTip(
+		tr("Create an Octahedron wireframe DNA structure using the Daedalus-based wireframe workflow."));
+	ui.radioButtonDodecahedron->setToolTip(
+		tr("Create a Dodecahedron wireframe DNA structure using the Daedalus-based wireframe workflow."));
+	ui.radioButtonCuboctahedron->setToolTip(
+		tr("Create a Cuboctahedron wireframe DNA structure using the Daedalus-based wireframe workflow."));
+	ui.radioButtonIcosahedron->setToolTip(
+		tr("Create an Icosahedron wireframe DNA structure using the Daedalus-based wireframe workflow."));
+	ui.radioButtonIcosidodecahedron->setToolTip(
+		tr("Create an Icosidodecahedron wireframe DNA structure using the Daedalus-based wireframe workflow."));
+	ui.radioButtonRhombicuboctahedron->setToolTip(
+		tr("Create a Rhombicuboctahedron wireframe DNA structure using the Daedalus-based wireframe workflow."));
+	ui.radioButtonSnub_cube->setToolTip(
+		tr("Create a Snub Cube wireframe DNA structure using the Daedalus-based wireframe workflow."));
+	ui.radioButtonTruncated_cube->setToolTip(
+		tr("Create a Truncated Cube wireframe DNA structure using the Daedalus-based wireframe workflow."));
+	ui.radioButtonTruncated_cuboctahedron->setToolTip(
+		tr("Create a Truncated Cuboctahedron wireframe DNA structure using the Daedalus-based wireframe workflow."));
+	ui.radioButtonHelix->setToolTip(
+		tr("Create a Helix wireframe DNA structure using the Daedalus-based wireframe workflow."));
+	ui.radioButtonStickman->setToolTip(
+		tr("Create a Stickman wireframe DNA structure using the Daedalus-based wireframe workflow."));
+	ui.radioButtonBunny->setToolTip(
+		tr("Create a Bunny wireframe DNA structure using the Daedalus-based wireframe workflow."));
 
 }
 

@@ -6,6 +6,7 @@ SELatticeCreatorEditorGUI::SELatticeCreatorEditorGUI(SELatticeCreatorEditor* edi
 
 	this->editor = editor;
 	ui.setupUi(this);
+	setupHelpText();
 
 	ui.labelPatterns->setVisible(false);
 	ui.labelPatternsX->setVisible(false);
@@ -64,6 +65,45 @@ void SELatticeCreatorEditorGUI::saveSettings(SBGSettings *settings) {
 	settings->saveValue("spinBoxMaxXds", ui.spinBoxMaxXds->value());
 	settings->saveValue("spinBoxMaxYds", ui.spinBoxMaxYds->value());
 	settings->saveValue("spinBoxMaxZbp", ui.spinBoxMaxZbp->value());
+
+}
+
+void SELatticeCreatorEditorGUI::setupHelpText() {
+
+	ui.label_9->setToolTip(
+		tr("Choose the lattice geometry used to place double-strand DNA helices."));
+	ui.radioButtonSquareLattice->setToolTip(
+		tr("Use square lattice geometry for double-strand DNA placement."));
+	ui.radioButtonHoneycombLattice->setToolTip(
+		tr("Use honeycomb lattice geometry for double-strand DNA placement."));
+	ui.label_5->setToolTip(
+		tr("Maximum number of helices in the X lattice direction."));
+	ui.spinBoxMaxXds->setToolTip(
+		tr("Maximum number of double-strand DNA helices in the X lattice direction."));
+	ui.label_6->setToolTip(
+		tr("Maximum number of helices in the Y lattice direction."));
+	ui.spinBoxMaxYds->setToolTip(
+		tr("Maximum number of double-strand DNA helices in the Y lattice direction."));
+	ui.label_7->setToolTip(
+		tr("Maximum number of base pairs along each helix."));
+	ui.spinBoxMaxZbp->setToolTip(
+		tr("Maximum number of base pairs along each helix in the Z direction."));
+	ui.label_8->setToolTip(
+		tr("Maximum size limits for the generated lattice preview and created structure."));
+	ui.labelPatterns->setToolTip(
+		tr("Cross-section pattern used as a creation mask when pattern controls are visible."));
+	ui.labelPatternsX->setToolTip(
+		tr("X pattern selector used when pattern controls are visible."));
+	ui.comboBoxXPattern->setToolTip(
+		tr("Cross-section mask in the X direction: ALL, Triangle, or Circle."));
+	ui.labelPatternsY->setToolTip(
+		tr("Y pattern selector used when pattern controls are visible."));
+	ui.comboBoxYPattern->setToolTip(
+		tr("Cross-section mask in the Y direction: ALL, Triangle, or Circle."));
+	ui.labelPatternsZ->setToolTip(
+		tr("Z pattern selector used when pattern controls are visible."));
+	ui.comboBoxZPattern->setToolTip(
+		tr("Cross-section mask in the Z direction: ALL, Triangle, or Circle."));
 
 }
 

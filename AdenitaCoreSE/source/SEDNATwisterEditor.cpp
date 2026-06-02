@@ -195,7 +195,7 @@ QString SEDNATwisterEditor::getToolTip() const {
 	
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Twist/Untwist Double Strand DNA"); 
+	return QObject::tr("Locally untwist or retwist double-strand DNA, or hide/show nucleotides with a spherical brush.");
 
 }
 

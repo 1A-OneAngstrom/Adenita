@@ -1,8 +1,216 @@
 #include "DASComplexOperations.hpp"
 #include "DASBackToTheAtom.hpp"
+#include "ADNFrameAdapters.hpp"
+#include "ADNGeometrySynchronization.hpp"
 #include "ADNLogger.hpp"
 
+#include <cmath>
+#include <vector>
+
 namespace {
+
+constexpr double kConnectorEpsilonNm = 1.0e-6;
+
+struct EndpointConnector {
+	SBPosition3 start;
+	SBPosition3 end;
+	SBVector3 direction;
+	SBVector3 radial;
+	bool valid{ false };
+};
+
+[[nodiscard]] bool isFinitePosition(const SBPosition3& position) {
+
+	return std::isfinite(position[0].getValue()) &&
+		std::isfinite(position[1].getValue()) &&
+		std::isfinite(position[2].getValue());
+
+}
+
+[[nodiscard]] bool hasUsableLength(const SBQuantity::length& length) {
+
+	return (length / SBQuantity::nanometer(1.0)).getValue() > kConnectorEpsilonNm;
+
+}
+
+[[nodiscard]] ADNFrameUtils::Vec3 frameVecFromSBVector(const SBVector3& vector) {
+
+	return ADNFrameUtils::Vec3{
+		vector[0].getValue(),
+		vector[1].getValue(),
+		vector[2].getValue()
+	};
+
+}
+
+[[nodiscard]] ADNFrameUtils::Vec3 frameVecFromPositionDelta(
+	const SBPosition3& start,
+	const SBPosition3& end) {
+
+	const auto delta = end - start;
+	return ADNFrameUtils::Vec3{
+		delta[0].getValue(),
+		delta[1].getValue(),
+		delta[2].getValue()
+	};
+
+}
+
+[[nodiscard]] SBVector3 sbVectorFromFrameVec(const ADNFrameUtils::Vec3& vector) {
+
+	return SBVector3(vector.x, vector.y, vector.z);
+
+}
+
+[[nodiscard]] SBPosition3 nucleotideConnectorPoint(SBPointer<ADNNucleotide> nucleotide) {
+
+	if (nucleotide == nullptr) return SBPosition3();
+
+	if (nucleotide->GetBackbone().isValid()) {
+
+		const SBPosition3& position = nucleotide->GetBackbonePosition();
+		if (isFinitePosition(position)) return position;
+
+	}
+
+	const SBPosition3 position = nucleotide->GetPosition();
+	if (isFinitePosition(position)) return position;
+
+	SBPointer<ADNBaseSegment> baseSegment = nucleotide->GetBaseSegment();
+	if (baseSegment != nullptr && isFinitePosition(baseSegment->GetPosition()))
+		return baseSegment->GetPosition();
+
+	return SBPosition3();
+
+}
+
+[[nodiscard]] ADNFrameUtils::Vec3 projectedPerpendicularToAxis(
+	const ADNFrameUtils::Vec3& direction,
+	const ADNFrameUtils::Vec3& axis) {
+
+	if (ADNFrameUtils::isNearlyZero(direction) || ADNFrameUtils::isNearlyZero(axis))
+		return ADNFrameUtils::Vec3{};
+
+	const ADNFrameUtils::Vec3 unitAxis = ADNFrameUtils::normalized(axis);
+	return direction - unitAxis * ADNFrameUtils::dot(direction, unitAxis);
+
+}
+
+[[nodiscard]] ADNFrameUtils::Vec3 frameRadialCandidate(SBPointer<ADNNucleotide> nucleotide) {
+
+	if (nucleotide == nullptr) return ADNFrameUtils::Vec3{};
+	return ADNFrameAdapters::sanitizedFrame(*nucleotide).e2;
+
+}
+
+[[nodiscard]] ADNFrameUtils::Vec3 geometryRadialCandidate(SBPointer<ADNNucleotide> nucleotide) {
+
+	if (nucleotide == nullptr) return ADNFrameUtils::Vec3{};
+	return frameVecFromPositionDelta(nucleotide->GetBackbonePosition(), nucleotide->GetSidechainPosition());
+
+}
+
+[[nodiscard]] SBVector3 chooseConnectorRadial(SBPointer<ADNNucleotide> start3p,
+	SBPointer<ADNNucleotide> end5p,
+	const SBVector3& direction) {
+
+	const ADNFrameUtils::Vec3 tangent = ADNFrameUtils::normalized(frameVecFromSBVector(direction));
+	const ADNFrameUtils::Vec3 candidates[] = {
+		frameRadialCandidate(start3p),
+		frameRadialCandidate(end5p),
+		geometryRadialCandidate(start3p),
+		geometryRadialCandidate(end5p)
+	};
+
+	for (const ADNFrameUtils::Vec3& candidate : candidates) {
+
+		const ADNFrameUtils::Vec3 projected = projectedPerpendicularToAxis(candidate, tangent);
+		if (!ADNFrameUtils::isNearlyZero(projected))
+			return sbVectorFromFrameVec(ADNFrameUtils::normalized(projected));
+
+	}
+
+	const ADNFrameUtils::Frame fallback =
+		ADNGeometrySynchronization::makeDesignedBaseSegmentFrame(tangent);
+	return sbVectorFromFrameVec(fallback.e2);
+
+}
+
+[[nodiscard]] bool computeEndpointConnector(SBPointer<ADNNucleotide> start3p,
+	SBPointer<ADNNucleotide> end5p,
+	EndpointConnector& connector) {
+
+	if (start3p == nullptr || end5p == nullptr) return false;
+
+	connector.start = nucleotideConnectorPoint(start3p);
+	connector.end = nucleotideConnectorPoint(end5p);
+	auto delta = connector.end - connector.start;
+
+	if (!hasUsableLength(delta.norm())) {
+
+		SBPointer<ADNBaseSegment> startBaseSegment = start3p->GetBaseSegment();
+		SBPointer<ADNBaseSegment> endBaseSegment = end5p->GetBaseSegment();
+		if (startBaseSegment == nullptr || endBaseSegment == nullptr) return false;
+		if (!isFinitePosition(startBaseSegment->GetPosition()) ||
+			!isFinitePosition(endBaseSegment->GetPosition()))
+			return false;
+
+		connector.start = startBaseSegment->GetPosition();
+		connector.end = endBaseSegment->GetPosition();
+		delta = connector.end - connector.start;
+
+	}
+
+	if (!hasUsableLength(delta.norm())) return false;
+
+	connector.direction = delta.normalizedVersion();
+	connector.radial = chooseConnectorRadial(start3p, end5p, connector.direction);
+	connector.valid = true;
+	return true;
+
+}
+
+[[nodiscard]] bool orderConnectionEndpoints(SBPointer<ADNNucleotide> nt1,
+	SBPointer<ADNNucleotide> nt2,
+	SBPointer<ADNNucleotide>& start3p,
+	SBPointer<ADNNucleotide>& end5p) {
+
+	if (nt1 == nullptr || nt2 == nullptr) return false;
+	if (nt1->getEndType() == ADNNucleotide::EndType::ThreePrime &&
+		nt2->getEndType() == ADNNucleotide::EndType::ThreePrime)
+		return false;
+
+	start3p = nt1;
+	end5p = nt2;
+	if (nt1->getEndType() == ADNNucleotide::EndType::FivePrime) {
+
+		if (nt2->getEndType() == ADNNucleotide::EndType::FivePrime) return false;
+		start3p = nt2;
+		end5p = nt1;
+
+	}
+
+	return true;
+
+}
+
+[[nodiscard]] std::vector<SBPosition3> interpolateConnectorBackbonePositions(
+	const EndpointConnector& connector,
+	size_t count) {
+
+	std::vector<SBPosition3> positions;
+	positions.reserve(count);
+	const auto delta = connector.end - connector.start;
+	for (size_t i = 0; i < count; ++i) {
+
+		const double t = static_cast<double>(i + 1) / static_cast<double>(count + 1);
+		positions.push_back(connector.start + t * delta);
+
+	}
+
+	return positions;
+
+}
 
 #ifndef NDEBUG
 void ValidateCircularStrandTopology(SBPointer<ADNSingleStrand> strand) {
@@ -106,6 +314,21 @@ DASOperations::Connections DASOperations::PrepareStrandsForConnection(SBPointer<
 void DASOperations::CreateCrossover(SBPointer<ADNPart> part1, SBPointer<ADNPart> part2,
 	SBPointer<ADNNucleotide> nt1, SBPointer<ADNNucleotide> nt2, bool two, std::string seq)
 {
+	EndpointConnector manualSingleStrandConnector;
+	if (!two && !seq.empty()) {
+
+		SBPointer<ADNNucleotide> start3p = nullptr;
+		SBPointer<ADNNucleotide> end5p = nullptr;
+		if (!orderConnectionEndpoints(nt1, nt2, start3p, end5p)) return;
+		if (!computeEndpointConnector(start3p, end5p, manualSingleStrandConnector)) {
+
+			ADNLogger::LogDebug(std::string("CreateCrossover skipped manual ssDNA insertion because the endpoint connector is degenerate."));
+			return;
+
+		}
+
+	}
+
 	const auto conn = PrepareStrandsForConnection(part1, part2, nt1, nt2);
 	const auto& pair = conn.stringPair;
 	const auto& compPair = conn.compStringPair;
@@ -118,14 +341,14 @@ void DASOperations::CreateCrossover(SBPointer<ADNPart> part1, SBPointer<ADNPart>
 		if (!seq.empty()) {
 			const size_t seqLength = seq.size();
 
-			SBPointer<ADNBaseSegment> bs1 = pair.first->GetThreePrime()->GetBaseSegment();
-			SBPointer<ADNBaseSegment> bs2 = pair.second->GetFivePrime()->GetBaseSegment();
-			SBVector3 direction = (bs2->GetPosition() - bs1->GetPosition()).normalizedVersion();
-			SBQuantity::length availLength = (bs2->GetPosition() - bs1->GetPosition()).norm();
-			SBQuantity::length expectedLength = SBQuantity::nanometer(ADNConstants::BP_RISE) * (seqLength + 1);  // we need to accommodate space for distance between the ends
-			SBQuantity::length offset = (availLength - expectedLength) * 0.5;
-			SBPosition3 startPos = bs1->GetPosition() + (SBQuantity::nanometer(ADNConstants::BP_RISE) + offset) * direction;
 			if (two) {
+				SBPointer<ADNBaseSegment> bs1 = pair.first->GetThreePrime()->GetBaseSegment();
+				SBPointer<ADNBaseSegment> bs2 = pair.second->GetFivePrime()->GetBaseSegment();
+				SBVector3 direction = (bs2->GetPosition() - bs1->GetPosition()).normalizedVersion();
+				SBQuantity::length availLength = (bs2->GetPosition() - bs1->GetPosition()).norm();
+				SBQuantity::length expectedLength = SBQuantity::nanometer(ADNConstants::BP_RISE) * (seqLength + 1);  // we need to accommodate space for distance between the ends
+				SBQuantity::length offset = (availLength - expectedLength) * 0.5;
+				SBPosition3 startPos = bs1->GetPosition() + (SBQuantity::nanometer(ADNConstants::BP_RISE) + offset) * direction;
 				auto res = DASCreator::AddDoubleStrandToADNPart(pair.firstPart, seqLength, startPos, direction);
 				joinStrand1 = res.ss1;
 				joinStrand2 = res.ss2;
@@ -153,14 +376,29 @@ void DASOperations::CreateCrossover(SBPointer<ADNPart> part1, SBPointer<ADNPart>
 				pair.firstPart->RegisterSingleStrand(joinStrand2);
 			}
 			else {
-				auto res = DASCreator::AddSingleStrandToADNPart(pair.firstPart, seqLength, startPos, direction);
+
+				if (!manualSingleStrandConnector.valid) {
+
+					SBPointer<ADNNucleotide> start3p = pair.first->GetThreePrime();
+					SBPointer<ADNNucleotide> end5p = pair.second->GetFivePrime();
+					if (!computeEndpointConnector(start3p, end5p, manualSingleStrandConnector)) return;
+
+				}
+
+				const std::vector<SBPosition3> backbonePositions =
+					interpolateConnectorBackbonePositions(manualSingleStrandConnector, seqLength);
+				auto res = DASCreator::AddSingleStrandToADNPart(pair.firstPart,
+					backbonePositions,
+					manualSingleStrandConnector.direction,
+					manualSingleStrandConnector.radial);
 				joinStrand1 = res.ss1;
+				if (joinStrand1 == nullptr || res.ds == nullptr) return;
 				joinStrand1->SetSequence(seq);
 
-				DASBackToTheAtom* btta = new DASBackToTheAtom();
-				btta->SetPositionsForNewNucleotides(pair.firstPart,
+				DASBackToTheAtom btta;
+				btta.SetPositionsForNewNucleotides(pair.firstPart,
 					joinStrand1->GetNucleotides(),
-					DASBackToTheAtom::NewNucleotidePlacementMode::ReconstructBaseSegments);
+					DASBackToTheAtom::NewNucleotidePlacementMode::PreserveInputGeometry);
 
 				if (SAMSON::isHolding()) SAMSON::hold(res.ds());
 				res.ds->create();

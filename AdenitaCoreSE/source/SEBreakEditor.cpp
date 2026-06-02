@@ -151,7 +151,7 @@ QString SEBreakEditor::getToolTip() const {
 	
 	// SAMSON Element generator pro tip: modify this function to have your editor display a tool tip in the SAMSON GUI when the mouse hovers the editor's icon
 
-	return QObject::tr("Break Single Strand DNA"); 
+	return QObject::tr("Break a single DNA strand at the highlighted bond. Choose whether the cut is before or after the clicked nucleotide.");
 
 }
 

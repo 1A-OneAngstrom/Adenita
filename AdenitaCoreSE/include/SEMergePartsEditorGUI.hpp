@@ -63,8 +63,9 @@ public slots:
 
 private:
 
+	void														setupHelpText();
+
 	Ui::SEMergePartsEditorGUIClass								ui;
 	SEMergePartsEditor*											editor{ nullptr };
 
 };
-

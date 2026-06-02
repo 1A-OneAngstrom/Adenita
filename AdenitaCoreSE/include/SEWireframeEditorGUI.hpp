@@ -66,6 +66,6 @@ private:
 
 	bool														uiInitializedFlag = false;												///< True if the UI has been initialized on the first show
 	void														initializeUI();
+	void														setupHelpText();
 
 };
-
