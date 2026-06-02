@@ -236,6 +236,13 @@ private:
 	void														prepare2Dto3D(double iv);
 	void														prepare3D(double iv);
 
+	// Scale and dimension application are split from the public setters so full
+	// rebuilds can reuse prepared arrays and emit a single final notification.
+	float														clampScale(float scale) const;
+	float														clampDimension(float dimension) const;
+	void														applyScale(float scale, bool force, bool notify);
+	void														applyDimension(float dimension, bool force, bool notify);
+
 	static void													emphasizeColors(ADNArray<float> & colors, const std::vector<unsigned int> & indices, float r, float g, float b, float a);
 	static void													replaceColors(ADNArray<float> & colors, const std::vector<unsigned int> & indices, float * color);
 
@@ -251,6 +258,7 @@ private:
 	ADNNanorobot*												nanorobot_{ nullptr };
 
 	bool														isUpdateRequested = true;
+	bool														isInFullUpdate_{ false };
 	
 	static SB_OPENGL_FUNCTIONS*									gl;
 
