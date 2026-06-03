@@ -17,6 +17,7 @@
 #include "SENanotubeCreatorEditor.hpp"
 #include "SEDSDNACreatorEditor.hpp"
 #include "SEMergePartsEditor.hpp"
+#include "SEUIHelper.hpp"
 
 #include "ADNSamsonContext.hpp"
 #include "ADNGeometrySynchronization.hpp"
@@ -995,26 +996,58 @@ void SEAdenitaCoreSEAppGUI::onGenerateAtomicModel() {
 
 		}
 
+		unsigned int targetParts = 0;
+		SB_FOR(SBPointer<ADNPart> part, parts) {
+
+			if (part == nullptr) continue;
+			if (!addToAll && !part->getSelectionFlag()) continue;
+			++targetParts;
+
+		}
+
+		if (targetParts == 0) return;
+
+		SEUIHelper::ScopedProgressBar progress(
+			QStringLiteral("Generating atomic model..."),
+			0,
+			100,
+			SBQuantity::second(0.0),
+			false);
+		progress.setValue(5);
+
 		DASBackToTheAtom btta = DASBackToTheAtom();
 
+		progress.setValue(10);
 		SAMSON::beginHolding("Add atomic model");
 
 		bool generatedAtomicModel = false;
+		unsigned int completedParts = 0;
 		SB_FOR(SBPointer<ADNPart> part, parts) {
 
 			if (part == nullptr) continue;
 			if (!addToAll && !part->getSelectionFlag()) continue;
 
+			progress.setValue(10 + static_cast<int>((completedParts * 75) / targetParts));
 			ADNGeometrySynchronization::syncPartFramesBeforeGeometryEdit(*part);
+			// Atom generation is the long-running part; keep progress in the GUI
+			// action instead of coupling DASBackToTheAtom to SAMSON UI state.
 			btta.GenerateAllAtomModel(part, true);
 			ADNGeometrySynchronization::syncPartFramesAfterGeometryEdit(*part);
+			++completedParts;
+			progress.setValue(10 + static_cast<int>((completedParts * 75) / targetParts));
 			generatedAtomicModel = true;
 
 		}
 
 		SAMSON::endHolding();
-		if (generatedAtomicModel)
+		if (generatedAtomicModel) {
+
+			progress.setValue(90);
 			SEAdenitaCoreSEApp::resetVisualModel();
+			progress.setValue(98);
+
+		}
+		progress.setValue(100);
 
 	}
 
