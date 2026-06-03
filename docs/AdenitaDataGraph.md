@@ -76,9 +76,15 @@ ADNPart (SBStructuralModel)
 
 `ADNPart` is the root structural model for an Adenita component. It exposes registration and deregistration methods for double strands, base segments, single strands, nucleotides, and atoms.
 
-The current implementation keeps a part-level index for base segments. Optional compile-time switches in `ADNPart.hpp` control whether parts also maintain explicit indexes for strands, nucleotides, and atoms. When those indexes are disabled, getters traverse the SAMSON child graph instead.
+The current implementation keeps a part-level index for base segments. The `ADENITA_ADNPART_REGISTER_*` switches in `ADNPart.hpp` control whether parts also maintain explicit indexes for strands, nucleotides, and atoms. In the current defaults, base-segment indexing is enabled and strand, nucleotide, and atom indexing are disabled, so the corresponding getters traverse the SAMSON child graph instead.
 
 Mutation code should use the registration and deregistration helpers instead of manually moving graph nodes. This keeps parent-child relationships, indexes, bounding boxes, nucleotide ordering, and cross-references consistent.
+
+## Serialization Notes
+
+Native SAMSON serialization stores graph references as node indexes and validates them during unserialization. Use `ADNNodeValidation` helpers when adding serialized references so missing, out-of-range, or wrong-type nodes fail predictably.
+
+Adenita JSON save/load paths also depend on this graph shape. When adding persistent fields, update the relevant `serialize` / `unserialize` methods, JSON read/write helpers, validation logic, and standalone tests together.
 
 ## Implementation Pointers
 
@@ -86,3 +92,5 @@ Mutation code should use the registration and deregistration helpers instead of 
 - Registration, deletion, splitting, merging, and strand operations: `AdenitaCoreSE/source/ADNPart.cpp` and `AdenitaCoreSE/source/ADNBasicOperations.cpp`.
 - Save/load support: `AdenitaCoreSE/include/ADNSaveAndLoad.hpp` and `AdenitaCoreSE/source/ADNSaveAndLoad.cpp`.
 - SAMSON class descriptors and serialization exposure: `AdenitaCoreSE/include/ADNModelDescriptor.hpp` and `ADNPartDescriptor.hpp`.
+- Defensive node lookup during serialization: `AdenitaCoreSE/include/ADNNodeValidation.hpp`.
+- Regression coverage: `AdenitaCoreSE/tests/AdenitaStandaloneTests.cpp`.

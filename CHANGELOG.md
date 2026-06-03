@@ -14,6 +14,8 @@ Longer final creation operations now display a SAMSON progress bar so users get 
 
 Adenita is distributed as a SAMSON extension source release, not as a standalone executable.
 
+**Full Changelog**: <https://github.com/1A-OneAngstrom/Adenita/compare/v0.27.0...v0.28.0>
+
 ### Added
 
 - Added disabled-by-default visual model performance instrumentation for profiling highlight, update, preparation, and rendering paths.

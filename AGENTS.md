@@ -11,10 +11,15 @@ This repository is the `./adenita` project in the SAMSON extensions workspace.
 - `AdenitaCoreSE/form` contains Qt Designer `.ui` files used by the editor and app GUIs.
 - `AdenitaCoreSE/resource` contains icons and Qt resources.
 - `AdenitaCoreSE/data` contains bundled sample data, scaffolds, PDB fragments, meshes, and JSON examples installed with the element.
+- `AdenitaCoreSE/doc` contains license and third-party documentation installed with the element.
+- `AdenitaCoreSE/external` contains vendored third-party headers, currently RapidJSON.
+- `AdenitaCoreSE/private` contains source artwork assets.
+- `AdenitaCoreSE/tests` contains the standalone smoke and regression test executable wired into CTest.
 - `AdenitaCoreSE/modules/DAS` contains design and structure generation code, including Cadnano, Daedalus, lattice, routing, and atomistic conversion helpers.
 - `AdenitaCoreSE/modules/MSV` contains visualization/color/display helpers.
 - `AdenitaCoreSE/modules/PI` contains primer and binding-region helpers.
 - `docs` contains developer notes and historical user documentation.
+- `tools` contains repository helper scripts.
 
 ## Preferred Commands
 
@@ -37,6 +42,18 @@ This repository is the `./adenita` project in the SAMSON extensions workspace.
   cmake --build --preset build_win_x64_qt6.10.2_debug
   ```
 
+- Run the standalone release test target with:
+
+  ```powershell
+  ctest --test-dir build_win_x64_qt6.10.2 -C Release --output-on-failure
+  ```
+
+- Run the standalone debug test target with:
+
+  ```powershell
+  ctest --test-dir build_win_x64_qt6.10.2 -C Debug --output-on-failure
+  ```
+
 ## Editing Guidelines
 
 - Keep changes scoped. Avoid broad formatting sweeps in generated or legacy SAMSON extension code.
@@ -46,3 +63,5 @@ This repository is the `./adenita` project in the SAMSON extensions workspace.
 - Do not rewrite unrelated includes, whitespace, or naming while fixing a focused issue.
 - `ElementVersionHash.cmake` and `build*` directories are generated artifacts. Do not edit or commit generated build output.
 - `CMakePresets.json` contains local path defaults. Update paths only when the task is specifically about build configuration.
+- Do not edit vendored RapidJSON files unless the task is explicitly about that dependency.
+- When changing graph topology, serialization, JSON IO, frame synchronization, DAS algorithms, primer helpers, or editor behavior, run the standalone CTest target when practical and report whether it passed.

@@ -26,11 +26,11 @@ Please cite the original Adenita publication when appropriate:
 
 Install the development prerequisites:
 
-- [SAMSON and the SAMSON SDK](https://www.samson-connect.net/) v11.0.0 or newer.
+- [SAMSON and the SAMSON SDK](https://www.samson-connect.net/) v11.0.0 or newer. The current Windows preset points at SDK 11.0.1.
 - Qt 6.10.2 with the modules required by `CMakeLists.txt`.
 - CMake 4.0 or newer.
 - Boost 1.87 or newer.
-- On Windows, Visual Studio 2022 or newer.
+- On Windows, a Visual Studio generator compatible with your preset. The checked-in local preset uses `Visual Studio 18 2026`.
 
 Clone the repository:
 
@@ -39,7 +39,7 @@ git clone https://github.com/1A-OneAngstrom/Adenita.git
 cd Adenita
 ```
 
-Copy or rename `CMakePresets.json.example` as `CMakePresets.json` and review it before configuring. The preset paths are local defaults for the current Windows development setup, including `SAMSON_SDK_PATH`, Qt, Boost, RDKit, and Python paths. Adjust them or override them on the CMake command line for your machine.
+Review `CMakePresets.json` before configuring. Its paths are local defaults for the current Windows development setup, including `SAMSON_SDK_PATH`, Qt, Boost, RDKit, and Python paths. If you are creating a fresh local preset, copy or rename `CMakePresets.json.example` as `CMakePresets.json`, then adjust the paths or override them on the CMake command line for your machine.
 
 Configure with the provided Windows preset:
 
@@ -59,27 +59,49 @@ For a debug build:
 cmake --build --preset build_win_x64_qt6.10.2_debug
 ```
 
+Run the standalone CTest target after a successful build:
+
+```powershell
+ctest --test-dir build_win_x64_qt6.10.2 -C Release --output-on-failure
+```
+
+For debug builds, use `-C Debug`.
+
 For additional SAMSON SDK setup, packaging, and extension workflow details, see the [SAMSON Developer Guide](https://documentation.samson-connect.net/developers/latest/) and the guide to [building a SAMSON extension](https://documentation.samson-connect.net/developers/latest/building/).
 
 Non-Windows builds should follow the same SAMSON SDK and CMake model, but may require a local CMake preset or explicit `-D` options for the SDK, Qt, Boost, and compiler paths.
 
 ## Repository Map
 
-- `CMakeLists.txt` and `CMakePresets.json.example`: top-level build configuration.
+- `CMakeLists.txt`, `CMakePresets.json`, and `CMakePresets.json.example`: top-level build configuration and local preset template.
 - `AdenitaCoreSE/include`: SAMSON element headers, data model classes, app/editor/importer/visual-model declarations.
 - `AdenitaCoreSE/source`: implementation files matching the public headers.
 - `AdenitaCoreSE/form`: Qt Designer UI files.
 - `AdenitaCoreSE/resource`: icons and Qt resources.
 - `AdenitaCoreSE/data`: bundled sample structures, scaffolds, PDB fragments, meshes, and JSON examples.
+- `AdenitaCoreSE/doc`: license and third-party documentation installed with the SAMSON element.
+- `AdenitaCoreSE/external`: vendored third-party headers, currently RapidJSON.
+- `AdenitaCoreSE/private`: source artwork assets used by the extension.
+- `AdenitaCoreSE/tests`: standalone smoke and regression tests built as a CTest target.
 - `AdenitaCoreSE/modules/DAS`: design and structure algorithms, including Cadnano, Daedalus, routing, lattices, and atomistic conversion.
 - `AdenitaCoreSE/modules/MSV`: visualization color and display helpers.
 - `AdenitaCoreSE/modules/PI`: primer and binding-region helpers.
 - `docs`: developer notes plus historical user documentation.
+- `tools`: repository helper scripts.
+
+## Test Commands
+
+The build defines `SEAdenitaCoreSE.Standalone`, a CTest target backed by `AdenitaCoreSE/tests/AdenitaStandaloneTests.cpp`. Run it after changes to graph topology, serialization, JSON import/export, frame synchronization, DAS algorithms, primer helpers, or editor operations:
+
+```powershell
+ctest --test-dir build_win_x64_qt6.10.2 -C Release --output-on-failure
+```
 
 ## Developer Documentation
 
 - [Architecture overview](docs/Architecture.md)
 - [Adenita data graph](docs/AdenitaDataGraph.md)
+- [Frame synchronization](docs/FrameSynchronization.md)
 - [Historical user documentation](docs/README.md)
 
 Future coding agents should also read [AGENTS.md](AGENTS.md) before making changes.
