@@ -2,6 +2,7 @@
 #include "SEAdenitaCoreSEApp.hpp"
 #include "MSVDisplayHelper.hpp"
 #include "SELatticeCreatorEditorMath.hpp"
+#include "SEUIHelper.hpp"
 
 #include "SAMSON.hpp"
 
@@ -226,7 +227,7 @@ void SELatticeCreatorEditor::setMaxZBasePairs(int val) {
 	maxZBasePairs = val;
 }
 
-SBPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*/) {
+SBPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*/, SEUIHelper::ScopedProgressBar* progress /*= nullptr*/) {
 
 	//ADNLogger& logger = ADNLogger::GetLogger();
 
@@ -250,7 +251,12 @@ SBPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*/
 		maxZBasePairs);
 	updateLatticeText(buildData.measurements, latticeType, xyText, zText);
 
+	if (!mock && progress != nullptr) progress->setValue(5);
+
 	part = new ADNPart();
+
+	const int totalCells = std::max(1, buildData.measurements.xNumStrands * buildData.measurements.yNumStrands);
+	int completedCells = 0;
 
 	for (int xt = 0; xt < buildData.measurements.xNumStrands; xt++) {
 
@@ -269,6 +275,15 @@ SBPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*/
 
 			if (zLength > 0) auto ds = DASCreator::CreateDoubleStrand(part, zLength, pos, buildData.strandAxis, mock);
 
+			if (!mock && progress != nullptr) {
+
+				// Progress is tied to evaluated grid cells so tapered patterns
+				// still advance even when some cells intentionally create no strand.
+				++completedCells;
+				progress->setValue(5 + (completedCells * 65) / totalCells);
+
+			}
+
 		}
 
 	}
@@ -278,6 +293,7 @@ SBPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*/
 		std::string partName = "Square lattice";
 		if (latticeType == LatticeType::Honeycomb) partName = "Honeycomb lattice";
 		part->setName(SEAdenitaCoreSEApp::getAdenitaApp()->getUniquePartName(partName));
+		if (progress != nullptr) progress->setValue(70);
 
 	}
 
@@ -285,11 +301,12 @@ SBPointer<ADNPart> SELatticeCreatorEditor::generateLattice(bool mock /*= false*/
 
 }
 
-void SELatticeCreatorEditor::sendPartToAdenita(SBPointer<ADNPart> lattice) {
+void SELatticeCreatorEditor::sendPartToAdenita(SBPointer<ADNPart> lattice, SEUIHelper::ScopedProgressBar* progress /*= nullptr*/) {
 
 	if (lattice != nullptr) {
 
 		SEAdenitaCoreSEApp* adenita = SEAdenitaCoreSEApp::getAdenitaApp();
+		if (progress != nullptr) progress->setValue(80);
 		adenita->addPartToDocument(lattice);
 
 		//DASCadnano cad = DASCadnano();
@@ -298,7 +315,9 @@ void SELatticeCreatorEditor::sendPartToAdenita(SBPointer<ADNPart> lattice) {
 		//adenita->addConformationToDocument(cad.Get2DConformation());
 		//adenita->addConformationToDocument(cad.Get1DConformation());
 
+		if (progress != nullptr) progress->setValue(90);
 		SEAdenitaCoreSEApp::resetVisualModel();
+		if (progress != nullptr) progress->setValue(98);
 
 	}
 
@@ -622,9 +641,18 @@ void SELatticeCreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
 		//SAMSON::beginHolding("Add lattice");
 
 		heightSelected = true;
-		
-		SBPointer<ADNPart> part = generateLattice();
-		sendPartToAdenita(part);
+
+		SEUIHelper::ScopedProgressBar progress(
+			QStringLiteral("Creating lattice..."),
+			0,
+			100,
+			SBQuantity::second(0.0),
+			false);
+
+		SBPointer<ADNPart> part = generateLattice(false, &progress);
+		progress.setValue(75);
+		sendPartToAdenita(part, &progress);
+		progress.setValue(100);
 
 		//SAMSON::getActiveCamera()->rightView();
 		

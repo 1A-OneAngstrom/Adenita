@@ -10,6 +10,10 @@
 #include "DASCadnano.hpp"
 #include "DASCreator.hpp"
 
+namespace SEUIHelper {
+class ScopedProgressBar;
+}
+
 /// This class implements an editor
 
 class SB_EXPORT SELatticeCreatorEditor : public SBGEditor {
@@ -110,9 +114,9 @@ public:
 
 private:
 
-	SBPointer<ADNPart>											generateLattice(bool mock = false);
+	SBPointer<ADNPart>											generateLattice(bool mock = false, SEUIHelper::ScopedProgressBar* progress = nullptr);
 
-	void														sendPartToAdenita(SBPointer<ADNPart> lattice);
+	void														sendPartToAdenita(SBPointer<ADNPart> lattice, SEUIHelper::ScopedProgressBar* progress = nullptr);
 	void														updateCrossSectionFrameFromCamera();
 
 	LatticeType													latticeType = LatticeType::Honeycomb;
