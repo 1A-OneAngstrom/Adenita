@@ -3,6 +3,7 @@
 #include "DASCreator.hpp"
 
 #include "MSVDisplayHelper.hpp"
+#include "SEUIHelper.hpp"
 
 #include "SAMSON.hpp"
 
@@ -60,7 +61,7 @@ void SENanotubeCreatorEditor::setNumberOfBasePairs(int bp) {
 
 }
 
-SBPointer<ADNPart> SENanotubeCreatorEditor::generateNanotube(bool mock) {
+SBPointer<ADNPart> SENanotubeCreatorEditor::generateNanotube(bool mock, SEUIHelper::ScopedProgressBar* progress /*= nullptr*/) {
 
 	SBPointer<ADNPart> part = nullptr;
 
@@ -75,6 +76,8 @@ SBPointer<ADNPart> SENanotubeCreatorEditor::generateNanotube(bool mock) {
 		generateRadius = radius;
 
 	}
+
+	if (!mock && progress != nullptr) progress->setValue(5);
 
 	if (numNucleotides > 0) {
 
@@ -95,7 +98,12 @@ SBPointer<ADNPart> SENanotubeCreatorEditor::generateNanotube(bool mock) {
 		}
 		else {
 
+			if (progress != nullptr) progress->setValue(20);
+
+			// DASCreator owns the internal helix-generation loop; editor
+			// progress brackets the call without coupling it to SAMSON UI state.
 			part = DASCreator::CreateNanotube(generateRadius, firstPosition, dir, numNucleotides);
+			if (progress != nullptr) progress->setValue(70);
 
 		}
 
@@ -113,12 +121,15 @@ SBPointer<ADNPart> SENanotubeCreatorEditor::generateNanotube(bool mock) {
 
 }
 
-void SENanotubeCreatorEditor::sendPartToAdenita(SBPointer<ADNPart> nanotube) {
+void SENanotubeCreatorEditor::sendPartToAdenita(SBPointer<ADNPart> nanotube, SEUIHelper::ScopedProgressBar* progress /*= nullptr*/) {
 
 	if (nanotube != nullptr) {
 
+		if (progress != nullptr) progress->setValue(80);
 		SEAdenitaCoreSEApp::getAdenitaApp()->addPartToDocument(nanotube);
+		if (progress != nullptr) progress->setValue(90);
 		SEAdenitaCoreSEApp::resetVisualModel();
+		if (progress != nullptr) progress->setValue(98);
 
 	}
 
@@ -411,10 +422,19 @@ void SENanotubeCreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
 
 		//SAMSON::beginHolding("Add DNA nanotube");
 
-		SBPointer<ADNPart> part = generateNanotube();
+		SEUIHelper::ScopedProgressBar progress(
+			QStringLiteral("Creating nanotube..."),
+			0,
+			100,
+			SBQuantity::second(0.0),
+			false);
+
+		SBPointer<ADNPart> part = generateNanotube(false, &progress);
+		progress.setValue(75);
 		//DASRouter* router = DASRouter::GetRouter(routingType);
 		//router->Route(part);
-		sendPartToAdenita(part);
+		sendPartToAdenita(part, &progress);
+		progress.setValue(100);
 
 		//SAMSON::endHolding();
 
