@@ -10,11 +10,16 @@ ScopedProgressBar::ScopedProgressBar(
 	int maximum,
 	const SBQuantity::second& minimumDuration,
 	bool isCancellable,
-	const QString& cancelButtonText) :
-	active_(true) {
+	const QString& cancelButtonText) {
 
+#if 1
+	// disable showing the progress bar for now due to a flickering issue
+	active_ = false;
+#else
+	active_ = true;
 	SAMSON::showProgressBar(name, minimum, maximum, minimumDuration, isCancellable, cancelButtonText);
 	SAMSON::setProgressBarValue(minimum);
+#endif
 
 }
 
@@ -41,10 +46,10 @@ void ScopedProgressBar::hide() {
 
 }
 
-bool ScopedProgressBar::isStopped() const {
-
-	return active_ && SAMSON::isProgressBarStopped();
-
-}
+//bool ScopedProgressBar::isStopped() const {
+//
+//	return active_ && SAMSON::isProgressBarStopped();
+//
+//}
 
 } // namespace SEUIHelper
