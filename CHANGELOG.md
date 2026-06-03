@@ -2,6 +2,46 @@
 
 All notable changes to Adenita are documented in this file.
 
+## [0.28.0] - 2026-06-03
+
+### Summary
+
+This release improves Adenita visual-model responsiveness and adds progress feedback for longer structure-generation operations.
+
+The visual model update path has been tightened so hover and selection changes can update interaction flags without unnecessarily rebuilding prepared geometry, scales, dimensions, positions, colors, or radii. This should make viewport interaction smoother when hovering or highlighting nucleotides.
+
+Longer final creation operations now display a SAMSON progress bar so users get clear feedback that work is ongoing. Live previews remain progress-free to avoid noisy UI updates.
+
+Adenita is distributed as a SAMSON extension source release, not as a standalone executable.
+
+### Added
+
+- Added disabled-by-default visual model performance instrumentation for profiling highlight, update, preparation, and rendering paths.
+- Added a scoped SAMSON progress-bar helper that shows progress on construction and reliably hides it on scope exit.
+- Added progress feedback during final Lattice creation, Wireframe cuboid and template creation, Nanotube creation, DNA strand creation, complementary base-pair creation, and atomic model generation.
+
+### Changed
+
+- Tightened the visual model rebuild flow to avoid redundant work during full updates.
+- Added unchanged-value fast paths for visual model scale and dimension application.
+- Suppressed intermediate notifications during full visual model rebuilds, then emitted a single final change notification.
+- Reworked same-scale property refreshes into explicit prepared-geometry rebuild requests.
+- Routed hover and selection changes through interaction-state dirtiness instead of prepared-geometry dirtiness.
+- Refreshed inherited render flags with a conservative scan and synchronized the active flag buffer element-wise.
+- Kept progress feedback limited to final creation/generation operations, not live preview generation.
+
+### Fixed
+
+- Reduced unnecessary visual model recomputation during nucleotide hover/highlight interactions.
+- Avoided expensive scale, dimension, position, color, and radius recomputation for interaction-only updates where possible.
+- Made progress-bar lifetime safer for early returns in editor operations.
+
+### Notes for developers
+
+- Visual model profiling remains disabled by default via `ADN_VISUAL_MODEL_PERF_TRACE`.
+- The progress-bar helper is implemented in `SEUIHelper` and is intended for final operations that may take noticeable time.
+- Current progress operations are intentionally non-cancellable because the generation code does not yet expose a safe abort contract for partially generated or inserted `ADNPart` instances.
+
 ## [0.27.0] - 2026-06-02
 
 ### Summary

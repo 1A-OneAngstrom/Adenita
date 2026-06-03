@@ -8,6 +8,9 @@
 #include "ADNPart.hpp"
 #include "DASRouter.hpp"
 
+namespace SEUIHelper {
+class ScopedProgressBar;
+}
 
 /// This class implements an editor
 
@@ -101,9 +104,9 @@ public:
 
 private:
 
-	SBPointer<ADNPart>											generateNanotube(bool mock = false);
+	SBPointer<ADNPart>											generateNanotube(bool mock = false, SEUIHelper::ScopedProgressBar* progress = nullptr);
 
-	void														sendPartToAdenita(SBPointer<ADNPart> nanotube);
+	void														sendPartToAdenita(SBPointer<ADNPart> nanotube, SEUIHelper::ScopedProgressBar* progress = nullptr);
 	void														updateGUI(SBQuantity::length radius, int numBp, bool clear = false);
 
 	SBPosition3													firstPosition;

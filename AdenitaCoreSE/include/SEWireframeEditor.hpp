@@ -9,6 +9,10 @@
 #include "DASCreator.hpp"
 #include "DASPolyhedron.hpp"
 
+namespace SEUIHelper {
+class ScopedProgressBar;
+}
+
 /// This class implements an editor
 
 class SB_EXPORT SEWireframeEditor : public SBGEditor {
@@ -98,9 +102,9 @@ public:
 
 private:
 
-	SBPointer<ADNPart>											generateCuboid(const SBPosition3& currentPosition, bool mock = false);
-	SBPointer<ADNPart>											generateWireframe(bool mock = false);
-	void														sendPartToAdenita(SBPointer<ADNPart> part);
+	SBPointer<ADNPart>											generateCuboid(const SBPosition3& currentPosition, bool mock = false, SEUIHelper::ScopedProgressBar* progress = nullptr);
+	SBPointer<ADNPart>											generateWireframe(bool mock = false, SEUIHelper::ScopedProgressBar* progress = nullptr);
+	void														sendPartToAdenita(SBPointer<ADNPart> part, SEUIHelper::ScopedProgressBar* progress = nullptr);
 
 	//! Creates a ADNPart containing only the high-level model (double strands) of a daedalus wireframe design
 	/*!

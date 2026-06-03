@@ -16,10 +16,129 @@
 
 //#include "SBGRenderOpenGLFunctions.hpp"
 
+#define ADN_VISUAL_MODEL_PERF_TRACE 0
+
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <set>
+
+#if ADN_VISUAL_MODEL_PERF_TRACE
+#include <QDebug>
+#include <QElapsedTimer>
+
+namespace {
+
+#define ADN_JOIN_IMPL(a, b) a##b
+#define ADN_JOIN(a, b) ADN_JOIN_IMPL(a, b)
+
+struct ADNPerfCounter {
+	const char* name;
+	quint64 calls{ 0 };
+	qint64 nanos{ 0 };
+};
+
+class ADNScopedPerfTimer {
+public:
+
+	explicit ADNScopedPerfTimer(ADNPerfCounter& counter) : counter_(counter) { timer_.start(); }
+	~ADNScopedPerfTimer() {
+		++counter_.calls;
+		counter_.nanos += timer_.nsecsElapsed();
+	}
+
+private:
+
+	ADNPerfCounter& counter_;
+	QElapsedTimer timer_;
+
+};
+
+struct ADNPerfCounters {
+
+	ADNPerfCounters() { reportTimer.start(); }
+
+	void maybeReport() {
+
+		if (reportTimer.elapsed() < 2000) return;
+
+		logCounter(display);
+		logCounter(displayTransition);
+		logCounter(onBaseEvent);
+		logCounter(onStructuralEvent);
+		logCounter(requestUpdate);
+		logCounter(update);
+		logCounter(prepareDiscreteScalesDim);
+		logCounter(prepareDimensions);
+		logCounter(setScale);
+		logCounter(setDimension);
+		logCounter(changeHighlightFlag);
+
+		resetCounter(display);
+		resetCounter(displayTransition);
+		resetCounter(onBaseEvent);
+		resetCounter(onStructuralEvent);
+		resetCounter(requestUpdate);
+		resetCounter(update);
+		resetCounter(prepareDiscreteScalesDim);
+		resetCounter(prepareDimensions);
+		resetCounter(setScale);
+		resetCounter(setDimension);
+		resetCounter(changeHighlightFlag);
+		reportTimer.restart();
+
+	}
+
+	ADNPerfCounter display{ "display" };
+	ADNPerfCounter displayTransition{ "displayTransition" };
+	ADNPerfCounter onBaseEvent{ "onBaseEvent" };
+	ADNPerfCounter onStructuralEvent{ "onStructuralEvent" };
+	ADNPerfCounter requestUpdate{ "requestUpdate" };
+	ADNPerfCounter update{ "update" };
+	ADNPerfCounter prepareDiscreteScalesDim{ "prepareDiscreteScalesDim" };
+	ADNPerfCounter prepareDimensions{ "prepareDimensions" };
+	ADNPerfCounter setScale{ "setScale" };
+	ADNPerfCounter setDimension{ "setDimension" };
+	ADNPerfCounter changeHighlightFlag{ "changeHighlightFlag" };
+	QElapsedTimer reportTimer;
+
+private:
+
+	static void logCounter(const ADNPerfCounter& counter) {
+
+		if (counter.calls == 0) return;
+
+		qDebug().noquote() << QString("Adenita visual model perf: %1 calls=%2 total_ms=%3")
+			.arg(counter.name)
+			.arg(counter.calls)
+			.arg(counter.nanos / 1000000.0, 0, 'f', 3);
+
+	}
+
+	static void resetCounter(ADNPerfCounter& counter) {
+
+		counter.calls = 0;
+		counter.nanos = 0;
+
+	}
+
+};
+
+ADNPerfCounters& getADNPerfCounters() {
+
+	static ADNPerfCounters counters;
+	return counters;
+
+}
+
+}
+
+#define ADN_PERF_SCOPE(counter) ADNScopedPerfTimer ADN_JOIN(adnPerfTimer, __LINE__)(getADNPerfCounters().counter)
+#define ADN_PERF_REPORT() getADNPerfCounters().maybeReport()
+#else
+#define ADN_PERF_SCOPE(counter) do {} while(false)
+#define ADN_PERF_REPORT() do {} while(false)
+#endif
 
 SB_OPENGL_FUNCTIONS* SEAdenitaVisualModel::gl = nullptr;
 
@@ -163,43 +282,9 @@ void SEAdenitaVisualModel::onErase() {
 float		SEAdenitaVisualModel::getScale() const { return scale_; }
 void		SEAdenitaVisualModel::setScale(float scale) {
 
-	prepareDiscreteScalesDim();
+	ADN_PERF_SCOPE(setScale);
 
-	//if (this->scale_ == scale) return;
-
-	if (hasScaleRange() && scale < getMinimumScale()) this->scale_ = getMinimumScale();
-	else if (hasScaleRange() && scale > getMaximumScale()) this->scale_ = getMaximumScale();
-	else this->scale_ = scale;
-
-	if (nanorobot_ == nullptr) return;
-
-	if (this->scale_ > static_cast<float>(Scale::OBJECTS)) this->scale_ = static_cast<float>(Scale::OBJECTS);
-
-	const float interpolated = 1.0f - (floor(this->scale_ + 1.0f) - this->scale_);
-
-	if (scale_ < static_cast<float>(Scale::ATOMS_STICKS)) {
-		//prepareSticksToBalls(interpolated);
-	}
-	else if (scale_ < static_cast<float>(Scale::ATOMS_BALLS)) {
-	}
-	else if (scale_ < static_cast<float>(Scale::NUCLEOTIDES)) {
-		prepareBallsToNucleotides(interpolated);
-	}
-	else if (scale_ < static_cast<float>(Scale::SINGLE_STRANDS)) {
-		prepareNucleotidesToSingleStrands(interpolated);
-	}
-	else if (scale_ < static_cast<float>(Scale::DOUBLE_STRANDS)) {
-		prepareSingleStrandsToDoubleStrands(interpolated);
-	}
-	else if (scale_ <= static_cast<float>(Scale::OBJECTS)) {
-		prepareDoubleStrandsToObjects(interpolated);
-	}
-
-	if (scale_ >= static_cast<float>(Scale::NUCLEOTIDES) && scale_ <= static_cast<float>(Scale::SINGLE_STRANDS))
-		setDimension(dim_);
-
-	changed();
-	//SAMSON::requestViewportUpdate();
+	applyScale(scale, false, true);
 
 }
 bool		SEAdenitaVisualModel::hasScaleRange() const { return true; }
@@ -239,24 +324,9 @@ std::string	SEAdenitaVisualModel::getDiscreteScaleItemText(const int index) cons
 float		SEAdenitaVisualModel::getDimension() const { return dim_; }
 void		SEAdenitaVisualModel::setDimension(float dimension) {
 
-	//if (this->dim_ == dimension) return;
+	ADN_PERF_SCOPE(setDimension);
 
-	if (hasDimensionRange() && dimension < getMinimumDimension()) this->dim_ = getMinimumDimension();
-	else if (hasDimensionRange() && dimension > getMaximumDimension()) this->dim_ = getMaximumDimension();
-	else this->dim_ = dimension;
-
-	if (nanorobot_ == nullptr) return;
-
-	if (scale_ < static_cast<float>(Scale::NUCLEOTIDES) || scale_ > static_cast<float>(Scale::SINGLE_STRANDS)) return;
-
-	const float interpolated = 1.0f - (floor(this->dim_ + 1.0f) - this->dim_);
-
-	if (dim_ < 2.0f) prepare1Dto2D(interpolated);
-	else if (dim_ < 3.0f) prepare2Dto3D(interpolated);
-	else if (dim_ >= 3.0f) prepare3D(interpolated);
-
-	changed();
-	//SAMSON::requestViewportUpdate();
+	applyDimension(dimension, false, true);
 
 }
 bool		SEAdenitaVisualModel::hasDimensionRange() const { return true; }
@@ -441,6 +511,8 @@ void SEAdenitaVisualModel::initAtoms(bool createIndex /*= true*/) {
 
 void SEAdenitaVisualModel::requestUpdate() {
 
+	ADN_PERF_SCOPE(requestUpdate);
+
 	isUpdateRequested = true;
 	SAMSON::requestViewportUpdate();
 
@@ -454,7 +526,11 @@ void SEAdenitaVisualModel::requestVisualModelUpdate() {
 
 void SEAdenitaVisualModel::update() {
 
+	ADN_PERF_SCOPE(update);
+
 	if (!nanorobot_) return;
+
+	isInFullUpdate_ = true;
 
 	auto parts = nanorobot_->GetParts();
 
@@ -487,9 +563,12 @@ void SEAdenitaVisualModel::update() {
 	prepareDiscreteScalesDim();
 
 	if (highlightType_ != HighlightType::NONE) highlightNucleotides();
-	setScale(scale_);
+	applyScale(scale_, true, false);
 
 	isUpdateRequested = false;
+	isPrepareDiscreteScalesDimRequested = false;
+	isHighlightFlagChangeRequested = false;
+	isInFullUpdate_ = false;
 
 	changed();
 
@@ -821,6 +900,8 @@ ADNArray<unsigned int> SEAdenitaVisualModel::getBaseSegmentIndices() {
 
 void SEAdenitaVisualModel::prepareDiscreteScalesDim() {
 
+	ADN_PERF_SCOPE(prepareDiscreteScalesDim);
+
 	isPrepareDiscreteScalesDimRequested = false;
 
 	prepareAtoms();
@@ -833,6 +914,8 @@ void SEAdenitaVisualModel::prepareDiscreteScalesDim() {
 }
 
 void SEAdenitaVisualModel::prepareDimensions() {
+
+	ADN_PERF_SCOPE(prepareDimensions);
 
 	if (!nanorobot_) return;
 
@@ -961,6 +1044,8 @@ unsigned int* SEAdenitaVisualModel::getCylinderRenderFlags(ADNArray<unsigned int
 }
 
 void SEAdenitaVisualModel::displayTransition(SBNode::RenderingPass renderingPass) {
+
+	ADN_PERF_SCOPE(displayTransition);
 
 	//ADNArray<unsigned int> capData = ADNArray<unsigned int>(nodeIndices_.GetNumElements());
 	//if (nCylinders_ > 0) {
@@ -1342,6 +1427,94 @@ void SEAdenitaVisualModel::prepare3D(double iv) {
 
 }
 
+float SEAdenitaVisualModel::clampScale(float scale) const {
+
+	if (hasScaleRange()) {
+
+		scale = std::max(scale, getMinimumScale());
+		scale = std::min(scale, getMaximumScale());
+
+	}
+
+	return std::min(scale, static_cast<float>(Scale::OBJECTS));
+
+}
+
+float SEAdenitaVisualModel::clampDimension(float dimension) const {
+
+	if (hasDimensionRange()) {
+
+		dimension = std::max(dimension, getMinimumDimension());
+		dimension = std::min(dimension, getMaximumDimension());
+
+	}
+
+	return dimension;
+
+}
+
+void SEAdenitaVisualModel::applyScale(float scale, bool force, bool notify) {
+
+	const float newScale = clampScale(scale);
+	const bool scaleChanged = std::abs(scale_ - newScale) > 1e-6f;
+	if (!force && !scaleChanged && !isPrepareDiscreteScalesDimRequested) return;
+
+	scale_ = newScale;
+
+	if (nanorobot_ == nullptr) return;
+
+	if (isPrepareDiscreteScalesDimRequested)
+		prepareDiscreteScalesDim();
+
+	const float interpolated = 1.0f - (std::floor(scale_ + 1.0f) - scale_);
+
+	if (scale_ < static_cast<float>(Scale::ATOMS_STICKS)) {
+		//prepareSticksToBalls(interpolated);
+	}
+	else if (scale_ < static_cast<float>(Scale::ATOMS_BALLS)) {
+	}
+	else if (scale_ < static_cast<float>(Scale::NUCLEOTIDES)) {
+		prepareBallsToNucleotides(interpolated);
+	}
+	else if (scale_ < static_cast<float>(Scale::SINGLE_STRANDS)) {
+		prepareNucleotidesToSingleStrands(interpolated);
+	}
+	else if (scale_ < static_cast<float>(Scale::DOUBLE_STRANDS)) {
+		prepareSingleStrandsToDoubleStrands(interpolated);
+	}
+	else if (scale_ <= static_cast<float>(Scale::OBJECTS)) {
+		prepareDoubleStrandsToObjects(interpolated);
+	}
+
+	if (scale_ >= static_cast<float>(Scale::NUCLEOTIDES) && scale_ <= static_cast<float>(Scale::SINGLE_STRANDS))
+		applyDimension(dim_, true, false);
+
+	if (notify && !isInFullUpdate_) changed();
+
+}
+
+void SEAdenitaVisualModel::applyDimension(float dimension, bool force, bool notify) {
+
+	const float newDimension = clampDimension(dimension);
+	const bool dimensionChanged = std::abs(dim_ - newDimension) > 1e-6f;
+	if (!force && !dimensionChanged) return;
+
+	dim_ = newDimension;
+
+	if (nanorobot_ == nullptr) return;
+
+	if (scale_ < static_cast<float>(Scale::NUCLEOTIDES) || scale_ > static_cast<float>(Scale::SINGLE_STRANDS)) return;
+
+	const float interpolated = 1.0f - (std::floor(dim_ + 1.0f) - dim_);
+
+	if (dim_ < 2.0f) prepare1Dto2D(interpolated);
+	else if (dim_ < 3.0f) prepare2Dto3D(interpolated);
+	else if (dim_ >= 3.0f) prepare3D(interpolated);
+
+	if (notify && !isInFullUpdate_) changed();
+
+}
+
 void SEAdenitaVisualModel::emphasizeColors(ADNArray<float>& colors, const std::vector<unsigned int>& indices, float r, float g, float b, float a) {
 
 	for (int i = 0; i < indices.size(); i++) {
@@ -1383,59 +1556,57 @@ void SEAdenitaVisualModel::replaceColors(ADNArray<float>& colors, const std::vec
 
 void SEAdenitaVisualModel::changeHighlightFlag() {
 
+	ADN_PERF_SCOPE(changeHighlightFlag);
+
 	if (!nanorobot_) return;
 
 	isHighlightFlagChangeRequested = false;
 
-	auto parts = nanorobot_->GetParts();
+	refreshInteractionRenderStateFullScan();
 
-	if (scale_ < static_cast<float>(Scale::NUCLEOTIDES)) {
+}
 
-		for (auto it = atomMap_.begin(); it != atomMap_.end(); it++) {
+void SEAdenitaVisualModel::refreshInteractionRenderStateFullScan() {
 
-			auto a = it->first;
-			const auto index = it->second;
+	if (!nanorobot_) return;
 
-			if (a == nullptr) continue;
-			if (index >= flagsAtom_.GetNumElements()) continue;
+	for (auto it = atomMap_.begin(); it != atomMap_.end(); it++) {
 
-			flagsAtom_(index) = a->getInheritedFlags();
+		auto a = it->first;
+		const auto index = it->second;
 
-		}
+		if (a == nullptr) continue;
+		if (index >= flagsAtom_.GetNumElements()) continue;
 
-	}
-	else if (scale_ >= static_cast<float>(Scale::NUCLEOTIDES) && scale_ < static_cast<float>(Scale::DOUBLE_STRANDS)) {
-
-		for (auto it = ntMap_.begin(); it != ntMap_.end(); it++) {
-
-			auto nt = it->first;
-			const auto index = it->second;
-
-			if (nt == nullptr) continue;
-			if (index >= flagsNt_.GetNumElements()) continue;
-
-			flagsNt_(index) = nt->getInheritedFlags();
-
-		}
-
-	}
-	else if (scale_ >= static_cast<float>(Scale::DOUBLE_STRANDS)) {
-
-		for (auto it = bsMap_.begin(); it != bsMap_.end(); it++) {
-
-			auto bs = it->first;
-			const auto index = it->second;
-
-			if (bs == nullptr) continue;
-			if (index >= flagsDS_.GetNumElements()) continue;
-
-			flagsDS_(index) = bs->getInheritedFlags();
-
-		}
+		flagsAtom_(index) = a->getInheritedFlags();
 
 	}
 
-	for (int i = 0; i < nodeDataBasePairing_.GetNumElements(); ++i) {
+	for (auto it = ntMap_.begin(); it != ntMap_.end(); it++) {
+
+		auto nt = it->first;
+		const auto index = it->second;
+
+		if (nt == nullptr) continue;
+		if (index >= flagsNt_.GetNumElements()) continue;
+
+		flagsNt_(index) = nt->getInheritedFlags();
+
+	}
+
+	for (auto it = bsMap_.begin(); it != bsMap_.end(); it++) {
+
+		auto bs = it->first;
+		const auto index = it->second;
+
+		if (bs == nullptr) continue;
+		if (index >= flagsDS_.GetNumElements()) continue;
+
+		flagsDS_(index) = bs->getInheritedFlags();
+
+	}
+
+	for (std::size_t i = 0; i < nodeDataBasePairing_.GetNumElements(); ++i) {
 
 		ADNNucleotide* nt = static_cast<ADNNucleotide*>(nodeDataBasePairing_(i));
 		if (nt == nullptr) continue;
@@ -1445,9 +1616,38 @@ void SEAdenitaVisualModel::changeHighlightFlag() {
 
 	}
 
-	setScale(scale_);
+	synchronizeCurrentInteractionFlags();
 
-	changed();
+}
+
+void SEAdenitaVisualModel::synchronizeCurrentInteractionFlags() {
+
+	auto copyFlags = [](const ADNArray<unsigned int>& source, ADNArray<unsigned int>& target) {
+
+		const std::size_t numberOfFlags = std::min(source.GetNumElements(), target.GetNumElements());
+		for (std::size_t i = 0; i < numberOfFlags; ++i)
+			target(i) = source(i);
+
+	};
+
+	// Keep the currently displayed transition flags in step with the prepared
+	// base flags, without calling the transition preparation functions that
+	// allocate and rewrite geometry arrays.
+	if (scale_ < static_cast<float>(Scale::NUCLEOTIDES)) {
+
+		copyFlags(flagsAtom_, flags_);
+
+	}
+	else if (scale_ >= static_cast<float>(Scale::NUCLEOTIDES) && scale_ < static_cast<float>(Scale::DOUBLE_STRANDS)) {
+
+		copyFlags(flagsNt_, flags_);
+
+	}
+	else if (scale_ >= static_cast<float>(Scale::DOUBLE_STRANDS)) {
+
+		copyFlags(flagsDS_, flags_);
+
+	}
 
 }
 
@@ -1767,8 +1967,8 @@ void		SEAdenitaVisualModel::setSingleStrandColorsCurrentIndex(const int index) {
 
 	}
 
-	//prepareDiscreteScalesDim(); // is called in setScale
-	setScale(scale_);// , false);
+	isPrepareDiscreteScalesDimRequested = true;
+	applyScale(scale_, true, false);
 
 	changed();
 
@@ -1878,8 +2078,8 @@ void		SEAdenitaVisualModel::setNucleotideColorsCurrentIndex(const int index) {
 
 	}
 
-	//prepareDiscreteScalesDim(); // is called in setScale
-	setScale(scale_);// , false);
+	isPrepareDiscreteScalesDimRequested = true;
+	applyScale(scale_, true, false);
 
 	changed();
 
@@ -2057,8 +2257,8 @@ void		SEAdenitaVisualModel::setDoubleStrandColorsCurrentIndex(const int index) {
 
 	}
 
-	//prepareDiscreteScalesDim(); // is called in setScale
-	setScale(scale_);// , false);
+	isPrepareDiscreteScalesDimRequested = true;
+	applyScale(scale_, true, false);
 
 	changed();
 
@@ -2185,7 +2385,8 @@ void SEAdenitaVisualModel::changePropertyColors(const int propertyIdx, const int
 	}
 
 	// update colors
-	setScale(scale_);
+	isPrepareDiscreteScalesDimRequested = true;
+	applyScale(scale_, true, false);
 
 	changed();
 
@@ -2244,8 +2445,9 @@ void		SEAdenitaVisualModel::setHighlight(const HighlightType highlightType) {
 
 	updateEnabledFlagForHighlightAttributes();
 
+	isPrepareDiscreteScalesDimRequested = true;
 	highlightNucleotides();
-	setScale(scale_);
+	applyScale(scale_, true, false);
 
 	changed();
 	//SAMSON::requestViewportUpdate();
@@ -2271,6 +2473,9 @@ std::string SEAdenitaVisualModel::getHighlightItemText(const int index) const {
 
 void SEAdenitaVisualModel::display(SBNode::RenderingPass renderingPass) {
 
+	ADN_PERF_SCOPE(display);
+	ADN_PERF_REPORT();
+
 	// SAMSON Element generator pro tip: this function is called by SAMSON during the main rendering loop. This is the main function of your visual model. 
 	// Implement this function to display things in SAMSON, for example thanks to the utility functions provided by SAMSON (e.g. displaySpheres, displayTriangles, etc.)
 
@@ -2278,22 +2483,28 @@ void SEAdenitaVisualModel::display(SBNode::RenderingPass renderingPass) {
 
 		if (!nanorobot_) return;
 
-		if (isUpdateRequested) update();
-		if (isHighlightFlagChangeRequested) changeHighlightFlag();
+		if (isUpdateRequested) {
 
-		//ADNLogger& logger = ADNLogger::GetLogger();
+			update();
 
-		SBEditor* activeEditor = SAMSON::getActiveEditor();
-		//logger.Log(activeEditor->getName());
-		if (isPrepareDiscreteScalesDimRequested
-			// TODO: check what editor names should be here and should they be here at all? Move editors?
-			|| activeEditor->getName() == "SEERotation" || activeEditor->getName() == "SEETranslation"
-			) {
+		}
+		else {
 
-			//prepareDiscreteScalesDim(); // is called in setScale
-			setScale(scale_);
+			// The setup pass should only consume explicit geometry dirtiness.
+			// Editor names are not a reliable proxy for Adenita coordinate
+			// changes and made navigation capable of triggering full rebuilds
+			// every frame.
+			if (isPrepareDiscreteScalesDimRequested) {
 
-			changed();
+				applyScale(scale_, true, false);
+
+				changed();
+
+			}
+
+			if (isHighlightFlagChangeRequested)
+				changeHighlightFlag();
+
 
 		}
 
@@ -3127,7 +3338,10 @@ void SEAdenitaVisualModel::highlightNucleotides() {
 
 	if (!nanorobot_) return;
 
-	prepareDiscreteScalesDim();
+	// Highlight modes alter prepared color arrays, so callers that need to
+	// clear previous mode colors mark the prepared geometry dirty first.
+	if (isPrepareDiscreteScalesDimRequested)
+		prepareDiscreteScalesDim();
 
 	std::array<float, 4> colorHighlight;
 	colorHighlight[0] = 0.2f;
@@ -3565,21 +3779,28 @@ void SEAdenitaVisualModel::collectAmbientOcclusion(const SBPosition3& boxOrigin,
 
 void SEAdenitaVisualModel::onBaseEvent(SBBaseEvent* baseEvent) {
 
+	ADN_PERF_SCOPE(onBaseEvent);
+
 	// SAMSON Element generator pro tip: implement this function if you need to handle base events (e.g. when a node for which you provide a visual representation emits a base signal, such as when it is erased)
+
+	if (baseEvent == nullptr) return;
 
 	const SBBaseEvent::Type eventType = baseEvent->getType();
 
 	if (eventType == SBBaseEvent::HighlightingFlagChanged || eventType == SBBaseEvent::SelectionFlagChanged) {
 
+		// Hover and selection only affect inherited SAMSON render flags. Keep
+		// them out of the structural / prepared-geometry rebuild paths.
 		isHighlightFlagChangeRequested = true;
-		//changeHighlightFlag();
+		SAMSON::requestViewportUpdate();
+		return;
 
 	}
 	else if (eventType == SBBaseEvent::VisibilityFlagChanged || eventType == SBBaseEvent::MaterialChanged) {
 
 		isPrepareDiscreteScalesDimRequested = true;
-		//prepareDiscreteScalesDim();
-		//setScale(scale_);// , false);
+		SAMSON::requestViewportUpdate();
+		return;
 
 	}
 
@@ -3615,6 +3836,8 @@ void SEAdenitaVisualModel::onDocumentEvent(SBDocumentEvent* documentEvent) {
 }
 
 void SEAdenitaVisualModel::onStructuralEvent(SBStructuralEvent* structuralEvent) {
+
+	ADN_PERF_SCOPE(onStructuralEvent);
 
 	// SAMSON Element generator pro tip: implement this function if you need to handle structural events (e.g. when a structural node for which you provide a visual representation is updated)
 

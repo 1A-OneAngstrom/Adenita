@@ -2,6 +2,7 @@
 #include "SEAdenitaCoreSEAppGUI.hpp"
 #include "SEAdenitaVisualModel.hpp"
 #include "SEAdenitaVisualModelProperties.hpp"
+#include "SEUIHelper.hpp"
 
 #include "ADNScaffoldReader.hpp"
 #include "PICrossovers.hpp"
@@ -1087,14 +1088,27 @@ void SEAdenitaCoreSEApp::CreateBasePair() {
 	auto selectedNucleotides = nanorobot->GetSelectedNucleotides();
 	if (selectedNucleotides.size() > 0) {
 
+		SEUIHelper::ScopedProgressBar progress(
+			QStringLiteral("Creating base pairs..."),
+			0,
+			100,
+			SBQuantity::second(0.0),
+			false);
+		progress.setValue(5);
+
 		const SBPointerIndexer<ADNPart> affectedParts =
 			ADNGeometrySynchronization::collectPartsFromNucleotides(selectedNucleotides);
+		progress.setValue(20);
 
 		// Complementary-strand placement uses canonical template frames; do not
 		// replace them with one-sided geometry-aligned frames before reconstruction.
 		DASOperations::AddComplementaryStrands(nanorobot, selectedNucleotides);
+		progress.setValue(70);
 		syncPartsAfterGeometryEdit(affectedParts);
+		progress.setValue(90);
 		SEAdenitaCoreSEApp::resetVisualModel();
+		progress.setValue(98);
+		progress.setValue(100);
 
 	}
 	else {

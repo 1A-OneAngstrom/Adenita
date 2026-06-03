@@ -10,6 +10,10 @@
 #include "ADNPart.hpp"
 #include "DASCreator.hpp"
 
+namespace SEUIHelper {
+class ScopedProgressBar;
+}
+
 /// This class implements an editor
 
 class SB_EXPORT SEDSDNACreatorEditor : public SBGEditor {
@@ -103,11 +107,11 @@ public:
 
 private:
 
-	SBPointer<ADNPart>											generateStrand(bool mock = false);
-	SBPointer<ADNPart>											generateCircularStrand(bool mock = false);
+	SBPointer<ADNPart>											generateStrand(bool mock = false, SEUIHelper::ScopedProgressBar* progress = nullptr);
+	SBPointer<ADNPart>											generateCircularStrand(bool mock = false, SEUIHelper::ScopedProgressBar* progress = nullptr);
 	void														displayStrand();
 	void														displayBox();
-	void														sendPartToAdenita(SBPointer<ADNPart> nanotube);
+	void														sendPartToAdenita(SBPointer<ADNPart> nanotube, SEUIHelper::ScopedProgressBar* progress = nullptr);
 	void														setSequence(SBPointer<ADNPart> nanotube);
 	SBPosition3													getSnappedPosition(const SBPosition3& currentPosition);
 

@@ -2,6 +2,7 @@
 #include "SEAdenitaCoreSEApp.hpp"
 
 #include "MSVDisplayHelper.hpp"
+#include "SEUIHelper.hpp"
 
 #include "SAMSON.hpp"
 
@@ -77,7 +78,7 @@ SBPosition3 SEDSDNACreatorEditor::getSnappedPosition(const SBPosition3& currentP
 
 }
 
-SBPointer<ADNPart> SEDSDNACreatorEditor::generateStrand(bool mock) {
+SBPointer<ADNPart> SEDSDNACreatorEditor::generateStrand(bool mock, SEUIHelper::ScopedProgressBar* progress /*= nullptr*/) {
 
 	auto length = (positionData.SecondPosition - positionData.FirstPosition).norm();
 	auto numNucleotides = numberOfNucleotides;
@@ -90,16 +91,24 @@ SBPointer<ADNPart> SEDSDNACreatorEditor::generateStrand(bool mock) {
 
 	SBPointer<ADNPart> part = nullptr;
 
+	if (!mock && progress != nullptr) progress->setValue(5);
+
 	if (numNucleotides > 0) {
 
 		part = new ADNPart();
 
 		const SBVector3 dir = (positionData.SecondPosition - positionData.FirstPosition).normalizedVersion();
 
+		if (progress != nullptr) progress->setValue(20);
+
+		// DASCreator owns strand construction details; editor progress brackets
+		// the call without coupling reusable creation helpers to SAMSON UI state.
 		if (doubleStrandMode)
 			auto doubleStrand = DASCreator::CreateDoubleStrand(part, numNucleotides, positionData.FirstPosition, dir, mock);
 		else
 			auto singleStrand = DASCreator::CreateSingleStrand(part, numNucleotides, positionData.FirstPosition, dir, mock);
+
+		if (progress != nullptr) progress->setValue(70);
 
 		if (!mock && part != nullptr) {
 
@@ -115,7 +124,7 @@ SBPointer<ADNPart> SEDSDNACreatorEditor::generateStrand(bool mock) {
 
 }
 
-SBPointer<ADNPart> SEDSDNACreatorEditor::generateCircularStrand(bool mock) {
+SBPointer<ADNPart> SEDSDNACreatorEditor::generateCircularStrand(bool mock, SEUIHelper::ScopedProgressBar* progress /*= nullptr*/) {
 
 	SBPointer<ADNPart> part = nullptr;
 
@@ -130,12 +139,20 @@ SBPointer<ADNPart> SEDSDNACreatorEditor::generateCircularStrand(bool mock) {
 
 	}
 
+	if (!mock && progress != nullptr) progress->setValue(5);
+
 	if (numNucleotides > 6) {   // the smallest circle consists of 10 base pairs
 
+		if (progress != nullptr) progress->setValue(20);
+
+		// DASCreator owns ring construction details; editor progress brackets
+		// the call without coupling reusable creation helpers to SAMSON UI state.
 		if (doubleStrandMode)
 			part = DASCreator::CreateDSRing(radius, positionData.FirstPosition, positionData.FirstVector, mock);
 		else
 			part = DASCreator::CreateSSRing(radius, positionData.FirstPosition, positionData.FirstVector, mock);
+
+		if (progress != nullptr) progress->setValue(70);
 
 		if (!mock && part != nullptr) {
 
@@ -195,14 +212,17 @@ void SEDSDNACreatorEditor::displayBox() {
 
 }
 
-void SEDSDNACreatorEditor::sendPartToAdenita(SBPointer<ADNPart> nanotube) {
+void SEDSDNACreatorEditor::sendPartToAdenita(SBPointer<ADNPart> nanotube, SEUIHelper::ScopedProgressBar* progress /*= nullptr*/) {
 
 	if (nanotube != nullptr) {
 
 		setSequence(nanotube);
 
+		if (progress != nullptr) progress->setValue(80);
 		SEAdenitaCoreSEApp::getAdenitaApp()->addPartToDocument(nanotube);
+		if (progress != nullptr) progress->setValue(90);
 		SEAdenitaCoreSEApp::resetVisualModel();
+		if (progress != nullptr) progress->setValue(98);
 
 	}
 
@@ -498,16 +518,24 @@ void SEDSDNACreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
 
 			//SAMSON::beginHolding("Add DNA strands");
 
+			SEUIHelper::ScopedProgressBar progress(
+				QStringLiteral("Creating DNA strand..."),
+				0,
+				100,
+				SBQuantity::second(0.0),
+				false);
+
 			SBPointer<ADNPart> part = nullptr;
-			if (!circularStrandsMode) part = generateStrand();
-			else part = generateCircularStrand();
+			if (!circularStrandsMode) part = generateStrand(false, &progress);
+			else part = generateCircularStrand(false, &progress);
+			progress.setValue(75);
 
 			if (part != nullptr) {
 
 				if (part->getNumberOfNucleotides() > 0) {
 
 					//int test3 = part->GetNumberOfSingleStrands();
-					sendPartToAdenita(part);
+					sendPartToAdenita(part, &progress);
 
 				}
 				else {
@@ -517,6 +545,8 @@ void SEDSDNACreatorEditor::mouseReleaseEvent(QMouseEvent* event) {
 				}
 
 			}
+
+			progress.setValue(100);
 
 			//SAMSON::endHolding();
 
