@@ -32,7 +32,7 @@ public:
 	void setValue(int value) const;
 	void hide();
 
-	[[nodiscard]] bool isStopped() const;
+	//[[nodiscard]] bool isStopped() const;
 
 private:
 
