@@ -40,3 +40,13 @@ There are three frame conventions that should not be mixed:
 Do not run a generic pre-edit part synchronization immediately before a `DASBackToTheAtom` template reconstruction call. That replaces the phase-neutral template frame with a geometry-aligned frame, after which `DASBackToTheAtom` applies the helical phase a second time. Post-edit synchronization remains appropriate because it returns the model to geometry-aligned frames after reconstruction.
 
 Native `serialize` methods write sanitized frame copies without mutating object state.
+
+## Implementation Pointers
+
+- Public synchronization API: `AdenitaCoreSE/include/ADNGeometrySynchronization.hpp`.
+- Frame math helpers: `AdenitaCoreSE/include/ADNFrameUtils.hpp` and `AdenitaCoreSE/include/ADNFrameAdapters.hpp`.
+- Synchronization implementation: `AdenitaCoreSE/source/ADNGeometrySynchronization.cpp`.
+- Editor and app synchronization boundaries: `SEAdenitaCoreSEApp`, `SEAdenitaCoreSEAppGUI`, `SEDNATwisterEditor`, and creation or reconstruction paths that call `DASBackToTheAtom`.
+- Regression coverage: `AdenitaCoreSE/tests/AdenitaStandaloneTests.cpp`.
+
+When adding a new editor or reconstruction path, decide whether it is a geometry-aligned synchronization boundary, a template reconstruction boundary, or a delta geometry rotation. Mixing those conventions is the main source of double-applied helical phase and stale-frame bugs.
