@@ -2,6 +2,7 @@
 #include "SEAdenitaCoreSEApp.hpp"
 
 #include "MSVDisplayHelper.hpp"
+#include "SEUIHelper.hpp"
 
 #include "SAMSON.hpp"
 
@@ -34,7 +35,7 @@ void SEWireframeEditor::setWireframeType(DASCreator::EditorType type) {
 
 }
 
-SBPointer<ADNPart> SEWireframeEditor::generateCuboid(const SBPosition3& currentPosition, bool mock /*= false*/) {
+SBPointer<ADNPart> SEWireframeEditor::generateCuboid(const SBPosition3& currentPosition, bool mock /*= false*/, SEUIHelper::ScopedProgressBar* progress /*= nullptr*/) {
 
 	SEConfig& config = SEConfig::GetInstance();
 
@@ -62,6 +63,8 @@ SBPointer<ADNPart> SEWireframeEditor::generateCuboid(const SBPosition3& currentP
 
 	const int xSize = bpSize;
 	const int ySize = bpSize;
+
+	if (!mock && progress != nullptr) progress->setValue(5);
 
 	part = new ADNPart();
 
@@ -144,12 +147,18 @@ SBPointer<ADNPart> SEWireframeEditor::generateCuboid(const SBPosition3& currentP
 		faces.insert(std::make_pair(5, face6));
 
 		p.BuildPolyhedron(vertices, faces);
+		if (progress != nullptr) progress->setValue(10);
 
 		DASDaedalus alg;
 		int minSize = std::min(bpSize, zSize);
 		std::string seq = "";
 		alg.SetMinEdgeLength(minSize);
+		if (progress != nullptr) progress->setValue(20);
+
+		// Daedalus owns the expensive internal phases; editor progress brackets
+		// the call without coupling the reusable algorithm to SAMSON UI state.
 		part = alg.ApplyAlgorithm(seq, p, false);
+		if (progress != nullptr) progress->setValue(70);
 
 		if (part != nullptr) {
 
@@ -163,7 +172,7 @@ SBPointer<ADNPart> SEWireframeEditor::generateCuboid(const SBPosition3& currentP
 
 }
 
-SBPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock) {
+SBPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock, SEUIHelper::ScopedProgressBar* progress /*= nullptr*/) {
 
 	auto radius = (positionData.SecondPosition - positionData.FirstPosition).norm();
 	unsigned int numNucleotides = 0;
@@ -174,6 +183,8 @@ SBPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock) {
 	std::string partName = "";
 
 	double a = sqrt(pow(radius.getValue(), 2) * 2);
+
+	if (!mock && progress != nullptr) progress->setValue(5);
 
 	if (wireframeType == DASCreator::EditorType::Tetrahedron) {
 		part = new ADNPart();
@@ -287,10 +298,13 @@ SBPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock) {
 
 	}
 
+	if (!mock && progress != nullptr) progress->setValue(10);
+
 	if (filename.size()) if (QFileInfo::exists(QString::fromStdString(filename))) {
 
 		DASPolyhedron polyhedron = DASPolyhedron(filename);
 		polyhedron.Center(positionData.FirstPosition);
+		if (!mock && progress != nullptr) progress->setValue(20);
 
 		if (mock) {
 
@@ -302,7 +316,12 @@ SBPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock) {
 			DASDaedalus alg;
 			alg.SetMinEdgeLength(min_edge_size);
 			std::string seq = "";
+			if (progress != nullptr) progress->setValue(25);
+
+			// Daedalus owns the expensive internal phases; editor progress brackets
+			// the call without coupling the reusable algorithm to SAMSON UI state.
 			part = alg.ApplyAlgorithm(seq, polyhedron, false, true);
+			if (progress != nullptr) progress->setValue(70);
 
 			if (part != nullptr && !partName.empty()) {
 
@@ -318,12 +337,15 @@ SBPointer<ADNPart> SEWireframeEditor::generateWireframe(bool mock) {
 
 }
 
-void SEWireframeEditor::sendPartToAdenita(SBPointer<ADNPart> part) {
+void SEWireframeEditor::sendPartToAdenita(SBPointer<ADNPart> part, SEUIHelper::ScopedProgressBar* progress /*= nullptr*/) {
 
 	if (part != nullptr) {
 
+		if (progress != nullptr) progress->setValue(80);
 		SEAdenitaCoreSEApp::getAdenitaApp()->addPartToDocument(part);
+		if (progress != nullptr) progress->setValue(90);
 		SEAdenitaCoreSEApp::resetVisualModel();
+		if (progress != nullptr) progress->setValue(98);
 
 	}
 
@@ -649,8 +671,17 @@ void SEWireframeEditor::mouseReleaseEvent(QMouseEvent* event) {
 
 				//SAMSON::beginHolding("Add cuboid");
 
-				SBPointer<ADNPart> part = generateCuboid(positionData.ThirdPosition);
-				sendPartToAdenita(part);
+				SEUIHelper::ScopedProgressBar progress(
+					QStringLiteral("Creating cuboid wireframe..."),
+					0,
+					100,
+					SBQuantity::second(0.0),
+					false);
+
+				SBPointer<ADNPart> part = generateCuboid(positionData.ThirdPosition, false, &progress);
+				progress.setValue(75);
+				sendPartToAdenita(part, &progress);
+				progress.setValue(100);
 
 				//SAMSON::endHolding();
 
@@ -668,8 +699,17 @@ void SEWireframeEditor::mouseReleaseEvent(QMouseEvent* event) {
 
 				//SAMSON::beginHolding("Add wireframe");
 
-				SBPointer<ADNPart> part = generateWireframe();
-				sendPartToAdenita(part);
+				SEUIHelper::ScopedProgressBar progress(
+					QStringLiteral("Creating wireframe..."),
+					0,
+					100,
+					SBQuantity::second(0.0),
+					false);
+
+				SBPointer<ADNPart> part = generateWireframe(false, &progress);
+				progress.setValue(75);
+				sendPartToAdenita(part, &progress);
+				progress.setValue(100);
 
 				//SAMSON::endHolding();
 
