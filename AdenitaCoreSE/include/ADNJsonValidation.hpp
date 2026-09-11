@@ -2,28 +2,29 @@
 
 #include <cstdlib>
 #include <string>
+#include "ADNNumericParsing.hpp"
 
 #include "rapidjson/document.h"
 
 namespace ADNLoader::JsonValidation {
 
+inline bool isIntegerString(std::string_view text) {
+	int value = 0;
+	return ADNNumericParsing::tryInteger(text, value);
+}
+
 inline bool isIntegerString(const char* text) {
+	return text && isIntegerString(std::string_view(text));
+}
 
-	if (!text || *text == '\0') return false;
-
-	char* end = nullptr;
-	(void)std::strtol(text, &end, 10);
-	return end && *end == '\0';
-
+inline bool isIntegerString(const rapidjson::Value& value) {
+	return value.IsString() && isIntegerString(std::string_view(value.GetString(), value.GetStringLength()));
 }
 
 inline bool isNumberToken(const std::string& token) {
 
-	if (token.empty()) return false;
-
-	char* end = nullptr;
-	(void)std::strtod(token.c_str(), &end);
-	return end && *end == '\0';
+	double value = 0;
+	return ADNNumericParsing::tryDouble(token, value);
 
 }
 
@@ -31,7 +32,7 @@ inline bool isVectorString(const rapidjson::Value& value, int expectedSize) {
 
 	if (!value.IsString()) return false;
 
-	const std::string text = value.GetString();
+	const std::string text(value.GetString(), value.GetStringLength());
 	std::size_t pos = 0;
 	int count = 0;
 
@@ -55,7 +56,7 @@ inline bool isIntegerListString(const rapidjson::Value& value) {
 
 	if (!value.IsString()) return false;
 
-	const std::string text = value.GetString();
+	const std::string text(value.GetString(), value.GetStringLength());
 	if (text.empty()) return false;
 
 	std::size_t pos = 0;
@@ -64,7 +65,7 @@ inline bool isIntegerListString(const rapidjson::Value& value) {
 
 		const std::size_t comma = text.find(',', pos);
 		const std::string token = text.substr(pos, comma == std::string::npos ? std::string::npos : comma - pos);
-		if (!isIntegerString(token.c_str())) return false;
+		if (!isIntegerString(std::string_view(token))) return false;
 
 		if (comma == std::string::npos) break;
 		pos = comma + 1;
@@ -92,7 +93,7 @@ inline bool hasInt(const rapidjson::Value& value, const char* name) {
 }
 
 inline bool hasNumber(const rapidjson::Value& value, const char* name) {
-	return value.IsObject() && value.HasMember(name) && value[name].IsNumber();
+	return value.IsObject() && value.HasMember(name) && value[name].IsNumber() && std::isfinite(value[name].GetDouble());
 }
 
 inline bool hasVectorString(const rapidjson::Value& value, const char* name, int expectedSize = 3) {
@@ -160,7 +161,7 @@ inline bool validateModernSingleStrands(const rapidjson::Value& strands, double 
 
 	for (auto strand = strands.MemberBegin(); strand != strands.MemberEnd(); ++strand) {
 
-		if (!isIntegerString(strand->name.GetString())) return false;
+		if (!isIntegerString(strand->name)) return false;
 		const rapidjson::Value& value = strand->value;
 		if (!value.IsObject() ||
 			!hasString(value, "chainName") ||
@@ -171,7 +172,7 @@ inline bool validateModernSingleStrands(const rapidjson::Value& strands, double 
 
 		const rapidjson::Value& nucleotides = value["nucleotides"];
 		for (auto nucleotide = nucleotides.MemberBegin(); nucleotide != nucleotides.MemberEnd(); ++nucleotide) {
-			if (!isIntegerString(nucleotide->name.GetString())) return false;
+			if (!isIntegerString(nucleotide->name)) return false;
 			if (!validateModernNucleotide(nucleotide->value, versionValue)) return false;
 		}
 
@@ -187,7 +188,7 @@ inline bool validateModernDoubleStrands(const rapidjson::Value& doubleStrands) {
 
 	for (auto strand = doubleStrands.MemberBegin(); strand != doubleStrands.MemberEnd(); ++strand) {
 
-		if (!isIntegerString(strand->name.GetString())) return false;
+		if (!isIntegerString(strand->name)) return false;
 		const rapidjson::Value& value = strand->value;
 		if (!value.IsObject() ||
 			!hasNumber(value, "initialTwistAngle") ||
@@ -198,7 +199,7 @@ inline bool validateModernDoubleStrands(const rapidjson::Value& doubleStrands) {
 		const rapidjson::Value& bases = value["bases"];
 		for (auto base = bases.MemberBegin(); base != bases.MemberEnd(); ++base) {
 
-			if (!isIntegerString(base->name.GetString())) return false;
+			if (!isIntegerString(base->name)) return false;
 			const rapidjson::Value& baseValue = base->value;
 			if (!baseValue.IsObject() ||
 				!hasVectorString(baseValue, "position") ||
@@ -221,7 +222,7 @@ inline bool validateModernDoubleStrands(const rapidjson::Value& doubleStrands) {
 
 inline bool isValidModernPart(const rapidjson::Value& value, double versionValue) {
 
-	return value.IsObject() &&
+	return std::isfinite(versionValue) && value.IsObject() &&
 		hasString(value, "name") &&
 		value.HasMember("singleStrands") &&
 		value.HasMember("doubleStrands") &&
@@ -394,7 +395,7 @@ inline bool validateLegacyBases(const rapidjson::Value& bases, double versionVal
 
 inline bool isValidLegacyPart(const rapidjson::Value& value, double versionValue) {
 
-	return value.IsObject() &&
+	return std::isfinite(versionValue) && value.IsObject() &&
 		hasNumber(value, "version") &&
 		hasString(value, "name") &&
 		value.HasMember("strands") &&

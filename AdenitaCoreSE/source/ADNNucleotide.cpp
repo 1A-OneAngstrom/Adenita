@@ -193,7 +193,7 @@ SBPointer<ADNNucleotide> ADNNucleotide::GetPrev(bool checkCircular) const {
 
 		auto strand = GetStrand();
 		if (strand != nullptr)
-			if (strand->IsCircular() && endType == EndType::FivePrime)
+			if (strand->IsCircular() && (endType == EndType::FivePrime || endType == EndType::FiveAndThreePrime))
 				p = strand->GetThreePrime();
 
 	}
@@ -218,7 +218,7 @@ SBPointer<ADNNucleotide> ADNNucleotide::GetNext(bool checkCircular) const {
 
 		auto strand = GetStrand();
 		if (strand != nullptr)
-			if (strand->IsCircular() && endType == EndType::ThreePrime)
+			if (strand->IsCircular() && (endType == EndType::ThreePrime || endType == EndType::FiveAndThreePrime))
 				p = strand->GetFivePrime();
 
 	}

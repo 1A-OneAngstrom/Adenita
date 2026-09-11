@@ -6,6 +6,8 @@
 /// \brief Standalone smoke tests for Adenita code that does not launch SAMSON.
 
 #include <cstddef>
+#include <array>
+#include <QCoreApplication>
 #include <cstdlib>
 #include <cmath>
 #include <filesystem>
@@ -216,7 +218,8 @@ std::string serializeJson(const rapidjson::Document& document) {
 
 std::filesystem::path temporaryConfigPath(const std::string& filename) {
 
-	return std::filesystem::temp_directory_path() / filename;
+	// CTest may run overlapping groups in different processes.
+	return std::filesystem::temp_directory_path() / (std::to_string(QCoreApplication::applicationPid()) + "_" + filename);
 
 }
 
@@ -4053,8 +4056,8 @@ void writeBasicOxDNAFiles(const std::filesystem::path& topologyPath, const std::
 	{
 		std::ofstream topology(topologyPath);
 		topology << "2 1\n";
-		topology << "0 A -1 1\n";
-		topology << "0 T 0 -1\n";
+		topology << "1 A -1 1\n";
+		topology << "1 T 0 -1\n";
 	}
 
 	{
@@ -4775,7 +4778,7 @@ void testOxDNARejectsInvalidNumericFields() {
 	const auto topologyPath = temporaryConfigPath("adenita_audit_numeric.top");
 	const auto configPath = temporaryConfigPath("adenita_audit_numeric.dat");
 	writeBasicOxDNAFiles(topologyPath, configPath);
-	writeTextFile(topologyPath, "2 1\ninvalid A -1 1\n0 T 0 -1\n");
+	writeTextFile(topologyPath, "2 1\ninvalid A -1 1\n1 T 0 -1\n");
 	try {
 		const auto result = ADNLoader::InputFromOxDNA(topologyPath.string(), configPath.string());
 		requireTrue("Invalid numeric field reported as import error", result.hasError, "Invalid numbers must return a structured error.");
@@ -4804,7 +4807,7 @@ void testOxDNARejectsDanglingTopologyNeighbors() {
 	const auto topologyPath = temporaryConfigPath("adenita_audit_dangling.top");
 	const auto configPath = temporaryConfigPath("adenita_audit_dangling.dat");
 	writeBasicOxDNAFiles(topologyPath, configPath);
-	writeTextFile(topologyPath, "2 1\n0 A -1 99\n0 T 0 -1\n");
+	writeTextFile(topologyPath, "2 1\n1 A -1 99\n1 T 0 -1\n");
 	const auto result = ADNLoader::InputFromOxDNA(topologyPath.string(), configPath.string());
 	requireTrue("Dangling topology link rejected", result.hasError, "Topology links must refer to existing nucleotide indices.");
 	std::error_code ignored;
@@ -4816,7 +4819,7 @@ void testOxDNAPreservesCircularStrandTopology() {
 	const auto topologyPath = temporaryConfigPath("adenita_audit_circular.top");
 	const auto configPath = temporaryConfigPath("adenita_audit_circular.dat");
 	writeBasicOxDNAFiles(topologyPath, configPath);
-	writeTextFile(topologyPath, "2 1\n0 A 1 1\n0 T 0 0\n");
+	writeTextFile(topologyPath, "2 1\n1 A 1 1\n1 T 0 0\n");
 	const auto result = ADNLoader::InputFromOxDNA(topologyPath.string(), configPath.string());
 	requireTrue("Circular topology imports", result.succeeded(), "Expected valid circular topology.");
 	if (result.succeeded()) {
@@ -4826,6 +4829,195 @@ void testOxDNAPreservesCircularStrandTopology() {
 	std::error_code ignored;
 	std::filesystem::remove(topologyPath, ignored);
 	std::filesystem::remove(configPath, ignored);
+}
+
+ADNLoader::OxDNAImportResult importOxDNAFixture(const std::string& topology, const std::string& configuration,
+	bool legacy = false) {
+	const auto top = temporaryConfigPath("adenita_checked_import.top");
+	const auto conf = temporaryConfigPath("adenita_checked_import.conf");
+	writeTextFile(top, topology);
+	writeTextFile(conf, configuration);
+	ADNLoader::OxDNAImportOptions options;
+	options.olderAdenitaExport = legacy;
+	const auto result = ADNLoader::InputFromOxDNA(top.string(), conf.string(), options);
+	std::filesystem::remove(top);
+	std::filesystem::remove(conf);
+	return result;
+}
+
+std::string oxDNAConfiguration(size_t count, bool legacy = false, bool momenta = false) {
+	std::ostringstream result;
+	result << "t = 0\nb = 10 10 10\nE = 0 0 0\n";
+	for (size_t i = 0; i < count; ++i) {
+		result << i << " 0 0 " << (legacy ? "0 -1 0 -1 0 0" : "0 1 0 0 0 -1");
+		if (momenta) result << " 0 0 0 0 0 0";
+		result << '\n';
+	}
+	return result.str();
+}
+
+void testOxDNAValidationMatrix() {
+	const std::string valid = "2 1\n1 A -1 1\n1 T 0 -1\n";
+	const std::vector<std::string> invalidTopologies = {
+		"", "2 1 5->3\nAT\n", "-1 1\n", "2 0\n", "1 2\n", "2x 1\n",
+		"999999999999999999 1\n", "1 1\n1 A -1 -1\n1 T -1 -1\n",
+		"2 1\n1 A -1 -1\n", "2 2\n1 A -1 1\n1 T 0 -1\n",
+		"2 1\n1 A -1 99\n1 T 0 -1\n", "2 1\n1 A -2 1\n1 T 0 -1\n",
+		"2 1\n1 A -1 1\n1 T -1 -1\n", "2 2\n1 A -1 1\n2 T 0 -1\n",
+		"2 1\n1 A -1 -1\n1 T -1 -1\n", "2 1\n1 A 0 0\n1 T 1 1\n",
+		"2 1\n1 X -1 1\n1 T 0 -1\n", "2 1\n1 12 -1 1\n1 T 0 -1\n",
+		"2 1\n0 A -1 1\n0 T 0 -1\n", "2 1\n1 A -1 1 extra\n1 T 0 -1\n"
+	};
+	for (size_t i = 0; i < invalidTopologies.size(); ++i) {
+		const auto result = importOxDNAFixture(invalidTopologies[i], oxDNAConfiguration(2));
+		requireTrue("Invalid topology " + std::to_string(i), result.hasError && result.part == nullptr && !result.errorMessage.empty(),
+			"Malformed topology must return a diagnostic and no model.");
+	}
+	for (const char* invalid : { "nan", "inf", "-inf", "1e9999", "1e-9999", "1junk", "" }) {
+		for (size_t field = 0; field < 15; ++field) {
+			std::vector<std::string> fields{ "0", "0", "0", "0", "1", "0", "0", "0", "-1", "0", "0", "0", "0", "0", "0" };
+			fields[field] = invalid;
+			std::string configuration = "t = 0\nb = 10 10 10\nE = 0 0 0\n";
+			for (const auto& value : fields) configuration += value + " ";
+			configuration += "\n1 0 0 0 1 0 0 0 -1\n";
+			const auto result = importOxDNAFixture(valid, configuration);
+			requireTrue("Invalid configuration field " + std::to_string(field) + ":" + invalid, result.hasError && result.part == nullptr,
+				"Every numeric field, including momenta, must be validated.");
+		}
+	}
+	for (const std::string& configuration : { std::string(), std::string("t = nan\nb = 1 1 1\nE = 0 0 0\n"),
+		oxDNAConfiguration(1), oxDNAConfiguration(3), std::string("t = 0\nb = 1 1 1\nE = 0 0 0\n0 0 0 0 0 0 0 0 -1\n1 0 0 0 1 0 0 0 -1\n") }) {
+		const auto result = importOxDNAFixture(valid, configuration);
+		requireTrue("Incomplete or degenerate configuration rejected", result.hasError && result.part == nullptr, "No incomplete geometry may be published.");
+	}
+	for (bool momenta : { false, true }) {
+		const auto result = importOxDNAFixture("\n2\t1\n1 A -1 1\n\n1\tT 0 -1\n", oxDNAConfiguration(2, false, momenta));
+		requireTrue("Valid whitespace and optional momenta", result.succeeded(), result.errorMessage);
+	}
+}
+
+void testOxDNAOrderingUnitsAndFrames() {
+	const auto result = importOxDNAFixture("3 1\n1 A -1 2\n1 G 2 -1\n1 T 0 1\n", oxDNAConfiguration(3));
+	requireTrue("Reordered topology imports", result.succeeded(), result.errorMessage);
+	if (!result.succeeded()) return;
+	const auto strand = result.part->GetSingleStrands()[0];
+	requireEqual("Sequence follows neighbor direction", strand->GetSequence(), std::string("GTA"));
+	requirePositionNear("Configuration retains original record index", strand->GetFivePrime()->GetPosition(), positionAngstrom(8.518, 0, 0), 1e-9);
+	requirePositionNear("Three-prime position retains original index", strand->GetThreePrime()->GetPosition(), positionAngstrom(0, 0, 0), 1e-9);
+	const auto frame = ADNFrameAdapters::frameFromOrientable(*strand->GetFivePrime());
+	requireVecNear("oxDNA base direction maps inward", frame.e2, {0, 1, 0}, 1e-12);
+	requireVecNear("oxDNA normal maps opposite Adenita tangent", frame.e3, {0, 0, 1}, 1e-12);
+	requireVecNear("oxDNA frame is right handed", frame.e1, {1, 0, 0}, 1e-12);
+	const auto legacy = importOxDNAFixture("3 1\n1 A -1 1\n1 T 0 2\n1 G 1 -1\n", oxDNAConfiguration(3, true), true);
+	requireTrue("Legacy export imports", legacy.succeeded(), legacy.errorMessage);
+	if (!legacy.succeeded()) return;
+	const auto legacyStrand = legacy.part->GetSingleStrands()[0];
+	requireEqual("Legacy sequence is preserved", legacyStrand->GetSequence(), std::string("ATG"));
+	requirePositionNear("Legacy units remain nanometers", legacyStrand->GetThreePrime()->GetPosition(), positionAngstrom(20, 0, 0), 1e-9);
+	const auto legacyFrame = ADNFrameAdapters::frameFromOrientable(*legacyStrand->GetFivePrime());
+	requireVecNear("Legacy frame reverses old export e1", legacyFrame.e1, {1, 0, 0}, 1e-12);
+	requireVecNear("Legacy frame reverses old export e2", legacyFrame.e2, {0, 1, 0}, 1e-12);
+	const auto multiple = importOxDNAFixture("3 2\n1 A -1 2\n2 C -1 -1\n1 T 0 -1\n", oxDNAConfiguration(3));
+	requireTrue("Interleaved strands import", multiple.succeeded() && multiple.part->GetNumberOfSingleStrands() == 2, multiple.errorMessage);
+}
+
+void testOxDNAExportRoundTripAndCircularEndpoints() {
+	for (const std::string& topology : { std::string("3 1\n1 A -1 1\n1 T 0 2\n1 G 1 -1\n"),
+		std::string("3 1\n1 A 2 1\n1 T 0 2\n1 G 1 0\n"), std::string("1 1\n1 A 0 0\n") }) {
+		const size_t count = topology[0] == '1' ? 1 : 3;
+		const auto original = importOxDNAFixture(topology, oxDNAConfiguration(count));
+		requireTrue("Round-trip source imports", original.succeeded(), original.errorMessage);
+		if (!original.succeeded()) continue;
+		const auto strand = original.part->GetSingleStrands()[0];
+		const auto top = temporaryConfigPath("adenita_export_standard.top");
+		const auto conf = temporaryConfigPath("adenita_export_standard.conf");
+		ADNAuxiliary::OxDNAOptions options;
+		options.boxSizeX_ = options.boxSizeY_ = options.boxSizeZ_ = 8.518;
+		{
+			std::ofstream topOut(top), confOut(conf);
+			ADNLoader::SingleStrandsToOxDNA(original.part->GetSingleStrands(), confOut, topOut, options);
+		}
+		std::ifstream input(conf);
+		std::string line;
+		std::getline(input, line);
+		std::getline(input, line);
+		std::istringstream box(line);
+		std::string label, equals;
+		double x, y, z;
+		box >> label >> equals >> x >> y >> z;
+		requireNear("Export box converts nm to reduced units", x, 10.0, 1e-12);
+		std::getline(input, line);
+		std::getline(input, line);
+		std::istringstream row(line);
+		std::array<double, 9> values{};
+		for (double& value : values) row >> value;
+		requireNear("Export positions begin at three-prime end", values[0], strand->GetThreePrime()->GetPosition()[0].getValue() / 851.8, 1e-12);
+		requireNear("Export base vector points inward", values[4], 1.0, 1e-12);
+		requireNear("Export base normal points three to five", values[8], -1.0, 1e-12);
+		input.close();
+		const auto restored = ADNLoader::InputFromOxDNA(top.string(), conf.string());
+		requireTrue("Exported model imports", restored.succeeded(), restored.errorMessage);
+		if (restored.succeeded()) {
+			const auto actual = restored.part->GetSingleStrands()[0];
+			requireEqual("Round-trip circular flag", actual->IsCircular(), strand->IsCircular());
+			// A circle has no distinguished start; match nucleotide identity by base.
+			for (auto nt : strand->GetNucleotides()) {
+				for (auto copy : actual->GetNucleotides()) if (nt->getNucleotideType() == copy->getNucleotideType()) {
+					requirePositionNear("Round-trip nucleotide position", copy->GetPosition(), nt->GetPosition(), 1e-8);
+					requireEqual("Round-trip three-prime link", copy->GetNext(true) != nullptr ? copy->GetNext(true)->getNucleotideType() : DNABlocks::DI,
+						nt->GetNext(true) != nullptr ? nt->GetNext(true)->getNucleotideType() : DNABlocks::DI);
+				}
+			}
+			if (count == 1) requireTrue("Single-nucleotide circle closes both ends", actual->GetFivePrime()->GetNext(true) == actual->GetFivePrime() && actual->GetFivePrime()->GetPrev(true) == actual->GetFivePrime(), "Both circular endpoints must close.");
+		}
+		std::filesystem::remove(top);
+		std::filesystem::remove(conf);
+	}
+}
+
+void testCheckedNumericConversions() {
+	using namespace ADNNumericParsing;
+	for (const char* text : { "", " ", "1x", "nan", "inf", "1e9999", "1e-9999" }) {
+		double value = 7;
+		requireTrue("Invalid number rejected consistently", !tryDouble(text, value), text);
+		requireEqual("Failed conversion preserves destination", value, 7.0);
+	}
+	int integerValue = 0;
+	requireTrue("Integer minimum accepted", tryInteger(std::to_string((std::numeric_limits<int>::min)()), integerValue), "Integer limit must remain valid.");
+	requireTrue("Integer maximum accepted", tryInteger(std::to_string((std::numeric_limits<int>::max)()), integerValue), "Integer limit must remain valid.");
+	requireTrue("Integer overflow rejected", !tryInteger("2147483648", integerValue), "Identifiers must fit int.");
+	requireTrue("Integer underflow rejected", !tryInteger("-2147483649", integerValue), "Identifiers must fit int.");
+	const std::string nulToken("1\0junk", 6);
+	double numberValue = 0;
+	requireTrue("Embedded null is not a token terminator", !tryDouble(nulToken, numberValue) && !tryInteger(nulToken, integerValue), "Length-aware validation must reject hidden suffixes.");
+	rapidjson::Document doc;
+	doc.Parse("{\"v\":\"1,2,3\\u0000junk\",\"ids\":\"1,2\\u0000junk\"}");
+	requireTrue("JSON vector retains embedded null for validation", !ADNLoader::JsonValidation::isVectorString(doc["v"], 3), "Do not truncate JSON strings before checking.");
+	requireTrue("JSON list retains embedded null for validation", !ADNLoader::JsonValidation::isIntegerListString(doc["ids"]), "Do not truncate JSON strings before checking.");
+	double valid = 0;
+	requireTrue("Signed exponent and whitespace supported", tryDouble(" +1.25e2 ", valid) && valid == 125.0, "Valid numeric representations must remain supported.");
+}
+
+void testJsonLoadRejectsInvalidCoordinatesAndIdentifiers() {
+	const auto fixture = createCircularStrandFixture();
+	rapidjson::StringBuffer buffer;
+	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+	writer.StartObject();
+	ADNLoader::SavePartToJson(fixture.part, writer);
+	writer.EndObject();
+	for (const std::string& bad : { std::string("nan,0,0"), std::string("1e9999,0,0"), std::string("1e-9999,0,0"), std::string("1,2,3\0junk", 10) }) {
+		rapidjson::Document document;
+		document.Parse(buffer.GetString());
+		auto& nt = document["singleStrands"].MemberBegin()->value["nucleotides"].MemberBegin()->value;
+		nt["position"].SetString(bad.data(), static_cast<rapidjson::SizeType>(bad.size()), document.GetAllocator());
+		requireTrue("JSON construction rejects invalid coordinates", ADNLoader::LoadPartFromJson(document, ADNConstants::JSON_FORMAT_VERSION) == nullptr, "Invalid coordinates must not reach node construction.");
+	}
+	for (const std::string& bad : { std::string("2147483648"), std::string("1\0junk", 6) }) {
+		rapidjson::Document document;
+		document.Parse(buffer.GetString());
+		document["singleStrands"].MemberBegin()->value["nucleotides"].MemberBegin()->name.SetString(bad.data(), static_cast<rapidjson::SizeType>(bad.size()), document.GetAllocator());
+		requireTrue("JSON construction rejects invalid identifiers", ADNLoader::LoadPartFromJson(document, ADNConstants::JSON_FORMAT_VERSION) == nullptr, "Identifiers must be validated before numeric conversion.");
+	}
 }
 
 void testJsonNumericValidationRejectsNonFiniteAndOverflow() {
@@ -4874,6 +5066,11 @@ void runEdgeCaseTests() {
 		{ "testOxDNARejectsTruncatedConfiguration", testOxDNARejectsTruncatedConfiguration },
 		{ "testOxDNARejectsDanglingTopologyNeighbors", testOxDNARejectsDanglingTopologyNeighbors },
 		{ "testOxDNAPreservesCircularStrandTopology", testOxDNAPreservesCircularStrandTopology },
+		{ "testOxDNAValidationMatrix", testOxDNAValidationMatrix },
+		{ "testOxDNAOrderingUnitsAndFrames", testOxDNAOrderingUnitsAndFrames },
+		{ "testOxDNAExportRoundTripAndCircularEndpoints", testOxDNAExportRoundTripAndCircularEndpoints },
+		{ "testCheckedNumericConversions", testCheckedNumericConversions },
+		{ "testJsonLoadRejectsInvalidCoordinatesAndIdentifiers", testJsonLoadRejectsInvalidCoordinatesAndIdentifiers },
 		{ "testJsonNumericValidationRejectsNonFiniteAndOverflow", testJsonNumericValidationRejectsNonFiniteAndOverflow },
 		{ "testNtthalParserRejectsNonFiniteThermodynamics", testNtthalParserRejectsNonFiniteThermodynamics }
 	};

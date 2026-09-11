@@ -367,7 +367,12 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 				options.boxSizeZ_ = boxZ->value();
 
 				QString folder = QFileDialog::getExistingDirectory(this, tr("Choose an existing directory"), workingDirectory, QFileDialog::DontUseNativeDialog);
-				if (!folder.isEmpty()) getApp()->ExportToOxDNA(folder, options, selectedParts);
+				if (!folder.isEmpty()) {
+					try { getApp()->ExportToOxDNA(folder, options, selectedParts); }
+					catch (const std::exception& error) {
+						QMessageBox::warning(this, tr("oxDNA export"), QString::fromUtf8(error.what()));
+					}
+				}
 
 			}
 
@@ -712,9 +717,22 @@ void SEAdenitaCoreSEAppGUI::onOxDNAImport() {
 
 	workingDirectory = QFileInfo(configFile).absolutePath();
 
-	if (!topoFile.isEmpty() || !configFile.isEmpty()) {
-
-		getApp()->ImportFromOxDNA(topoFile.toStdString(), configFile.toStdString());
+	if (!topoFile.isEmpty() && !configFile.isEmpty()) {
+		// Old Adenita files contain no marker that distinguishes their conventions.
+		QDialog dialog;
+		dialog.setWindowTitle(tr("oxDNA import"));
+		QVBoxLayout layout(&dialog);
+		QCheckBox legacy(tr("Older Adenita export"), &dialog);
+		legacy.setToolTip(tr("Use for files exported by older Adenita versions. Leave unchecked for standard oxDNA files."));
+		layout.addWidget(&legacy);
+		QDialogButtonBox buttons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+		layout.addWidget(&buttons);
+		QObject::connect(&buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+		QObject::connect(&buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+		if (dialog.exec() != QDialog::Accepted) return;
+		ADNLoader::OxDNAImportOptions options;
+		options.olderAdenitaExport = legacy.isChecked();
+		getApp()->ImportFromOxDNA(topoFile.toStdString(), configFile.toStdString(), options);
 
 	}
 

@@ -32,9 +32,16 @@ namespace ADNLoader {
 	SB_EXPORT [[nodiscard]] SBPointer<ADNPart> GenerateModelFromDataGraphParametrized(SBNode* sn, const SBQuantity::length& maxCutOff, const SBQuantity::length& minCutOff, double maxAngle);
 
 	// oxdna
+	/// \brief Selects the interpretation of an oxDNA file pair.
+	struct OxDNAImportOptions {
+		bool olderAdenitaExport{ false }; ///< Uses the old Adenita ordering, nanometer units, and frame mapping.
+	};
+
+	/// \brief Import outcome; failed imports never expose a partially populated part.
 	struct SB_EXPORT OxDNAImportResult {
 		bool hasError{ false };
 		SBPointer<ADNPart> part{ nullptr };
+		std::string errorMessage; ///< Filename and line context for an unsuccessful import.
 
 		[[nodiscard]] bool succeeded() const {
 			return !hasError && part != nullptr;
@@ -45,7 +52,14 @@ namespace ADNLoader {
 	SB_EXPORT void OutputToOxDNA(SBPointerIndexer<ADNPart> parts, const std::string& folder, const ADNAuxiliary::OxDNAOptions& options);
 	SB_EXPORT void SingleStrandsToOxDNA(SBPointerIndexer<ADNSingleStrand> singleStrands, std::ofstream& outConf, std::ofstream& outTopo, const ADNAuxiliary::OxDNAOptions& options);
 	SB_EXPORT void SignOutputFile(std::ofstream& output);
+	/// \brief Imports classic oxDNA topology and a single configuration using standard conventions.
 	SB_EXPORT OxDNAImportResult InputFromOxDNA(const std::string& topoFile, const std::string& configFile);
+	/// \brief Validates both files before constructing a molecular model.
+	/// \param topoFile UTF-8 topology filename.
+	/// \param configFile UTF-8 configuration filename.
+	/// \param options Explicit compatibility settings; old files have no reliable format marker.
+	/// \return The complete imported part, or an error with a null part.
+	SB_EXPORT OxDNAImportResult InputFromOxDNA(const std::string& topoFile, const std::string& configFile, const OxDNAImportOptions& options);
 
 	// CanDo
 	SB_EXPORT void OutputToCanDo(SBPointer<ADNPart> part, const std::string& filename);

@@ -103,7 +103,9 @@ public:
 	void														Kinetoplast(SBQuantity::length radius, SBPosition3 center, SBVector3 normal, int rows, int cols);
 	void														TwistDoubleHelix();
 	void														TestNeighbors();
+	/// \brief Imports a validated oxDNA model and reports errors without adding a partial part.
 	void														ImportFromOxDNA(const std::string& topoFile, const std::string& configFile);
+	void ImportFromOxDNA(const std::string& topoFile, const std::string& configFile, const ADNLoader::OxDNAImportOptions& options);
 	void														FromDataGraph(bool resetVisualModel = true);
 	void														HighlightXOs();
 	void														HighlightPosXOs();

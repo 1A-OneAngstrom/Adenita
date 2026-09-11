@@ -15,6 +15,7 @@
 
 #include <QCoreApplication>
 #include <QTimer>
+#include <QMessageBox>
 
 SEAdenitaCoreSEApp* SEAdenitaCoreSEApp::adenitaApp = nullptr;
 
@@ -857,14 +858,22 @@ void SEAdenitaCoreSEApp::TestNeighbors() {
 }
 
 void SEAdenitaCoreSEApp::ImportFromOxDNA(const std::string& topoFile, const std::string& configFile) {
+	ImportFromOxDNA(topoFile, configFile, ADNLoader::OxDNAImportOptions{});
+}
 
-	auto res = ADNLoader::InputFromOxDNA(topoFile, configFile);
+void SEAdenitaCoreSEApp::ImportFromOxDNA(const std::string& topoFile, const std::string& configFile, const ADNLoader::OxDNAImportOptions& options) {
+
+	auto res = ADNLoader::InputFromOxDNA(topoFile, configFile, options);
 	if (res.succeeded()) {
 
 		SBPointer<ADNPart> p = res.part;
 		addPartToDocument(p, true);
 		SEAdenitaCoreSEApp::resetVisualModel();
 
+	}
+	else {
+		ADNLogger::LogError(res.errorMessage);
+		QMessageBox::warning(nullptr, QObject::tr("oxDNA import"), QString::fromStdString(res.errorMessage));
 	}
 
 }
