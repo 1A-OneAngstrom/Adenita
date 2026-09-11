@@ -147,33 +147,29 @@ std::string ADNNucleotide::getOneLetterNucleotideTypeString() const {
 
 void ADNNucleotide::SetPair(SBPointer<ADNNucleotide> nucleotide) {
 
-	ADNNucleotide* oldNucleotide = this->pairNucleotide();
+	if (pairNucleotide == nucleotide) return;
 
-	this->pairNucleotide = SBPointer<ADNNucleotide>(nucleotide);
-
-	if (oldNucleotide) oldNucleotide->disconnectPair(this);
+	// Removing a reciprocal link can release either nucleotide's last owner.
+	// Retain both endpoints until the replacement has been installed.
+	SBPointer<ADNNucleotide> oldNucleotide = pairNucleotide;
+	SBPointer<ADNNucleotide> keepAlive;
+	const bool reciprocal = oldNucleotide != nullptr && oldNucleotide->pairNucleotide() == this;
+	if (reciprocal) keepAlive = this;
+	pairNucleotide = nullptr;
+	if (reciprocal) oldNucleotide->pairNucleotide = nullptr;
+	pairNucleotide = nucleotide;
 
 }
 
 void ADNNucleotide::disconnectPair(SBPointer<ADNNucleotide> nucleotide) {
 
-	if (nucleotide != nullptr && this->pairNucleotide == nucleotide) {
-
-		this->pairNucleotide->pairNucleotide = nullptr;
-		this->pairNucleotide = nullptr;
-
-	}
+	if (nucleotide != nullptr && pairNucleotide == nucleotide) SetPair(nullptr);
 
 }
 
 void ADNNucleotide::disconnectPair() {
 
-	if (this->pairNucleotide != nullptr) {
-
-		this->pairNucleotide->pairNucleotide = nullptr;
-		this->pairNucleotide = nullptr;
-
-	}
+	SetPair(nullptr);
 
 }
 

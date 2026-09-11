@@ -4641,6 +4641,68 @@ void testPairReplacementRetainsNewPartner() {
 	newPartner->disconnectPair();
 }
 
+// Counting destruction makes reference retention observable without a heap profiler.
+class LifetimeNucleotide : public ADNNucleotide {
+public:
+	explicit LifetimeNucleotide(int& destroyed) : destroyed_(destroyed) {}
+	~LifetimeNucleotide() override { ++destroyed_; }
+private:
+	int& destroyed_;
+};
+
+void testPairDisconnectionAndLifetime() {
+	SBPointer<ADNNucleotide> left = new ADNNucleotide();
+	SBPointer<ADNNucleotide> right = new ADNNucleotide();
+	SBPointer<ADNNucleotide> third = new ADNNucleotide();
+	left->SetPair(right);
+	right->SetPair(third);
+	left->disconnectPair(third);
+	requireTrue("Nonmatching disconnect preserves pair", left->GetPair() == right, "Only the specified pairing may be cleared.");
+	left->disconnectPair(right);
+	requireTrue("Asymmetric disconnect preserves unrelated link", left->GetPair() == nullptr && right->GetPair() == third,
+		"Disconnecting a one-sided link must not clear a different partner.");
+	right->disconnectPair();
+	right->disconnectPair();
+	SBPointer<ADNBasePair> pair = new ADNBasePair();
+	pair->AddPair(left, right);
+	pair->PairNucleotides();
+	pair->AddPair(left, right);
+	requireTrue("Repeated base-pair construction preserves reciprocity", left->GetPair() == right && right->GetPair() == left, "Both endpoints must remain paired.");
+	left->SetPair(nullptr);
+	requireTrue("Clearing reciprocal pair clears both endpoints", left->GetPair() == nullptr && right->GetPair() == nullptr, "No reciprocal link may survive clearing.");
+	int destroyed = 0;
+	ADNNucleotide* oldTarget = nullptr;
+	{
+		SBPointer<ADNNucleotide> old = new LifetimeNucleotide(destroyed);
+		oldTarget = old();
+		left->SetPair(old);
+		old->SetPair(left);
+	}
+	left->SetPair(third);
+	// Some host builds retain nodes in their global index after the last local
+	// pointer disappears. Check detached topology and explicitly clean up there.
+	if (destroyed == 0) {
+		SBPointer<ADNNucleotide> cleanup = oldTarget;
+		requireTrue("Detached old partner has no reciprocal link", cleanup->GetPair() == nullptr, "Replacement must release the old reciprocal reference.");
+		cleanup.deleteReferenceTarget();
+	}
+	requireEqual("Detached partner can be destroyed exactly once", destroyed, 1);
+	requireTrue("Replacement survives old partner destruction", left->GetPair() == third, "The replacement must be retained.");
+	left->disconnectPair();
+	{
+		SBPointer<ADNNucleotide> old = new LifetimeNucleotide(destroyed);
+		oldTarget = old();
+		left->SetPair(old); // Also exercise a last-owned, nonreciprocal endpoint.
+	}
+	left->disconnectPair();
+	if (destroyed == 1) {
+		SBPointer<ADNNucleotide> cleanup = oldTarget;
+		cleanup.deleteReferenceTarget();
+	}
+	requireTrue("Clearing last-owned one-sided partner removes link", left->GetPair() == nullptr, "The source must not retain the old target.");
+	requireEqual("One-sided target is destroyed exactly once", destroyed, 2);
+}
+
 void testNeighborsRejectUnknownNucleotide() {
 	const auto fixture = createCircularStrandFixture();
 	ADNNeighbors neighbors;
@@ -4802,6 +4864,7 @@ void runEdgeCaseTests() {
 		{ "testPositionableCopiesHaveIndependentCenters", testPositionableCopiesHaveIndependentCenters },
 		{ "testPairAssignmentIsIdempotent", testPairAssignmentIsIdempotent },
 		{ "testPairReplacementRetainsNewPartner", testPairReplacementRetainsNewPartner },
+		{ "testPairDisconnectionAndLifetime", testPairDisconnectionAndLifetime },
 		{ "testNeighborsRejectUnknownNucleotide", testNeighborsRejectUnknownNucleotide },
 		{ "testNeighborsReinitializationRefreshesDistances", testNeighborsReinitializationRefreshesDistances },
 		{ "testNeighborsReinitializationReplacesPart", testNeighborsReinitializationReplacesPart },

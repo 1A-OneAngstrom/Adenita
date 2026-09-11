@@ -41,6 +41,10 @@ public:
 	[[nodiscard]] std::string									getNucleotideTypeString() const;
 	[[nodiscard]] std::string									getOneLetterNucleotideTypeString() const;
 
+	/// \brief Sets this nucleotide's partner, disconnecting only an old reciprocal link.
+	/// \param nucleotide The new partner, or null to clear the pairing.
+	/// Reassigning the current partner is a no-op. This is a one-sided setter;
+	/// ADNBasePair establishes reciprocal links by setting both endpoints.
 	void														SetPair(SBPointer<ADNNucleotide> nucleotide);
 	[[nodiscard]] SBPointer<ADNNucleotide>						GetPair() const;														///< Return a nucleotide's pair
 	[[nodiscard]] SBNode*										getPair() const;
