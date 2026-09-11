@@ -147,13 +147,15 @@ ADNPerfCounters& getADNPerfCounters() {
 
 SB_OPENGL_FUNCTIONS* SEAdenitaVisualModel::gl = nullptr;
 
-SEAdenitaVisualModel::SEAdenitaVisualModel() {
+SEAdenitaVisualModel::SEAdenitaVisualModel() : SEAdenitaVisualModel(Initialization::Application) {}
+
+SEAdenitaVisualModel::SEAdenitaVisualModel(Initialization initialization) {
 
 	// SAMSON Element generator pro tip: this default constructor is called when unserializing the node, so it should perform all default initializations.
 
 	setName("Adenita Visual Model");
 
-	if (!gl) gl = SAMSON::getOpenGLFunctions();
+	if (initialization == Initialization::Application && !gl) gl = SAMSON::getOpenGLFunctions();
 
 	sphereArray = new SBSphereArray(0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
 	getGeometryArrayIndexer().addReferenceTarget(sphereArray());
@@ -162,7 +164,7 @@ SEAdenitaVisualModel::SEAdenitaVisualModel() {
 	basePairingCylinderArray = new SBCylinderArray(0, 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
 	getGeometryArrayIndexer().addReferenceTarget(basePairingCylinderArray());
 
-	init();
+	if (initialization == Initialization::Application) init();
 
 }
 
@@ -323,11 +325,16 @@ double			SEAdenitaVisualModel::getVisibilitySingleStep() const { return 0.01; }
 std::string		SEAdenitaVisualModel::getVisibilitySuffix() const { return ""; }
 void			SEAdenitaVisualModel::setVisibility(double layer) {
 
+	applyVisibility(layer, nanorobot_ ? nanorobot_->GetParts() : SBPointerIndexer<ADNPart>());
+
+}
+
+void SEAdenitaVisualModel::applyVisibility(double layer, const SBPointerIndexer<ADNPart>& parts) {
+
 	this->visibility_ = layer;
+	// Geometry owners hold independent snapshots. Invalidate before any edit, including partially completed updates.
+	geometryArraysUpdateRequired = true;
 
-	if (!nanorobot_) return;
-
-	auto parts = nanorobot_->GetParts();
 	const SEConfig& config = SEConfig::GetInstance();
 
 	SB_FOR(auto part, parts) {
@@ -340,9 +347,14 @@ void			SEAdenitaVisualModel::setVisibility(double layer) {
 
 			SB_FOR(SBPointer<ADNNucleotide> nt, nucleotides) {
 
-				auto index = ntMap_[nt()];
+				const auto mapped = ntMap_.find(nt());
+				if (mapped == ntMap_.end()) return;
+				const auto index = mapped->second;
 
-				if (index >= nPositions_) return;
+				// Some display scales omit nucleotide attributes; do not index absent buffers or invent a mapping.
+				if (index >= nPositions_ || index >= radiiV_.GetNumElements() || index >= radiiE_.GetNumElements() ||
+					index >= colorsV_.GetNumElements() || index >= colorsE_.GetNumElements() ||
+					colorsV_.GetDim() < 4 || colorsE_.GetDim() < 4) return;
 				if (ssDist > layer) {
 
 					radiiV_(index) = 0.0f;

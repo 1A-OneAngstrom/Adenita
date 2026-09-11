@@ -53,11 +53,75 @@
 #include "PIPrimer3.hpp"
 #include "PIBindingRegion.hpp"
 #include "SELatticeCreatorEditorMath.hpp"
+#include "SEAdenitaVisualModel.hpp"
 #include "SBCHeapExport.hpp"
 
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
+
+// Supply isolated model data to the production methods without changing the active SAMSON document.
+struct AdenitaVisualModelTestAccess {
+	static SEAdenitaVisualModel* create() {
+		return new SEAdenitaVisualModel(SEAdenitaVisualModel::Initialization::GeometryOnly);
+	}
+	static void initialize(SEAdenitaVisualModel& model, SBPointer<ADNPart> part) {
+		const auto nucleotides = part->GetNucleotides();
+		const unsigned int count = nucleotides.size();
+		model.nPositions_ = count;
+		model.nCylinders_ = count - 1;
+		model.positions_ = ADNArray<float>(3, count);
+		model.radiiV_ = ADNArray<float>(count);
+		model.radiiE_ = ADNArray<float>(count);
+		model.colorsV_ = ADNArray<float>(4, count);
+		model.colorsE_ = ADNArray<float>(4, count);
+		model.flags_ = ADNArray<unsigned int>(count);
+		model.nodeIndices_ = ADNArray<unsigned int>(count);
+		model.indices_ = ADNArray<unsigned int>(2, count - 1);
+		model.capData_ = ADNArray<unsigned int>(count);
+		model.materialData_ = ADNArray<SBNodeMaterial*>(count);
+		model.nodeData_ = ADNArray<SBNode*>(count);
+		for (unsigned int i = 0; i < count; ++i) {
+			SBPointer<ADNNucleotide> nucleotide = nucleotides[i];
+			model.ntMap_[nucleotide()] = i;
+			model.sortedNucleotidesByDist_[nucleotide()] = 0.5f;
+			model.sortedSingleStrandsByDist_[nucleotide->GetStrand()()] = 0.5f;
+			for (unsigned int j = 0; j < 3; ++j) model.positions_(i, j) = static_cast<float>(i + j);
+			for (unsigned int j = 0; j < 4; ++j) model.colorsV_(i, j) = model.colorsE_(i, j) = 1.0f;
+			model.radiiV_(i) = model.radiiE_(i) = SEConfig::GetInstance().nucleotide_V_radius;
+			model.flags_(i) = 0;
+			model.nodeIndices_(i) = nucleotide->getNodeIndex();
+			model.capData_(i) = 1;
+			model.materialData_(i) = nullptr;
+			model.nodeData_(i) = nucleotide();
+			if (i + 1 < count) {
+				model.indices_(i, 0) = i;
+				model.indices_(i, 1) = i + 1;
+			}
+		}
+	}
+	static void setVisibility(SEAdenitaVisualModel& model, SBPointer<ADNPart> part, double layer) {
+		SBPointerIndexer<ADNPart> parts;
+		parts.addReferenceTarget(part());
+		model.applyVisibility(layer, parts);
+	}
+	static bool dirty(const SEAdenitaVisualModel& model) { return model.geometryArraysUpdateRequired; }
+	static void refresh(SEAdenitaVisualModel& model) {
+		if (model.geometryArraysUpdateRequired) model.updateGeometryArrays();
+	}
+	static SBSphereArray* spheres(SEAdenitaVisualModel& model) { return model.sphereArray(); }
+	static SBCylinderArray* cylinders(SEAdenitaVisualModel& model) { return model.cylinderArray(); }
+	static void invalidateLastIndex(SEAdenitaVisualModel& model, SBPointer<ADNNucleotide> nucleotide) {
+		model.ntMap_[nucleotide()] = model.nPositions_;
+	}
+	static void omitCylinderAttributes(SEAdenitaVisualModel& model) {
+		model.radiiE_ = ADNArray<float>();
+		model.colorsE_ = ADNArray<float>();
+	}
+	static void removeMapping(SEAdenitaVisualModel& model, SBPointer<ADNNucleotide> nucleotide) {
+		model.ntMap_.erase(nucleotide());
+	}
+};
 
 namespace {
 
@@ -4567,6 +4631,59 @@ void testArrayRejectsColumnsOutsideRow() {
 	requireThrowsInt("Const array rejects column at width", [&]() { (void)constantValues(0, 2); }, 30);
 }
 
+void testVisibilityRefreshesProductionGeometrySnapshots() {
+	auto fixture = createCircularStrandFixture();
+	using Access = AdenitaVisualModelTestAccess;
+	SBPointer<SEAdenitaVisualModel> model = Access::create();
+	Access::initialize(*model, fixture.part);
+	Access::refresh(*model);
+	requireTrue("Initial geometry snapshot is current", !Access::dirty(*model), "Refreshing must consume invalidation.");
+	auto* spheres = Access::spheres(*model);
+	auto* cylinders = Access::cylinders(*model);
+	const auto checkAttributes = [&](float radius, float alpha, unsigned int count) {
+		for (unsigned int i = 0; i < count; ++i) {
+			requireNear("Published sphere radius follows visibility", spheres->getRadiusData()[i], radius, 0.0);
+			requireNear("Published cylinder radius follows visibility", cylinders->getRadiusData()[i], radius, 0.0);
+			requireNear("Published sphere alpha follows visibility", spheres->getColorData()[4 * i + 3], alpha, 0.0);
+			requireNear("Published cylinder alpha follows visibility", cylinders->getColorData()[4 * i + 3], alpha, 0.0);
+		}
+	};
+	for (int repetition = 0; repetition < 3; ++repetition) {
+		Access::setVisibility(*model, fixture.part, 0.0);
+		requireTrue("Hide invalidates the published snapshot", Access::dirty(*model), "Visibility edits must invalidate independent geometry storage.");
+		Access::refresh(*model);
+		checkAttributes(0.0f, 0.0f, 3);
+		Access::refresh(*model);
+		checkAttributes(0.0f, 0.0f, 3);
+		Access::setVisibility(*model, fixture.part, 1.0);
+		Access::refresh(*model);
+		checkAttributes(SEConfig::GetInstance().nucleotide_V_radius, 1.0f, 3);
+	}
+	Access::invalidateLastIndex(*model, fixture.threePrime);
+	Access::setVisibility(*model, fixture.part, 0.0);
+	requireTrue("Partial visibility edit invalidates before returning", Access::dirty(*model), "An invalid trailing index must not hide earlier mutations from geometry consumers.");
+	Access::refresh(*model);
+	checkAttributes(0.0f, 0.0f, 2);
+	Access::initialize(*model, fixture.part);
+	Access::setVisibility(*model, fixture.part, 0.5);
+	Access::refresh(*model);
+	checkAttributes(SEConfig::GetInstance().nucleotide_V_radius, 1.0f, 3);
+	Access::removeMapping(*model, fixture.fivePrime);
+	Access::setVisibility(*model, fixture.part, 0.0);
+	Access::refresh(*model);
+	checkAttributes(SEConfig::GetInstance().nucleotide_V_radius, 1.0f, 3);
+	Access::initialize(*model, fixture.part);
+	Access::omitCylinderAttributes(*model);
+	Access::setVisibility(*model, fixture.part, 0.0);
+	requireTrue("Missing display attributes stop safely", Access::dirty(*model), "Incomplete display buffers must remain invalidated without out-of-bounds access.");
+	Access::initialize(*model, fixture.part);
+	Access::refresh(*model);
+	model->setVisibility(0.25);
+	requireTrue("Public visibility setter invalidates without a document", Access::dirty(*model), "The public boundary must also invalidate an empty update.");
+	requireNear("Public visibility value is retained", model->getVisibility(), 0.25, 0.0);
+	model.deleteReferenceTarget();
+}
+
 void testArrayRejectsWrappedRowIndex() {
 	ADNArray<int> values(2, 2);
 	values(0, 0) = 17;
@@ -5302,6 +5419,7 @@ void runEdgeCaseTests() {
 		{ "testArrayRejectsOverflowingDimensions", testArrayRejectsOverflowingDimensions },
 		{ "testArraySelfAssignmentAndEmptyConcatenation", testArraySelfAssignmentAndEmptyConcatenation },
 		{ "testArrayShapesRowsAndCopyFailures", testArrayShapesRowsAndCopyFailures },
+		{ "testVisibilityRefreshesProductionGeometrySnapshots", testVisibilityRefreshesProductionGeometrySnapshots },
 		{ "testPositionableCopiesHaveIndependentCenters", testPositionableCopiesHaveIndependentCenters },
 		{ "testPairAssignmentIsIdempotent", testPairAssignmentIsIdempotent },
 		{ "testPairReplacementRetainsNewPartner", testPairReplacementRetainsNewPartner },
