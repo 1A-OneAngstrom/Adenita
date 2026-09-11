@@ -1,4 +1,5 @@
 #include "SBSphereArray.hpp"
+#include "SBCylinderArray.hpp"
 #include "SAMSON.hpp"
 #include "private/ADNGeometryBuffer.hpp"
 /// \file AdenitaStandaloneTests.cpp
@@ -10,15 +11,18 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <system_error>
+#include <type_traits>
 #include <vector>
 
 #include "ADNBaseSegment.hpp"
+#include "ADNBackbone.hpp"
 #include "ADNAtom.hpp"
 #include "ADNCell.hpp"
 #include "ADNArray.hpp"
@@ -31,17 +35,20 @@
 #include "ADNGeometrySynchronization.hpp"
 #include "ADNJsonValidation.hpp"
 #include "ADNLoop.hpp"
+#include "ADNNeighbors.hpp"
 #include "ADNNucleotide.hpp"
 #include "ADNNodeValidation.hpp"
 #include "ADNPart.hpp"
 #include "ADNSaveAndLoad.hpp"
 #include "ADNScaffoldReader.hpp"
+#include "ADNSidechain.hpp"
 #include "DASCadnano.hpp"
 #include "DASAlgorithms.hpp"
 #include "DASBackToTheAtom.hpp"
 #include "DASCreator.hpp"
 #include "DASDaedalus.hpp"
 #include "PIPrimer3.hpp"
+#include "PIBindingRegion.hpp"
 #include "SELatticeCreatorEditorMath.hpp"
 #include "SBCHeapExport.hpp"
 
@@ -104,7 +111,8 @@ void requireNearAt(const std::string& name,
 	int line,
 	const char* function) {
 
-	if (std::fabs(actual - expected) > tolerance)
+	if (!std::isfinite(actual) || !std::isfinite(expected) ||
+		!std::isfinite(tolerance) || tolerance < 0.0 || std::fabs(actual - expected) > tolerance)
 		recordFailure(name, "Unexpected numeric value.", file, line, function);
 
 }
@@ -4464,16 +4472,374 @@ void testGeometryBufferOwnership() {
 
 }
 
+template <typename... Nodes>
+constexpr bool noncopyableNodes =
+	((!std::is_copy_constructible_v<Nodes> && !std::is_copy_assignable_v<Nodes>) && ...);
+
+static_assert(noncopyableNodes<ADNAtom, ADNPart, ADNDoubleStrand, ADNSingleStrand,
+	ADNBaseSegment, ADNBackbone, ADNNucleotide, ADNSidechain, PIBindingRegion>,
+	"SDK node identities must be cloned through the graph, not copied.");
+
+void testGeometryBufferNullSourceClearsOwnedData() {
+	SBPointer<SBSphereArray> spheres = new SBSphereArray(0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	const float source[] = { 1.0f, 2.0f, 3.0f };
+	spheres->setPositionData(ADNGeometryBuffer::copyGeometryBuffer<float>(nullptr, 0, source, 3));
+	spheres->setPositionData(ADNGeometryBuffer::copyGeometryBuffer<float>(spheres->getPositionData(), 3, nullptr, 3));
+	requireTrue("Null source clears geometry", spheres->getPositionData() == nullptr,
+		"A missing source must clear even a nonempty destination.");
+	spheres->setPositionData(ADNGeometryBuffer::copyGeometryBuffer<float>(nullptr, 0, source, 3));
+	requireEqual("Repopulate cleared geometry", spheres->getPositionData()[2], 3.0f);
+}
+
+void testGeometryBufferOutlivesComputationArray() {
+	SBPointer<SBSphereArray> spheres = new SBSphereArray(0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	{
+		ADNArray<float> source(3, 2);
+		for (std::size_t row = 0; row < 2; ++row)
+			for (std::size_t column = 0; column < 3; ++column)
+				source(row, column) = float(3 * row + column);
+		spheres->setPositionData(ADNGeometryBuffer::copyGeometryBuffer<float>(nullptr, 0, source.GetArray(), 6));
+		source = ADNArray<float>(3, 10);
+	}
+	for (std::size_t component = 0; component < 6; ++component)
+		requireEqual("Snapshot survives source replacement and destruction",
+			spheres->getPositionData()[component], float(component));
+}
+
+void testCylinderGeometryBuffersCopyAndReuseAllComponents() {
+	SBPointer<SBCylinderArray> cylinders = new SBCylinderArray(0, 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	float positions[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+	unsigned int indices[] = { 0, 1, 1, 2 };
+	unsigned int flags[] = { 0, 2, 4 };
+	SBPointer<ADNAtom> atom = new ADNAtom();
+	SBNode* nodes[] = { atom(), nullptr, atom() };
+	cylinders->setPositionData(ADNGeometryBuffer::copyGeometryBuffer<float>(nullptr, 0, positions, 9));
+	cylinders->setIndexData(ADNGeometryBuffer::copyGeometryBuffer<unsigned int>(nullptr, 0, indices, 4));
+	cylinders->setFlagData(ADNGeometryBuffer::copyGeometryBuffer<unsigned int>(nullptr, 0, flags, 3));
+	cylinders->setNodeData(ADNGeometryBuffer::copyGeometryBuffer<SBNode*>(nullptr, 0, nodes, 3));
+	cylinders->setNumberOfPositions(3);
+	cylinders->setNumberOfGeometries(2);
+	float* previousPositions = cylinders->getPositionData();
+	unsigned int* previousFlags = cylinders->getFlagData();
+	positions[8] = 42.0f;
+	flags[2] = 8;
+	cylinders->setPositionData(ADNGeometryBuffer::copyGeometryBuffer(previousPositions, 9, positions, 9));
+	cylinders->setFlagData(ADNGeometryBuffer::copyGeometryBuffer(previousFlags, 3, flags, 3));
+	requireTrue("Cylinder positions reuse allocation", cylinders->getPositionData() == previousPositions, "Equal-sized updates should reuse storage.");
+	requireTrue("Cylinder flags reuse allocation", cylinders->getFlagData() == previousFlags, "Interaction updates should reuse storage.");
+	for (std::size_t i = 0; i < 9; ++i)
+		requireEqual("Cylinder position components copied", cylinders->getPositionData()[i], positions[i]);
+	for (std::size_t i = 0; i < 4; ++i)
+		requireEqual("Cylinder index components copied", cylinders->getIndexData()[i], indices[i]);
+	requireEqual("Cylinder flags refreshed", cylinders->getFlagData()[2], 8u);
+	requireTrue("Node pointer buffer is independent", cylinders->getNodeData() != nodes, "The pointer array itself must be owned.");
+	requireTrue("Node identity preserved", cylinders->getNodeData()[0] == atom() && cylinders->getNodeData()[1] == nullptr,
+		"Snapshot pointer values must preserve node identities and null entries.");
+}
+
+void testGeometryBufferAllocationFailurePreservesOwner() {
+	SBPointer<SBSphereArray> spheres = new SBSphereArray(0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	const float source[] = { 7, 8, 9 };
+	spheres->setPositionData(ADNGeometryBuffer::copyGeometryBuffer<float>(nullptr, 0, source, 3));
+	float* previous = spheres->getPositionData();
+	bool rejected = false;
+	try {
+		// This exceeds the maximum C++ array object size without consuming memory.
+		spheres->setPositionData(ADNGeometryBuffer::copyGeometryBuffer(previous, 3, source, std::numeric_limits<std::size_t>::max()));
+	}
+	catch (const std::bad_alloc&) {
+		rejected = true;
+	}
+	requireTrue("Impossible geometry allocation rejected", rejected, "Expected bad_alloc or its bad_array_new_length subclass.");
+	requireTrue("Failed replacement retains owner", spheres->getPositionData() == previous, "Allocation failure must leave the previous owner intact.");
+	requireEqual("Failed replacement retains contents", spheres->getPositionData()[2], 9.0f);
+}
+
+void testArrayRejectsColumnsOutsideRow() {
+	ADNArray<int> values(2, 2);
+	values(1, 0) = 17;
+	requireThrowsInt("Mutable array rejects column at width", [&]() { (void)values(0, 2); }, 30);
+	const ADNArray<int>& constantValues = values;
+	requireThrowsInt("Const array rejects column at width", [&]() { (void)constantValues(0, 2); }, 30);
+}
+
+void testArrayRejectsWrappedRowIndex() {
+	ADNArray<int> values(2, 2);
+	values(0, 0) = 17;
+	const std::size_t overflowingRow = std::numeric_limits<std::size_t>::max() / 2 + 1;
+	// The current unchecked multiplication wraps to element zero, so this
+	// regression exposes the bad check without dereferencing invalid memory.
+	requireThrowsInt("Mutable array rejects wrapped row", [&]() { (void)values(overflowingRow); }, 30);
+	const ADNArray<int>& constantValues = values;
+	requireThrowsInt("Const array rejects wrapped row", [&]() { (void)constantValues(overflowingRow, 0); }, 30);
+}
+
+void testArrayRejectsOverflowingDimensions() {
+	bool rejected = false;
+	try {
+		ADNArray<int> values(2, std::numeric_limits<std::size_t>::max() / 2 + 1);
+	}
+	catch (const std::exception&) {
+		rejected = true;
+	}
+	catch (int) {
+		rejected = true;
+	}
+	requireTrue("Array rejects overflowing shape", rejected, "The element count must be checked before allocation.");
+}
+
+void testArraySelfAssignmentAndEmptyConcatenation() {
+	ADNArray<int> values(2, 1);
+	values(0, 0) = 11;
+	values(0, 1) = 22;
+	values = values;
+	requireEqual("Array self assignment keeps values", values(0, 1), 22);
+	values = std::move(values);
+	requireEqual("Array self move keeps values", values(0, 0), 11);
+	ADNArray<int> empty(2, 0);
+	std::unique_ptr<ADNArray<int>> joined(ADNArray<int>::Concatenate(empty, values));
+	requireEqual("Empty concatenation preserves rows", joined->GetNumElements(), std::size_t(1));
+	requireEqual("Empty concatenation preserves values", (*joined)(0, 1), 22);
+	requireTrue("Concatenation owns independent storage", joined->GetArray() != values.GetArray(), "Concatenation must not share buffers.");
+}
+
+void testPositionableCopiesHaveIndependentCenters() {
+	PositionableSB original;
+	original.SetPosition(positionAngstrom(1, 2, 3));
+	PositionableSB copied(original);
+	PositionableSB assigned;
+	assigned = original;
+	requireTrue("Copied center atom is independent", copied.GetCenterAtom() != original.GetCenterAtom(), "A copied position must not alias the source atom.");
+	requireTrue("Assigned center atom is independent", assigned.GetCenterAtom() != original.GetCenterAtom(), "Assigning position values must not share atom ownership.");
+	copied.SetPosition(positionAngstrom(9, 8, 7));
+	requirePositionNear("Moving a copied position preserves the original", original.GetPosition(), positionAngstrom(1, 2, 3), 1.0e-9);
+}
+
+void testPairAssignmentIsIdempotent() {
+	SBPointer<ADNNucleotide> left = new ADNNucleotide();
+	SBPointer<ADNNucleotide> right = new ADNNucleotide();
+	left->SetPair(right);
+	right->SetPair(left);
+	left->SetPair(right);
+	requireTrue("Same pair assignment preserves both links", left->GetPair() == right && right->GetPair() == left,
+		"Reassigning the existing partner must not disconnect the pair.");
+	left->disconnectPair();
+	right->disconnectPair();
+}
+
+void testPairReplacementRetainsNewPartner() {
+	SBPointer<ADNNucleotide> left = new ADNNucleotide();
+	SBPointer<ADNNucleotide> oldPartner = new ADNNucleotide();
+	SBPointer<ADNNucleotide> newPartner = new ADNNucleotide();
+	left->SetPair(oldPartner);
+	oldPartner->SetPair(left);
+	left->SetPair(newPartner);
+	requireTrue("Pair replacement keeps requested partner", left->GetPair() == newPartner, "Disconnecting the old reciprocal link must not erase the new link.");
+	requireTrue("Pair replacement disconnects old partner", oldPartner->GetPair() == nullptr, "The old reciprocal pair must be removed.");
+	left->disconnectPair();
+	oldPartner->disconnectPair();
+	newPartner->disconnectPair();
+}
+
+void testNeighborsRejectUnknownNucleotide() {
+	const auto fixture = createCircularStrandFixture();
+	ADNNeighbors neighbors;
+	neighbors.SetMaxCutOff(SBQuantity::nanometer(1.0));
+	neighbors.InitializeNeighbors(fixture.part);
+	SBPointer<ADNNucleotide> unknown = new ADNNucleotide();
+	requireTrue("Unknown neighbor lookup returns null", neighbors.GetPINucleotide(unknown) == nullptr, "A missing nucleotide must not resolve to the last indexed entry.");
+	requireTrue("Null neighbor lookup returns null", neighbors.GetPINucleotide(nullptr) == nullptr, "A null query must not resolve to another nucleotide.");
+}
+
+void testNeighborsReinitializationRefreshesDistances() {
+	auto fixture = createCircularStrandFixture();
+	fixture.fivePrime->SetPosition(positionAngstrom(0, 0, 0));
+	fixture.middle->SetPosition(positionAngstrom(1, 0, 0));
+	fixture.threePrime->SetPosition(positionAngstrom(10, 0, 0));
+	ADNNeighbors neighbors;
+	neighbors.SetFromOwnSingleStrand(true);
+	neighbors.SetMaxCutOff(SBQuantity::angstrom(2));
+	neighbors.InitializeNeighbors(fixture.part);
+	auto before = neighbors.GetNeighbors(fixture.fivePrime);
+	requireTrue("Initial neighbor is middle", before.size() == 1 && before[0] == fixture.middle, "Expected exactly the nearby middle nucleotide.");
+	fixture.middle->SetPosition(positionAngstrom(10, 0, 0));
+	fixture.threePrime->SetPosition(positionAngstrom(1, 0, 0));
+	neighbors.InitializeNeighbors(fixture.part);
+	auto after = neighbors.GetNeighbors(fixture.fivePrime);
+	requireTrue("Rebuilt neighbors use current distances", after.size() == 1 && after[0] == fixture.threePrime,
+		"Reinitialization must replace previous adjacency data.");
+}
+
+void testNeighborsReinitializationReplacesPart() {
+	const auto first = createCircularStrandFixture();
+	const auto second = createCircularStrandFixture();
+	ADNNeighbors neighbors;
+	neighbors.SetMaxCutOff(SBQuantity::nanometer(1));
+	neighbors.InitializeNeighbors(first.part);
+	neighbors.InitializeNeighbors(second.part);
+	auto mapped = neighbors.GetPINucleotide(second.fivePrime);
+	requireTrue("Rebuilt index refers to new part", mapped && mapped->GetNucleotide() == second.fivePrime,
+		"Reinitializing with a different part must replace the indexed nucleotide pointers.");
+	SBPointer<ADNPart> empty = new ADNPart();
+	neighbors.InitializeNeighbors(empty);
+	requireTrue("Empty part clears neighbor index", neighbors.GetPINucleotide(first.fivePrime) == nullptr,
+		"An empty rebuild must release the old index.");
+}
+
+void testEmptyPartCenterOfMassIsFinite() {
+	SBPointer<ADNPart> part = new ADNPart();
+	requirePositionNear("Empty part center is zero", ADNBasicOperations::CalculateCenterOfMass(part), SBPosition3::zero, 0.0);
+	requirePositionNear("Null part center is zero", ADNBasicOperations::CalculateCenterOfMass(nullptr), SBPosition3::zero, 0.0);
+}
+
+void testBindingRegionSequenceOrderAndMissingEndpoints() {
+	const auto fixture = createCircularStrandFixture();
+	SBPointer<PIBindingRegion> region = new PIBindingRegion();
+	region->SetFirstNt(fixture.fivePrime);
+	region->SetLastNt(fixture.threePrime);
+	auto sequences = region->GetSequences();
+	requireEqual("Binding sequence keeps 5-prime order", sequences.first, std::string("ATG"));
+	requireEqual("Unpaired binding sequence has empty partner", sequences.second, std::string());
+	SBPointer<ADNNucleotide> outsider = new ADNNucleotide();
+	region->SetFirstNt(outsider);
+	sequences = region->GetSequences();
+	requireTrue("Unreachable binding endpoint rejected", sequences.first.empty() && sequences.second.empty(), "A partial traversal must not be accepted as a region.");
+	region->SetFirstNt(nullptr);
+	sequences = region->GetSequences();
+	requireTrue("Null binding endpoint rejected", sequences.first.empty() && sequences.second.empty(), "Both endpoints are required.");
+}
+
+void testOxDNARejectsInvalidNumericFields() {
+	const auto topologyPath = temporaryConfigPath("adenita_audit_numeric.top");
+	const auto configPath = temporaryConfigPath("adenita_audit_numeric.dat");
+	writeBasicOxDNAFiles(topologyPath, configPath);
+	writeTextFile(topologyPath, "2 1\ninvalid A -1 1\n0 T 0 -1\n");
+	try {
+		const auto result = ADNLoader::InputFromOxDNA(topologyPath.string(), configPath.string());
+		requireTrue("Invalid numeric field reported as import error", result.hasError, "Invalid numbers must return a structured error.");
+	}
+	catch (const std::exception& error) {
+		requireTrue("Invalid numeric field must not escape loader", false, error.what());
+	}
+	std::error_code ignored;
+	std::filesystem::remove(topologyPath, ignored);
+	std::filesystem::remove(configPath, ignored);
+}
+
+void testOxDNARejectsTruncatedConfiguration() {
+	const auto topologyPath = temporaryConfigPath("adenita_audit_truncated.top");
+	const auto configPath = temporaryConfigPath("adenita_audit_truncated.dat");
+	writeBasicOxDNAFiles(topologyPath, configPath);
+	writeTextFile(configPath, "t = 0\nb = 0 0 0\nE = 0 0 0\n0 0 0 0 1 0 1 0 0 0 0 0 0 0 0\n");
+	const auto result = ADNLoader::InputFromOxDNA(topologyPath.string(), configPath.string());
+	requireTrue("Truncated configuration rejected", result.hasError, "Every declared nucleotide must have a configuration record.");
+	std::error_code ignored;
+	std::filesystem::remove(topologyPath, ignored);
+	std::filesystem::remove(configPath, ignored);
+}
+
+void testOxDNARejectsDanglingTopologyNeighbors() {
+	const auto topologyPath = temporaryConfigPath("adenita_audit_dangling.top");
+	const auto configPath = temporaryConfigPath("adenita_audit_dangling.dat");
+	writeBasicOxDNAFiles(topologyPath, configPath);
+	writeTextFile(topologyPath, "2 1\n0 A -1 99\n0 T 0 -1\n");
+	const auto result = ADNLoader::InputFromOxDNA(topologyPath.string(), configPath.string());
+	requireTrue("Dangling topology link rejected", result.hasError, "Topology links must refer to existing nucleotide indices.");
+	std::error_code ignored;
+	std::filesystem::remove(topologyPath, ignored);
+	std::filesystem::remove(configPath, ignored);
+}
+
+void testOxDNAPreservesCircularStrandTopology() {
+	const auto topologyPath = temporaryConfigPath("adenita_audit_circular.top");
+	const auto configPath = temporaryConfigPath("adenita_audit_circular.dat");
+	writeBasicOxDNAFiles(topologyPath, configPath);
+	writeTextFile(topologyPath, "2 1\n0 A 1 1\n0 T 0 0\n");
+	const auto result = ADNLoader::InputFromOxDNA(topologyPath.string(), configPath.string());
+	requireTrue("Circular topology imports", result.succeeded(), "Expected valid circular topology.");
+	if (result.succeeded()) {
+		auto strands = result.part->GetSingleStrands();
+		requireTrue("Circular topology retained", strands.size() == 1 && strands[0]->IsCircular(), "Explicit closure links must not become a linear strand.");
+	}
+	std::error_code ignored;
+	std::filesystem::remove(topologyPath, ignored);
+	std::filesystem::remove(configPath, ignored);
+}
+
+void testJsonNumericValidationRejectsNonFiniteAndOverflow() {
+	using namespace ADNLoader::JsonValidation;
+	requireTrue("Ordinary numeric token accepted", isNumberToken("-1.25e2"), "Finite coordinates should be accepted.");
+	for (const char* token : { "nan", "inf", "-inf", "1e9999" })
+		requireTrue(std::string("Invalid numeric token rejected: ") + token, !isNumberToken(token), "Non-finite or out-of-range coordinates must be rejected.");
+	requireTrue("Out-of-range node identifier rejected",
+		!isIntegerString("99999999999999999999999999999999999"),
+		"A validated identifier must fit the integer conversion used by the loader.");
+}
+
+void testNtthalParserRejectsNonFiniteThermodynamics() {
+	for (const char* value : { "nan", "inf", "-inf" }) {
+		const std::string output = std::string("dS = ") + value +
+			" dH = -24400 dG = -3022.33 t = 37.0\nline2\nline3\nline4\nline5\n";
+		requireTrue(std::string("Non-finite ntthal value rejected: ") + value,
+			!PIPrimer3::ParseNtthalOutput(output).isValid,
+			"A non-finite thermodynamic value must not be marked valid.");
+	}
+}
+
+int reportTestFailures() {
+	for (const auto& failure : failures)
+		std::cerr << "[FAIL] " << failure.file << ":" << failure.line << " in " << failure.function << " - " << failure.name << ": " << failure.message << std::endl;
+	std::cout << "Adenita test failures: " << failures.size() << std::endl;
+	return failures.empty() ? EXIT_SUCCESS : EXIT_FAILURE;
+}
+
+void runEdgeCaseTests() {
+	const std::pair<const char*, void (*)()> tests[] = {
+		{ "testArrayRejectsColumnsOutsideRow", testArrayRejectsColumnsOutsideRow },
+		{ "testArrayRejectsWrappedRowIndex", testArrayRejectsWrappedRowIndex },
+		{ "testArrayRejectsOverflowingDimensions", testArrayRejectsOverflowingDimensions },
+		{ "testArraySelfAssignmentAndEmptyConcatenation", testArraySelfAssignmentAndEmptyConcatenation },
+		{ "testPositionableCopiesHaveIndependentCenters", testPositionableCopiesHaveIndependentCenters },
+		{ "testPairAssignmentIsIdempotent", testPairAssignmentIsIdempotent },
+		{ "testPairReplacementRetainsNewPartner", testPairReplacementRetainsNewPartner },
+		{ "testNeighborsRejectUnknownNucleotide", testNeighborsRejectUnknownNucleotide },
+		{ "testNeighborsReinitializationRefreshesDistances", testNeighborsReinitializationRefreshesDistances },
+		{ "testNeighborsReinitializationReplacesPart", testNeighborsReinitializationReplacesPart },
+		{ "testEmptyPartCenterOfMassIsFinite", testEmptyPartCenterOfMassIsFinite },
+		{ "testBindingRegionSequenceOrderAndMissingEndpoints", testBindingRegionSequenceOrderAndMissingEndpoints },
+		{ "testOxDNARejectsInvalidNumericFields", testOxDNARejectsInvalidNumericFields },
+		{ "testOxDNARejectsTruncatedConfiguration", testOxDNARejectsTruncatedConfiguration },
+		{ "testOxDNARejectsDanglingTopologyNeighbors", testOxDNARejectsDanglingTopologyNeighbors },
+		{ "testOxDNAPreservesCircularStrandTopology", testOxDNAPreservesCircularStrandTopology },
+		{ "testJsonNumericValidationRejectsNonFiniteAndOverflow", testJsonNumericValidationRejectsNonFiniteAndOverflow },
+		{ "testNtthalParserRejectsNonFiniteThermodynamics", testNtthalParserRejectsNonFiniteThermodynamics }
+	};
+	for (const auto& test : tests) {
+		std::cerr << "[RUN] " << test.first << std::endl;
+		test.second();
+	}
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
 	std::cerr << "Starting Adenita standalone tests" << std::endl;
 	std::cerr << "[RUN] testGeometryBufferOwnership" << std::endl;
 	testGeometryBufferOwnership();
+	std::cerr << "[RUN] testGeometryBufferNullSourceClearsOwnedData" << std::endl;
+	testGeometryBufferNullSourceClearsOwnedData();
+	std::cerr << "[RUN] testGeometryBufferOutlivesComputationArray" << std::endl;
+	testGeometryBufferOutlivesComputationArray();
+	std::cerr << "[RUN] testCylinderGeometryBuffersCopyAndReuseAllComponents" << std::endl;
+	testCylinderGeometryBuffersCopyAndReuseAllComponents();
+	std::cerr << "[RUN] testGeometryBufferAllocationFailurePreservesOwner" << std::endl;
+	testGeometryBufferAllocationFailurePreservesOwner();
 	if (argc > 1 && std::string(argv[1]) == "--geometry-only") {
-		std::cout << "Geometry ownership failures: " << failures.size() << std::endl;
-		return failures.empty() ? EXIT_SUCCESS : EXIT_FAILURE;
+		return reportTestFailures();
 	}
+	runEdgeCaseTests();
+	if (argc > 1 && std::string(argv[1]) == "--edge-cases-only")
+		return reportTestFailures();
 
 	// Reconstruction loads these templates through SAMSON's configured scratch
 	// path. Fail with the actual missing path before a partial loader result can

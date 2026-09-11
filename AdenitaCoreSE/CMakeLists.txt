@@ -186,9 +186,10 @@ endif()
 
 if(TARGET SEAdenitaCoreSEStandaloneTests)
   add_test(NAME SEAdenitaCoreSE.GeometryOwnership COMMAND SEAdenitaCoreSEStandaloneTests --geometry-only)
+  add_test(NAME SEAdenitaCoreSE.EdgeCases COMMAND SEAdenitaCoreSEStandaloneTests --edge-cases-only)
   if(WIN32)
-    set_tests_properties(SEAdenitaCoreSE.GeometryOwnership PROPERTIES ENVIRONMENT_MODIFICATION
+    set_tests_properties(SEAdenitaCoreSE.GeometryOwnership SEAdenitaCoreSE.EdgeCases PROPERTIES ENVIRONMENT_MODIFICATION
       "PATH=path_list_prepend:${ADENITA_QT_RUNTIME_DIR};PATH=path_list_prepend:${ADENITA_STANDALONE_TEST_RUNTIME_DIR}")
   endif()
-  set_tests_properties(SEAdenitaCoreSE.Standalone SEAdenitaCoreSE.GeometryOwnership PROPERTIES TIMEOUT 180)
+  set_tests_properties(SEAdenitaCoreSE.Standalone SEAdenitaCoreSE.GeometryOwnership SEAdenitaCoreSE.EdgeCases PROPERTIES TIMEOUT 180)
 endif()
