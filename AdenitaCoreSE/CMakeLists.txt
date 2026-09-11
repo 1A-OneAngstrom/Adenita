@@ -183,3 +183,12 @@ if(${OUTPUT_UUID}_tests)
     )
   endif()
 endif()
+
+if(TARGET SEAdenitaCoreSEStandaloneTests)
+  add_test(NAME SEAdenitaCoreSE.GeometryOwnership COMMAND SEAdenitaCoreSEStandaloneTests --geometry-only)
+  if(WIN32)
+    set_tests_properties(SEAdenitaCoreSE.GeometryOwnership PROPERTIES ENVIRONMENT_MODIFICATION
+      "PATH=path_list_prepend:${ADENITA_QT_RUNTIME_DIR};PATH=path_list_prepend:${ADENITA_STANDALONE_TEST_RUNTIME_DIR}")
+  endif()
+  set_tests_properties(SEAdenitaCoreSE.Standalone SEAdenitaCoreSE.GeometryOwnership PROPERTIES TIMEOUT 180)
+endif()

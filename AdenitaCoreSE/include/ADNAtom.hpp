@@ -11,11 +11,12 @@ class SB_EXPORT ADNAtom : public SBAtom {
 public:
 
 	ADNAtom() : SBAtom() {}
-	ADNAtom(const ADNAtom& other);
+	/// \brief Disallows copying node identity and reference ownership; use SAMSON graph cloning.
+	ADNAtom(const ADNAtom&) = delete;
 	ADNAtom(SBElement::Type element, const SBPosition3& position);
 	~ADNAtom() = default;
 
-	ADNAtom&													operator=(const ADNAtom& other);
+	ADNAtom&													operator=(const ADNAtom& other) = delete; ///< Node identity cannot be assigned.
 
 	virtual void												serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const override;		///< Serializes the node
 	virtual void												unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;			///< Unserializes the node

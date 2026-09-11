@@ -5,27 +5,6 @@
 #include "ADNPart.hpp"
 
 
-ADNDoubleStrand::ADNDoubleStrand(const ADNDoubleStrand& other) : SBStructuralGroup(other) {
-
-    *this = other;
-
-}
-
-ADNDoubleStrand& ADNDoubleStrand::operator=(const ADNDoubleStrand& other) {
-
-    SBStructuralGroup::operator =(other);
-
-    if (this != &other) {
-
-        startBaseSegment = other.startBaseSegment;
-        endBaseSegment = other.endBaseSegment;
-
-    }
-
-    return *this;
-
-}
-
 void ADNDoubleStrand::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber, const SBVersionNumber& classVersionNumber) const {
 
     SBStructuralGroup::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);

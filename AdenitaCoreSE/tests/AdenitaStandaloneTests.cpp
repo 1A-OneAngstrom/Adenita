@@ -1,3 +1,6 @@
+#include "SBSphereArray.hpp"
+#include "SAMSON.hpp"
+#include "private/ADNGeometryBuffer.hpp"
 /// \file AdenitaStandaloneTests.cpp
 /// \brief Standalone smoke tests for Adenita code that does not launch SAMSON.
 
@@ -4426,93 +4429,235 @@ void testCadnanoImportsTerminalTubeAtLastPosition() {
 
 }
 
+/// \brief Verifies independent ownership, equal-size reuse, resize, clearing, and source-container lifetime.
+void testGeometryBufferOwnership() {
+
+	SBPointer<SBSphereArray> first = new SBSphereArray(0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	SBPointer<SBSphereArray> second = new SBSphereArray(0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	for (unsigned int count : { 3u, 3u, 5u, 1u, 0u, 4u }) {
+
+		std::vector<float> source(std::size_t(3) * count, float(count));
+		const auto oldCount = first->getNumberOfPositions();
+		float* oldBuffer = first->getPositionData();
+		first->setPositionData(ADNGeometryBuffer::copyGeometryBuffer(oldBuffer, std::size_t(3) * oldCount, source.data(), source.size()));
+		first->setNumberOfPositions(count);
+		first->setNumberOfGeometries(count);
+		second->setPositionData(ADNGeometryBuffer::copyGeometryBuffer(second->getPositionData(), std::size_t(3) * second->getNumberOfPositions(), source.data(), source.size()));
+		second->setNumberOfPositions(count);
+		second->setNumberOfGeometries(count);
+		requireTrue("Distinct snapshot owners", !count || first->getPositionData() != second->getPositionData(), "Geometry owners must not share raw storage.");
+		requireTrue("Computation storage retained", !count || first->getPositionData() != source.data(), "Computation arrays must remain independent.");
+		if (count && count == oldCount)
+			requireTrue("Equal-size snapshot reuse", first->getPositionData() == oldBuffer, "Equal-sized updates must reuse the allocation.");
+		if (count) {
+
+			source[0] = -1.0f;
+			requireTrue("Snapshot value independent", first->getPositionData()[0] == float(count), "Changing the source must not change the snapshot.");
+			second->setPositionData(nullptr);
+			second->setNumberOfPositions(0);
+			second->setNumberOfGeometries(0);
+			requireTrue("Other owner survives clearing", first->getPositionData()[0] == float(count), "Clearing one owner must preserve the other.");
+
+		}
+		else requireTrue("Empty snapshot cleared", first->getPositionData() == nullptr && second->getPositionData() == nullptr, "Empty geometry must clear its buffers.");
+	}
+
+}
+
 } // namespace
 
-int main() {
+int main(int argc, char** argv) {
+	std::cerr << "Starting Adenita standalone tests" << std::endl;
+	std::cerr << "[RUN] testGeometryBufferOwnership" << std::endl;
+	testGeometryBufferOwnership();
+	if (argc > 1 && std::string(argv[1]) == "--geometry-only") {
+		std::cout << "Geometry ownership failures: " << failures.size() << std::endl;
+		return failures.empty() ? EXIT_SUCCESS : EXIT_FAILURE;
+	}
 
+	// Reconstruction loads these templates through SAMSON's configured scratch
+	// path. Fail with the actual missing path before a partial loader result can
+	// reach the legacy placement code, which assumes both template nodes exist.
+	const auto templateDirectory = std::filesystem::u8path(SB_ELEMENT_PATH) / "Data";
+	std::cerr << "Template directory: " << templateDirectory.u8string() << std::endl;
+	for (const char* name : { "AT.pdb", "TA.pdb", "CG.pdb", "GC.pdb" }) {
+		const auto path = templateDirectory / name;
+		std::ifstream input(path, std::ios::binary);
+		if (!input || input.peek() == std::char_traits<char>::eof()) {
+			std::cerr << "Required Adenita template is missing, unreadable or empty: " << path.u8string()
+				<< "\nRun the full suite with SAMSON's configured extension data available."
+				<< std::endl;
+			return EXIT_FAILURE;
+		}
+	}
+
+	std::cerr << "[RUN] testConstructionAndAccess" << std::endl;
 	testConstructionAndAccess();
+	std::cerr << "[RUN] testCopyConstructorDeepCopy" << std::endl;
 	testCopyConstructorDeepCopy();
+	std::cerr << "[RUN] testAssignmentCopiesValues" << std::endl;
 	testAssignmentCopiesValues();
+	std::cerr << "[RUN] testAssignmentReleasesPreviousStorage" << std::endl;
 	testAssignmentReleasesPreviousStorage();
+	std::cerr << "[RUN] testMoveSemantics" << std::endl;
 	testMoveSemantics();
+	std::cerr << "[RUN] testRows" << std::endl;
 	testRows();
+	std::cerr << "[RUN] testExceptions" << std::endl;
 	testExceptions();
+	std::cerr << "[RUN] testScaffoldReaderSkipsBlankLinesAndHeaders" << std::endl;
 	testScaffoldReaderSkipsBlankLinesAndHeaders();
+	std::cerr << "[RUN] testScaffoldReaderAcceptsMissingInitialHeader" << std::endl;
 	testScaffoldReaderAcceptsMissingInitialHeader();
+	std::cerr << "[RUN] testConfigJsonStringMemberCopiesAddedValue" << std::endl;
 	testConfigJsonStringMemberCopiesAddedValue();
+	std::cerr << "[RUN] testConfigJsonStringMemberCopiesUpdatedValue" << std::endl;
 	testConfigJsonStringMemberCopiesUpdatedValue();
+	std::cerr << "[RUN] testConfigFileIoClosesWrittenAndReadFiles" << std::endl;
 	testConfigFileIoClosesWrittenAndReadFiles();
+	std::cerr << "[RUN] testConfigFileIoReportsFailuresAndClosesInvalidReads" << std::endl;
 	testConfigFileIoReportsFailuresAndClosesInvalidReads();
+	std::cerr << "[RUN] testConcatenate" << std::endl;
 	testConcatenate();
+	std::cerr << "[RUN] testFrameUtilsRotateFrameAroundZ" << std::endl;
 	testFrameUtilsRotateFrameAroundZ();
+	std::cerr << "[RUN] testFrameUtilsOrthonormalizationRepairsSmallDrift" << std::endl;
 	testFrameUtilsOrthonormalizationRepairsSmallDrift();
+	std::cerr << "[RUN] testFrameUtilsInvalidFrameFallsBack" << std::endl;
 	testFrameUtilsInvalidFrameFallsBack();
+	std::cerr << "[RUN] testFrameUtilsRigidRotationPreservesDistances" << std::endl;
 	testFrameUtilsRigidRotationPreservesDistances();
+	std::cerr << "[RUN] testFrameUtilsDerivesRotatedMockGeometryFrame" << std::endl;
 	testFrameUtilsDerivesRotatedMockGeometryFrame();
+	std::cerr << "[RUN] testFrameAdaptersSanitizeAndRotateOrientable" << std::endl;
 	testFrameAdaptersSanitizeAndRotateOrientable();
+	std::cerr << "[RUN] testDesignedBaseSegmentFrameBuildsValidAxes" << std::endl;
 	testDesignedBaseSegmentFrameBuildsValidAxes();
+	std::cerr << "[RUN] testDesignedBaseSegmentFrameUsesPreferredRadial" << std::endl;
 	testDesignedBaseSegmentFrameUsesPreferredRadial();
+	std::cerr << "[RUN] testDesignedBaseSegmentFrameFallsBackFromParallelRadial" << std::endl;
 	testDesignedBaseSegmentFrameFallsBackFromParallelRadial();
+	std::cerr << "[RUN] testTemplateFramePreparationRoundTripLeftSide" << std::endl;
 	testTemplateFramePreparationRoundTripLeftSide();
+	std::cerr << "[RUN] testTemplateFramePreparationRoundTripRightSide" << std::endl;
 	testTemplateFramePreparationRoundTripRightSide();
+	std::cerr << "[RUN] testTemplateFramePreparationTargetStateIsStable" << std::endl;
 	testTemplateFramePreparationTargetStateIsStable();
+	std::cerr << "[RUN] testTemplateFrameRoundTripsAcrossSidesAndPhases" << std::endl;
 	testTemplateFrameRoundTripsAcrossSidesAndPhases();
+	std::cerr << "[RUN] testTemplateFrameHandednessAcrossPhases" << std::endl;
 	testTemplateFrameHandednessAcrossPhases();
+	std::cerr << "[RUN] testTemplateFrameBasePlaneNormalsStayCoplanar" << std::endl;
 	testTemplateFrameBasePlaneNormalsStayCoplanar();
+	std::cerr << "[RUN] testCanonicalTemplateFrameFromCurrentGeometryTracksBaseSegmentAxis" << std::endl;
 	testCanonicalTemplateFrameFromCurrentGeometryTracksBaseSegmentAxis();
+	std::cerr << "[RUN] testCanonicalTemplateFrameFromCurrentGeometryDoesNotMutateBaseSegment" << std::endl;
 	testCanonicalTemplateFrameFromCurrentGeometryDoesNotMutateBaseSegment();
+	std::cerr << "[RUN] testNucleotideSetPositionTranslatesBackboneAndSidechain" << std::endl;
 	testNucleotideSetPositionTranslatesBackboneAndSidechain();
+	std::cerr << "[RUN] testGeometrySynchronizationDerivesNucleotideFrame" << std::endl;
 	testGeometrySynchronizationDerivesNucleotideFrame();
+	std::cerr << "[RUN] testGeometryValidationRejectsStaleNucleotideFrame" << std::endl;
 	testGeometryValidationRejectsStaleNucleotideFrame();
+	std::cerr << "[RUN] testGeometryValidationRejectsStaleBaseSegmentFrame" << std::endl;
 	testGeometryValidationRejectsStaleBaseSegmentFrame();
+	std::cerr << "[RUN] testGeometryEditBarrierPreservesRotatedNucleotideDirection" << std::endl;
 	testGeometryEditBarrierPreservesRotatedNucleotideDirection();
+	std::cerr << "[RUN] testFrameUtilsRotationAroundAxisMatchesZRotation" << std::endl;
 	testFrameUtilsRotationAroundAxisMatchesZRotation();
+	std::cerr << "[RUN] testRotateDoubleStrandGeometryPreservesDistancesAfterRigidTransform" << std::endl;
 	testRotateDoubleStrandGeometryPreservesDistancesAfterRigidTransform();
+	std::cerr << "[RUN] testRotateDoubleStrandGeometryFullTurnReturnsToStart" << std::endl;
 	testRotateDoubleStrandGeometryFullTurnReturnsToStart();
+	std::cerr << "[RUN] testTwisterTemplateReconstructionIsEquivariantAfterRigidTransform" << std::endl;
 	testTwisterTemplateReconstructionIsEquivariantAfterRigidTransform();
+	std::cerr << "[RUN] testTwisterTemplateReconstructionDoesNotAccumulatePhase" << std::endl;
 	testTwisterTemplateReconstructionDoesNotAccumulatePhase();
+	std::cerr << "[RUN] testDASReconstructionSideFramesRemainRightHanded" << std::endl;
 	testDASReconstructionSideFramesRemainRightHanded();
+	std::cerr << "[RUN] testCreatorSingleStrandInitializesDesignedFrames" << std::endl;
 	testCreatorSingleStrandInitializesDesignedFrames();
+	std::cerr << "[RUN] testCreatorDoubleStrandInitializesDesignedFrames" << std::endl;
 	testCreatorDoubleStrandInitializesDesignedFrames();
+	std::cerr << "[RUN] testReconstructionRepairsE3OnlyCreatorFrame" << std::endl;
 	testReconstructionRepairsE3OnlyCreatorFrame();
+	std::cerr << "[RUN] testPreserveInputGeometryKeepsExplicitSingleStrandPositions" << std::endl;
 	testPreserveInputGeometryKeepsExplicitSingleStrandPositions();
+	std::cerr << "[RUN] testExplicitSingleStrandCreatorPlacesAxisAlignedBackbones" << std::endl;
 	testExplicitSingleStrandCreatorPlacesAxisAlignedBackbones();
+	std::cerr << "[RUN] testExplicitSingleStrandCreatorPlacesDiagonalBackbones" << std::endl;
 	testExplicitSingleStrandCreatorPlacesDiagonalBackbones();
+	std::cerr << "[RUN] testComplementPlacementPreservesExistingNucleotideGeometry" << std::endl;
 	testComplementPlacementPreservesExistingNucleotideGeometry();
+	std::cerr << "[RUN] testComplementPlacementUsesRightAnchorSide" << std::endl;
 	testComplementPlacementUsesRightAnchorSide();
+	std::cerr << "[RUN] testComplementPlacementPrefersLeftAnchorOverStoredFrame" << std::endl;
 	testComplementPlacementPrefersLeftAnchorOverStoredFrame();
+	std::cerr << "[RUN] testComplementPlacementPrefersRightAnchorOverStoredFrame" << std::endl;
 	testComplementPlacementPrefersRightAnchorOverStoredFrame();
+	std::cerr << "[RUN] testComplementPlacementPrefersRotatedAnchorOverStoredFrame" << std::endl;
 	testComplementPlacementPrefersRotatedAnchorOverStoredFrame();
+	std::cerr << "[RUN] testSingleStrandAtomGenerationUsesExistingNucleotideCenter" << std::endl;
 	testSingleStrandAtomGenerationUsesExistingNucleotideCenter();
+	std::cerr << "[RUN] testSingleStrandAtomGenerationMapsBackboneAndSidechainMarkers" << std::endl;
 	testSingleStrandAtomGenerationMapsBackboneAndSidechainMarkers();
+	std::cerr << "[RUN] testRotatedSingleStrandAtomGenerationMapsBackboneAndSidechainMarkers" << std::endl;
 	testRotatedSingleStrandAtomGenerationMapsBackboneAndSidechainMarkers();
+	std::cerr << "[RUN] testSingleStrandAtomGenerationPreservesTemplateStacking" << std::endl;
 	testSingleStrandAtomGenerationPreservesTemplateStacking();
+	std::cerr << "[RUN] testAllAtomGenerationPreservesSynchronizedNucleotideGeometry" << std::endl;
 	testAllAtomGenerationPreservesSynchronizedNucleotideGeometry();
+	std::cerr << "[RUN] testAllAtomGenerationAlignsBasePlanesAndBackboneAfterRigidTransform" << std::endl;
 	testAllAtomGenerationAlignsBasePlanesAndBackboneAfterRigidTransform();
+	std::cerr << "[RUN] testCircularSingleStrandWrapsWithoutChangingSequenceOrder" << std::endl;
 	testCircularSingleStrandWrapsWithoutChangingSequenceOrder();
+	std::cerr << "[RUN] testModernJsonValidation" << std::endl;
 	testModernJsonValidation();
+	std::cerr << "[RUN] testLegacyJsonValidation" << std::endl;
 	testLegacyJsonValidation();
+	std::cerr << "[RUN] testCircularSingleStrandJsonRoundTrip" << std::endl;
 	testCircularSingleStrandJsonRoundTrip();
+	std::cerr << "[RUN] testBuildTopScalesHandlesBrokenNucleotideLinks" << std::endl;
 	testBuildTopScalesHandlesBrokenNucleotideLinks();
+	std::cerr << "[RUN] testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks" << std::endl;
 	testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks();
+	std::cerr << "[RUN] testGenerateSequenceHonorsLengthAlphabetAndMaxGs" << std::endl;
 	testGenerateSequenceHonorsLengthAlphabetAndMaxGs();
+	std::cerr << "[RUN] testDaedalusEdgeSizeQuantizationBoundaries" << std::endl;
 	testDaedalusEdgeSizeQuantizationBoundaries();
+	std::cerr << "[RUN] testLatticeTriangleLengthInterpolation" << std::endl;
 	testLatticeTriangleLengthInterpolation();
+	std::cerr << "[RUN] testBaseSegmentSetCellReplacesChild" << std::endl;
 	testBaseSegmentSetCellReplacesChild();
+	std::cerr << "[RUN] testLoopPairSettersReplaceOnlySelectedChild" << std::endl;
 	testLoopPairSettersReplaceOnlySelectedChild();
+	std::cerr << "[RUN] testSerializedNodeValidation" << std::endl;
 	testSerializedNodeValidation();
+	std::cerr << "[RUN] testPolyhedronRebuildClearsPreviousTopology" << std::endl;
 	testPolyhedronRebuildClearsPreviousTopology();
+	std::cerr << "[RUN] testPolyhedronEdgeLookupDoesNotAllocatePlaceholders" << std::endl;
 	testPolyhedronEdgeLookupDoesNotAllocatePlaceholders();
+	std::cerr << "[RUN] testPolyhedronMetricsAndIndices" << std::endl;
 	testPolyhedronMetricsAndIndices();
+	std::cerr << "[RUN] testCanDoExportWritesBasicSections" << std::endl;
 	testCanDoExportWritesBasicSections();
+	std::cerr << "[RUN] testOxDNAImportResultReportsSuccess" << std::endl;
 	testOxDNAImportResultReportsSuccess();
+	std::cerr << "[RUN] testOxDNAImportResultReportsErrors" << std::endl;
 	testOxDNAImportResultReportsErrors();
+	std::cerr << "[RUN] testNtthalParserAcceptsValidOutput" << std::endl;
 	testNtthalParserAcceptsValidOutput();
+	std::cerr << "[RUN] testNtthalParserRejectsInvalidOutput" << std::endl;
 	testNtthalParserRejectsInvalidOutput();
+	std::cerr << "[RUN] testPlyLoaderWeldsDuplicatedAssimpVertices" << std::endl;
 	testPlyLoaderWeldsDuplicatedAssimpVertices();
+	std::cerr << "[RUN] testCadnanoRejectsMalformedLegacyJson" << std::endl;
 	testCadnanoRejectsMalformedLegacyJson();
+	std::cerr << "[RUN] testCadnanoImportsTerminalTubeAtLastPosition" << std::endl;
 	testCadnanoImportsTerminalTubeAtLastPosition();
+	std::cerr << "[RUN] testDaedalusPlyRegressionDoesNotCrashOnTeardown" << std::endl;
 	testDaedalusPlyRegressionDoesNotCrashOnTeardown();
+	std::cerr << "[RUN] testDaedalusInstanceCanRunTwice" << std::endl;
 	testDaedalusInstanceCanRunTwice();
 
 	if (!failures.empty()) {

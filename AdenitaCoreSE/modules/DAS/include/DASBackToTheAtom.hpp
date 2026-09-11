@@ -148,7 +148,7 @@ private:
     bool ValidateGeneratedBasePairPlanes(SBPointer<ADNPart> part) const;
     bool ValidateGeneratedSingleStrandAtomGeometry(SBPointer<ADNPart> part) const;
 #endif
-    static void CreateBonds(SBPointer<ADNPart> origami, bool createFlag = false);
+    static void CreateBonds(SBPointer<ADNPart> origami, bool createFlag = false); ///< Creates bonds only between available atom endpoints.
     void FindAtomsPositions(SBPointer<ADNNucleotide> nt,
         const AtomTemplateSelection& selection,
         std::map<ADNBaseSegment*, BaseSegmentAtomPlacementCache>& placementCache);

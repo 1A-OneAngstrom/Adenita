@@ -2087,6 +2087,10 @@ void DASBackToTheAtom::PositionLoopNucleotidesQBezier(SBPointer<ADNLoop> loop, S
 
 }
 
+/// \brief Creates available intra-nucleotide and backbone bonds, skipping missing atom endpoints.
+/// \param origami Borrowed part whose generated atoms should be connected; nullptr is a no-op.
+/// \param createFlag Whether to mark bonds as created.
+/// The part's nucleotide groups retain the resulting bonds.
 void DASBackToTheAtom::CreateBonds(SBPointer<ADNPart> origami, bool createFlag) {
 
 	if (origami == nullptr) return;
@@ -2147,8 +2151,13 @@ void DASBackToTheAtom::CreateBonds(SBPointer<ADNPart> origami, bool createFlag) 
 			auto prevNt = nt->GetPrev(true);
 			if (prevNt != nullptr) {
 
-				SBPointer<ADNAtom> atP = *nt->GetAtomsByName("P").begin();
-				SBPointer<ADNAtom> atO3p = *prevNt->GetAtomsByName("O3'").begin();
+				// Coarse or partially generated nucleotides may lack bond endpoints.
+				// Validate the collections before dereferencing begin(), including during standalone generation.
+				const auto phosphorusAtoms = nt->GetAtomsByName("P");
+				const auto oxygenAtoms = prevNt->GetAtomsByName("O3'");
+				if (phosphorusAtoms.empty() || oxygenAtoms.empty()) continue;
+				SBPointer<ADNAtom> atP = *phosphorusAtoms.begin();
+				SBPointer<ADNAtom> atO3p = *oxygenAtoms.begin();
 				if (atP != nullptr && atO3p != nullptr) {
 
 					// ensure that the bond is not created twice

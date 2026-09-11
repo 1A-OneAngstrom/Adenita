@@ -26,10 +26,11 @@ class SB_EXPORT ADNPart : public SBStructuralModel {
 public:
 
     ADNPart();
-    ADNPart(const ADNPart &n);
+    /// \brief Disallows copying node identity and reference ownership; use SAMSON graph cloning.
+    ADNPart(const ADNPart&) = delete;
     ~ADNPart() = default;
 
-    ADNPart&                                                    operator=(const ADNPart& other);
+    ADNPart&                                                    operator=(const ADNPart& other) = delete; ///< Node identity cannot be assigned.
 
     virtual void                                                serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const override;		///< Serializes the node
     virtual void                                                unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;			///< Unserializes the node

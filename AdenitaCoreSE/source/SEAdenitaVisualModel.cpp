@@ -22,6 +22,11 @@
 #include <array>
 #include <cmath>
 #include <set>
+#include <cstddef>
+
+#include "private/ADNGeometryBuffer.hpp"
+using ADNGeometryBuffer::copyGeometryBuffer;
+
 
 #if ADN_VISUAL_MODEL_PERF_TRACE
 #include <QDebug>
@@ -191,52 +196,7 @@ SEAdenitaVisualModel::SEAdenitaVisualModel(const SBNodeIndexer& nodeIndexer) {
 
 SEAdenitaVisualModel::~SEAdenitaVisualModel() {
 
-	// set to nullptr such that the data is not deleted in the base visual model via sphereArray and cylinderArray
-
-	if (sphereArray.isValid()) {
-	
-		sphereArray->setNumberOfGeometries(0);
-		sphereArray->setPositionData(nullptr);
-		sphereArray->setRadiusData(nullptr);
-		sphereArray->setColorData(nullptr);
-		sphereArray->setMaterialData(nullptr);
-		sphereArray->setNodeData(nullptr);
-		sphereArray->setFlagData(nullptr);
-		sphereArray->setNodeIndexData(nullptr);
-	
-	}
-	
-	if (cylinderArray.isValid()) {
-	
-		cylinderArray->setNumberOfGeometries(0);
-		cylinderArray->setNumberOfPositions(0);
-		cylinderArray->setPositionData(nullptr);
-		cylinderArray->setIndexData(nullptr);
-		cylinderArray->setColorData(nullptr);
-		cylinderArray->setMaterialData(nullptr);
-		cylinderArray->setNodeData(nullptr);
-		cylinderArray->setRadiusData(nullptr);
-		cylinderArray->setCapData(nullptr);
-		cylinderArray->setFlagData(nullptr);
-		cylinderArray->setNodeIndexData(nullptr);
-	
-	}
-
-	if (basePairingCylinderArray.isValid()) {
-
-		basePairingCylinderArray->setNumberOfGeometries(0);
-		basePairingCylinderArray->setNumberOfPositions(0);
-		basePairingCylinderArray->setPositionData(nullptr);
-		basePairingCylinderArray->setIndexData(nullptr);
-		basePairingCylinderArray->setColorData(nullptr);
-		basePairingCylinderArray->setMaterialData(nullptr);
-		basePairingCylinderArray->setNodeData(nullptr);
-		basePairingCylinderArray->setRadiusData(nullptr);
-		basePairingCylinderArray->setCapData(nullptr);
-		basePairingCylinderArray->setFlagData(nullptr);
-		basePairingCylinderArray->setNodeIndexData(nullptr);
-
-	}
+	// geometry arrays own copies; ADNArray members independently release the computation buffers
 
 	ADNLogger::Log(std::string("Adenita Visual Model has been destroyed"));
 
@@ -1212,6 +1172,8 @@ void SEAdenitaVisualModel::prepareSticksToBalls(double iv) {
 
 void SEAdenitaVisualModel::prepareBallsToNucleotides(double iv) {
 
+	geometryArraysUpdateRequired = true;
+
 	nPositions_ = nPositionsAtom_;
 	nCylinders_ = nCylindersAtom_;
 
@@ -1266,6 +1228,8 @@ void SEAdenitaVisualModel::prepareBallsToNucleotides(double iv) {
 
 void SEAdenitaVisualModel::prepareNucleotidesToSingleStrands(double iv) {
 
+	geometryArraysUpdateRequired = true;
+
 	nPositions_ = nPositionsNt_;
 	nCylinders_ = nCylindersNt_;
 
@@ -1310,6 +1274,8 @@ void SEAdenitaVisualModel::prepareNucleotidesToSingleStrands(double iv) {
 }
 
 void SEAdenitaVisualModel::prepareSingleStrandsToDoubleStrands(double iv) {
+
+	geometryArraysUpdateRequired = true;
 
 	nPositions_ = nPositionsNt_;
 	nCylinders_ = nCylindersNt_;
@@ -1368,6 +1334,8 @@ void SEAdenitaVisualModel::prepareSingleStrandsToDoubleStrands(double iv) {
 
 void SEAdenitaVisualModel::prepareDoubleStrandsToObjects(double iv) {
 
+	geometryArraysUpdateRequired = true;
+
 	nPositions_ = nPositionsDS_;
 	nCylinders_ = 0;
 
@@ -1382,6 +1350,8 @@ void SEAdenitaVisualModel::prepareDoubleStrandsToObjects(double iv) {
 }
 
 void SEAdenitaVisualModel::prepare1Dto2D(double iv) {
+
+	geometryArraysUpdateRequired = true;
 
 	for (auto it = ntMap_.begin(); it != ntMap_.end(); it++) {
 
@@ -1403,6 +1373,8 @@ void SEAdenitaVisualModel::prepare1Dto2D(double iv) {
 
 void SEAdenitaVisualModel::prepare2Dto3D(double iv) {
 
+	geometryArraysUpdateRequired = true;
+
 	for (auto it = ntMap_.begin(); it != ntMap_.end(); it++) {
 
 		auto nt = it->first;
@@ -1422,6 +1394,8 @@ void SEAdenitaVisualModel::prepare2Dto3D(double iv) {
 }
 
 void SEAdenitaVisualModel::prepare3D(double iv) {
+
+	geometryArraysUpdateRequired = true;
 
 	positions_ = positionsNt_;
 
@@ -1621,6 +1595,8 @@ void SEAdenitaVisualModel::refreshInteractionRenderStateFullScan() {
 }
 
 void SEAdenitaVisualModel::synchronizeCurrentInteractionFlags() {
+
+	geometryArraysUpdateRequired = true;
 
 	auto copyFlags = [](const ADNArray<unsigned int>& source, ADNArray<unsigned int>& target) {
 
@@ -2512,73 +2488,89 @@ void SEAdenitaVisualModel::display(SBNode::RenderingPass renderingPass) {
 	else if (renderingPass == SBNode::RenderingPass::OpaqueGeometry || renderingPass == SBNode::RenderingPass::TransparentGeometry ||
 		renderingPass == SBNode::RenderingPass::ShadowingGeometry || renderingPass == SBNode::RenderingPass::SelectableGeometry) {
 
-		if (cylinderArray.isValid()) {
-
-			cylinderArray->setNumberOfGeometries(nCylinders_);
-			cylinderArray->setNumberOfPositions(nPositions_);
-			cylinderArray->setPositionData(positions_.GetArray());
-			cylinderArray->setIndexData(indices_.GetArray());
-			cylinderArray->setColorData(colorsE_.GetArray());
-			cylinderArray->setMaterialData(materialData_.GetArray());
-			cylinderArray->setNodeData(nodeData_.GetArray());
-			cylinderArray->setRadiusData(radiiE_.GetArray());
-			cylinderArray->setCapData(capData_.GetArray());
-			cylinderArray->setFlagData(getCylinderRenderFlags(flags_, neutralFlags_));
-			cylinderArray->setNodeIndexData(nodeIndices_.GetArray());
-
-		}
-
-		if (basePairingCylinderArray.isValid()) {
-
-			if (getShowBasePairingFlag()) {
-
-				basePairingCylinderArray->setNumberOfGeometries(nCylindersBasePairing_);
-				basePairingCylinderArray->setNumberOfPositions(nPositionsBasePairing_);
-				basePairingCylinderArray->setPositionData(positionsBasePairing_.GetArray());
-				basePairingCylinderArray->setIndexData(indicesBasePairing_.GetArray());
-				basePairingCylinderArray->setColorData(colorsBasePairing_.GetArray());
-				basePairingCylinderArray->setMaterialData(materialDataBasePairing_.GetArray());
-				basePairingCylinderArray->setNodeData(nodeDataBasePairing_.GetArray());
-				basePairingCylinderArray->setRadiusData(radiiBasePairing_.GetArray());
-				basePairingCylinderArray->setCapData(capDataBasePairing_.GetArray());
-				basePairingCylinderArray->setFlagData(flagsBasePairing_.GetArray());
-				basePairingCylinderArray->setNodeIndexData(nodeIndicesBasePairing_.GetArray());
-
-			}
-			else {
-
-				basePairingCylinderArray->setNumberOfGeometries(0);
-				basePairingCylinderArray->setNumberOfPositions(0);
-				basePairingCylinderArray->setPositionData(nullptr);
-				basePairingCylinderArray->setIndexData(nullptr);
-				basePairingCylinderArray->setColorData(nullptr);
-				basePairingCylinderArray->setMaterialData(nullptr);
-				basePairingCylinderArray->setNodeData(nullptr);
-				basePairingCylinderArray->setRadiusData(nullptr);
-				basePairingCylinderArray->setCapData(nullptr);
-				basePairingCylinderArray->setFlagData(nullptr);
-				basePairingCylinderArray->setNodeIndexData(nullptr);
-
-			}
-
-		}
-
-		if (sphereArray.isValid()) {
-
-			sphereArray->setNumberOfGeometries(nPositions_);
-			sphereArray->setPositionData(positions_.GetArray());
-			sphereArray->setRadiusData(radiiV_.GetArray());
-			sphereArray->setColorData(colorsV_.GetArray());
-			sphereArray->setMaterialData(materialData_.GetArray());
-			sphereArray->setNodeData(nodeData_.GetArray());
-			sphereArray->setFlagData(flags_.GetArray());
-			sphereArray->setNodeIndexData(nodeIndices_.GetArray());
-
-		}
+		if (geometryArraysBreakEditorActive != isBreakEditorActive()) geometryArraysUpdateRequired = true;
+		if (geometryArraysUpdateRequired) updateGeometryArrays();
 
 		displayTransition(renderingPass);
 
 	}
+
+}
+
+/// \brief Synchronizes independent geometry buffers after computation or interaction data changes.
+/// Reuses equal-sized allocations and publishes counts only after copying all buffers.
+void SEAdenitaVisualModel::updateGeometryArrays() {
+
+	// ADNArray remains the computation owner; no geometry setter may adopt GetArray() directly
+
+	if (cylinderArray.isValid()) {
+
+		const unsigned int geometries = nCylinders_;
+		const unsigned int positions = geometries ? nPositions_ : 0;
+		const std::size_t oldPositions = cylinderArray->getNumberOfPositions();
+		const std::size_t oldGeometries = cylinderArray->getNumberOfGeometries();
+		// Keep partially replaced attributes invisible if allocation fails.
+		cylinderArray->setNumberOfGeometries(0);
+		cylinderArray->setNumberOfPositions(0);
+		cylinderArray->setIndexData(copyGeometryBuffer(cylinderArray->getIndexData(), std::size_t(2) * oldGeometries, indices_.GetArray(), std::size_t(2) * geometries));
+		cylinderArray->setPositionData(copyGeometryBuffer(cylinderArray->getPositionData(), 3 * oldPositions, positions_.GetArray(), std::size_t(3) * positions));
+		cylinderArray->setColorData(copyGeometryBuffer(cylinderArray->getColorData(), 4 * oldPositions, colorsE_.GetArray(), std::size_t(4) * positions));
+		cylinderArray->setMaterialData(copyGeometryBuffer(cylinderArray->getMaterialData(), 1 * oldPositions, materialData_.GetArray(), std::size_t(1) * positions));
+		cylinderArray->setNodeData(copyGeometryBuffer(cylinderArray->getNodeData(), 1 * oldPositions, nodeData_.GetArray(), std::size_t(1) * positions));
+		cylinderArray->setRadiusData(copyGeometryBuffer(cylinderArray->getRadiusData(), 1 * oldPositions, radiiE_.GetArray(), std::size_t(1) * positions));
+		cylinderArray->setCapData(copyGeometryBuffer(cylinderArray->getCapData(), 1 * oldPositions, capData_.GetArray(), std::size_t(1) * positions));
+		cylinderArray->setFlagData(copyGeometryBuffer(cylinderArray->getFlagData(), 1 * oldPositions, getCylinderRenderFlags(flags_, neutralFlags_), std::size_t(1) * positions));
+		cylinderArray->setNodeIndexData(copyGeometryBuffer(cylinderArray->getNodeIndexData(), 1 * oldPositions, nodeIndices_.GetArray(), std::size_t(1) * positions));
+		cylinderArray->setNumberOfGeometries(geometries);
+		cylinderArray->setNumberOfPositions(positions);
+
+	}
+
+	if (basePairingCylinderArray.isValid()) {
+
+		const unsigned int geometries = getShowBasePairingFlag() ? nCylindersBasePairing_ : 0;
+		const unsigned int positions = geometries ? nPositionsBasePairing_ : 0;
+		const std::size_t oldPositions = basePairingCylinderArray->getNumberOfPositions();
+		const std::size_t oldGeometries = basePairingCylinderArray->getNumberOfGeometries();
+		// Keep partially replaced attributes invisible if allocation fails.
+		basePairingCylinderArray->setNumberOfGeometries(0);
+		basePairingCylinderArray->setNumberOfPositions(0);
+		basePairingCylinderArray->setIndexData(copyGeometryBuffer(basePairingCylinderArray->getIndexData(), std::size_t(2) * oldGeometries, indicesBasePairing_.GetArray(), std::size_t(2) * geometries));
+		basePairingCylinderArray->setPositionData(copyGeometryBuffer(basePairingCylinderArray->getPositionData(), 3 * oldPositions, positionsBasePairing_.GetArray(), std::size_t(3) * positions));
+		basePairingCylinderArray->setColorData(copyGeometryBuffer(basePairingCylinderArray->getColorData(), 4 * oldPositions, colorsBasePairing_.GetArray(), std::size_t(4) * positions));
+		basePairingCylinderArray->setMaterialData(copyGeometryBuffer(basePairingCylinderArray->getMaterialData(), 1 * oldPositions, materialDataBasePairing_.GetArray(), std::size_t(1) * positions));
+		basePairingCylinderArray->setNodeData(copyGeometryBuffer(basePairingCylinderArray->getNodeData(), 1 * oldPositions, nodeDataBasePairing_.GetArray(), std::size_t(1) * positions));
+		basePairingCylinderArray->setRadiusData(copyGeometryBuffer(basePairingCylinderArray->getRadiusData(), 1 * oldPositions, radiiBasePairing_.GetArray(), std::size_t(1) * positions));
+		basePairingCylinderArray->setCapData(copyGeometryBuffer(basePairingCylinderArray->getCapData(), 1 * oldPositions, capDataBasePairing_.GetArray(), std::size_t(1) * positions));
+		basePairingCylinderArray->setFlagData(copyGeometryBuffer(basePairingCylinderArray->getFlagData(), 1 * oldPositions, flagsBasePairing_.GetArray(), std::size_t(1) * positions));
+		basePairingCylinderArray->setNodeIndexData(copyGeometryBuffer(basePairingCylinderArray->getNodeIndexData(), 1 * oldPositions, nodeIndicesBasePairing_.GetArray(), std::size_t(1) * positions));
+		basePairingCylinderArray->setNumberOfGeometries(geometries);
+		basePairingCylinderArray->setNumberOfPositions(positions);
+
+	}
+
+	if (sphereArray.isValid()) {
+
+		const unsigned int geometries = nPositions_;
+		const unsigned int positions = geometries ? nPositions_ : 0;
+		const std::size_t oldPositions = sphereArray->getNumberOfPositions();
+		// Keep partially replaced attributes invisible if allocation fails.
+		sphereArray->setNumberOfGeometries(0);
+		sphereArray->setNumberOfPositions(0);
+		sphereArray->setPositionData(copyGeometryBuffer(sphereArray->getPositionData(), 3 * oldPositions, positions_.GetArray(), std::size_t(3) * positions));
+		sphereArray->setColorData(copyGeometryBuffer(sphereArray->getColorData(), 4 * oldPositions, colorsV_.GetArray(), std::size_t(4) * positions));
+		sphereArray->setMaterialData(copyGeometryBuffer(sphereArray->getMaterialData(), 1 * oldPositions, materialData_.GetArray(), std::size_t(1) * positions));
+		sphereArray->setNodeData(copyGeometryBuffer(sphereArray->getNodeData(), 1 * oldPositions, nodeData_.GetArray(), std::size_t(1) * positions));
+		sphereArray->setRadiusData(copyGeometryBuffer(sphereArray->getRadiusData(), 1 * oldPositions, radiiV_.GetArray(), std::size_t(1) * positions));
+		sphereArray->setFlagData(copyGeometryBuffer(sphereArray->getFlagData(), 1 * oldPositions, flags_.GetArray(), std::size_t(1) * positions));
+		sphereArray->setNodeIndexData(copyGeometryBuffer(sphereArray->getNodeIndexData(), 1 * oldPositions, nodeIndices_.GetArray(), std::size_t(1) * positions));
+		sphereArray->setNumberOfGeometries(geometries);
+		sphereArray->setNumberOfPositions(positions);
+
+	}
+
+	geometryArraysBreakEditorActive = isBreakEditorActive();
+	geometryArraysUpdateRequired = false;
 
 }
 
@@ -2819,6 +2811,8 @@ void SEAdenitaVisualModel::prepareDoubleStrands() {
 }
 
 void SEAdenitaVisualModel::prepareBasePairingSpikes() {
+
+	geometryArraysUpdateRequired = true;
 
 	nPositionsBasePairing_ = 0;
 	nCylindersBasePairing_ = 0;
@@ -3648,6 +3642,8 @@ ADNArray<float> SEAdenitaVisualModel::calcPropertyColor(int colorSchemeIdx, floa
 
 bool SEAdenitaVisualModel::getShowBasePairingFlag() const { return showBasePairing_; }
 void SEAdenitaVisualModel::setShowBasePairingFlag(bool show) {
+
+	geometryArraysUpdateRequired = true;
 
 	if (this->showBasePairing_ == show) return;
 

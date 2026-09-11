@@ -184,6 +184,10 @@ public:
 
 private:
 
+	void updateGeometryArrays(); ///< Copies changed computation data into independent geometry-owned buffers.
+	bool geometryArraysUpdateRequired{ true }; ///< Invalidates snapshots after computation or interaction changes.
+	bool geometryArraysBreakEditorActive{ false }; ///< Flag policy used by the last snapshot refresh.
+
 	void														init();
 	void														initAtoms(bool createIndex = true);
 	void														initNucleotidesAndSingleStrands(bool createIndex = true);
