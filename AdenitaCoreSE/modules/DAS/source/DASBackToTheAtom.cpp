@@ -1,3 +1,4 @@
+#include "ADNNumericParsing.hpp"
 #include "DASBackToTheAtom.hpp"
 #include "ADNBackbone.hpp"
 #include "ADNFrameAdapters.hpp"
@@ -11,6 +12,8 @@
 
 
 #include <algorithm>
+#include <array>
+#include <set>
 #include <cmath>
 #include <functional>
 #include <iostream>
@@ -1194,11 +1197,66 @@ struct GeneratedResidueCenter {
 
 } // namespace
 
-DASBackToTheAtom::DASBackToTheAtom() {
+namespace {
 
-	//LoadNucleotides();
-	LoadNtPairs();
+// Templates are detached nodes owned by this helper, not by the document.
+// Explicit cleanup is also needed for host versions that retain unowned nodes.
+struct OwnedTemplatePair {
+	NtPair pair;
+	~OwnedTemplatePair() {
+		pair.first.deleteReferenceTarget();
+		pair.second.deleteReferenceTarget();
+	}
+	NtPair release() {
+		NtPair result = pair;
+		pair.first = nullptr;
+		pair.second = nullptr;
+		return result;
+	}
+};
 
+void validateTemplateGeometry(const NtPair& pair, const std::string& source) {
+	using namespace ADNFrameUtils;
+	for (const auto& nucleotide : {pair.first, pair.second}) {
+		if (nucleotide == nullptr) throw std::runtime_error(source + ": Missing nucleotide side");
+		std::map<std::string, Vec3> positions;
+		std::vector<Vec3> base;
+		double backboneMass = 0, sidechainMass = 0;
+		for (auto atom : nucleotide->GetAtoms()) {
+			const auto p = atom->getPosition();
+			const Vec3 position{p[0].getValue(), p[1].getValue(), p[2].getValue()};
+			if (!isFinite(position) || !positions.emplace(atom->getName(), position).second)
+				throw std::runtime_error(source + ": Invalid coordinate or duplicate atom name");
+			const double mass = atom->getAtomicWeight().getValue();
+			if (!std::isfinite(mass) || mass <= 0) throw std::runtime_error(source + ": Invalid atom element");
+			if (atom->IsInADNBackbone()) backboneMass += mass;
+			else { sidechainMass += mass; base.push_back(position); }
+		}
+		for (const char* name : {"C1'", "C3'", "C5'"})
+			if (!positions.count(name)) throw std::runtime_error(source + ": Missing frame atom " + name);
+		if (backboneMass <= 0 || sidechainMass <= 0 || base.size() < 3 ||
+			isNearlyZero(positions.at("C3'") - positions.at("C5'")))
+			throw std::runtime_error(source + ": Incomplete or degenerate nucleotide geometry");
+		bool hasPlane = false;
+		for (size_t i = 1; i < base.size() && !hasPlane; ++i)
+			for (size_t j = i + 1; j < base.size(); ++j)
+				if (!isNearlyZero(cross(base[i] - base[0], base[j] - base[0]))) { hasPlane = true; break; }
+		if (!hasPlane) throw std::runtime_error(source + ": Degenerate nucleotide base plane");
+	}
+}
+
+} // namespace
+
+DASBackToTheAtom::DASBackToTheAtom() : DASBackToTheAtom(SB_ELEMENT_PATH + "/Data") {}
+
+DASBackToTheAtom::DASBackToTheAtom(const std::string& templateDirectory) {
+	LoadNtPairs(templateDirectory);
+}
+
+bool DASBackToTheAtom::EnsureReady() const {
+	if (IsReady()) return true;
+	ADNLogger::LogError(initializationError_);
+	return false;
 }
 
 DASBackToTheAtom::~DASBackToTheAtom() {
@@ -1219,6 +1277,8 @@ DASBackToTheAtom::~DASBackToTheAtom() {
 }
 
 void DASBackToTheAtom::SetDoubleStrandPositions(SBPointer<ADNDoubleStrand> ds) {
+
+	if (!EnsureReady()) return;
 
 	if (ds == nullptr) return;
 
@@ -1269,6 +1329,8 @@ void DASBackToTheAtom::SetDoubleStrandPositions(SBPointer<ADNDoubleStrand> ds) {
 }
 
 void DASBackToTheAtom::SetNucleotidePosition(SBPointer<ADNBaseSegment> bs, bool set_pair) {
+
+	if (!EnsureReady()) return;
 
 	if (bs == nullptr) return;
 
@@ -1502,6 +1564,8 @@ void DASBackToTheAtom::SetPositionsForNewNucleotides(SBPointer<ADNPart> part,
 	SBPointerIndexer<ADNNucleotide> nts,
 	NewNucleotidePlacementMode placementMode) {
 
+	if (!EnsureReady()) return;
+
 	if (part == nullptr) return;
 
 	SBPointerIndexer<ADNBaseSegment> affectedBaseSegments;
@@ -1623,6 +1687,8 @@ void DASBackToTheAtom::SetPositionsForNewNucleotides(SBPointer<ADNPart> part,
 }
 
 void DASBackToTheAtom::UntwistNucleotidesPosition(SBPointer<ADNBaseSegment> bs) {
+
+	if (!EnsureReady()) return;
 
 	if (bs == nullptr) return;
 
@@ -2655,6 +2721,8 @@ void DASBackToTheAtom::PopulateNucleotideWithAllAtoms(SBPointer<ADNPart> origami
 
 void DASBackToTheAtom::GenerateAllAtomModel(SBPointer<ADNPart> origami, bool createFlag) {
 
+	if (!EnsureReady()) return;
+
 	if (origami == nullptr) return;
 
 	// Atom generation is a non-mutating placement operation on existing coarse
@@ -3084,6 +3152,8 @@ void DASBackToTheAtom::SetReferenceFrame(NtPair pair) {
 		ADNVectorMath::AddRowToMatrix(sidechain_positions, ublas::row(new_positions, it));
 	}
 	ublas::vector<double> z = ADNVectorMath::CalculatePlane(sidechain_positions);
+	if (!std::isfinite(ublas::norm_2(z)) || ublas::norm_2(z) <= 1e-12)
+		throw std::runtime_error("Degenerate template base plane");
 	// z has to go 5' -> 3'
 	ublas::vector<double> d_5p3p = c3_prime_left - c5_prime_left;
 	double chk = ublas::inner_prod(z, d_5p3p);
@@ -3094,6 +3164,8 @@ void DASBackToTheAtom::SetReferenceFrame(NtPair pair) {
 	ublas::vector<double> y_prime = c1_prime_left - c1_prime_right;
 	// we need to make sure it is contained in the plane
 	ublas::vector<double> y = y_prime - (ublas::inner_prod(y_prime, z)) * z;
+	if (!std::isfinite(ublas::norm_2(y)) || ublas::norm_2(y) <= 1e-12)
+		throw std::runtime_error("Degenerate template pair axis");
 	y /= ublas::norm_2(y);
 	// third component
 	ublas::vector<double> x = ADNVectorMath::CrossProduct(y, z);
@@ -3135,6 +3207,8 @@ int DASBackToTheAtom::SetAtomsPositions(SBPointerIndexer<ADNAtom> atoms, ublas::
 }
 
 void DASBackToTheAtom::SetNucleotidesPositions(SBPointer<ADNPart> part) {
+
+	if (!EnsureReady()) return;
 
 	if (part == nullptr) return;
 
@@ -3303,188 +3377,101 @@ void DASBackToTheAtom::LoadNucleotides() {
 
 }
 
-void DASBackToTheAtom::LoadNtPairs() {
-
-	for (auto it = nt_pairs_names_.begin(); it != nt_pairs_names_.end(); ++it) {
-
-		std::string name = it->right;
-		if (name == "NN") continue;
-
-		const std::string nt_source = SB_ELEMENT_PATH + "/Data/" + name + ".pdb";
-		try {
-
-			if (!std::filesystem::exists(std::filesystem::u8path(nt_source))) {
-
-				ADNLogger::LogError("Could not find the file " + nt_source);
-				return;
-
-			}
-
-		}
-		catch (...) {
-
-			ADNLogger::LogError("Caught an exception when checking the file " + nt_source);
-			return;
-
-		}
-
-		NtPair nt_pair = ParseBasePairPDB(nt_source);
-
-		SBPointer<ADNNucleotide> nt_left = nt_pair.first;
-		SBPointer<ADNNucleotide> nt_right = nt_pair.second;
-		nt_left->setNucleotideType(it->left.first);
-		nt_right->setNucleotideType(it->left.second);
-
-		SetReferenceFrame(nt_pair);
-
-		// Set positions
-		auto nt_right_cms = CalculateCentersOfMass(nt_right);
-		auto nt_left_cms = CalculateCentersOfMass(nt_left);
-		// center pair
-		auto total_cms = (std::get<0>(nt_right_cms) + std::get<0>(nt_left_cms)) * 0.5;
-
-		nt_right->SetPosition(std::get<0>(nt_right_cms) - total_cms);
-		nt_left->SetPosition(std::get<0>(nt_left_cms) - total_cms);
-		nt_right->SetBackbonePosition(std::get<1>(nt_right_cms) - total_cms);
-		nt_left->SetBackbonePosition(std::get<1>(nt_left_cms) - total_cms);
-		nt_right->SetSidechainPosition(std::get<2>(nt_right_cms) - total_cms);
-		nt_left->SetSidechainPosition(std::get<2>(nt_left_cms) - total_cms);
-
-		if (it->left == std::make_pair(DNABlocks::DA, DNABlocks::DT)) da_dt_ = nt_pair;
-		else if (it->left == std::make_pair(DNABlocks::DC, DNABlocks::DG)) dc_dg_ = nt_pair;
-		else if (it->left == std::make_pair(DNABlocks::DG, DNABlocks::DC)) dg_dc_ = nt_pair;
-		else if (it->left == std::make_pair(DNABlocks::DT, DNABlocks::DA)) dt_da_ = nt_pair;
-
-	}
-
+void DASBackToTheAtom::LoadNtPairs(const std::string& templateDirectory) {
+    // Do not expose any partially loaded set to placement methods.
+    OwnedTemplatePair at, ta, cg, gc;
+    try {
+        const auto load = [&](OwnedTemplatePair& owner, const char* name, DNABlocks left, DNABlocks right) {
+            const auto path = std::filesystem::u8path(templateDirectory) / name;
+            const std::string source = path.u8string();
+            if (!std::filesystem::is_regular_file(path)) throw std::runtime_error(source + ": Missing or unreadable template file");
+            owner.pair = ParseBasePairPDB(source);
+            const auto& pair = owner.pair;
+            if (pair.first->getNucleotideType() != left || pair.second->getNucleotideType() != right)
+                throw std::runtime_error(source + ": Template nucleotide types do not match the requested pair");
+            validateTemplateGeometry(pair, source);
+            try { SetReferenceFrame(pair); }
+            catch (const std::exception& error) { throw std::runtime_error(source + ": " + error.what()); }
+            validateTemplateGeometry(pair, source);
+            const auto leftCenters = CalculateCentersOfMass(pair.first);
+            const auto rightCenters = CalculateCentersOfMass(pair.second);
+            const auto center = (std::get<0>(leftCenters) + std::get<0>(rightCenters)) * 0.5;
+            pair.first->SetPosition(std::get<0>(leftCenters) - center);
+            pair.second->SetPosition(std::get<0>(rightCenters) - center);
+            pair.first->SetBackbonePosition(std::get<1>(leftCenters) - center);
+            pair.second->SetBackbonePosition(std::get<1>(rightCenters) - center);
+            pair.first->SetSidechainPosition(std::get<2>(leftCenters) - center);
+            pair.second->SetSidechainPosition(std::get<2>(rightCenters) - center);
+            for (const auto& nt : {pair.first, pair.second})
+                for (const auto& position : {nt->GetPosition(), nt->GetBackbonePosition(), nt->GetSidechainPosition()})
+                    for (size_t i = 0; i < 3; ++i)
+                        if (!std::isfinite(position[i].getValue())) throw std::runtime_error(source + ": Non-finite template center");
+        };
+        load(at, "AT.pdb", DNABlocks::DA, DNABlocks::DT);
+        load(ta, "TA.pdb", DNABlocks::DT, DNABlocks::DA);
+        load(cg, "CG.pdb", DNABlocks::DC, DNABlocks::DG);
+        load(gc, "GC.pdb", DNABlocks::DG, DNABlocks::DC);
+        da_dt_ = at.release();
+        dt_da_ = ta.release();
+        dc_dg_ = cg.release();
+        dg_dc_ = gc.release();
+        initializationError_.clear();
+    }
+    catch (const std::exception& error) {
+        initializationError_ = std::string("Cannot initialize reconstruction templates: ") + error.what();
+        ADNLogger::LogError(initializationError_);
+    }
 }
 
 NtPair DASBackToTheAtom::ParseBasePairPDB(const std::string& source) {
-
-	std::ifstream file(std::filesystem::u8path(source), std::ios::in);
-
-	if (!file) {
-
-		ADNLogger::LogError("Could not open the file " + source);
-
-	}
-
-	SBPointer<ADNNucleotide> nt_left = new ADNNucleotide();
-	nt_left->Init();
-	SBPointer<ADNNucleotide> nt_right = new ADNNucleotide();
-	nt_right->Init();
-
-	char line[1024];
-	int atom_id_left = 0;
-	int atom_id_right = 0;
-	std::map<int, SBPointer<ADNAtom>> atoms_by_pdb_id;
-	int r_num_f = -1;
-	std::string prev_residue_chain = "";
-
-	while (file.good()) {
-
-		file.getline(line, 1023);
-		std::string s = line;
-		const std::string record_name = s.substr(0, 6);
-		if (record_name == "ATOM  ") {
-
-			auto residue_chain = s.substr(21, 1);
-			if (prev_residue_chain != "" && residue_chain != prev_residue_chain) {
-				r_num_f *= -1;
-			}
-
-			std::string pdb_id = s.substr(6, 5);
-			int p_id = std::stoi(pdb_id);
-
-			SBPointer<ADNAtom> atom = new ADNAtom();
-			atom->setRecordType((char*)"ATOM", 4);
-
-			std::string name = s.substr(12, 4);
-			boost::trim(name);
-			atom->setName(name);
-			atom->setElementType(ADNModel::GetElementType(name));
-			std::string x = s.substr(30, 8);
-			std::string y = s.substr(38, 8);
-			std::string z = s.substr(46, 8);
-			SBPosition3 pos = SBPosition3();
-			pos[0] = SBQuantity::angstrom(std::stod(x));
-			pos[1] = SBQuantity::angstrom(std::stod(y));
-			pos[2] = SBQuantity::angstrom(std::stod(z));
-			atom->setPosition(pos);
-
-			if (r_num_f == -1) {
-
-				NucleotideGroup g = SBNode::SideChain;
-				if (ADNModel::IsAtomInBackboneByName(atom->getName())) g = SBNode::Backbone;
-				nt_left->addAtom(g, atom);
-
-			}
-			else {
-
-				NucleotideGroup g = SBNode::SideChain;
-				if (ADNModel::IsAtomInBackboneByName(atom->getName())) g = SBNode::Backbone;
-				nt_right->addAtom(g, atom);
-
-			}
-
-			atoms_by_pdb_id.insert(std::make_pair(p_id, atom));
-			prev_residue_chain = residue_chain;
-
-		}
-#if 0
-		else if (record_name == "CONECT") {
-
-			// Check length of connect field
-			const size_t l = s.size();
-			std::string a_id = s.substr(7, 5);
-			boost::trim(a_id);
-			int aid = std::stoi(a_id);
-			std::string c_id1 = s.substr(12, 5);
-			boost::trim(c_id1);
-			int cid = std::stoi(c_id1);
-			int cid2 = -1;
-			if (l >= 17) {
-				std::string c_id2 = s.substr(17, 5);
-				boost::trim(c_id2);
-				if (c_id2.size() > 0) {
-					cid2 = std::stoi(c_id2);
-				}
-			}
-			int cid3 = -1;
-			if (l >= 22) {
-				std::string c_id3 = s.substr(22, 5);
-				boost::trim(c_id3);
-				if (c_id3.size() > 0) {
-					cid3 = std::stoi(c_id3);
-				}
-			}
-			int cid4 = -1;
-			if (l >= 27) {
-				std::string c_id4 = s.substr(27, 5);
-				boost::trim(c_id4);
-				if (c_id4.size() > 0) {
-					cid4 = std::stoi(c_id4);
-				}
-			}
-
-			//std::vector<int> neighbors{ cid, cid2, cid3, cid4 };
-			//SBPointer<ADNAtom> atom = atoms_by_pdb_id.at(aid);
-			/*for (auto it = neighbors.begin(); it != neighbors.end(); ++it) {
-			  if (*it > 0) {
-				SBPointer<ADNAtom> at = atoms_by_pdb_id.at(*it);
-				atom->connections_.push_back(at);
-			  }
-			}*/
-
-		}
-#endif
-
-	}
-
-	return std::make_pair(nt_left, nt_right);
-
+    std::ifstream file(std::filesystem::u8path(source));
+    if (!file) throw std::runtime_error(source + ": Cannot open template");
+    OwnedTemplatePair owner;
+    owner.pair.first = new ADNNucleotide();
+    owner.pair.second = new ADNNucleotide();
+    owner.pair.first->Init();
+    owner.pair.second->Init();
+    std::map<std::string, SBPointer<ADNNucleotide>> residues;
+    std::set<int> identifiers;
+    std::string line;
+    size_t lineNumber = 0;
+    while (std::getline(file, line)) {
+        ++lineNumber;
+        if (line.compare(0, 4, "ATOM") != 0) continue;
+        const std::string context = source + ":" + std::to_string(lineNumber);
+        if (line.size() < 54 || line.compare(0, 6, "ATOM  ") != 0)
+            throw std::runtime_error(context + ": Truncated atom record");
+        int id;
+        if (!ADNNumericParsing::tryInteger(std::string_view(line).substr(6, 5), id) || id <= 0 || !identifiers.insert(id).second)
+            throw std::runtime_error(context + ": Invalid or duplicate atom identifier");
+        std::array<double, 3> coordinates{};
+        for (size_t i = 0; i < 3; ++i) {
+            if (!ADNNumericParsing::tryDouble(std::string_view(line).substr(30 + 8 * i, 8), coordinates[i]) ||
+                !std::isfinite(coordinates[i] * coordinates[i] * 10000.0))
+                throw std::runtime_error(context + ": Invalid template coordinate");
+        }
+        const std::string residueKey = line.substr(21, 6);
+        auto found = residues.find(residueKey);
+        if (found == residues.end()) {
+            if (residues.size() == 2) throw std::runtime_error(context + ": More than two nucleotide residues");
+            const auto nt = residues.empty() ? owner.pair.first : owner.pair.second;
+            nt->setNucleotideType(ADNModel::ResidueNameToType(std::string(ADNNumericParsing::trim(std::string_view(line).substr(17, 3)))));
+            found = residues.emplace(residueKey, nt).first;
+        }
+        const std::string name(ADNNumericParsing::trim(std::string_view(line).substr(12, 4)));
+        if (name.empty()) throw std::runtime_error(context + ": Missing atom name");
+        SBPointer<ADNAtom> atom = new ADNAtom();
+        atom->setRecordType((char*)"ATOM", 4);
+        atom->setName(name);
+        atom->setElementType(ADNModel::GetElementType(name));
+        atom->setPosition(SBPosition3(SBQuantity::angstrom(coordinates[0]), SBQuantity::angstrom(coordinates[1]), SBQuantity::angstrom(coordinates[2])));
+        const auto group = ADNModel::IsAtomInBackboneByName(name) ? SBNode::Backbone : SBNode::SideChain;
+        found->second->addAtom(group, atom);
+    }
+    if (file.bad()) throw std::runtime_error(source + ": Cannot read template");
+    if (residues.size() != 2) throw std::runtime_error(source + ": Template requires two nucleotide residues");
+    return owner.release();
 }
-
 NtPair DASBackToTheAtom::GetIdealBasePairNucleotides(SBPointer<ADNNucleotide> nt_l, SBPointer<ADNNucleotide> nt_r) const {
 
 	// scaffold nucleotide is always on the left

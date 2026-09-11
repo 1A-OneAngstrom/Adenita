@@ -1034,6 +1034,10 @@ void SEAdenitaCoreSEAppGUI::onGenerateAtomicModel() {
 		progress.setValue(5);
 
 		DASBackToTheAtom btta = DASBackToTheAtom();
+		if (!btta.IsReady()) {
+			QMessageBox::warning(this, tr("Adenita reconstruction"), QString::fromStdString(btta.GetInitializationError()));
+			return;
+		}
 
 		progress.setValue(10);
 		SAMSON::beginHolding("Add atomic model");

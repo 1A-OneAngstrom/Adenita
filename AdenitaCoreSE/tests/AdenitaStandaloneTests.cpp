@@ -5090,6 +5090,84 @@ void testJsonNumericValidationRejectsNonFiniteAndOverflow() {
 		"A validated identifier must fit the integer conversion used by the loader.");
 }
 
+void testReconstructionTemplateValidationIsTransactional() {
+	const auto directory = temporaryConfigPath("adenita_template_validation");
+	if (!std::filesystem::create_directory(directory)) throw std::runtime_error("Temporary template directory already exists");
+	struct Cleanup {
+		std::filesystem::path directory;
+		~Cleanup() {
+			std::error_code ignored;
+			for (const char* name : {"AT.pdb", "TA.pdb", "CG.pdb", "GC.pdb"}) std::filesystem::remove(directory / name, ignored);
+			std::filesystem::remove(directory, ignored);
+		}
+	} cleanup{directory};
+	const auto bundled = std::filesystem::path(__FILE__).parent_path().parent_path() / "data";
+	const auto restore = [&]() {
+		for (const char* name : {"AT.pdb", "TA.pdb", "CG.pdb", "GC.pdb"}) {
+			std::filesystem::remove(directory / name);
+			std::filesystem::copy_file(bundled / name, directory / name);
+		}
+	};
+	const auto serialize = [](SBPointer<ADNPart> part) {
+		rapidjson::StringBuffer buffer;
+		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+		writer.StartObject();
+		ADNLoader::SavePartToJson(part, writer);
+		writer.EndObject();
+		return std::string(buffer.GetString());
+	};
+	for (int failure = 0; failure < 10; ++failure) {
+		restore();
+		const auto at = directory / "AT.pdb";
+		std::string text = readTextFile(at);
+		if (failure == 0) std::filesystem::remove(directory / "GC.pdb"); // Fail after earlier pairs loaded.
+		else if (failure == 1) writeTextFile(at, "");
+		else if (failure == 2) writeTextFile(at, "ATOM\n");
+		else if (failure == 3) { text.replace(text.find("ATOM  ") + 30, 8, "     nan"); writeTextFile(at, text); }
+		else if (failure == 7) writeTextFile(at, readTextFile(directory / "GC.pdb"));
+		else if (failure == 8) { std::filesystem::remove(at); std::filesystem::create_directory(at); }
+		else {
+			std::istringstream input(text);
+			std::ostringstream output;
+			std::string line, firstResidue;
+			while (std::getline(input, line)) {
+				if (line.compare(0, 6, "ATOM  ") == 0) {
+					if (firstResidue.empty()) firstResidue = line.substr(21, 6);
+					if (failure == 4 && line.substr(21, 6) != firstResidue) continue;
+					if (failure == 5 && line.substr(12, 4).find("C1'") != std::string::npos) continue;
+					if (failure == 6) line.replace(30, 24, "   0.000   0.000   0.000");
+					if (failure == 9) line.replace(6, 5, "    1");
+				}
+				output << line << '\n';
+			}
+			writeTextFile(at, output.str());
+		}
+		DASBackToTheAtom reconstruction(directory.u8string());
+		requireTrue("Invalid template case " + std::to_string(failure), !reconstruction.IsReady() && !reconstruction.GetInitializationError().empty(), "Invalid templates must leave the helper unavailable with a diagnostic.");
+		if (reconstruction.IsReady()) continue;
+		auto fixture = createBaseSegmentFrameFixture();
+		const auto before = serialize(fixture.part);
+		const auto atomCount = fixture.part->GetAtoms().size();
+		reconstruction.SetNucleotidePosition(fixture.baseSegment, true);
+		reconstruction.SetDoubleStrandPositions(fixture.doubleStrand);
+		reconstruction.SetNucleotidesPositions(fixture.part);
+		reconstruction.UntwistNucleotidesPosition(fixture.baseSegment);
+		reconstruction.SetPositionsForNewNucleotides(fixture.part, fixture.part->GetNucleotides(), DASBackToTheAtom::NewNucleotidePlacementMode::ReconstructBaseSegments);
+		reconstruction.GenerateAllAtomModel(fixture.part);
+		requireEqual("Unavailable reconstruction preserves model", serialize(fixture.part), before);
+		requireEqual("Unavailable reconstruction preserves atoms", fixture.part->GetAtoms().size(), atomCount);
+	}
+	restore();
+	DASBackToTheAtom ready(directory.u8string());
+	requireTrue("Complete valid templates initialize", ready.IsReady(), ready.GetInitializationError());
+	if (ready.IsReady()) {
+		auto fixture = createBaseSegmentFrameFixture();
+		ready.SetNucleotidePosition(fixture.baseSegment, true);
+		const auto left = getLeftNucleotide(fixture.baseSegment);
+		requireTrue("Validated templates produce finite geometry", std::isfinite(left->GetBackbonePosition()[0].getValue()), "Placement must remain usable after validation.");
+	}
+}
+
 void testNtthalParserRejectsNonFiniteThermodynamics() {
 	for (const char* value : { "nan", "inf", "-inf" }) {
 		const std::string output = std::string("dS = ") + value +
@@ -5132,6 +5210,7 @@ void runEdgeCaseTests() {
 		{ "testOxDNAExportRoundTripAndCircularEndpoints", testOxDNAExportRoundTripAndCircularEndpoints },
 		{ "testCheckedNumericConversions", testCheckedNumericConversions },
 		{ "testJsonLoadRejectsInvalidCoordinatesAndIdentifiers", testJsonLoadRejectsInvalidCoordinatesAndIdentifiers },
+		{ "testReconstructionTemplateValidationIsTransactional", testReconstructionTemplateValidationIsTransactional },
 		{ "testJsonNumericValidationRejectsNonFiniteAndOverflow", testJsonNumericValidationRejectsNonFiniteAndOverflow },
 		{ "testNtthalParserRejectsNonFiniteThermodynamics", testNtthalParserRejectsNonFiniteThermodynamics }
 	};

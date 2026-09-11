@@ -34,8 +34,18 @@ public:
         PreserveInputGeometry
     };
 
+    /// \brief Loads the installed reconstruction templates; inspect IsReady before editing a model.
     DASBackToTheAtom();
+    /// \brief Loads templates from an explicit directory without changing application settings.
+    /// \param templateDirectory UTF-8 directory containing AT, TA, CG, and GC PDB files.
+    explicit DASBackToTheAtom(const std::string& templateDirectory);
     ~DASBackToTheAtom();
+    DASBackToTheAtom(const DASBackToTheAtom&) = delete; ///< Template ownership cannot be copied.
+    DASBackToTheAtom& operator=(const DASBackToTheAtom&) = delete;
+    /// \brief Returns whether all templates passed validation and are available for placement.
+    [[nodiscard]] bool IsReady() const noexcept { return initializationError_.empty(); }
+    /// \brief Returns the initialization failure, or an empty string when ready.
+    [[nodiscard]] const std::string& GetInitializationError() const noexcept { return initializationError_; }
 
     /**
      * Sets the nucleotides backbone, sidechain and center of mass positions for an entire
@@ -90,6 +100,9 @@ public:
 
 private:
 
+    std::string initializationError_{ "Reconstruction templates have not been loaded" };
+    bool EnsureReady() const; ///< Logs initialization failure before a template-dependent mutation.
+
     struct AtomTemplateSelection {
         NtPair pair;
         SBPointer<ADNNucleotide> nucleotide{ nullptr };
@@ -124,7 +137,7 @@ private:
     void LoadNucleotides();
     /** Loads the four base pairs as members
     */
-    void LoadNtPairs();
+    void LoadNtPairs(const std::string& templateDirectory);
 
     /** Parses a nucleotide PDB file.
      *  \param a string with the location of the PDB.

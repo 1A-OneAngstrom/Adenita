@@ -350,9 +350,13 @@ void SEAdenitaCoreSEApp::AddNtThreeP(int numNt) {
 		auto part = ss->GetPart();
 		SBVector3 dir = ADNAuxiliary::UblasVectorToSBVector(nt->GetBaseSegment()->GetE3());
 
+		DASBackToTheAtom btta;
+		if (!btta.IsReady()) {
+			SAMSON::informUser("Adenita reconstruction", QString::fromStdString(btta.GetInitializationError()));
+			return;
+		}
 		auto nts = ADNBasicOperations::AddNucleotidesThreePrime(part, ss, numNt, dir);
-		DASBackToTheAtom* btta = new DASBackToTheAtom();
-		btta->SetPositionsForNewNucleotides(part,
+		btta.SetPositionsForNewNucleotides(part,
 			nts,
 			DASBackToTheAtom::NewNucleotidePlacementMode::PositionInputNucleotidesOnly);
 
@@ -1518,6 +1522,12 @@ void SEAdenitaCoreSEApp::addPartToDocument(SBPointer<ADNPart> part, bool positio
 	if (document == nullptr) return;
 	ADNNanorobot* nanorobot = getNanorobot(document);
 	if (nanorobot == nullptr) return;
+	// Check installation data before sequence changes, mock atoms, or registration.
+	DASBackToTheAtom btta;
+	if (!btta.IsReady()) {
+		SAMSON::informUser("Adenita reconstruction", QString::fromStdString(btta.GetInitializationError()));
+		return;
+	}
 
 	SEConfig& config = SEConfig::GetInstance();
 	if (config.auto_set_scaffold_sequence) {
@@ -1537,7 +1547,6 @@ void SEAdenitaCoreSEApp::addPartToDocument(SBPointer<ADNPart> part, bool positio
 
 	}
 
-	DASBackToTheAtom btta = DASBackToTheAtom();
 	btta.PopulateWithMockAtoms(part, positionsData);
 	if (!positionsData) {
 

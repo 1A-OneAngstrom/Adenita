@@ -74,6 +74,7 @@ void SEDNATwisterEditor::untwisting() {
 	}
 
 	DASBackToTheAtom btta;
+	if (!btta.IsReady()) return; // Loading already reported the error; no frames have been modified.
 
 	SB_FOR(SBPointer<ADNBaseSegment> baseSegment, affectedBaseSegments) {
 
