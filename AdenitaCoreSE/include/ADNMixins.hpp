@@ -70,14 +70,21 @@ public:
 
     PositionableSB();
     ~PositionableSB() = default;
+    /// \brief Copies the position into a fresh center atom.
+    /// \param other Source position; an absent center contributes the zero position.
     PositionableSB(const PositionableSB& other);
 
+    /// \brief Copies a position while preserving an existing destination center's identity.
+    /// \param other Source position value.
+    /// \return This positionable object.
     PositionableSB& operator=(const PositionableSB& other);
 
     void SetPosition(const SBPosition3& pos);
     [[nodiscard]] const SBPosition3& GetPosition() const;
 
     [[nodiscard]] SBPointer<ADNAtom> GetCenterAtom() const;
+    /// \brief Explicitly rebinds the center, allowing shared position storage.
+    /// \param centerAtom Shared center atom, or null to clear the center.
     void SetCenterAtom(SBPointer<ADNAtom> centerAtom);
     void HideCenterAtom();
 

@@ -819,10 +819,14 @@ SBPosition3 ADNBasicOperations::CalculateCenterOfMass(SBPointer<ADNPart> part) {
 
     auto atoms = part->GetAtoms();
 
-    SB_FOR(SBPointer<ADNAtom> a, atoms) if (a.isValid()) cm += a->getPosition();
+    std::size_t count = 0;
+    SB_FOR(SBPointer<ADNAtom> a, atoms) if (a.isValid()) {
+        cm += a->getPosition();
+        ++count;
+    }
 
-    auto sz = atoms.size();
-    cm *= (1.0 / sz);
+    // Coarse models may contain no atoms; preserve the arithmetic-center convention without dividing by zero.
+    if (count != 0) cm *= (1.0 / count);
     return cm;
 
 }

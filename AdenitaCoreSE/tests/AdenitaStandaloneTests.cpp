@@ -6,6 +6,7 @@
 /// \brief Standalone smoke tests for Adenita code that does not launch SAMSON.
 
 #include <cstddef>
+#include <cfloat>
 #include <array>
 #include <QCoreApplication>
 #include <cstdlib>
@@ -4582,13 +4583,78 @@ void testArrayRejectsOverflowingDimensions() {
 	try {
 		ADNArray<int> values(2, std::numeric_limits<std::size_t>::max() / 2 + 1);
 	}
-	catch (const std::exception&) {
-		rejected = true;
-	}
-	catch (int) {
+	catch (const std::length_error&) {
 		rejected = true;
 	}
 	requireTrue("Array rejects overflowing shape", rejected, "The element count must be checked before allocation.");
+}
+
+struct ThrowingArrayElement {
+	inline static int live = 0;
+	inline static bool rejectCopy = false;
+	ThrowingArrayElement() { ++live; }
+	~ThrowingArrayElement() { --live; }
+	ThrowingArrayElement& operator=(const ThrowingArrayElement&) {
+		if (rejectCopy) throw std::runtime_error("Injected element copy failure");
+		return *this;
+	}
+};
+
+void testArrayShapesRowsAndCopyFailures() {
+	ADNArray<int> values(2, 2);
+	for (std::size_t row = 0; row < 2; ++row)
+		for (std::size_t column = 0; column < 2; ++column)
+			values(row, column) = static_cast<int>(row * 10 + column);
+	const auto& constant = values;
+	requireEqual("One-index access selects the first column", constant(1), 10);
+	auto row = constant.GetRow(1);
+	requireEqual("Row extraction preserves last value", row(1), 11);
+	row(0) = 20;
+	values.SetRow(0, row);
+	requireEqual("Row replacement copies values", constant(0, 0), 20);
+	requireEqual("Row replacement preserves other rows", constant(1, 0), 10);
+	requireThrowsInt("GetRow rejects row at height", [&] { (void)constant.GetRow(2); }, 30);
+	requireThrowsInt("SetRow rejects row at height", [&] { values.SetRow(2, row); }, 30);
+	ADNArray<int> wrongRow(3);
+	requireThrowsInt("SetRow rejects incompatible dimensions", [&] { values.SetRow(0, wrongRow); }, 31);
+	ADNArray<int> noColumns(0, 2), emptyRow(0), noRows(2, 0);
+	const auto& constantEmpty = noColumns;
+	noColumns.SetRow(1, emptyRow);
+	requireEqual("Zero-width row can be copied", noColumns.GetRow(1).GetNumElements(), std::size_t(0));
+	requireThrowsInt("Zero-width mutable element rejects access", [&] { (void)noColumns(0); }, 30);
+	requireThrowsInt("Zero-width const element rejects access", [&] { (void)constantEmpty(0, 0); }, 30);
+	requireThrowsInt("Zero-width GetRow still checks height", [&] { (void)noColumns.GetRow(2); }, 30);
+	requireThrowsInt("Zero-width SetRow still checks height", [&] { noColumns.SetRow(2, emptyRow); }, 30);
+	requireThrowsInt("Zero-height array rejects rows", [&] { (void)noRows(0, 0); }, 30);
+	std::unique_ptr<ADNArray<int>> joined(ADNArray<int>::Concatenate(values, values));
+	requireEqual("Concatenation appends all rows", joined->GetNumElements(), std::size_t(4));
+	requireEqual("Concatenation preserves second input", (*joined)(3, 1), 11);
+	requireThrowsInt("Concatenation requires equal widths", [&] { std::unique_ptr<ADNArray<int>> invalid(ADNArray<int>::Concatenate(values, wrongRow)); }, 31);
+	const auto maximum = std::numeric_limits<std::size_t>::max();
+	bool rejected = false;
+	try { ADNArray<int> oversized(1, maximum / sizeof(int) + 1); }
+	catch (const std::length_error&) { rejected = true; }
+	requireTrue("Array rejects byte-size overflow", rejected, "Storage overflow must produce length_error before allocation.");
+	ADNArray<int> manyEmptyRows(0, maximum), oneEmptyRow(0, 1);
+	rejected = false;
+	try { std::unique_ptr<ADNArray<int>> oversized(ADNArray<int>::Concatenate(manyEmptyRows, oneEmptyRow)); }
+	catch (const std::length_error&) { rejected = true; }
+	requireTrue("Concatenation rejects row-count overflow", rejected, "Even zero-width shapes need checked row addition.");
+	std::unique_ptr<ADNArray<int>> zeroWidth(ADNArray<int>::Concatenate(noColumns, oneEmptyRow));
+	requireEqual("Zero-width concatenation preserves height", zeroWidth->GetNumElements(), std::size_t(3));
+	{
+		ADNArray<ThrowingArrayElement> input(2, 2);
+		const int before = ThrowingArrayElement::live;
+		ThrowingArrayElement::rejectCopy = true;
+		requireThrowsRuntimeError("Concatenation propagates element copy failure", [&] {
+			std::unique_ptr<ADNArray<ThrowingArrayElement>> result(ADNArray<ThrowingArrayElement>::Concatenate(input, input));
+		});
+		requireEqual("Failed concatenation releases temporary elements", ThrowingArrayElement::live, before);
+		requireThrowsRuntimeError("Array copy propagates element failure", [&] { ADNArray<ThrowingArrayElement> copy(input); });
+		requireEqual("Failed copy releases temporary elements", ThrowingArrayElement::live, before);
+		ThrowingArrayElement::rejectCopy = false;
+	}
+	requireEqual("Array destruction releases all elements", ThrowingArrayElement::live, 0);
 }
 
 void testArraySelfAssignmentAndEmptyConcatenation() {
@@ -4611,11 +4677,32 @@ void testPositionableCopiesHaveIndependentCenters() {
 	original.SetPosition(positionAngstrom(1, 2, 3));
 	PositionableSB copied(original);
 	PositionableSB assigned;
+	const auto destinationCenter = assigned.GetCenterAtom();
 	assigned = original;
+	requireTrue("Position assignment retains destination identity", assigned.GetCenterAtom() == destinationCenter, "Existing node references must stay attached to the destination.");
+	requirePositionNear("Position copy preserves value", copied.GetPosition(), original.GetPosition(), 0.0);
 	requireTrue("Copied center atom is independent", copied.GetCenterAtom() != original.GetCenterAtom(), "A copied position must not alias the source atom.");
 	requireTrue("Assigned center atom is independent", assigned.GetCenterAtom() != original.GetCenterAtom(), "Assigning position values must not share atom ownership.");
 	copied.SetPosition(positionAngstrom(9, 8, 7));
 	requirePositionNear("Moving a copied position preserves the original", original.GetPosition(), positionAngstrom(1, 2, 3), 1.0e-9);
+	assigned.SetPosition(positionAngstrom(4, 5, 6));
+	assigned = assigned;
+	requirePositionNear("Self assignment preserves position", assigned.GetPosition(), positionAngstrom(4, 5, 6), 0.0);
+	requireTrue("Self assignment preserves center", assigned.GetCenterAtom() == destinationCenter, "Self assignment must preserve node identity.");
+	PositionableSB absent;
+	absent.SetCenterAtom(nullptr);
+	PositionableSB copiedAbsent(absent);
+	requireTrue("Copy of absent center creates storage", copiedAbsent.GetCenterAtom() != nullptr, "Value copying must create an independent center.");
+	requirePositionNear("Absent source copies zero", copiedAbsent.GetPosition(), SBPosition3::zero, 0.0);
+	assigned = absent;
+	requirePositionNear("Absent source assigns zero", assigned.GetPosition(), SBPosition3::zero, 0.0);
+	requireTrue("Absent source does not remove destination center", assigned.GetCenterAtom() == destinationCenter, "Only SetCenterAtom should rebind the center.");
+	absent = original;
+	requireTrue("Assignment restores missing destination storage", absent.GetCenterAtom() != nullptr && absent.GetCenterAtom() != original.GetCenterAtom(), "An absent destination needs fresh storage.");
+	requirePositionNear("Restored destination copies value", absent.GetPosition(), original.GetPosition(), 0.0);
+	absent.SetCenterAtom(original.GetCenterAtom());
+	absent.SetPosition(positionAngstrom(7, 8, 9));
+	requirePositionNear("Explicit center sharing is preserved", original.GetPosition(), absent.GetPosition(), 0.0);
 }
 
 void testPairAssignmentIsIdempotent() {
@@ -4755,6 +4842,19 @@ void testEmptyPartCenterOfMassIsFinite() {
 	SBPointer<ADNPart> part = new ADNPart();
 	requirePositionNear("Empty part center is zero", ADNBasicOperations::CalculateCenterOfMass(part), SBPosition3::zero, 0.0);
 	requirePositionNear("Null part center is zero", ADNBasicOperations::CalculateCenterOfMass(nullptr), SBPosition3::zero, 0.0);
+	auto fixture = createAtomicGenerationFixture();
+	requireEqual("Coarse fixture has no atomic detail", fixture.part->GetAtoms().size(), 0u);
+	requirePositionNear("Coarse part center is zero", ADNBasicOperations::CalculateCenterOfMass(fixture.part), SBPosition3::zero, 0.0);
+	const auto position = fixture.left->GetPosition();
+	ADNBasicOperations::CenterPart(fixture.part);
+	requirePositionNear("Centering atom-free part preserves geometry", fixture.left->GetPosition(), position, 0.0);
+	SBPointer<ADNAtom> first = new ADNAtom(), second = new ADNAtom();
+	first->setPosition(positionAngstrom(1, 2, 3));
+	second->setPosition(positionAngstrom(5, 8, 11));
+	fixture.part->RegisterAtom(fixture.baseSegment, first);
+	requirePositionNear("Single atom determines arithmetic center", ADNBasicOperations::CalculateCenterOfMass(fixture.part), first->getPosition(), 0.0);
+	fixture.part->RegisterAtom(fixture.baseSegment, second);
+	requirePositionNear("Populated part keeps arithmetic center", ADNBasicOperations::CalculateCenterOfMass(fixture.part), positionAngstrom(3, 5, 7), 1.0e-9);
 }
 
 void testNeighborFiltersQueriesAndOwnership() {
@@ -5169,13 +5269,23 @@ void testReconstructionTemplateValidationIsTransactional() {
 }
 
 void testNtthalParserRejectsNonFiniteThermodynamics() {
-	for (const char* value : { "nan", "inf", "-inf" }) {
-		const std::string output = std::string("dS = ") + value +
-			" dH = -24400 dG = -3022.33 t = 37.0\nline2\nline3\nline4\nline5\n";
-		requireTrue(std::string("Non-finite ntthal value rejected: ") + value,
-			!PIPrimer3::ParseNtthalOutput(output).isValid,
-			"A non-finite thermodynamic value must not be marked valid.");
+	const std::array<std::string, 4> labels{ "dS = ", "dH = ", "dG = ", "t = " };
+	for (std::size_t field = 0; field < labels.size(); ++field) {
+		for (const char* value : { "nan", "inf", "-inf", "1e999", "1e-999", "1oops" }) {
+			std::string output;
+			for (std::size_t i = 0; i < labels.size(); ++i)
+				output += labels[i] + (i == field ? value : "1.25e+1") + " ";
+			const auto result = PIPrimer3::ParseNtthalOutput(output + "\nline2\nline3\nline4\nline5\n");
+			requireTrue("Invalid ntthal field rejected: " + labels[field] + value, !result.isValid, "Every thermodynamic field must contain a complete finite value.");
+			requireTrue("Invalid ntthal result keeps sentinel fields", result.dS_ == FLT_MAX && result.dH_ == FLT_MAX && result.dG_ == FLT_MAX && result.T_ == FLT_MAX, "Failed parsing must not expose partial values.");
+		}
 	}
+	const auto valid = PIPrimer3::ParseNtthalOutput("dS = -1.25e+1 dH = +2.5E2 dG = 0 t = 3.7e1\nline2\nline3\nline4\nline5\n");
+	requireTrue("Finite ntthal exponents remain supported", valid.isValid, "Valid numeric representations must remain supported.");
+	requireNear("ntthal entropy value", valid.dS_, -12.5, 0.0);
+	requireNear("ntthal enthalpy value", valid.dH_, 250.0, 0.0);
+	requireNear("ntthal free energy value", valid.dG_, 0.0, 0.0);
+	requireNear("ntthal temperature value", valid.T_, 37.0, 0.0);
 }
 
 int reportTestFailures() {
@@ -5191,6 +5301,7 @@ void runEdgeCaseTests() {
 		{ "testArrayRejectsWrappedRowIndex", testArrayRejectsWrappedRowIndex },
 		{ "testArrayRejectsOverflowingDimensions", testArrayRejectsOverflowingDimensions },
 		{ "testArraySelfAssignmentAndEmptyConcatenation", testArraySelfAssignmentAndEmptyConcatenation },
+		{ "testArrayShapesRowsAndCopyFailures", testArrayShapesRowsAndCopyFailures },
 		{ "testPositionableCopiesHaveIndependentCenters", testPositionableCopiesHaveIndependentCenters },
 		{ "testPairAssignmentIsIdempotent", testPairAssignmentIsIdempotent },
 		{ "testPairReplacementRetainsNewPartner", testPairReplacementRetainsNewPartner },

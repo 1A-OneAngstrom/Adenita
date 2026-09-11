@@ -61,6 +61,9 @@ namespace ADNBasicOperations {
     // Geometric operations
     SB_EXPORT void TwistDoubleHelix(SBPointer<ADNDoubleStrand> ds, double deg);
     SB_EXPORT void CenterPart(SBPointer<ADNPart> part);
+    /// \brief Calculates the arithmetic center of the part's valid atoms.
+    /// \param part Part to inspect, or null.
+    /// \return The arithmetic center, or zero when no atoms contribute.
     SB_EXPORT [[nodiscard]] SBPosition3 CalculateCenterOfMass(SBPointer<ADNPart> part);
 
     // Ordering and helpers
