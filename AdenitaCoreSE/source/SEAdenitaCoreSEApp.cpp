@@ -1522,9 +1522,9 @@ void SEAdenitaCoreSEApp::addPartToDocument(SBPointer<ADNPart> part, bool positio
 	if (document == nullptr) return;
 	ADNNanorobot* nanorobot = getNanorobot(document);
 	if (nanorobot == nullptr) return;
-	// Check installation data before sequence changes, mock atoms, or registration.
+	// Supplied coordinates need only template-free mock atoms; require templates before reconstructing positions.
 	DASBackToTheAtom btta;
-	if (!btta.IsReady()) {
+	if (!positionsData && !btta.IsReady()) {
 		SAMSON::informUser("Adenita reconstruction", QString::fromStdString(btta.GetInitializationError()));
 		return;
 	}

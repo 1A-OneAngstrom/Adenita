@@ -24,6 +24,13 @@
 #include <type_traits>
 #include <vector>
 
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <Windows.h>
+#endif
+
 #include "ADNBaseSegment.hpp"
 #include "ADNBackbone.hpp"
 #include "ADNAtom.hpp"
@@ -5373,8 +5380,32 @@ void testReconstructionTemplateValidationIsTransactional() {
 		reconstruction.GenerateAllAtomModel(fixture.part);
 		requireEqual("Unavailable reconstruction preserves model", serialize(fixture.part), before);
 		requireEqual("Unavailable reconstruction preserves atoms", fixture.part->GetAtoms().size(), atomCount);
+		auto supplied = createAtomicGenerationFixture();
+		const auto suppliedLeft = supplied.left->GetPosition(), suppliedRight = supplied.right->GetPosition();
+		const auto backbone = supplied.left->GetBackbonePosition(), sidechain = supplied.right->GetSidechainPosition();
+		reconstruction.PopulateWithMockAtoms(supplied.part, true);
+		requireTrue("Mock atoms do not require templates", supplied.part->GetAtoms().size() > 0, "Provided coordinates must remain usable without reconstruction templates.");
+		requirePositionNear("Template-free population preserves left coordinates", supplied.left->GetPosition(), suppliedLeft, 0.0);
+		requirePositionNear("Template-free population preserves right coordinates", supplied.right->GetPosition(), suppliedRight, 0.0);
+		requirePositionNear("Template-free population preserves backbone coordinates", supplied.left->GetBackbonePosition(), backbone, 0.0);
+		requirePositionNear("Template-free population preserves sidechain coordinates", supplied.right->GetSidechainPosition(), sidechain, 0.0);
 	}
 	restore();
+#if defined(_WIN32)
+	{
+		// An exclusive handle makes this regular file unreadable without changing permissions or installed data.
+		struct ExclusiveTemplateFile {
+			HANDLE handle;
+			~ExclusiveTemplateFile() { if (handle != INVALID_HANDLE_VALUE) CloseHandle(handle); }
+		} locked{ CreateFileW((directory / "AT.pdb").c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr) };
+		requireTrue("Unreadable-template fixture holds an exclusive file", locked.handle != INVALID_HANDLE_VALUE, "The fixture must deny concurrent reads to a valid regular file.");
+		if (locked.handle != INVALID_HANDLE_VALUE) {
+			DASBackToTheAtom unreadable(directory.u8string());
+			requireTrue("Unreadable regular template rejects initialization", !unreadable.IsReady(), "A failed file open must not publish templates.");
+			requireTrue("Unreadable template diagnostic identifies the file", unreadable.GetInitializationError().find("AT.pdb") != std::string::npos, "Report the file whose access failed.");
+		}
+	}
+#endif
 	DASBackToTheAtom ready(directory.u8string());
 	requireTrue("Complete valid templates initialize", ready.IsReady(), ready.GetInitializationError());
 	if (ready.IsReady()) {

@@ -134,6 +134,11 @@ public:
 	static void													getAdenitaParts(SBNodeIndexer& nodeIndexer, SBNode* parent = nullptr);
 	[[nodiscard]] static bool									hasAdenitaPart(SBNode* parent);
 
+	/// \brief Adds a part using supplied coordinates or validated reconstruction templates.
+	/// \param part Part to register in the active document.
+	/// \param positionsData True if coordinates are already supplied and do not require reconstruction.
+	/// \param preferredFolder Optional destination folder in the document.
+	/// Unavailable reconstruction templates leave the part unregistered when positionsData is false.
 	void														addPartToDocument(SBPointer<ADNPart> part, bool positionsData = false, SBFolder* preferredFolder = nullptr);
 	void														addConformationToDocument(SBPointer<ADNConformation> conf, SBFolder* preferredFolder = nullptr);
 	void														AddLoadedPartToNanorobot(SBPointer<ADNPart> part);
