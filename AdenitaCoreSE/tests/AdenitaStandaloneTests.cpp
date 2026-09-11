@@ -5405,6 +5405,85 @@ void testNtthalParserRejectsNonFiniteThermodynamics() {
 	requireNear("ntthal temperature value", valid.T_, 37.0, 0.0);
 }
 
+void testLoopConversionRejectsIncompleteAndInconsistentPairs() {
+	ADNBasicOperations::MutateBasePairIntoLoopPair(nullptr);
+	for (int scenario = 0; scenario < 9; ++scenario) {
+		auto fixture = createAtomicGenerationFixture();
+		SBPointer<ADNCell> cell = fixture.baseSegment->GetCell();
+		SBPointer<ADNBasePair> pair = static_cast<ADNBasePair*>(cell());
+		SBPointer<ADNBaseSegment> foreignSegment = new ADNBaseSegment(CellType::BasePair);
+		SBPointer<ADNPart> foreignPart = new ADNPart();
+		SBPointer<ADNNucleotide> foreignPartner = new ADNNucleotide();
+		if (scenario == 0) pair->SetRightNucleotide(nullptr); // Left only.
+		if (scenario == 1) pair->SetLeftNucleotide(nullptr); // Right only.
+		if (scenario == 2) { pair->SetLeftNucleotide(nullptr); pair->SetRightNucleotide(nullptr); }
+		if (scenario == 3) pair->SetRightNucleotide(fixture.left);
+		if (scenario == 4) {
+			fixture.right->SetBaseSegment(foreignSegment);
+			pair->SetRightNucleotide(fixture.right); // Deliberately inconsistent back-reference.
+		}
+		if (scenario == 5) {
+			fixture.part->DeregisterSingleStrand(fixture.rightStrand);
+			foreignPart->RegisterSingleStrand(fixture.rightStrand);
+			requireTrue("Foreign-part fixture has different ownership", fixture.rightStrand->GetPart() == foreignPart, "Detach before reparenting: adding an already attached child does not move it.");
+		}
+		if (scenario == 6) {
+			fixture.baseSegment->removeChild(cell());
+			foreignSegment->SetCell(cell());
+			requireTrue("Foreign-cell fixture has a different parent", cell->getParent() == foreignSegment(), "The deliberately inconsistent cell must actually belong to another segment.");
+		}
+		if (scenario == 7) {
+			fixture.left->SetPair(foreignPartner);
+			foreignPartner->SetPair(fixture.left);
+		}
+		if (scenario == 8) fixture.rightStrand->removeChild(fixture.right());
+		const auto left = pair->GetLeftNucleotide(), right = pair->GetRightNucleotide();
+		const auto leftPartner = fixture.left->GetPair(), rightPartner = fixture.right->GetPair();
+		const auto leftSegment = fixture.left->GetBaseSegment(), rightSegment = fixture.right->GetBaseSegment();
+		const auto leftPosition = fixture.left->GetPosition(), rightPosition = fixture.right->GetPosition();
+		const auto leftStrand = fixture.left->GetStrand(), rightStrand = fixture.right->GetStrand();
+		const auto parent = cell->getParent();
+		ADNBasicOperations::MutateBasePairIntoLoopPair(fixture.baseSegment);
+		requireTrue("Rejected loop conversion preserves cell " + std::to_string(scenario), fixture.baseSegment->GetCell() == cell && cell->getParent() == parent, "Reject before replacing or reparenting the cell.");
+		requireTrue("Rejected loop conversion preserves endpoints", pair->GetLeftNucleotide() == left && pair->GetRightNucleotide() == right, "Partial/invalid endpoints must not be rewritten.");
+		requireTrue("Rejected loop conversion preserves pairing", fixture.left->GetPair() == leftPartner && fixture.right->GetPair() == rightPartner, "Rejection must not disconnect any relationship.");
+		requireTrue("Rejected loop conversion preserves attachment", fixture.left->GetBaseSegment() == leftSegment && fixture.right->GetBaseSegment() == rightSegment, "Back-references must remain unchanged.");
+		requireTrue("Rejected loop conversion preserves strands", fixture.left->GetStrand() == leftStrand && fixture.right->GetStrand() == rightStrand, "Strand topology must remain unchanged.");
+		requirePositionNear("Rejected loop conversion preserves left geometry", fixture.left->GetPosition(), leftPosition, 0.0);
+		requirePositionNear("Rejected loop conversion preserves right geometry", fixture.right->GetPosition(), rightPosition, 0.0);
+	}
+	SBPointer<ADNBaseSegment> noCell = new ADNBaseSegment();
+	noCell->SetCell(nullptr);
+	ADNBasicOperations::MutateBasePairIntoLoopPair(noCell);
+	requireTrue("Cell-free conversion is a no-op", noCell->GetCell() == nullptr, "A missing cell must stay absent.");
+	SBPointer<ADNBaseSegment> unpublished = new ADNBaseSegment(CellType::BasePair);
+	SBPointer<ADNNucleotide> unpublishedLeft = new ADNNucleotide(), unpublishedRight = new ADNNucleotide();
+	unpublishedLeft->SetBaseSegment(unpublished);
+	unpublishedRight->SetBaseSegment(unpublished);
+	static_cast<ADNBasePair*>(unpublished->GetCell()())->AddPair(unpublishedLeft, unpublishedRight);
+	ADNBasicOperations::MutateBasePairIntoLoopPair(unpublished);
+	requireTrue("Complete unpublished pairs remain supported", unpublished->GetCellType() == CellType::LoopPair, "Consistent unpublished geometry must not require a document or part.");
+	for (bool paired : { true, false }) {
+		auto fixture = createAtomicGenerationFixture();
+		if (!paired) fixture.left->disconnectPair();
+		const auto leftPosition = fixture.left->GetPosition(), rightPosition = fixture.right->GetPosition();
+		ADNBasicOperations::MutateBasePairIntoLoopPair(fixture.baseSegment);
+		requireTrue("Complete base pair converts into loop pair", fixture.baseSegment->GetCellType() == CellType::LoopPair, "Both complete paired and unpaired cells must be supported.");
+		if (fixture.baseSegment->GetCellType() != CellType::LoopPair) continue;
+		SBPointer<ADNLoopPair> loops = static_cast<ADNLoopPair*>(fixture.baseSegment->GetCell()());
+		requireTrue("Complete loop conversion clears pairing", fixture.left->GetPair() == nullptr && fixture.right->GetPair() == nullptr, "Loop nucleotides must be unpaired.");
+		requireTrue("Left loop retains its endpoint", loops->GetLeftLoop()->GetStart() == fixture.left && loops->GetLeftLoop()->GetEnd() == fixture.left, "Left loop should contain its original nucleotide.");
+		requireTrue("Right loop retains its endpoint", loops->GetRightLoop()->GetStart() == fixture.right && loops->GetRightLoop()->GetEnd() == fixture.right, "Right loop should contain its original nucleotide.");
+		requireEqual("Each loop contains one nucleotide", loops->GetLeftLoop()->getNumberOfNucleotides() + loops->GetRightLoop()->getNumberOfNucleotides(), 2);
+		requireTrue("Loop conversion retains segment attachment", fixture.left->GetBaseSegment() == fixture.baseSegment && fixture.right->GetBaseSegment() == fixture.baseSegment, "Segment identities must remain intact.");
+		requireTrue("Loop conversion retains strand topology", fixture.left->GetStrand() == fixture.leftStrand && fixture.right->GetStrand() == fixture.rightStrand, "Strand membership must not change.");
+		requirePositionNear("Loop conversion retains left geometry", fixture.left->GetPosition(), leftPosition, 0.0);
+		requirePositionNear("Loop conversion retains right geometry", fixture.right->GetPosition(), rightPosition, 0.0);
+		ADNBasicOperations::MutateBasePairIntoLoopPair(fixture.baseSegment);
+		requireTrue("Repeated conversion preserves the existing loops", fixture.baseSegment->GetCell()() == loops(), "An already converted cell must stay unchanged.");
+	}
+}
+
 int reportTestFailures() {
 	for (const auto& failure : failures)
 		std::cerr << "[FAIL] " << failure.file << ":" << failure.line << " in " << failure.function << " - " << failure.name << ": " << failure.message << std::endl;
@@ -5441,7 +5520,8 @@ void runEdgeCaseTests() {
 		{ "testJsonLoadRejectsInvalidCoordinatesAndIdentifiers", testJsonLoadRejectsInvalidCoordinatesAndIdentifiers },
 		{ "testReconstructionTemplateValidationIsTransactional", testReconstructionTemplateValidationIsTransactional },
 		{ "testJsonNumericValidationRejectsNonFiniteAndOverflow", testJsonNumericValidationRejectsNonFiniteAndOverflow },
-		{ "testNtthalParserRejectsNonFiniteThermodynamics", testNtthalParserRejectsNonFiniteThermodynamics }
+		{ "testNtthalParserRejectsNonFiniteThermodynamics", testNtthalParserRejectsNonFiniteThermodynamics },
+		{ "testLoopConversionRejectsIncompleteAndInconsistentPairs", testLoopConversionRejectsIncompleteAndInconsistentPairs }
 	};
 	for (const auto& test : tests) {
 		std::cerr << "[RUN] " << test.first << std::endl;

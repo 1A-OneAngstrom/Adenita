@@ -36,6 +36,10 @@ namespace ADNBasicOperations {
     // Mutations
     SB_EXPORT void MutateNucleotide(SBPointer<ADNNucleotide> nt, DNABlocks newType, bool changePair = true);
     SB_EXPORT void SetSingleStrandSequence(SBPointer<ADNSingleStrand> ss, const std::string& seq, bool changePair = true, bool overwrite = true);
+    /// \brief Converts a complete base-pair cell into two single-nucleotide loops.
+    /// \param bs Base segment whose distinct endpoints belong to that segment and the same owning part.
+    /// Missing sides, inconsistent attachment, and links to unrelated partners leave the model unchanged.
+    /// Complete unpublished pairs are supported when all owning-part references are absent.
     SB_EXPORT void MutateBasePairIntoLoopPair(SBPointer<ADNBaseSegment> bs);
     //! Shift start of the strand to the selected nucleotide and sequence.
     /*!
