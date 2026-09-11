@@ -48,8 +48,27 @@ namespace ADNLoader {
 		}
 	};
 
+	/// \brief Validates and exports a part in standard oxDNA units and conventions.
+	/// \param part Part to export.
+	/// \param folder UTF-8 output directory for config.conf and topo.top.
+	/// \param options Box dimensions in nanometers.
+	/// \throws std::invalid_argument If model values are invalid; existing files remain untouched.
+	/// \throws std::runtime_error If opening or writing an output file fails.
 	SB_EXPORT void OutputToOxDNA(SBPointer<ADNPart> part, const std::string& folder, const ADNAuxiliary::OxDNAOptions& options);
+	/// \brief Validates all selected parts before opening the oxDNA output files.
+	/// \param parts Parts to export together.
+	/// \param folder UTF-8 output directory for config.conf and topo.top.
+	/// \param options Box dimensions in nanometers.
+	/// \throws std::invalid_argument If model values are invalid; existing files remain untouched.
+	/// \throws std::runtime_error If opening or writing an output file fails.
 	SB_EXPORT void OutputToOxDNA(SBPointerIndexer<ADNPart> parts, const std::string& folder, const ADNAuxiliary::OxDNAOptions& options);
+	/// \brief Prepares and writes standard oxDNA records to caller-owned streams.
+	/// \param singleStrands Strands to export.
+	/// \param outConf Configuration output stream.
+	/// \param outTopo Topology output stream.
+	/// \param options Box dimensions in nanometers.
+	/// \throws std::invalid_argument If model values are invalid, before writing either stream.
+	/// \throws std::runtime_error If writing fails.
 	SB_EXPORT void SingleStrandsToOxDNA(SBPointerIndexer<ADNSingleStrand> singleStrands, std::ofstream& outConf, std::ofstream& outTopo, const ADNAuxiliary::OxDNAOptions& options);
 	SB_EXPORT void SignOutputFile(std::ofstream& output);
 	/// \brief Imports classic oxDNA topology and a single configuration using standard conventions.

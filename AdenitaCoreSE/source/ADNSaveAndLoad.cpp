@@ -1484,40 +1484,6 @@ SBPointer<ADNPart> ADNLoader::GenerateModelFromDataGraphParametrized(SBNode* sn,
 
 }
 
-void ADNLoader::OutputToOxDNA(SBPointer<ADNPart> part, const std::string& folder, const ADNAuxiliary::OxDNAOptions& options) {
-
-	std::ofstream outConf(std::filesystem::u8path(folder + "/" + "config.conf"));
-	std::ofstream outTopo(std::filesystem::u8path(folder + "/" + "topo.top"));
-
-	auto singleStrands = part->GetSingleStrands();
-	SingleStrandsToOxDNA(singleStrands, outConf, outTopo, options);
-
-	outConf.close();
-	outTopo.close();
-
-}
-
-void ADNLoader::OutputToOxDNA(SBPointerIndexer<ADNPart> parts, const std::string& folder, const ADNAuxiliary::OxDNAOptions& options) {
-
-	SBPointerIndexer<ADNSingleStrand> singleStrands;
-	SB_FOR(SBPointer<ADNPart> p, parts) {
-
-		auto sss = p->GetSingleStrands();
-		SB_FOR(SBPointer<ADNSingleStrand> ss, sss)
-			singleStrands.addReferenceTarget(ss());
-
-	}
-
-	std::ofstream outConf(std::filesystem::u8path(folder + "/" + "config.conf"));
-	std::ofstream outTopo(std::filesystem::u8path(folder + "/" + "topo.top"));
-
-	SingleStrandsToOxDNA(singleStrands, outConf, outTopo, options);
-
-	outConf.close();
-	outTopo.close();
-
-}
-
 void ADNLoader::SignOutputFile(std::ofstream& output) {
 
 	time_t rawtime;

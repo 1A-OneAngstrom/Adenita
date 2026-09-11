@@ -3,6 +3,7 @@
 #include "ADNNumericParsing.hpp"
 
 #include <array>
+#include <cmath>
 #include <filesystem>
 #include <iomanip>
 #include <limits>
@@ -226,8 +227,28 @@ ADNLoader::OxDNAImportResult ADNLoader::InputFromOxDNA(const std::string& topoFi
 	catch (const std::filesystem::filesystem_error& error) { return { true, nullptr, error.what() }; }
 }
 
-void ADNLoader::SingleStrandsToOxDNA(SBPointerIndexer<ADNSingleStrand> singleStrands,
-	std::ofstream& outConf, std::ofstream& outTopo, const ADNAuxiliary::OxDNAOptions& options) {
+namespace {
+
+/// \brief Complete validated configuration and topology text awaiting publication.
+struct OxDNAExportText {
+	std::string configuration;
+	std::string topology;
+};
+
+/// \brief Prepares a complete export before any destination file can be truncated.
+/// \param singleStrands Strands to export in classic oxDNA order.
+/// \param options Box dimensions in nanometers.
+/// \return Validated configuration and topology text.
+/// \throws std::invalid_argument If model values or box dimensions cannot be exported.
+OxDNAExportText prepareOxDNAExport(SBPointerIndexer<ADNSingleStrand> singleStrands,
+	const ADNAuxiliary::OxDNAOptions& options) {
+	for (const double size : { options.boxSizeX_, options.boxSizeY_, options.boxSizeZ_ })
+		if (!std::isfinite(size) || size < 0 || !std::isfinite(size / oxDNALengthInNm))
+			throw std::invalid_argument("oxDNA export requires finite non-negative box dimensions");
+	std::ostringstream outConf, outTopo;
+	// Failed staging must not be mistaken for a complete export, including allocation failures in a stream.
+	outConf.exceptions(std::ios::badbit | std::ios::failbit);
+	outTopo.exceptions(std::ios::badbit | std::ios::failbit);
 	std::vector<std::vector<SBPointer<ADNNucleotide>>> strands;
 	std::map<ADNNucleotide*, size_t> indices;
 	// One index map drives topology and coordinates, including circular closure.
@@ -243,12 +264,21 @@ void ADNLoader::SingleStrandsToOxDNA(SBPointerIndexer<ADNSingleStrand> singleStr
 		}
 		if (!nucleotides.empty()) strands.push_back(std::move(nucleotides));
 	}
+	const auto neighborIndex = [&](SBPointer<ADNNucleotide> nucleotide) {
+		if (nucleotide == nullptr) return std::string("-1");
+		const auto found = indices.find(nucleotide());
+		if (found == indices.end()) throw std::invalid_argument("oxDNA export contains a neighbor outside the exported strands");
+		return std::to_string(found->second);
+	};
 	outConf << std::setprecision((std::numeric_limits<double>::max_digits10));
 	outConf << "t = 0\nb = " << options.boxSizeX_ / oxDNALengthInNm << ' ' << options.boxSizeY_ / oxDNALengthInNm << ' ' << options.boxSizeZ_ / oxDNALengthInNm << "\nE = 0 0 0\n";
 	outTopo << indices.size() << ' ' << strands.size() << '\n';
 	for (size_t strand = 0; strand < strands.size(); ++strand) {
 		for (const auto& nucleotide : strands[strand]) {
 			const auto position = nucleotide->GetPosition();
+			for (unsigned int axis = 0; axis < 3; ++axis)
+				if (!std::isfinite(position[axis].getValue()))
+					throw std::invalid_argument("oxDNA export requires finite nucleotide coordinates");
 			const auto frame = ADNFrameAdapters::sanitizedFrame(*nucleotide());
 			const auto a1 = frame.e2;
 			const auto a3 = -frame.e3;
@@ -257,8 +287,50 @@ void ADNLoader::SingleStrandsToOxDNA(SBPointerIndexer<ADNSingleStrand> singleStr
 			const auto n3 = nucleotide->GetNext(true);
 			const auto n5 = nucleotide->GetPrev(true);
 			outTopo << strand + 1 << ' ' << nucleotide->getOneLetterNucleotideTypeString() << ' '
-				<< (n3 != nullptr ? std::to_string(indices.at(n3())) : "-1") << ' '
-				<< (n5 != nullptr ? std::to_string(indices.at(n5())) : "-1") << '\n';
+				<< neighborIndex(n3) << ' ' << neighborIndex(n5) << '\n';
 		}
 	}
+	return { outConf.str(), outTopo.str() };
+}
+
+/// \brief Writes previously validated text and reports stream failures.
+/// \param text Complete export text.
+/// \param outConf Configuration output stream.
+/// \param outTopo Topology output stream.
+/// \throws std::runtime_error If either stream cannot accept the output.
+void writeOxDNAExport(const OxDNAExportText& text, std::ofstream& outConf, std::ofstream& outTopo) {
+	outConf << text.configuration;
+	outTopo << text.topology;
+	if (!outConf || !outTopo) throw std::runtime_error("Could not write oxDNA configuration or topology");
+}
+
+} // namespace
+
+void ADNLoader::SingleStrandsToOxDNA(SBPointerIndexer<ADNSingleStrand> singleStrands,
+	std::ofstream& outConf, std::ofstream& outTopo, const ADNAuxiliary::OxDNAOptions& options) {
+	writeOxDNAExport(prepareOxDNAExport(singleStrands, options), outConf, outTopo);
+}
+
+void ADNLoader::OutputToOxDNA(SBPointer<ADNPart> part, const std::string& folder, const ADNAuxiliary::OxDNAOptions& options) {
+	if (part == nullptr) throw std::invalid_argument("Cannot export a missing part to oxDNA");
+	SBPointerIndexer<ADNPart> parts;
+	parts.addReferenceTarget(part());
+	OutputToOxDNA(parts, folder, options);
+}
+
+void ADNLoader::OutputToOxDNA(SBPointerIndexer<ADNPart> parts, const std::string& folder, const ADNAuxiliary::OxDNAOptions& options) {
+	SBPointerIndexer<ADNSingleStrand> strands;
+	for (auto part : parts) {
+		if (part == nullptr) throw std::invalid_argument("Cannot export a missing part to oxDNA");
+		for (auto strand : part->GetSingleStrands()) strands.addReferenceTarget(strand);
+	}
+	// Validation may fail late in a strand. Prepare both complete files before replacing an existing export.
+	const auto text = prepareOxDNAExport(strands, options);
+	const auto directory = std::filesystem::u8path(folder);
+	std::ofstream outConf(directory / "config.conf"), outTopo(directory / "topo.top");
+	if (!outConf || !outTopo) throw std::runtime_error("Could not open oxDNA output files in " + folder);
+	writeOxDNAExport(text, outConf, outTopo);
+	outConf.close();
+	outTopo.close();
+	if (!outConf || !outTopo) throw std::runtime_error("Could not finish writing oxDNA output files in " + folder);
 }

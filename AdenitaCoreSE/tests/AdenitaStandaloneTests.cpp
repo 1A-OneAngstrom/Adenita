@@ -5484,6 +5484,66 @@ void testLoopConversionRejectsIncompleteAndInconsistentPairs() {
 	}
 }
 
+void testOxDNAExportValidatesBeforeReplacingFiles() {
+	const auto directory = temporaryConfigPath("adenita_export_validation");
+	if (!std::filesystem::create_directory(directory)) throw std::runtime_error("Could not create isolated export directory");
+	struct Cleanup {
+		std::filesystem::path directory;
+		~Cleanup() {
+			std::error_code error;
+			std::filesystem::remove(directory / "config.conf", error);
+			std::filesystem::remove(directory / "topo.top", error);
+			std::filesystem::remove(directory, error);
+		}
+	} cleanup{ directory };
+	const auto conf = directory / "config.conf", top = directory / "topo.top";
+	for (int scenario = 0; scenario < 9; ++scenario) {
+		auto fixture = createCircularStrandFixture();
+		ADNAuxiliary::OxDNAOptions options;
+		options.boxSizeX_ = options.boxSizeY_ = options.boxSizeZ_ = 8.518;
+		if (scenario == 0) fixture.fivePrime->setNucleotideType(DNABlocks::DI);
+		if (scenario == 1) fixture.fivePrime->SetPosition(SBPosition3(SBQuantity::picometer(std::numeric_limits<double>::quiet_NaN())));
+		if (scenario == 2) fixture.fivePrime->SetPosition(SBPosition3(SBQuantity::picometer(std::numeric_limits<double>::infinity())));
+		if (scenario == 3) options.boxSizeX_ = std::numeric_limits<double>::quiet_NaN();
+		if (scenario == 4) options.boxSizeY_ = std::numeric_limits<double>::infinity();
+		if (scenario == 5) options.boxSizeZ_ = -1.0;
+		if (scenario == 6) options.boxSizeX_ = std::numeric_limits<double>::max();
+		if (scenario == 7) fixture.part = nullptr;
+		if (scenario == 8) fixture.middle->setNucleotideType(DNABlocks::DI);
+		writeTextFile(conf, "previous configuration");
+		writeTextFile(top, "previous topology");
+		bool rejected = false;
+		try {
+			if (scenario == 8) {
+				SBPointerIndexer<ADNPart> parts;
+				parts.addReferenceTarget(createCircularStrandFixture().part());
+				parts.addReferenceTarget(fixture.part());
+				ADNLoader::OutputToOxDNA(parts, directory.u8string(), options);
+			}
+			else ADNLoader::OutputToOxDNA(fixture.part, directory.u8string(), options);
+		}
+		catch (const std::invalid_argument&) { rejected = true; }
+		requireTrue("Invalid oxDNA export rejects input " + std::to_string(scenario), rejected, "Invalid models and dimensions must fail before opening output files.");
+		requireEqual("Rejected export preserves configuration", readTextFile(conf), std::string("previous configuration"));
+		requireEqual("Rejected export preserves topology", readTextFile(top), std::string("previous topology"));
+	}
+	auto fixture = createCircularStrandFixture();
+	ADNAuxiliary::OxDNAOptions options;
+	options.boxSizeX_ = options.boxSizeY_ = options.boxSizeZ_ = 8.518;
+	ADNLoader::OutputToOxDNA(fixture.part, directory.u8string(), options);
+	const auto single = ADNLoader::InputFromOxDNA(top.u8string(), conf.u8string());
+	requireTrue("Valid single-part file export imports", single.succeeded() && single.part->GetNumberOfNucleotides() == 3, single.errorMessage);
+	SBPointerIndexer<ADNPart> parts;
+	parts.addReferenceTarget(fixture.part());
+	parts.addReferenceTarget(createCircularStrandFixture().part());
+	ADNLoader::OutputToOxDNA(parts, directory.u8string(), options);
+	const auto multiple = ADNLoader::InputFromOxDNA(top.u8string(), conf.u8string());
+	requireTrue("Valid multi-part file export imports", multiple.succeeded() && multiple.part->GetNumberOfNucleotides() == 6 && multiple.part->GetNumberOfSingleStrands() == 2, multiple.errorMessage);
+	requireThrowsRuntimeError("Unavailable export directory is reported", [&] { ADNLoader::OutputToOxDNA(fixture.part, (directory / "absent").u8string(), options); });
+	std::ofstream unavailableConfiguration, unavailableTopology;
+	requireThrowsRuntimeError("Unavailable output streams are reported", [&] { ADNLoader::SingleStrandsToOxDNA(fixture.part->GetSingleStrands(), unavailableConfiguration, unavailableTopology, options); });
+}
+
 int reportTestFailures() {
 	for (const auto& failure : failures)
 		std::cerr << "[FAIL] " << failure.file << ":" << failure.line << " in " << failure.function << " - " << failure.name << ": " << failure.message << std::endl;
@@ -5516,6 +5576,7 @@ void runEdgeCaseTests() {
 		{ "testOxDNAValidationMatrix", testOxDNAValidationMatrix },
 		{ "testOxDNAOrderingUnitsAndFrames", testOxDNAOrderingUnitsAndFrames },
 		{ "testOxDNAExportRoundTripAndCircularEndpoints", testOxDNAExportRoundTripAndCircularEndpoints },
+		{ "testOxDNAExportValidatesBeforeReplacingFiles", testOxDNAExportValidatesBeforeReplacingFiles },
 		{ "testCheckedNumericConversions", testCheckedNumericConversions },
 		{ "testJsonLoadRejectsInvalidCoordinatesAndIdentifiers", testJsonLoadRejectsInvalidCoordinatesAndIdentifiers },
 		{ "testReconstructionTemplateValidationIsTransactional", testReconstructionTemplateValidationIsTransactional },
