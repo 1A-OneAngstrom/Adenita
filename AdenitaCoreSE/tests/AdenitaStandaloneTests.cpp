@@ -4757,6 +4757,66 @@ void testEmptyPartCenterOfMassIsFinite() {
 	requirePositionNear("Null part center is zero", ADNBasicOperations::CalculateCenterOfMass(nullptr), SBPosition3::zero, 0.0);
 }
 
+void testNeighborFiltersQueriesAndOwnership() {
+	static_assert(!std::is_copy_constructible_v<ADNNeighbors> && !std::is_copy_assignable_v<ADNNeighbors>);
+	auto fixture = createCircularStrandFixture();
+	fixture.fivePrime->SetPosition(positionAngstrom(0, 0, 0));
+	fixture.middle->SetPosition(positionAngstrom(1, 0, 0));
+	fixture.threePrime->SetPosition(positionAngstrom(2, 0, 0));
+	ADNNeighbors neighbors;
+	SBPointer<ADNNucleotide> missing = new ADNNucleotide();
+	requireTrue("Empty index accepts null and missing queries", neighbors.GetNeighbors(missing).size() == 0 && neighbors.GetNeighbors(SBPointer<ADNNucleotide>()).size() == 0, "Empty queries must return no neighbors.");
+	neighbors.SetMaxCutOff(SBQuantity::angstrom(2));
+	neighbors.InitializeNeighbors(fixture.part);
+	requireTrue("Same-strand neighbors excluded by default", neighbors.GetNeighbors(fixture.fivePrime).size() == 0, "Preserve default same-strand filtering.");
+	neighbors.SetFromOwnSingleStrand(true);
+	neighbors.InitializeNeighbors(fixture.part);
+	auto found = neighbors.GetNeighbors(fixture.fivePrime);
+	requireTrue("Upper cutoff remains exclusive", found.size() == 1 && found[0] == fixture.middle, "The nucleotide exactly at the cutoff is excluded.");
+	neighbors.SetMinCutOff(SBQuantity::angstrom(1));
+	neighbors.InitializeNeighbors(fixture.part);
+	requireTrue("Lower cutoff remains exclusive", neighbors.GetNeighbors(fixture.fivePrime).size() == 0, "Neither cutoff boundary is included.");
+	neighbors.SetMinCutOff(SBQuantity::angstrom(0));
+	fixture.fivePrime->SetPair(fixture.middle);
+	fixture.middle->SetPair(fixture.fivePrime);
+	neighbors.InitializeNeighbors(fixture.part);
+	requireTrue("Pairs excluded by default", neighbors.GetNeighbors(fixture.fivePrime).size() == 0, "Paired nucleotides must follow the configured filter.");
+	neighbors.SetIncludePairs(true);
+	neighbors.InitializeNeighbors(fixture.part);
+	requireEqual("Pairs can be included", neighbors.GetNeighbors(fixture.fivePrime).size(), 1u);
+	ADNNeighborNt foreign(0, fixture.fivePrime);
+	ADNNeighborNt outOfRange((std::numeric_limits<unsigned int>::max)(), fixture.fivePrime);
+	requireTrue("Foreign wrapper with matching ID rejected", neighbors.GetNeighbors(&foreign).size() == 0, "Wrapper identity belongs to its index.");
+	requireTrue("Out-of-range wrapper rejected", neighbors.GetNeighbors(&outOfRange).size() == 0, "Never index using an unchecked foreign ID.");
+	ADNNeighbors other;
+	other.InitializeNeighbors(fixture.part);
+	requireTrue("Other index wrapper rejected", neighbors.GetNeighbors(other.GetPINucleotide(fixture.fivePrime)).size() == 0, "Equal IDs in another index are not valid queries.");
+	fixture.fivePrime->disconnectPair();
+	neighbors.InitializeNeighbors(nullptr);
+	requireTrue("Null rebuild clears all mappings", neighbors.GetPINucleotide(fixture.fivePrime) == nullptr && neighbors.GetNeighbors(fixture.fivePrime).size() == 0, "Null rebuilds clear all state.");
+	other.InitializeNeighbors(nullptr);
+
+	// The reference target's footprint includes backlink records. Holding the
+	// nucleotide independently avoids making assumptions about host node deletion.
+	const auto footprint = [&]() { return static_cast<const SBCReferenceTarget&>(*fixture.fivePrime()).getMemoryFootprint(); };
+	const auto baseline = footprint();
+	{
+		ADNNeighbors owned;
+		owned.SetMaxCutOff(SBQuantity::angstrom(3));
+		owned.InitializeNeighbors(fixture.part);
+		requireTrue("Index owns a nucleotide reference", footprint() > baseline, "Indexing must add a reference backlink.");
+		for (int i = 0; i < 20; ++i) owned.InitializeNeighbors(fixture.part);
+		owned.InitializeNeighbors(nullptr);
+		requireEqual("Rebuilding releases indexed references", footprint(), baseline);
+		owned.InitializeNeighbors(fixture.part);
+	}
+	requireEqual("Destruction releases indexed references", footprint(), baseline);
+	neighbors.InitializeNeighbors(fixture.part);
+	auto* live = neighbors.GetPINucleotide(fixture.fivePrime);
+	fixture.fivePrime.deleteReferenceTarget();
+	requireTrue("Deleted nucleotide query is empty", neighbors.GetNeighbors(live).size() == 0, "A live wrapper may refer to a deleted node.");
+}
+
 void testBindingRegionSequenceOrderAndMissingEndpoints() {
 	const auto fixture = createCircularStrandFixture();
 	SBPointer<PIBindingRegion> region = new PIBindingRegion();
@@ -5060,6 +5120,7 @@ void runEdgeCaseTests() {
 		{ "testNeighborsRejectUnknownNucleotide", testNeighborsRejectUnknownNucleotide },
 		{ "testNeighborsReinitializationRefreshesDistances", testNeighborsReinitializationRefreshesDistances },
 		{ "testNeighborsReinitializationReplacesPart", testNeighborsReinitializationReplacesPart },
+		{ "testNeighborFiltersQueriesAndOwnership", testNeighborFiltersQueriesAndOwnership },
 		{ "testEmptyPartCenterOfMassIsFinite", testEmptyPartCenterOfMassIsFinite },
 		{ "testBindingRegionSequenceOrderAndMissingEndpoints", testBindingRegionSequenceOrderAndMissingEndpoints },
 		{ "testOxDNARejectsInvalidNumericFields", testOxDNARejectsInvalidNumericFields },
