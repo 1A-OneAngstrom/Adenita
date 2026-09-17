@@ -304,7 +304,7 @@ void writeTextFile(const std::filesystem::path& path, const std::string& content
 
 std::filesystem::path repoDataPath(const std::string& filename) {
 
-	return std::filesystem::path(__FILE__).parent_path().parent_path() / "data" / filename;
+	return std::filesystem::u8path(ADENITA_TEST_DATA_DIR) / filename;
 
 }
 
@@ -2156,7 +2156,7 @@ void testTwisterTemplateReconstructionIsEquivariantAfterRigidTransform() {
 	rotateBaseSegmentGeometryOnlyRaw(transformedFixture.baseSegment, samsonMoveRotation);
 	rotateBaseSegmentGeometryOnlyRaw(transformedFixture.next, samsonMoveRotation);
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	ADNGeometrySynchronization::prepareBaseSegmentFrameForTemplateReconstruction(*originalFixture.baseSegment);
 	ADNGeometrySynchronization::prepareBaseSegmentFrameForTemplateReconstruction(*transformedFixture.baseSegment);
 	btta.SetNucleotidePosition(originalFixture.baseSegment, true);
@@ -2204,7 +2204,7 @@ void testTwisterTemplateReconstructionDoesNotAccumulatePhase() {
 	const ADNFrameUtils::Frame canonicalFrame =
 		ADNFrameAdapters::sanitizedFrame(*fixture.baseSegment);
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.SetNucleotidePosition(fixture.baseSegment, true);
 
 	SBPointer<ADNNucleotide> left = getLeftNucleotide(fixture.baseSegment);
@@ -2231,7 +2231,7 @@ void testDASReconstructionSideFramesRemainRightHanded() {
 	BaseSegmentFrameFixture fixture = createBaseSegmentFrameFixture();
 	fixture.doubleStrand->SetInitialTwistAngle(21.0);
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	ADNGeometrySynchronization::prepareBaseSegmentFrameForTemplateReconstruction(*fixture.baseSegment);
 	btta.SetNucleotidePosition(fixture.baseSegment, true);
 
@@ -2286,7 +2286,7 @@ void testCreatorSingleStrandInitializesDesignedFrames() {
 
 	}
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.SetNucleotidesPositions(part);
 
 	auto nucleotides = created.ss1->GetNucleotides();
@@ -2340,7 +2340,7 @@ void testCreatorDoubleStrandInitializesDesignedFrames() {
 
 	}
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.SetNucleotidesPositions(part);
 
 	auto nucleotides = part->GetNucleotides();
@@ -2395,7 +2395,7 @@ void testReconstructionRepairsE3OnlyCreatorFrame() {
 	baseSegment->SetE2(vector3(0.0, 0.0, 0.0));
 	baseSegment->SetE3(vector3(0.0, 0.0, 1.0));
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.SetNucleotidePosition(baseSegment, true);
 
 	requireTrue("e3-only reconstruction repairs base segment frame",
@@ -2448,7 +2448,7 @@ void testPreserveInputGeometryKeepsExplicitSingleStrandPositions() {
 
 	}
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.SetPositionsForNewNucleotides(part,
 		nucleotides,
 		DASBackToTheAtom::NewNucleotidePlacementMode::PreserveInputGeometry);
@@ -2684,7 +2684,7 @@ void placeCreatedComplement(OneSidedComplementFixture& fixture) {
 	SBPointerIndexer<ADNNucleotide> createdNucleotides;
 	createdNucleotides.addReferenceTarget(fixture.created());
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.SetPositionsForNewNucleotides(fixture.part,
 		createdNucleotides,
 		DASBackToTheAtom::NewNucleotidePlacementMode::PositionInputNucleotidesOnly);
@@ -2775,7 +2775,7 @@ void testComplementPlacementPreservesExistingNucleotideGeometry() {
 	SBPointerIndexer<ADNNucleotide> createdNucleotides;
 	createdNucleotides.addReferenceTarget(created());
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.SetPositionsForNewNucleotides(part,
 		createdNucleotides,
 		DASBackToTheAtom::NewNucleotidePlacementMode::PositionInputNucleotidesOnly);
@@ -2850,7 +2850,7 @@ void testComplementPlacementUsesRightAnchorSide() {
 	SBPointerIndexer<ADNNucleotide> createdNucleotides;
 	createdNucleotides.addReferenceTarget(created());
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.SetPositionsForNewNucleotides(part,
 		createdNucleotides,
 		DASBackToTheAtom::NewNucleotidePlacementMode::PositionInputNucleotidesOnly);
@@ -2954,7 +2954,7 @@ void testSingleStrandAtomGenerationUsesExistingNucleotideCenter() {
 	const SBPosition3 backbonePosition = nucleotide->GetBackbonePosition();
 	const SBPosition3 sidechainPosition = nucleotide->GetSidechainPosition();
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.GenerateAllAtomModel(part, false);
 
 	requirePositionNear("single strand atom generation preserves center",
@@ -2988,7 +2988,7 @@ void testSingleStrandAtomGenerationMapsBackboneAndSidechainMarkers() {
 
 	SingleStrandAtomicMarkerFixture fixture = createSingleStrandAtomicMarkerFixture();
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.GenerateAllAtomModel(fixture.part, false);
 
 	requireGeneratedAtomGroupsFollowMarkers("single strand atom marker mapping", fixture.target);
@@ -3012,7 +3012,7 @@ void testRotatedSingleStrandAtomGenerationMapsBackboneAndSidechainMarkers() {
 		std::abs(ADNFrameUtils::dot(ADNFrameUtils::normalized(staleFrame.e2), markerDirection)) < 0.95,
 		"Expected the rotated fixture to exercise geometry-derived placement instead of the stored frame.");
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.GenerateAllAtomModel(fixture.part, false);
 
 	requireGeneratedAtomGroupsFollowMarkers("rotated single strand atom marker mapping", fixture.target);
@@ -3023,7 +3023,7 @@ void testSingleStrandAtomGenerationPreservesTemplateStacking() {
 
 	SingleStrandAtomicMarkerFixture fixture = createSingleStrandAtomicMarkerFixture();
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	for (SBPointer<ADNBaseSegment> baseSegment : fixture.baseSegments)
 		btta.SetNucleotidePosition(baseSegment, false);
 
@@ -3077,7 +3077,7 @@ void testAllAtomGenerationPreservesSynchronizedNucleotideGeometry() {
 	const ADNFrameUtils::Frame baseSegmentFrame =
 		ADNFrameAdapters::frameFromOrientable(*fixture.baseSegment);
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.GenerateAllAtomModel(fixture.part, false);
 
 	requirePositionNear("all atom generation preserves left backbone",
@@ -3163,7 +3163,7 @@ void testAllAtomGenerationAlignsBasePlanesAndBackboneAfterRigidTransform() {
 	const SBPosition3 rightBackbone = right->GetBackbonePosition();
 	const SBPosition3 rightSidechain = right->GetSidechainPosition();
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.GenerateAllAtomModel(fixture.part, false);
 
 	requirePositionNear("all atom axis generation preserves left backbone",
@@ -5325,7 +5325,7 @@ void testReconstructionTemplateValidationIsTransactional() {
 			std::filesystem::remove(directory, ignored);
 		}
 	} cleanup{directory};
-	const auto bundled = std::filesystem::path(__FILE__).parent_path().parent_path() / "data";
+	const auto bundled = std::filesystem::u8path(ADENITA_TEST_DATA_DIR);
 	const auto restore = [&]() {
 		for (const char* name : {"AT.pdb", "TA.pdb", "CG.pdb", "GC.pdb"}) {
 			std::filesystem::remove(directory / name);
@@ -5642,17 +5642,16 @@ int main(int argc, char** argv) {
 	if (argc > 1 && std::string(argv[1]) == "--edge-cases-only")
 		return reportTestFailures();
 
-	// Reconstruction loads these templates through SAMSON's configured scratch
-	// path. Fail with the actual missing path before a partial loader result can
-	// reach the legacy placement code, which assumes both template nodes exist.
-	const auto templateDirectory = std::filesystem::u8path(SB_ELEMENT_PATH) / "Data";
+	// Reconstruction tests use fixtures from this source checkout, supplied by
+	// CMake, rather than depending on a SAMSON installation or per-user scratch.
+	const auto templateDirectory = std::filesystem::u8path(ADENITA_TEST_DATA_DIR);
 	std::cerr << "Template directory: " << templateDirectory.u8string() << std::endl;
 	for (const char* name : { "AT.pdb", "TA.pdb", "CG.pdb", "GC.pdb" }) {
 		const auto path = templateDirectory / name;
 		std::ifstream input(path, std::ios::binary);
 		if (!input || input.peek() == std::char_traits<char>::eof()) {
 			std::cerr << "Required Adenita template is missing, unreadable or empty: " << path.u8string()
-				<< "\nRun the full suite with SAMSON's configured extension data available."
+				<< "\nCheck the Adenita source data directory configured for this test target."
 				<< std::endl;
 			return EXIT_FAILURE;
 		}

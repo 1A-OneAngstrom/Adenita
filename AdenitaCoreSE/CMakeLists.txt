@@ -115,20 +115,38 @@ if(${OUTPUT_UUID}_tests)
 
   set(ADENITA_STANDALONE_TEST_TARGET ${OUTPUT_NAME}StandaloneTests)
 
-  if(WIN32)
-    get_filename_component(ADENITA_SAMSON_SDK_VERSION "${CMAKE_SAMSON_SDK_PATH}" NAME)
-    get_filename_component(ADENITA_SAMSON_SDK_PARENT "${CMAKE_SAMSON_SDK_PATH}" DIRECTORY)
-    get_filename_component(ADENITA_SAMSON_ROOT_DIR "${ADENITA_SAMSON_SDK_PARENT}" DIRECTORY)
-
-    set(ADENITA_SAMSON_RUNTIME_DIR "${ADENITA_SAMSON_ROOT_DIR}/SAMSON/${ADENITA_SAMSON_SDK_VERSION}/Binaries")
+  get_filename_component(ADENITA_SAMSON_SDK_VERSION "${CMAKE_SAMSON_SDK_PATH}" NAME)
+  get_filename_component(ADENITA_SAMSON_SDK_PARENT "${CMAKE_SAMSON_SDK_PATH}" DIRECTORY)
+  get_filename_component(ADENITA_SAMSON_ROOT_DIR "${ADENITA_SAMSON_SDK_PARENT}" DIRECTORY)
+  if(SAMSON_TEST_RELEASE_RUNTIME_DIR)
+    set(ADENITA_SAMSON_RELEASE_RUNTIME_DIR "${SAMSON_TEST_RELEASE_RUNTIME_DIR}")
+  elseif(WIN32)
+    set(ADENITA_SAMSON_RELEASE_RUNTIME_DIR
+      "${ADENITA_SAMSON_ROOT_DIR}/SAMSON/${ADENITA_SAMSON_SDK_VERSION}/Binaries")
+  else()
+    set(ADENITA_SAMSON_RELEASE_RUNTIME_DIR "${CMAKE_SAMSON_SDK_PATH}/libs")
+  endif()
+  if(SAMSON_TEST_DEBUG_RUNTIME_DIR)
+    set(ADENITA_SAMSON_DEBUG_RUNTIME_DIR "${SAMSON_TEST_DEBUG_RUNTIME_DIR}")
+  else()
     set(ADENITA_SAMSON_DEBUG_RUNTIME_DIR "${CMAKE_SAMSON_SDK_PATH}/SAMSON-Debug/Binaries")
-
-    get_property(ADENITA_QT6_PREFIX GLOBAL PROPERTY QT6_PREFIX)
-    if(NOT ADENITA_QT6_PREFIX)
-      set(ADENITA_QT6_PREFIX "${_qt6_prefix}")
-    endif()
-    set(ADENITA_QT_RUNTIME_DIR "${ADENITA_QT6_PREFIX}/bin")
-    set(ADENITA_STANDALONE_TEST_RUNTIME_DIR "$<IF:$<CONFIG:Debug>,${ADENITA_SAMSON_DEBUG_RUNTIME_DIR},${ADENITA_SAMSON_RUNTIME_DIR}>")
+  endif()
+  set(ADENITA_STANDALONE_TEST_RUNTIME_DIR
+    "$<IF:$<CONFIG:Debug>,${ADENITA_SAMSON_DEBUG_RUNTIME_DIR},${ADENITA_SAMSON_RELEASE_RUNTIME_DIR}>")
+  if(WIN32)
+    set(ADENITA_TEST_ENVIRONMENT
+      "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+      "PATH=path_list_prepend:${ADENITA_STANDALONE_TEST_RUNTIME_DIR}")
+  elseif(APPLE)
+    set(ADENITA_TEST_ENVIRONMENT
+      "DYLD_LIBRARY_PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+      "DYLD_LIBRARY_PATH=path_list_prepend:${ADENITA_STANDALONE_TEST_RUNTIME_DIR}"
+      "DYLD_FRAMEWORK_PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+      "DYLD_FRAMEWORK_PATH=path_list_prepend:${ADENITA_STANDALONE_TEST_RUNTIME_DIR}")
+  else()
+    set(ADENITA_TEST_ENVIRONMENT
+      "LD_LIBRARY_PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+      "LD_LIBRARY_PATH=path_list_prepend:${ADENITA_STANDALONE_TEST_RUNTIME_DIR}")
   endif()
 
   add_executable(${ADENITA_STANDALONE_TEST_TARGET})
@@ -150,6 +168,7 @@ if(${OUTPUT_UUID}_tests)
 
   target_compile_definitions(${ADENITA_STANDALONE_TEST_TARGET}
     PRIVATE
+      ADENITA_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data"
       ELEMENT_NAME="${OUTPUT_NAME}"
       SB_ELEMENT_UUID="${OUTPUT_UUID}"
   )
@@ -168,7 +187,7 @@ if(${OUTPUT_UUID}_tests)
     set_property(
       TARGET ${ADENITA_STANDALONE_TEST_TARGET}
       PROPERTY VS_DEBUGGER_ENVIRONMENT
-        "PATH=${ADENITA_STANDALONE_TEST_RUNTIME_DIR}$<SEMICOLON>${ADENITA_QT_RUNTIME_DIR}$<SEMICOLON>%PATH%"
+        "PATH=${ADENITA_STANDALONE_TEST_RUNTIME_DIR}$<SEMICOLON>$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>%PATH%"
     )
   endif()
 
@@ -177,20 +196,16 @@ if(${OUTPUT_UUID}_tests)
     COMMAND $<TARGET_FILE:${ADENITA_STANDALONE_TEST_TARGET}>
   )
 
-  if(WIN32)
-    set_tests_properties(${OUTPUT_NAME}.Standalone PROPERTIES
-      ENVIRONMENT_MODIFICATION
-        "PATH=path_list_prepend:${ADENITA_QT_RUNTIME_DIR};PATH=path_list_prepend:${ADENITA_STANDALONE_TEST_RUNTIME_DIR}"
-    )
-  endif()
+  set_tests_properties(${OUTPUT_NAME}.Standalone PROPERTIES
+    ENVIRONMENT_MODIFICATION "${ADENITA_TEST_ENVIRONMENT}")
 endif()
 
 if(TARGET SEAdenitaCoreSEStandaloneTests)
-  add_test(NAME SEAdenitaCoreSE.GeometryOwnership COMMAND SEAdenitaCoreSEStandaloneTests --geometry-only)
-  add_test(NAME SEAdenitaCoreSE.EdgeCases COMMAND SEAdenitaCoreSEStandaloneTests --edge-cases-only)
-  if(WIN32)
-    set_tests_properties(SEAdenitaCoreSE.GeometryOwnership SEAdenitaCoreSE.EdgeCases PROPERTIES ENVIRONMENT_MODIFICATION
-      "PATH=path_list_prepend:${ADENITA_QT_RUNTIME_DIR};PATH=path_list_prepend:${ADENITA_STANDALONE_TEST_RUNTIME_DIR}")
-  endif()
+  add_test(NAME SEAdenitaCoreSE.GeometryOwnership
+    COMMAND $<TARGET_FILE:SEAdenitaCoreSEStandaloneTests> --geometry-only)
+  add_test(NAME SEAdenitaCoreSE.EdgeCases
+    COMMAND $<TARGET_FILE:SEAdenitaCoreSEStandaloneTests> --edge-cases-only)
+  set_tests_properties(SEAdenitaCoreSE.GeometryOwnership SEAdenitaCoreSE.EdgeCases PROPERTIES
+    ENVIRONMENT_MODIFICATION "${ADENITA_TEST_ENVIRONMENT}")
   set_tests_properties(SEAdenitaCoreSE.Standalone SEAdenitaCoreSE.GeometryOwnership SEAdenitaCoreSE.EdgeCases PROPERTIES TIMEOUT 180)
 endif()
