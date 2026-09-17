@@ -1,4 +1,5 @@
 #include "ADNSaveAndLoad.hpp"
+#include "SBString.hpp"
 
 #include "ADNFrameAdapters.hpp"
 #include "ADNGeometrySynchronization.hpp"
@@ -18,7 +19,7 @@ SBPointer<ADNPart> ADNLoader::LoadPartFromJson(const std::string& filename) {
 
 	FILE* fp = nullptr;
 	try {
-		std::filesystem::path filepath = std::filesystem::u8path(filename);
+		std::filesystem::path filepath = SBCContainerString::pathFromUtf8(filename);
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
 		fp = _wfopen(filepath.c_str(), L"rb");
@@ -436,7 +437,7 @@ std::vector<SBPointer<ADNPart>> ADNLoader::LoadPartsFromJson(std::string filenam
 
 	FILE* fp = nullptr;
 	try {
-		std::filesystem::path filepath = std::filesystem::u8path(filename);
+		std::filesystem::path filepath = SBCContainerString::pathFromUtf8(filename);
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
 		fp = _wfopen(filepath.c_str(), L"rb");
@@ -508,7 +509,7 @@ SBPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filename
 
 	FILE* fp = nullptr;
 	try {
-		std::filesystem::path filepath = std::filesystem::u8path(filename);
+		std::filesystem::path filepath = SBCContainerString::pathFromUtf8(filename);
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
 		fp = _wfopen(filepath.c_str(), L"rb");
@@ -1486,8 +1487,8 @@ SBPointer<ADNPart> ADNLoader::GenerateModelFromDataGraphParametrized(SBNode* sn,
 
 void ADNLoader::OutputToOxDNA(SBPointer<ADNPart> part, const std::string& folder, const ADNAuxiliary::OxDNAOptions& options) {
 
-	std::ofstream outConf(std::filesystem::u8path(folder + "/" + "config.conf"));
-	std::ofstream outTopo(std::filesystem::u8path(folder + "/" + "topo.top"));
+	std::ofstream outConf(SBCContainerString::pathFromUtf8(folder + "/" + "config.conf"));
+	std::ofstream outTopo(SBCContainerString::pathFromUtf8(folder + "/" + "topo.top"));
 
 	auto singleStrands = part->GetSingleStrands();
 	SingleStrandsToOxDNA(singleStrands, outConf, outTopo, options);
@@ -1508,8 +1509,8 @@ void ADNLoader::OutputToOxDNA(SBPointerIndexer<ADNPart> parts, const std::string
 
 	}
 
-	std::ofstream outConf(std::filesystem::u8path(folder + "/" + "config.conf"));
-	std::ofstream outTopo(std::filesystem::u8path(folder + "/" + "topo.top"));
+	std::ofstream outConf(SBCContainerString::pathFromUtf8(folder + "/" + "config.conf"));
+	std::ofstream outTopo(SBCContainerString::pathFromUtf8(folder + "/" + "topo.top"));
 
 	SingleStrandsToOxDNA(singleStrands, outConf, outTopo, options);
 
@@ -1632,7 +1633,7 @@ ADNLoader::OxDNAImportResult ADNLoader::InputFromOxDNA(const std::string& topoFi
 	std::vector<NucleotideWrap> oxDNAIndices;
 
 	// parse topology file
-	std::ifstream topo(std::filesystem::u8path(topoFile));
+	std::ifstream topo(SBCContainerString::pathFromUtf8(topoFile));
 
 	if (topo.is_open()) {
 
@@ -1703,7 +1704,7 @@ ADNLoader::OxDNAImportResult ADNLoader::InputFromOxDNA(const std::string& topoFi
 	// parse config file and set positions if topology file was parsed correctly
 	if (!error) {
 
-		std::ifstream config(std::filesystem::u8path(configFile));
+		std::ifstream config(SBCContainerString::pathFromUtf8(configFile));
 
 		if (config.is_open()) {
 
@@ -1820,7 +1821,7 @@ void ADNLoader::OutputToCanDo(SBPointer<ADNPart> part, const std::string& filena
 /// CanDo file format description: https://cando-dna-origami.org/cndo-file-converter/
 void ADNLoader::OutputToCanDo(const SBPointerIndexer<ADNSingleStrand>& singleStrands, const std::vector < SBPointerIndexer<ADNBaseSegment>>& baseSegmentsVector, const std::string& filename) {
 
-	std::ofstream file(std::filesystem::u8path(filename));
+	std::ofstream file(SBCContainerString::pathFromUtf8(filename));
 
 	// A string describing the .cndo file format
 	file << "\"CanDo (.cndo) file format version 1.0, Keyao Pan, Laboratory for Computational Biology and Biophysics, Massachusetts Institute of Technology, November 2015\"" << '\n' << std::endl;
@@ -2172,7 +2173,7 @@ void ADNLoader::OutputToCSV(SBPointerIndexer<ADNPart> parts, const std::string& 
 
 	int num = 0;
 
-	std::ofstream out(std::filesystem::u8path(folder + "/" + fname));
+	std::ofstream out(SBCContainerString::pathFromUtf8(folder + "/" + fname));
 
 	SignOutputFile(out);
 	SB_FOR(SBPointer<ADNPart> part, parts) {

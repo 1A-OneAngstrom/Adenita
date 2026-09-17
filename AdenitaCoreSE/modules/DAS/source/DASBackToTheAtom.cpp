@@ -1,4 +1,5 @@
 #include "DASBackToTheAtom.hpp"
+#include "SBString.hpp"
 #include "ADNBackbone.hpp"
 #include "ADNFrameAdapters.hpp"
 #include "ADNGeometrySynchronization.hpp"
@@ -3247,7 +3248,7 @@ void DASBackToTheAtom::LoadNucleotides() {
 
 		try {
 
-			if (!std::filesystem::exists(std::filesystem::u8path(nt_source))) {
+			if (!std::filesystem::exists(SBCContainerString::pathFromUtf8(nt_source))) {
 
 				ADNLogger::LogError("Could not find the file " + nt_source);
 				return;
@@ -3304,7 +3305,7 @@ void DASBackToTheAtom::LoadNtPairs() {
 		const std::string nt_source = SB_ELEMENT_PATH + "/Data/" + name + ".pdb";
 		try {
 
-			if (!std::filesystem::exists(std::filesystem::u8path(nt_source))) {
+			if (!std::filesystem::exists(SBCContainerString::pathFromUtf8(nt_source))) {
 
 				ADNLogger::LogError("Could not find the file " + nt_source);
 				return;
@@ -3352,7 +3353,7 @@ void DASBackToTheAtom::LoadNtPairs() {
 
 NtPair DASBackToTheAtom::ParseBasePairPDB(const std::string& source) {
 
-	std::ifstream file(std::filesystem::u8path(source), std::ios::in);
+	std::ifstream file(SBCContainerString::pathFromUtf8(source), std::ios::in);
 
 	if (!file) {
 
@@ -3569,7 +3570,7 @@ ublas::matrix<double> DASBackToTheAtom::CalculateBaseSegmentBasis(SBPointer<ADNB
 
 SBPointer<ADNNucleotide> DASBackToTheAtom::ParsePDB(const std::string& source) {
 
-	std::ifstream file(std::filesystem::u8path(source), std::ios::in);
+	std::ifstream file(SBCContainerString::pathFromUtf8(source), std::ios::in);
 
 	if (!file) {
 
