@@ -9,24 +9,6 @@ ADNPart::ADNPart() : SBStructuralModel() {
 
 }
 
-ADNPart::ADNPart(const ADNPart & n) : SBStructuralModel(n) {
-
-    *this = n;
-
-}
-
-ADNPart & ADNPart::operator=(const ADNPart& other) {
-
-    SBStructuralModel::operator =(other);
-
-    if (this != &other) {
-    
-    }
-
-    return *this;
-
-}
-
 void ADNPart::serialize(SBCSerializer * serializer, const SBNodeIndexer & nodeIndexer, const SBVersionNumber & sdkVersionNumber, const SBVersionNumber & classVersionNumber) const {
 
     SBStructuralModel::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);

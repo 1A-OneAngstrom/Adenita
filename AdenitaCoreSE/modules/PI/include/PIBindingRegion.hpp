@@ -29,10 +29,10 @@ public:
 
 	PIBindingRegion() : SBNodeGroup() {}
 	PIBindingRegion(const std::string& name, const SBNodeIndexer& indexer) : SBNodeGroup(name, indexer) {}
-	PIBindingRegion(const PIBindingRegion& other) : SBNodeGroup(other) {}
+	PIBindingRegion(const PIBindingRegion&) = delete;
 	~PIBindingRegion() = default;
 
-	PIBindingRegion& operator=(const PIBindingRegion& other);
+	PIBindingRegion& operator=(const PIBindingRegion&) = delete;
 
 	double getEntropy() const;
 	double getEnthalpy() const;
