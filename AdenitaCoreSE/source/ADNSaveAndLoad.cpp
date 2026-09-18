@@ -1,4 +1,5 @@
 #include "ADNSaveAndLoad.hpp"
+#include "SBString.hpp"
 
 #include "ADNFrameAdapters.hpp"
 #include "ADNGeometrySynchronization.hpp"
@@ -18,7 +19,7 @@ SBPointer<ADNPart> ADNLoader::LoadPartFromJson(const std::string& filename) {
 
 	FILE* fp = nullptr;
 	try {
-		std::filesystem::path filepath = std::filesystem::u8path(filename);
+		std::filesystem::path filepath = SBCContainerString::pathFromUtf8(filename);
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
 		fp = _wfopen(filepath.c_str(), L"rb");
@@ -436,7 +437,7 @@ std::vector<SBPointer<ADNPart>> ADNLoader::LoadPartsFromJson(std::string filenam
 
 	FILE* fp = nullptr;
 	try {
-		std::filesystem::path filepath = std::filesystem::u8path(filename);
+		std::filesystem::path filepath = SBCContainerString::pathFromUtf8(filename);
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
 		fp = _wfopen(filepath.c_str(), L"rb");
@@ -508,7 +509,7 @@ SBPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filename
 
 	FILE* fp = nullptr;
 	try {
-		std::filesystem::path filepath = std::filesystem::u8path(filename);
+		std::filesystem::path filepath = SBCContainerString::pathFromUtf8(filename);
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
 		fp = _wfopen(filepath.c_str(), L"rb");
@@ -1532,7 +1533,7 @@ void ADNLoader::OutputToCanDo(SBPointer<ADNPart> part, const std::string& filena
 /// CanDo file format description: https://cando-dna-origami.org/cndo-file-converter/
 void ADNLoader::OutputToCanDo(const SBPointerIndexer<ADNSingleStrand>& singleStrands, const std::vector < SBPointerIndexer<ADNBaseSegment>>& baseSegmentsVector, const std::string& filename) {
 
-	std::ofstream file(std::filesystem::u8path(filename));
+	std::ofstream file(SBCContainerString::pathFromUtf8(filename));
 
 	// A string describing the .cndo file format
 	file << "\"CanDo (.cndo) file format version 1.0, Keyao Pan, Laboratory for Computational Biology and Biophysics, Massachusetts Institute of Technology, November 2015\"" << '\n' << std::endl;
@@ -1884,7 +1885,7 @@ void ADNLoader::OutputToCSV(SBPointerIndexer<ADNPart> parts, const std::string& 
 
 	int num = 0;
 
-	std::ofstream out(std::filesystem::u8path(folder + "/" + fname));
+	std::ofstream out(SBCContainerString::pathFromUtf8(folder + "/" + fname));
 
 	SignOutputFile(out);
 	SB_FOR(SBPointer<ADNPart> part, parts) {

@@ -1,4 +1,5 @@
 #include "DASCadnano.hpp"
+#include "SBString.hpp"
 #include "ADNBackbone.hpp"
 #include "ADNSidechain.hpp"
 
@@ -151,7 +152,7 @@ bool DASCadnano::ParseJSON(const std::string& filename) {
 
 	try {
 
-		std::filesystem::path filepath = std::filesystem::u8path(filename);
+		std::filesystem::path filepath = SBCContainerString::pathFromUtf8(filename);
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
 		fp = _wfopen(filepath.c_str(), L"rb");

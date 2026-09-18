@@ -1,4 +1,5 @@
 #include "SEAdenitaCoreSEAppGUI.hpp"
+#include "SBString.hpp"
 #include "SEAdenitaCoreSEApp.hpp"
 #include "SEAdenitaCoreSettingsGUI.hpp"
 #include "SEAdenitaVisualModel.hpp"
@@ -1086,7 +1087,7 @@ std::string SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(QString filename) {
 	};
 	try {
 
-		std::filesystem::path filePath = std::filesystem::u8path(filename.toStdString());
+		std::filesystem::path filePath = SBCContainerString::pathFromUtf8(filename.toStdString());
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
 		fp = _wfopen(filePath.c_str(), L"rb");
