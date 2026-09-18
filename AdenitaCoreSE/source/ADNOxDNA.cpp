@@ -1,6 +1,7 @@
 #include "ADNSaveAndLoad.hpp"
 #include "ADNFrameAdapters.hpp"
 #include "ADNNumericParsing.hpp"
+#include "SBString.hpp"
 
 #include <array>
 #include <cmath>
@@ -43,7 +44,7 @@ public:
 
 class RecordReader {
 public:
-	explicit RecordReader(const std::string& path) : path_(path), input_(std::filesystem::u8path(path)) {
+	explicit RecordReader(const std::string& path) : path_(path), input_(SBCContainerString::pathFromUtf8(path)) {
 		if (!input_) fail("Cannot open file");
 	}
 	bool next(std::vector<std::string>& tokens) {
@@ -326,7 +327,7 @@ void ADNLoader::OutputToOxDNA(SBPointerIndexer<ADNPart> parts, const std::string
 	}
 	// Validation may fail late in a strand. Prepare both complete files before replacing an existing export.
 	const auto text = prepareOxDNAExport(strands, options);
-	const auto directory = std::filesystem::u8path(folder);
+	const auto directory = SBCContainerString::pathFromUtf8(folder);
 	std::ofstream outConf(directory / "config.conf"), outTopo(directory / "topo.top");
 	if (!outConf || !outTopo) throw std::runtime_error("Could not open oxDNA output files in " + folder);
 	writeOxDNAExport(text, outConf, outTopo);

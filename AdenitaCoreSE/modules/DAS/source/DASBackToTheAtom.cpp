@@ -8,6 +8,7 @@
 #include "ADNSidechain.hpp"
 
 #include "SBProxy.hpp"
+#include "SBString.hpp"
 #include "SAMSON.hpp"
 #include "SBStructuralModel.hpp"
 
@@ -3383,7 +3384,7 @@ void DASBackToTheAtom::LoadNtPairs(const std::string& templateDirectory) {
     OwnedTemplatePair at, ta, cg, gc;
     try {
         const auto load = [&](OwnedTemplatePair& owner, const char* name, DNABlocks left, DNABlocks right) {
-            const auto path = std::filesystem::u8path(templateDirectory) / name;
+            const auto path = SBCContainerString::pathFromUtf8(templateDirectory) / name;
             const std::string source = path.u8string();
             if (!std::filesystem::is_regular_file(path)) throw std::runtime_error(source + ": Missing or unreadable template file");
             owner.pair = ParseBasePairPDB(source);
@@ -3425,7 +3426,7 @@ void DASBackToTheAtom::LoadNtPairs(const std::string& templateDirectory) {
 }
 
 NtPair DASBackToTheAtom::ParseBasePairPDB(const std::string& source) {
-    std::ifstream file(std::filesystem::u8path(source));
+    std::ifstream file(SBCContainerString::pathFromUtf8(source));
     if (!file) throw std::runtime_error(source + ": Cannot open template");
     OwnedTemplatePair owner;
     owner.pair.first = new ADNNucleotide();

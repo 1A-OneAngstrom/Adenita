@@ -1,6 +1,7 @@
 #include "SBSphereArray.hpp"
 #include "SBCylinderArray.hpp"
 #include "SAMSON.hpp"
+#include "SBString.hpp"
 #include "private/ADNGeometryBuffer.hpp"
 /// \file AdenitaStandaloneTests.cpp
 /// \brief Standalone smoke tests for Adenita code that does not launch SAMSON.
@@ -304,7 +305,7 @@ void writeTextFile(const std::filesystem::path& path, const std::string& content
 
 std::filesystem::path repoDataPath(const std::string& filename) {
 
-	return std::filesystem::u8path(ADENITA_TEST_DATA_DIR) / filename;
+	return SBCContainerString::pathFromUtf8(ADENITA_TEST_DATA_DIR) / filename;
 
 }
 
@@ -5325,7 +5326,7 @@ void testReconstructionTemplateValidationIsTransactional() {
 			std::filesystem::remove(directory, ignored);
 		}
 	} cleanup{directory};
-	const auto bundled = std::filesystem::u8path(ADENITA_TEST_DATA_DIR);
+	const auto bundled = SBCContainerString::pathFromUtf8(ADENITA_TEST_DATA_DIR);
 	const auto restore = [&]() {
 		for (const char* name : {"AT.pdb", "TA.pdb", "CG.pdb", "GC.pdb"}) {
 			std::filesystem::remove(directory / name);
@@ -5644,7 +5645,7 @@ int main(int argc, char** argv) {
 
 	// Reconstruction tests use fixtures from this source checkout, supplied by
 	// CMake, rather than depending on a SAMSON installation or per-user scratch.
-	const auto templateDirectory = std::filesystem::u8path(ADENITA_TEST_DATA_DIR);
+	const auto templateDirectory = SBCContainerString::pathFromUtf8(ADENITA_TEST_DATA_DIR);
 	std::cerr << "Template directory: " << templateDirectory.u8string() << std::endl;
 	for (const char* name : { "AT.pdb", "TA.pdb", "CG.pdb", "GC.pdb" }) {
 		const auto path = templateDirectory / name;
