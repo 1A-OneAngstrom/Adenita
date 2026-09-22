@@ -113,6 +113,8 @@ SAMSON_INSTALL_ELEMENT (${OUTPUT_NAME} ${OUTPUT_UUID})
 if(${OUTPUT_UUID}_tests)
   enable_testing()
 
+  set(_samson_test_folder "Tests/${PROJECT_FOLDER_NAME}")
+  set(_samson_test_labels samson extension "${PROJECT_FOLDER_NAME}")
   set(ADENITA_STANDALONE_TEST_TARGET ${OUTPUT_NAME}StandaloneTests)
 
   get_filename_component(ADENITA_SAMSON_SDK_VERSION "${CMAKE_SAMSON_SDK_PATH}" NAME)
@@ -180,7 +182,7 @@ if(${OUTPUT_UUID}_tests)
       ${SAMSON_SDK_LIBRARIES}
   )
 
-  set_property(TARGET ${ADENITA_STANDALONE_TEST_TARGET} PROPERTY FOLDER "Elements/Tests")
+  set_property(TARGET ${ADENITA_STANDALONE_TEST_TARGET} PROPERTY FOLDER "${_samson_test_folder}")
   set_target_properties(${ADENITA_STANDALONE_TEST_TARGET} PROPERTIES AUTOMOC ON)
 
   if(WIN32)
@@ -208,4 +210,6 @@ if(TARGET SEAdenitaCoreSEStandaloneTests)
   set_tests_properties(SEAdenitaCoreSE.GeometryOwnership SEAdenitaCoreSE.EdgeCases PROPERTIES
     ENVIRONMENT_MODIFICATION "${ADENITA_TEST_ENVIRONMENT}")
   set_tests_properties(SEAdenitaCoreSE.Standalone SEAdenitaCoreSE.GeometryOwnership SEAdenitaCoreSE.EdgeCases PROPERTIES TIMEOUT 180)
+  set_property(TEST SEAdenitaCoreSE.Standalone SEAdenitaCoreSE.GeometryOwnership SEAdenitaCoreSE.EdgeCases
+    APPEND PROPERTY LABELS ${_samson_test_labels})
 endif()
