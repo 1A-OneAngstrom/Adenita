@@ -673,10 +673,17 @@ void ADNBasicOperations::MutateBasePairIntoLoopPair(SBPointer<ADNBaseSegment> bs
     SBPointer<ADNBasePair> bp(static_cast<ADNBasePair*>(cell()));
     SBPointer<ADNNucleotide> leftNt = bp->GetLeftNucleotide();
     SBPointer<ADNNucleotide> rightNt = bp->GetRightNucleotide();
-    // unpair
-    leftNt->SetPair(nullptr);
-    rightNt->SetPair(nullptr);
+    // This conversion has two sides. Reject partial or inconsistent ownership before touching any links.
+    if (leftNt == nullptr || rightNt == nullptr || leftNt == rightNt) return;
+    if (cell->getParent() != bs() || leftNt->GetBaseSegment() != bs || rightNt->GetBaseSegment() != bs) return;
+    const auto part = ADNGeometrySynchronization::findOwningPart(bs());
+    if (part != nullptr && (leftNt->GetStrand() == nullptr || rightNt->GetStrand() == nullptr)) return;
+    if (ADNGeometrySynchronization::findOwningPart(leftNt()) != part ||
+        ADNGeometrySynchronization::findOwningPart(rightNt()) != part) return;
+    if ((leftNt->GetPair() != nullptr && leftNt->GetPair() != rightNt) ||
+        (rightNt->GetPair() != nullptr && rightNt->GetPair() != leftNt)) return;
 
+    // Stage both loops before disconnecting pair links; failed staging leaves the original pair unchanged.
     SBPointer<ADNLoopPair> lp = SBPointer<ADNLoopPair>(new ADNLoopPair());
     SBPointer<ADNLoop> leftLoop = SBPointer<ADNLoop>(new ADNLoop());
     SBPointer<ADNLoop> rightLoop = SBPointer<ADNLoop>(new ADNLoop());
@@ -689,6 +696,8 @@ void ADNBasicOperations::MutateBasePairIntoLoopPair(SBPointer<ADNBaseSegment> bs
     rightLoop->SetStart(rightNt);
     rightLoop->SetEnd(rightNt);
 
+    leftNt->SetPair(nullptr);
+    rightNt->SetPair(nullptr);
     bs->SetCell(lp());
 
 }
@@ -819,10 +828,14 @@ SBPosition3 ADNBasicOperations::CalculateCenterOfMass(SBPointer<ADNPart> part) {
 
     auto atoms = part->GetAtoms();
 
-    SB_FOR(SBPointer<ADNAtom> a, atoms) if (a.isValid()) cm += a->getPosition();
+    std::size_t count = 0;
+    SB_FOR(SBPointer<ADNAtom> a, atoms) if (a.isValid()) {
+        cm += a->getPosition();
+        ++count;
+    }
 
-    auto sz = atoms.size();
-    cm *= (1.0 / sz);
+    // Coarse models may contain no atoms; preserve the arithmetic-center convention without dividing by zero.
+    if (count != 0) cm *= (1.0 / count);
     return cm;
 
 }

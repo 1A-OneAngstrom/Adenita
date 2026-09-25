@@ -9,23 +9,6 @@
 #include "ADNModel.hpp"
 #include "ADNNodeValidation.hpp"
 
-ADNNucleotide::ADNNucleotide(const ADNNucleotide& other) : PositionableSB(other), SBResidue(other), Orientable(other) {
-
-	*this = other;
-	pairNucleotide = nullptr;
-
-}
-
-ADNNucleotide& ADNNucleotide::operator=(const ADNNucleotide& other) {
-
-	PositionableSB::operator =(other);
-	Orientable::operator =(other);
-	SBResidue::operator =(other);
-
-	return *this;
-
-}
-
 void ADNNucleotide::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber, const SBVersionNumber& classVersionNumber) const {
 
 	SBResidue::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
@@ -164,33 +147,29 @@ std::string ADNNucleotide::getOneLetterNucleotideTypeString() const {
 
 void ADNNucleotide::SetPair(SBPointer<ADNNucleotide> nucleotide) {
 
-	ADNNucleotide* oldNucleotide = this->pairNucleotide();
+	if (pairNucleotide == nucleotide) return;
 
-	this->pairNucleotide = SBPointer<ADNNucleotide>(nucleotide);
-
-	if (oldNucleotide) oldNucleotide->disconnectPair(this);
+	// Removing a reciprocal link can release either nucleotide's last owner.
+	// Retain both endpoints until the replacement has been installed.
+	SBPointer<ADNNucleotide> oldNucleotide = pairNucleotide;
+	SBPointer<ADNNucleotide> keepAlive;
+	const bool reciprocal = oldNucleotide != nullptr && oldNucleotide->pairNucleotide() == this;
+	if (reciprocal) keepAlive = this;
+	pairNucleotide = nullptr;
+	if (reciprocal) oldNucleotide->pairNucleotide = nullptr;
+	pairNucleotide = nucleotide;
 
 }
 
 void ADNNucleotide::disconnectPair(SBPointer<ADNNucleotide> nucleotide) {
 
-	if (nucleotide != nullptr && this->pairNucleotide == nucleotide) {
-
-		this->pairNucleotide->pairNucleotide = nullptr;
-		this->pairNucleotide = nullptr;
-
-	}
+	if (nucleotide != nullptr && pairNucleotide == nucleotide) SetPair(nullptr);
 
 }
 
 void ADNNucleotide::disconnectPair() {
 
-	if (this->pairNucleotide != nullptr) {
-
-		this->pairNucleotide->pairNucleotide = nullptr;
-		this->pairNucleotide = nullptr;
-
-	}
+	SetPair(nullptr);
 
 }
 
@@ -214,7 +193,7 @@ SBPointer<ADNNucleotide> ADNNucleotide::GetPrev(bool checkCircular) const {
 
 		auto strand = GetStrand();
 		if (strand != nullptr)
-			if (strand->IsCircular() && endType == EndType::FivePrime)
+			if (strand->IsCircular() && (endType == EndType::FivePrime || endType == EndType::FiveAndThreePrime))
 				p = strand->GetThreePrime();
 
 	}
@@ -239,7 +218,7 @@ SBPointer<ADNNucleotide> ADNNucleotide::GetNext(bool checkCircular) const {
 
 		auto strand = GetStrand();
 		if (strand != nullptr)
-			if (strand->IsCircular() && endType == EndType::ThreePrime)
+			if (strand->IsCircular() && (endType == EndType::ThreePrime || endType == EndType::FiveAndThreePrime))
 				p = strand->GetFivePrime();
 
 	}

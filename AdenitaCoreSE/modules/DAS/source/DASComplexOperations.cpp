@@ -5,6 +5,7 @@
 #include "ADNLogger.hpp"
 
 #include <cmath>
+#include <memory>
 #include <vector>
 
 namespace {
@@ -314,6 +315,12 @@ DASOperations::Connections DASOperations::PrepareStrandsForConnection(SBPointer<
 void DASOperations::CreateCrossover(SBPointer<ADNPart> part1, SBPointer<ADNPart> part2,
 	SBPointer<ADNNucleotide> nt1, SBPointer<ADNNucleotide> nt2, bool two, std::string seq)
 {
+	// Preparing connections splits strands, so validate templates before that edit.
+	std::unique_ptr<DASBackToTheAtom> btta;
+	if (!seq.empty()) {
+		btta = std::make_unique<DASBackToTheAtom>();
+		if (!btta->IsReady()) return;
+	}
 	EndpointConnector manualSingleStrandConnector;
 	if (!two && !seq.empty()) {
 
@@ -354,7 +361,6 @@ void DASOperations::CreateCrossover(SBPointer<ADNPart> part1, SBPointer<ADNPart>
 				joinStrand2 = res.ss2;
 
 				joinStrand1->SetSequence(seq);
-				DASBackToTheAtom* btta = new DASBackToTheAtom();
 				btta->SetPositionsForNewNucleotides(pair.firstPart,
 					joinStrand1->GetNucleotides(),
 					DASBackToTheAtom::NewNucleotidePlacementMode::ReconstructBaseSegments);
@@ -395,8 +401,7 @@ void DASOperations::CreateCrossover(SBPointer<ADNPart> part1, SBPointer<ADNPart>
 				if (joinStrand1 == nullptr || res.ds == nullptr) return;
 				joinStrand1->SetSequence(seq);
 
-				DASBackToTheAtom btta;
-				btta.SetPositionsForNewNucleotides(pair.firstPart,
+				btta->SetPositionsForNewNucleotides(pair.firstPart,
 					joinStrand1->GetNucleotides(),
 					DASBackToTheAtom::NewNucleotidePlacementMode::PreserveInputGeometry);
 
@@ -459,6 +464,7 @@ void DASOperations::CreateCrossover(SBPointer<ADNPart> part1, SBPointer<ADNPart>
 void DASOperations::AddComplementaryStrands(ADNNanorobot* nanorobot, SBPointerIndexer<ADNNucleotide> selectedNucleotides)
 {
 	DASBackToTheAtom btta = DASBackToTheAtom();
+	if (!btta.IsReady()) return;
 
 	SBPointer<ADNPart> prevPart = nullptr;
 	SBPointer<ADNSingleStrand> ss = nullptr;

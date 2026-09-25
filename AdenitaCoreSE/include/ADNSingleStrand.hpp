@@ -16,10 +16,11 @@ public:
     ADNSingleStrand() : SBChain() {}
     //ADNSingleStrand(int numNts);
     //ADNSingleStrand(std::vector<SBPointer<ADNNucleotide>> nts);
-    ADNSingleStrand(const ADNSingleStrand& other);
+    /// \brief Disallows copying node identity and reference ownership; use SAMSON graph cloning.
+    ADNSingleStrand(const ADNSingleStrand&) = delete;
     ~ADNSingleStrand() = default;
 
-    ADNSingleStrand&                                            operator=(const ADNSingleStrand& other);
+    ADNSingleStrand&                                            operator=(const ADNSingleStrand& other) = delete; ///< Node identity cannot be assigned.
 
     virtual void												serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const override;		///< Serializes the node
     virtual void												unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;			///< Unserializes the node

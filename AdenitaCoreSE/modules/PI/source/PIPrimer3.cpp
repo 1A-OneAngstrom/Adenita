@@ -7,6 +7,7 @@
 #include <cerrno>
 #include <cctype>
 #include <cfloat>
+#include <cmath>
 #include <cstdlib>
 #include <sstream>
 
@@ -36,10 +37,11 @@ bool ParseLabeledDouble(const std::string& line, const std::string& label, doubl
 
     errno = 0;
     char* end = nullptr;
-    value = std::strtod(start, &end);
-    if (start == end || errno == ERANGE) return false;
+    const double parsed = std::strtod(start, &end);
+    if (start == end || errno == ERANGE || !std::isfinite(parsed)) return false;
     if (*end != '\0' && !std::isspace(static_cast<unsigned char>(*end))) return false;
 
+    value = parsed;
     return true;
 
 }
@@ -166,10 +168,11 @@ ThermodynamicParameters PIPrimer3::ParseNtthalOutput(const std::string& output) 
     // ntthal reports fewer lines when the region is unbound.
     if (lineCount < 5) return res;
 
-    if (!ParseLabeledDouble(firstLine, "dS =", res.dS_)) return res;
-    if (!ParseLabeledDouble(firstLine, "dH =", res.dH_)) return res;
-    if (!ParseLabeledDouble(firstLine, "dG =", res.dG_)) return res;
-    if (!ParseLabeledDouble(firstLine, "t =", res.T_)) return res;
+    // Publish a complete finite result or the usual invalid sentinel, never partially parsed values.
+    if (!ParseLabeledDouble(firstLine, "dS =", res.dS_) ||
+        !ParseLabeledDouble(firstLine, "dH =", res.dH_) ||
+        !ParseLabeledDouble(firstLine, "dG =", res.dG_) ||
+        !ParseLabeledDouble(firstLine, "t =", res.T_)) return InvalidThermodynamicParameters();
 
     res.isValid = true;
     return res;

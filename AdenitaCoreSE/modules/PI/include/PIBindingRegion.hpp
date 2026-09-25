@@ -29,10 +29,11 @@ public:
 
 	PIBindingRegion() : SBNodeGroup() {}
 	PIBindingRegion(const std::string& name, const SBNodeIndexer& indexer) : SBNodeGroup(name, indexer) {}
-	PIBindingRegion(const PIBindingRegion& other) : SBNodeGroup(other) {}
+	/// \brief Disallows copying node identity and reference ownership; use SAMSON graph cloning.
+	PIBindingRegion(const PIBindingRegion&) = delete;
 	~PIBindingRegion() = default;
 
-	PIBindingRegion& operator=(const PIBindingRegion& other);
+	PIBindingRegion& operator=(const PIBindingRegion& other) = delete; ///< Node identity cannot be assigned.
 
 	double getEntropy() const;
 	double getEnthalpy() const;

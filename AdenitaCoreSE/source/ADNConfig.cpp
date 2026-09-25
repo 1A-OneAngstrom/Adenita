@@ -1,4 +1,5 @@
 #include "ADNConfig.hpp"
+#include "SBString.hpp"
 #include "ADNConfigFileIO.hpp"
 #include "ADNConfigJson.hpp"
 #include <filesystem>
@@ -311,7 +312,7 @@ void SEConfig::loadConfig() {
 
 		writer.EndObject();
 
-		std::ofstream out(std::filesystem::u8path(DEFAULT_CONFIGPATH));
+		std::ofstream out(SBCContainerString::pathFromUtf8(DEFAULT_CONFIGPATH));
 		if (out)
 			out << s.GetString();
 		else
@@ -360,7 +361,7 @@ void SEConfig::loadDebugConfig() {
 
         writer.EndObject();
 
-        std::ofstream out(std::filesystem::u8path(DEBUG_CONFIGPATH));
+        std::ofstream out(SBCContainerString::pathFromUtf8(DEBUG_CONFIGPATH));
         if (out)
             out << s.GetString();
         else

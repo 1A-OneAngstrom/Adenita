@@ -1,4 +1,5 @@
 #include "SEAdenitaCoreSEAppGUI.hpp"
+#include "SBString.hpp"
 #include "SEAdenitaCoreSEApp.hpp"
 #include "SEAdenitaCoreSettingsGUI.hpp"
 #include "SEAdenitaVisualModel.hpp"
@@ -367,7 +368,12 @@ void SEAdenitaCoreSEAppGUI::onExport() {
 				options.boxSizeZ_ = boxZ->value();
 
 				QString folder = QFileDialog::getExistingDirectory(this, tr("Choose an existing directory"), workingDirectory, QFileDialog::DontUseNativeDialog);
-				if (!folder.isEmpty()) getApp()->ExportToOxDNA(folder, options, selectedParts);
+				if (!folder.isEmpty()) {
+					try { getApp()->ExportToOxDNA(folder, options, selectedParts); }
+					catch (const std::exception& error) {
+						QMessageBox::warning(this, tr("oxDNA export"), QString::fromUtf8(error.what()));
+					}
+				}
 
 			}
 
@@ -712,9 +718,22 @@ void SEAdenitaCoreSEAppGUI::onOxDNAImport() {
 
 	workingDirectory = QFileInfo(configFile).absolutePath();
 
-	if (!topoFile.isEmpty() || !configFile.isEmpty()) {
-
-		getApp()->ImportFromOxDNA(topoFile.toStdString(), configFile.toStdString());
+	if (!topoFile.isEmpty() && !configFile.isEmpty()) {
+		// Old Adenita files contain no marker that distinguishes their conventions.
+		QDialog dialog;
+		dialog.setWindowTitle(tr("oxDNA import"));
+		QVBoxLayout layout(&dialog);
+		QCheckBox legacy(tr("Older Adenita export"), &dialog);
+		legacy.setToolTip(tr("Use for files exported by older Adenita versions. Leave unchecked for standard oxDNA files."));
+		layout.addWidget(&legacy);
+		QDialogButtonBox buttons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialog);
+		layout.addWidget(&buttons);
+		QObject::connect(&buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+		QObject::connect(&buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+		if (dialog.exec() != QDialog::Accepted) return;
+		ADNLoader::OxDNAImportOptions options;
+		options.olderAdenitaExport = legacy.isChecked();
+		getApp()->ImportFromOxDNA(topoFile.toStdString(), configFile.toStdString(), options);
 
 	}
 
@@ -1016,6 +1035,10 @@ void SEAdenitaCoreSEAppGUI::onGenerateAtomicModel() {
 		progress.setValue(5);
 
 		DASBackToTheAtom btta = DASBackToTheAtom();
+		if (!btta.IsReady()) {
+			QMessageBox::warning(this, tr("Adenita reconstruction"), QString::fromStdString(btta.GetInitializationError()));
+			return;
+		}
 
 		progress.setValue(10);
 		SAMSON::beginHolding("Add atomic model");
@@ -1064,7 +1087,7 @@ std::string SEAdenitaCoreSEAppGUI::isCadnanoJsonFormat(QString filename) {
 	};
 	try {
 
-		std::filesystem::path filePath = std::filesystem::u8path(filename.toStdString());
+		std::filesystem::path filePath = SBCContainerString::pathFromUtf8(filename.toStdString());
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
 		fp = _wfopen(filePath.c_str(), L"rb");

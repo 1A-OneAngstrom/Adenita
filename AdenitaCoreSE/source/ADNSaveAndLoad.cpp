@@ -1,4 +1,5 @@
 #include "ADNSaveAndLoad.hpp"
+#include "SBString.hpp"
 
 #include "ADNFrameAdapters.hpp"
 #include "ADNGeometrySynchronization.hpp"
@@ -18,7 +19,7 @@ SBPointer<ADNPart> ADNLoader::LoadPartFromJson(const std::string& filename) {
 
 	FILE* fp = nullptr;
 	try {
-		std::filesystem::path filepath = std::filesystem::u8path(filename);
+		std::filesystem::path filepath = SBCContainerString::pathFromUtf8(filename);
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
 		fp = _wfopen(filepath.c_str(), L"rb");
@@ -210,10 +211,10 @@ SBPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value& val, double ver
 				nt->setTag(itr2->value["tag"].GetString());
 			}
 
-			nts.Store(nt, std::stoi(itr2->name.GetString()));
-			nexts.insert(std::make_pair(std::stoi(itr2->name.GetString()), itr2->value["next"].GetInt()));
-			prevs.insert(std::make_pair(std::stoi(itr2->name.GetString()), itr2->value["prev"].GetInt()));
-			pairs.insert(std::make_pair(std::stoi(itr2->name.GetString()), itr2->value["pair"].GetInt()));
+			nts.Store(nt, ADNNumericParsing::integer(itr2->name.GetString()));
+			nexts.insert(std::make_pair(ADNNumericParsing::integer(itr2->name.GetString()), itr2->value["next"].GetInt()));
+			prevs.insert(std::make_pair(ADNNumericParsing::integer(itr2->name.GetString()), itr2->value["prev"].GetInt()));
+			pairs.insert(std::make_pair(ADNNumericParsing::integer(itr2->name.GetString()), itr2->value["pair"].GetInt()));
 
 		}
 
@@ -393,9 +394,9 @@ SBPointer<ADNPart> ADNLoader::LoadPartFromJson(rapidjson::Value& val, double ver
 
 			}
 
-			bss.Store(bs, std::stoi(itr2->name.GetString()));
-			nextsBs.insert(std::make_pair(std::stoi(itr2->name.GetString()), itr2->value["next"].GetInt()));
-			prevsBs.insert(std::make_pair(std::stoi(itr2->name.GetString()), itr2->value["previous"].GetInt()));
+			bss.Store(bs, ADNNumericParsing::integer(itr2->name.GetString()));
+			nextsBs.insert(std::make_pair(ADNNumericParsing::integer(itr2->name.GetString()), itr2->value["next"].GetInt()));
+			prevsBs.insert(std::make_pair(ADNNumericParsing::integer(itr2->name.GetString()), itr2->value["previous"].GetInt()));
 
 		}
 
@@ -436,7 +437,7 @@ std::vector<SBPointer<ADNPart>> ADNLoader::LoadPartsFromJson(std::string filenam
 
 	FILE* fp = nullptr;
 	try {
-		std::filesystem::path filepath = std::filesystem::u8path(filename);
+		std::filesystem::path filepath = SBCContainerString::pathFromUtf8(filename);
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
 		fp = _wfopen(filepath.c_str(), L"rb");
@@ -508,7 +509,7 @@ SBPointer<ADNPart> ADNLoader::LoadPartFromJsonLegacy(const std::string& filename
 
 	FILE* fp = nullptr;
 	try {
-		std::filesystem::path filepath = std::filesystem::u8path(filename);
+		std::filesystem::path filepath = SBCContainerString::pathFromUtf8(filename);
 #ifdef _WIN32
 		// convert to a wide string (UTF-8) to take care of special characters
 		fp = _wfopen(filepath.c_str(), L"rb");
@@ -1484,131 +1485,6 @@ SBPointer<ADNPart> ADNLoader::GenerateModelFromDataGraphParametrized(SBNode* sn,
 
 }
 
-void ADNLoader::OutputToOxDNA(SBPointer<ADNPart> part, const std::string& folder, const ADNAuxiliary::OxDNAOptions& options) {
-
-	std::ofstream outConf(std::filesystem::u8path(folder + "/" + "config.conf"));
-	std::ofstream outTopo(std::filesystem::u8path(folder + "/" + "topo.top"));
-
-	auto singleStrands = part->GetSingleStrands();
-	SingleStrandsToOxDNA(singleStrands, outConf, outTopo, options);
-
-	outConf.close();
-	outTopo.close();
-
-}
-
-void ADNLoader::OutputToOxDNA(SBPointerIndexer<ADNPart> parts, const std::string& folder, const ADNAuxiliary::OxDNAOptions& options) {
-
-	SBPointerIndexer<ADNSingleStrand> singleStrands;
-	SB_FOR(SBPointer<ADNPart> p, parts) {
-
-		auto sss = p->GetSingleStrands();
-		SB_FOR(SBPointer<ADNSingleStrand> ss, sss)
-			singleStrands.addReferenceTarget(ss());
-
-	}
-
-	std::ofstream outConf(std::filesystem::u8path(folder + "/" + "config.conf"));
-	std::ofstream outTopo(std::filesystem::u8path(folder + "/" + "topo.top"));
-
-	SingleStrandsToOxDNA(singleStrands, outConf, outTopo, options);
-
-	outConf.close();
-	outTopo.close();
-
-}
-
-void ADNLoader::SingleStrandsToOxDNA(SBPointerIndexer<ADNSingleStrand> singleStrands, std::ofstream& outConf, std::ofstream& outTopo, const ADNAuxiliary::OxDNAOptions& options) {
-
-	// config file header
-	const std::string timeStep = "0";
-	const std::string boxSizeX = std::to_string(options.boxSizeX_);
-	const std::string boxSizeY = std::to_string(options.boxSizeY_);
-	const std::string boxSizeZ = std::to_string(options.boxSizeZ_);
-	const auto energies = std::tuple<std::string, std::string, std::string>("0.0", "0.0", "0.0");
-
-	outConf << "t = " + timeStep << std::endl;
-	outConf << "b = " + boxSizeX + " " + boxSizeY + " " + boxSizeZ << std::endl;
-	outConf << "E = " + std::get<0>(energies) + " " + std::get<1>(energies) + " " + std::get<2>(energies) << std::endl;
-
-	// topology file header
-	size_t numNt = 0;
-	SB_FOR(SBPointer<ADNSingleStrand> ss, singleStrands) numNt += ss->getNumberOfNucleotides();
-	const std::string numberNucleotides = std::to_string(numNt);
-	const std::string numberStrands = std::to_string(singleStrands.size());
-
-	outTopo << numberNucleotides << " " << numberStrands << std::endl;
-
-	// config file: velocity and angular velocity are zero for all
-	const std::string L = "0 0 0";
-	const std::string v = "0 0 0";
-
-	// we assign new ids
-	unsigned int strandId = 1;
-	unsigned int ntId = 0;
-	SB_FOR(SBPointer<ADNSingleStrand> ss, singleStrands) {
-
-		SBPointer<ADNNucleotide> nt = ss->GetFivePrime();
-		// calculate five prime and three prime ids
-		const int numNt = ss->getNumberOfNucleotides();
-		const int fivePrimeId = ntId;
-		const int threePrimeId = fivePrimeId + numNt;
-
-		do {
-
-			// config file info
-			SBPosition3 pos = nt->GetPosition();
-			ublas::vector<double> bbVector = nt->GetE2() * (-1.0);
-			ublas::vector<double> normal = nt->GetE1() * (-1.0);
-
-			// box size is in nm, so position of nt has to be too
-			const std::string positionVector = std::to_string(pos[0].getValue() / 1000.0) + " " + std::to_string(pos[1].getValue() / 1000.0) + " " + std::to_string(pos[2].getValue() / 1000.0);
-			const std::string backboneBaseVector = std::to_string(bbVector[0]) + " " + std::to_string(bbVector[1]) + " " + std::to_string(bbVector[2]);
-			const std::string normalVector = std::to_string(normal[0]) + " " + std::to_string(normal[1]) + " " + std::to_string(normal[2]);
-
-			outConf << positionVector + " " + backboneBaseVector + " " + normalVector + " " + v + " " + L << std::endl;
-
-			// topology file info
-			std::string base = nt->getOneLetterNucleotideTypeString();
-			if (base == "N") base = "R";  // oxDNA uses R for random
-
-			std::string threePrime = "-1";
-			auto ntPrev = nt->GetPrev(true);
-			if (ntPrev != nullptr) {
-
-				if (ntPrev->getEndType() == ADNNucleotide::EndType::ThreePrime) {
-
-					// ? fix for circular DNA
-					if (threePrimeId > 0) threePrime = std::to_string(threePrimeId - 1);
-					else threePrime = std::to_string(threePrimeId);
-
-				}
-				else threePrime = std::to_string(ntId - 1);
-
-			}
-
-			std::string fivePrime = "-1";
-			auto ntNext = nt->GetNext(true);
-			if (ntNext != nullptr) {
-
-				if (ntNext->getEndType() == ADNNucleotide::EndType::FivePrime) fivePrime = std::to_string(fivePrimeId);
-				else fivePrime = std::to_string(ntId + 1);
-
-			}
-
-			outTopo << std::to_string(strandId) + " " + base + " " + threePrime + " " + fivePrime << std::endl;
-
-			nt = nt->GetNext();
-			ntId++;
-
-		} while (nt != nullptr);
-
-		++strandId;
-
-	}
-
-}
-
 void ADNLoader::SignOutputFile(std::ofstream& output) {
 
 	time_t rawtime;
@@ -1622,169 +1498,6 @@ void ADNLoader::SignOutputFile(std::ofstream& output) {
 	std::string str(buffer);
 
 	output << "## File created with Adenita on " + str + "\n";
-
-}
-
-ADNLoader::OxDNAImportResult ADNLoader::InputFromOxDNA(const std::string& topoFile, const std::string& configFile) {
-
-	SBPointer<ADNPart> part = new ADNPart();
-	bool error = false;
-	std::vector<NucleotideWrap> oxDNAIndices;
-
-	// parse topology file
-	std::ifstream topo(std::filesystem::u8path(topoFile));
-
-	if (topo.is_open()) {
-
-		std::string line;
-		SBPointer<ADNSingleStrand> ss;
-		int currChain = -1;
-		int currNt = 0;
-		bool fstLine = true;
-		error = false;
-
-		while (std::getline(topo, line)) {
-
-			if (fstLine) {
-
-				fstLine = false;
-				continue;  // first line of topology contains number of chains and nucleotides
-
-			}
-
-			std::vector<std::string> cont;
-			boost::split(cont, line, boost::is_any_of(" "));
-			if (cont.size() != 4) {
-
-				error = true;
-				break;
-
-			}
-
-			const int numChain = std::stoi(cont[0]);
-			const char base = cont[1][0];
-			//int numPrevNt = std::stoi(cont[2]);
-			//int numNextNt = std::stoi(cont[3]);
-
-			if (numChain != currChain) {
-
-				ss = new ADNSingleStrand();
-				ss->SetDefaultName();
-				part->RegisterSingleStrand(ss);
-				currChain = numChain;
-
-			}
-
-			SBPointer<ADNNucleotide> nt = new ADNNucleotide();
-			nt->Init();
-			nt->setNucleotideType(ADNModel::ResidueNameToType(base));
-			part->RegisterNucleotideThreePrime(ss, nt);
-
-			// if last nucleotide next is same as first close
-
-			// insert wrapper
-			NucleotideWrap w = NucleotideWrap();
-			w.elem_ = nt;
-			w.id_ = currNt;
-			w.strandId_ = currChain;
-			oxDNAIndices.push_back(w);
-
-			currNt++;
-
-		}
-
-	}
-	else {
-
-		error = true;
-
-	}
-
-	// parse config file and set positions if topology file was parsed correctly
-	if (!error) {
-
-		std::ifstream config(std::filesystem::u8path(configFile));
-
-		if (config.is_open()) {
-
-			std::string line;
-			int lineCount = 0;
-			error = false;
-
-			while (std::getline(config, line)) {
-
-				if (lineCount > 2) {
-
-					std::vector<std::string> cont;
-					boost::split(cont, line, boost::is_any_of(" "));
-					if (cont.size() != 15) {
-
-						error = true;
-						break;
-
-					}
-
-					const double x = std::stod(cont[0]);
-					const double y = std::stod(cont[1]);
-					const double z = std::stod(cont[2]);
-					const double e2x = std::stod(cont[3]);
-					const double e2y = std::stod(cont[4]);
-					const double e2z = std::stod(cont[5]);
-					const double e1x = std::stod(cont[6]);
-					const double e1y = std::stod(cont[7]);
-					const double e1z = std::stod(cont[8]);
-
-					if (oxDNAIndices.size() > (lineCount - 3)) {
-
-						SBPosition3 pos = SBPosition3(SBQuantity::nanometer(x), SBQuantity::nanometer(y), SBQuantity::nanometer(z));
-						ublas::vector<double> e2 = ublas::vector<double>(3, 0.0);
-						e2[0] = e2x;
-						e2[1] = e2y;
-						e2[2] = e2z;
-						ublas::vector<double> e1 = ublas::vector<double>(3, 0.0);
-						e1[0] = e1x;
-						e1[1] = e1y;
-						e1[2] = e1z;
-						ublas::vector<double> e3 = ADNVectorMath::CrossProduct(e1, e2);
-
-						const auto& w = oxDNAIndices.at(lineCount - 3);
-						const auto& nt = w.elem_;
-						nt->SetPosition(pos);
-						nt->SetE2(e2);
-						nt->SetE1(e1);
-						nt->SetE3(e3);
-
-					}
-					else {
-
-						error = true;
-						break;
-
-					}
-
-				}
-
-				lineCount++;
-
-			}
-
-		}
-		else {
-
-			error = true;
-
-		}
-
-	}
-
-	if (!error) {
-
-		// create base pairs and double strands
-		BuildTopScales(part);
-
-	}
-
-	return { error, part };
 
 }
 
@@ -1820,7 +1533,7 @@ void ADNLoader::OutputToCanDo(SBPointer<ADNPart> part, const std::string& filena
 /// CanDo file format description: https://cando-dna-origami.org/cndo-file-converter/
 void ADNLoader::OutputToCanDo(const SBPointerIndexer<ADNSingleStrand>& singleStrands, const std::vector < SBPointerIndexer<ADNBaseSegment>>& baseSegmentsVector, const std::string& filename) {
 
-	std::ofstream file(std::filesystem::u8path(filename));
+	std::ofstream file(SBCContainerString::pathFromUtf8(filename));
 
 	// A string describing the .cndo file format
 	file << "\"CanDo (.cndo) file format version 1.0, Keyao Pan, Laboratory for Computational Biology and Biophysics, Massachusetts Institute of Technology, November 2015\"" << '\n' << std::endl;
@@ -2172,7 +1885,7 @@ void ADNLoader::OutputToCSV(SBPointerIndexer<ADNPart> parts, const std::string& 
 
 	int num = 0;
 
-	std::ofstream out(std::filesystem::u8path(folder + "/" + fname));
+	std::ofstream out(SBCContainerString::pathFromUtf8(folder + "/" + fname));
 
 	SignOutputFile(out);
 	SB_FOR(SBPointer<ADNPart> part, parts) {

@@ -61,8 +61,8 @@ PositionableSB::PositionableSB() {
 
 }
 
-PositionableSB::PositionableSB(const PositionableSB& other) {
-    *this = other;
+PositionableSB::PositionableSB(const PositionableSB& other) : PositionableSB() {
+    SetPosition(other.GetPosition());
 }
 
 PositionableSB& PositionableSB::operator=(const PositionableSB& other) {
@@ -71,7 +71,12 @@ PositionableSB& PositionableSB::operator=(const PositionableSB& other) {
         return *this;
     }
 
-    centerAtom_ = other.GetCenterAtom();
+    // Assignment changes the position value, preserving references to the destination center.
+    if (!centerAtom_.isValid()) {
+        centerAtom_ = new ADNAtom();
+        centerAtom_->setRecordType((char*)"HETATM", 6);
+    }
+    SetPosition(other.GetPosition());
 
     return *this;
 

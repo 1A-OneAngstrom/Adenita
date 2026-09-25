@@ -1,21 +1,39 @@
+#include "SBSphereArray.hpp"
+#include "SBCylinderArray.hpp"
+#include "SAMSON.hpp"
+#include "SBString.hpp"
+#include "private/ADNGeometryBuffer.hpp"
 /// \file AdenitaStandaloneTests.cpp
 /// \brief Standalone smoke tests for Adenita code that does not launch SAMSON.
 
 #include <cstddef>
+#include <cfloat>
+#include <array>
+#include <QCoreApplication>
 #include <cstdlib>
 #include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <system_error>
+#include <type_traits>
 #include <vector>
 
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <Windows.h>
+#endif
+
 #include "ADNBaseSegment.hpp"
+#include "ADNBackbone.hpp"
 #include "ADNAtom.hpp"
 #include "ADNCell.hpp"
 #include "ADNArray.hpp"
@@ -28,23 +46,90 @@
 #include "ADNGeometrySynchronization.hpp"
 #include "ADNJsonValidation.hpp"
 #include "ADNLoop.hpp"
+#include "ADNNeighbors.hpp"
 #include "ADNNucleotide.hpp"
 #include "ADNNodeValidation.hpp"
 #include "ADNPart.hpp"
 #include "ADNSaveAndLoad.hpp"
 #include "ADNScaffoldReader.hpp"
+#include "ADNSidechain.hpp"
 #include "DASCadnano.hpp"
 #include "DASAlgorithms.hpp"
 #include "DASBackToTheAtom.hpp"
 #include "DASCreator.hpp"
 #include "DASDaedalus.hpp"
 #include "PIPrimer3.hpp"
+#include "PIBindingRegion.hpp"
 #include "SELatticeCreatorEditorMath.hpp"
+#include "SEAdenitaVisualModel.hpp"
 #include "SBCHeapExport.hpp"
 
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
+
+// Supply isolated model data to the production methods without changing the active SAMSON document.
+struct AdenitaVisualModelTestAccess {
+	static SEAdenitaVisualModel* create() {
+		return new SEAdenitaVisualModel(SEAdenitaVisualModel::Initialization::GeometryOnly);
+	}
+	static void initialize(SEAdenitaVisualModel& model, SBPointer<ADNPart> part) {
+		const auto nucleotides = part->GetNucleotides();
+		const unsigned int count = nucleotides.size();
+		model.nPositions_ = count;
+		model.nCylinders_ = count - 1;
+		model.positions_ = ADNArray<float>(3, count);
+		model.radiiV_ = ADNArray<float>(count);
+		model.radiiE_ = ADNArray<float>(count);
+		model.colorsV_ = ADNArray<float>(4, count);
+		model.colorsE_ = ADNArray<float>(4, count);
+		model.flags_ = ADNArray<unsigned int>(count);
+		model.nodeIndices_ = ADNArray<unsigned int>(count);
+		model.indices_ = ADNArray<unsigned int>(2, count - 1);
+		model.capData_ = ADNArray<unsigned int>(count);
+		model.materialData_ = ADNArray<SBNodeMaterial*>(count);
+		model.nodeData_ = ADNArray<SBNode*>(count);
+		for (unsigned int i = 0; i < count; ++i) {
+			SBPointer<ADNNucleotide> nucleotide = nucleotides[i];
+			model.ntMap_[nucleotide()] = i;
+			model.sortedNucleotidesByDist_[nucleotide()] = 0.5f;
+			model.sortedSingleStrandsByDist_[nucleotide->GetStrand()()] = 0.5f;
+			for (unsigned int j = 0; j < 3; ++j) model.positions_(i, j) = static_cast<float>(i + j);
+			for (unsigned int j = 0; j < 4; ++j) model.colorsV_(i, j) = model.colorsE_(i, j) = 1.0f;
+			model.radiiV_(i) = model.radiiE_(i) = SEConfig::GetInstance().nucleotide_V_radius;
+			model.flags_(i) = 0;
+			model.nodeIndices_(i) = nucleotide->getNodeIndex();
+			model.capData_(i) = 1;
+			model.materialData_(i) = nullptr;
+			model.nodeData_(i) = nucleotide();
+			if (i + 1 < count) {
+				model.indices_(i, 0) = i;
+				model.indices_(i, 1) = i + 1;
+			}
+		}
+	}
+	static void setVisibility(SEAdenitaVisualModel& model, SBPointer<ADNPart> part, double layer) {
+		SBPointerIndexer<ADNPart> parts;
+		parts.addReferenceTarget(part());
+		model.applyVisibility(layer, parts);
+	}
+	static bool dirty(const SEAdenitaVisualModel& model) { return model.geometryArraysUpdateRequired; }
+	static void refresh(SEAdenitaVisualModel& model) {
+		if (model.geometryArraysUpdateRequired) model.updateGeometryArrays();
+	}
+	static SBSphereArray* spheres(SEAdenitaVisualModel& model) { return model.sphereArray(); }
+	static SBCylinderArray* cylinders(SEAdenitaVisualModel& model) { return model.cylinderArray(); }
+	static void invalidateLastIndex(SEAdenitaVisualModel& model, SBPointer<ADNNucleotide> nucleotide) {
+		model.ntMap_[nucleotide()] = model.nPositions_;
+	}
+	static void omitCylinderAttributes(SEAdenitaVisualModel& model) {
+		model.radiiE_ = ADNArray<float>();
+		model.colorsE_ = ADNArray<float>();
+	}
+	static void removeMapping(SEAdenitaVisualModel& model, SBPointer<ADNNucleotide> nucleotide) {
+		model.ntMap_.erase(nucleotide());
+	}
+};
 
 namespace {
 
@@ -101,7 +186,8 @@ void requireNearAt(const std::string& name,
 	int line,
 	const char* function) {
 
-	if (std::fabs(actual - expected) > tolerance)
+	if (!std::isfinite(actual) || !std::isfinite(expected) ||
+		!std::isfinite(tolerance) || tolerance < 0.0 || std::fabs(actual - expected) > tolerance)
 		recordFailure(name, "Unexpected numeric value.", file, line, function);
 
 }
@@ -205,7 +291,8 @@ std::string serializeJson(const rapidjson::Document& document) {
 
 std::filesystem::path temporaryConfigPath(const std::string& filename) {
 
-	return std::filesystem::temp_directory_path() / filename;
+	// CTest may run overlapping groups in different processes.
+	return std::filesystem::temp_directory_path() / (std::to_string(QCoreApplication::applicationPid()) + "_" + filename);
 
 }
 
@@ -218,7 +305,7 @@ void writeTextFile(const std::filesystem::path& path, const std::string& content
 
 std::filesystem::path repoDataPath(const std::string& filename) {
 
-	return std::filesystem::path(__FILE__).parent_path().parent_path() / "data" / filename;
+	return SBCContainerString::pathFromUtf8(ADENITA_TEST_DATA_DIR) / filename;
 
 }
 
@@ -2070,7 +2157,7 @@ void testTwisterTemplateReconstructionIsEquivariantAfterRigidTransform() {
 	rotateBaseSegmentGeometryOnlyRaw(transformedFixture.baseSegment, samsonMoveRotation);
 	rotateBaseSegmentGeometryOnlyRaw(transformedFixture.next, samsonMoveRotation);
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	ADNGeometrySynchronization::prepareBaseSegmentFrameForTemplateReconstruction(*originalFixture.baseSegment);
 	ADNGeometrySynchronization::prepareBaseSegmentFrameForTemplateReconstruction(*transformedFixture.baseSegment);
 	btta.SetNucleotidePosition(originalFixture.baseSegment, true);
@@ -2118,7 +2205,7 @@ void testTwisterTemplateReconstructionDoesNotAccumulatePhase() {
 	const ADNFrameUtils::Frame canonicalFrame =
 		ADNFrameAdapters::sanitizedFrame(*fixture.baseSegment);
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.SetNucleotidePosition(fixture.baseSegment, true);
 
 	SBPointer<ADNNucleotide> left = getLeftNucleotide(fixture.baseSegment);
@@ -2145,7 +2232,7 @@ void testDASReconstructionSideFramesRemainRightHanded() {
 	BaseSegmentFrameFixture fixture = createBaseSegmentFrameFixture();
 	fixture.doubleStrand->SetInitialTwistAngle(21.0);
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	ADNGeometrySynchronization::prepareBaseSegmentFrameForTemplateReconstruction(*fixture.baseSegment);
 	btta.SetNucleotidePosition(fixture.baseSegment, true);
 
@@ -2200,7 +2287,7 @@ void testCreatorSingleStrandInitializesDesignedFrames() {
 
 	}
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.SetNucleotidesPositions(part);
 
 	auto nucleotides = created.ss1->GetNucleotides();
@@ -2254,7 +2341,7 @@ void testCreatorDoubleStrandInitializesDesignedFrames() {
 
 	}
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.SetNucleotidesPositions(part);
 
 	auto nucleotides = part->GetNucleotides();
@@ -2309,7 +2396,7 @@ void testReconstructionRepairsE3OnlyCreatorFrame() {
 	baseSegment->SetE2(vector3(0.0, 0.0, 0.0));
 	baseSegment->SetE3(vector3(0.0, 0.0, 1.0));
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.SetNucleotidePosition(baseSegment, true);
 
 	requireTrue("e3-only reconstruction repairs base segment frame",
@@ -2362,7 +2449,7 @@ void testPreserveInputGeometryKeepsExplicitSingleStrandPositions() {
 
 	}
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.SetPositionsForNewNucleotides(part,
 		nucleotides,
 		DASBackToTheAtom::NewNucleotidePlacementMode::PreserveInputGeometry);
@@ -2598,7 +2685,7 @@ void placeCreatedComplement(OneSidedComplementFixture& fixture) {
 	SBPointerIndexer<ADNNucleotide> createdNucleotides;
 	createdNucleotides.addReferenceTarget(fixture.created());
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.SetPositionsForNewNucleotides(fixture.part,
 		createdNucleotides,
 		DASBackToTheAtom::NewNucleotidePlacementMode::PositionInputNucleotidesOnly);
@@ -2689,7 +2776,7 @@ void testComplementPlacementPreservesExistingNucleotideGeometry() {
 	SBPointerIndexer<ADNNucleotide> createdNucleotides;
 	createdNucleotides.addReferenceTarget(created());
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.SetPositionsForNewNucleotides(part,
 		createdNucleotides,
 		DASBackToTheAtom::NewNucleotidePlacementMode::PositionInputNucleotidesOnly);
@@ -2764,7 +2851,7 @@ void testComplementPlacementUsesRightAnchorSide() {
 	SBPointerIndexer<ADNNucleotide> createdNucleotides;
 	createdNucleotides.addReferenceTarget(created());
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.SetPositionsForNewNucleotides(part,
 		createdNucleotides,
 		DASBackToTheAtom::NewNucleotidePlacementMode::PositionInputNucleotidesOnly);
@@ -2868,7 +2955,7 @@ void testSingleStrandAtomGenerationUsesExistingNucleotideCenter() {
 	const SBPosition3 backbonePosition = nucleotide->GetBackbonePosition();
 	const SBPosition3 sidechainPosition = nucleotide->GetSidechainPosition();
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.GenerateAllAtomModel(part, false);
 
 	requirePositionNear("single strand atom generation preserves center",
@@ -2902,7 +2989,7 @@ void testSingleStrandAtomGenerationMapsBackboneAndSidechainMarkers() {
 
 	SingleStrandAtomicMarkerFixture fixture = createSingleStrandAtomicMarkerFixture();
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.GenerateAllAtomModel(fixture.part, false);
 
 	requireGeneratedAtomGroupsFollowMarkers("single strand atom marker mapping", fixture.target);
@@ -2926,7 +3013,7 @@ void testRotatedSingleStrandAtomGenerationMapsBackboneAndSidechainMarkers() {
 		std::abs(ADNFrameUtils::dot(ADNFrameUtils::normalized(staleFrame.e2), markerDirection)) < 0.95,
 		"Expected the rotated fixture to exercise geometry-derived placement instead of the stored frame.");
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.GenerateAllAtomModel(fixture.part, false);
 
 	requireGeneratedAtomGroupsFollowMarkers("rotated single strand atom marker mapping", fixture.target);
@@ -2937,7 +3024,7 @@ void testSingleStrandAtomGenerationPreservesTemplateStacking() {
 
 	SingleStrandAtomicMarkerFixture fixture = createSingleStrandAtomicMarkerFixture();
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	for (SBPointer<ADNBaseSegment> baseSegment : fixture.baseSegments)
 		btta.SetNucleotidePosition(baseSegment, false);
 
@@ -2991,7 +3078,7 @@ void testAllAtomGenerationPreservesSynchronizedNucleotideGeometry() {
 	const ADNFrameUtils::Frame baseSegmentFrame =
 		ADNFrameAdapters::frameFromOrientable(*fixture.baseSegment);
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.GenerateAllAtomModel(fixture.part, false);
 
 	requirePositionNear("all atom generation preserves left backbone",
@@ -3077,7 +3164,7 @@ void testAllAtomGenerationAlignsBasePlanesAndBackboneAfterRigidTransform() {
 	const SBPosition3 rightBackbone = right->GetBackbonePosition();
 	const SBPosition3 rightSidechain = right->GetSidechainPosition();
 
-	DASBackToTheAtom btta;
+	DASBackToTheAtom btta(ADENITA_TEST_DATA_DIR);
 	btta.GenerateAllAtomModel(fixture.part, false);
 
 	requirePositionNear("all atom axis generation preserves left backbone",
@@ -4042,8 +4129,8 @@ void writeBasicOxDNAFiles(const std::filesystem::path& topologyPath, const std::
 	{
 		std::ofstream topology(topologyPath);
 		topology << "2 1\n";
-		topology << "0 A -1 1\n";
-		topology << "0 T 0 -1\n";
+		topology << "1 A -1 1\n";
+		topology << "1 T 0 -1\n";
 	}
 
 	{
@@ -4426,93 +4513,1318 @@ void testCadnanoImportsTerminalTubeAtLastPosition() {
 
 }
 
+/// \brief Verifies independent ownership, equal-size reuse, resize, clearing, and source-container lifetime.
+void testGeometryBufferOwnership() {
+
+	SBPointer<SBSphereArray> first = new SBSphereArray(0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	SBPointer<SBSphereArray> second = new SBSphereArray(0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	for (unsigned int count : { 3u, 3u, 5u, 1u, 0u, 4u }) {
+
+		std::vector<float> source(std::size_t(3) * count, float(count));
+		const auto oldCount = first->getNumberOfPositions();
+		float* oldBuffer = first->getPositionData();
+		first->setPositionData(ADNGeometryBuffer::copyGeometryBuffer(oldBuffer, std::size_t(3) * oldCount, source.data(), source.size()));
+		first->setNumberOfPositions(count);
+		first->setNumberOfGeometries(count);
+		second->setPositionData(ADNGeometryBuffer::copyGeometryBuffer(second->getPositionData(), std::size_t(3) * second->getNumberOfPositions(), source.data(), source.size()));
+		second->setNumberOfPositions(count);
+		second->setNumberOfGeometries(count);
+		requireTrue("Distinct snapshot owners", !count || first->getPositionData() != second->getPositionData(), "Geometry owners must not share raw storage.");
+		requireTrue("Computation storage retained", !count || first->getPositionData() != source.data(), "Computation arrays must remain independent.");
+		if (count && count == oldCount)
+			requireTrue("Equal-size snapshot reuse", first->getPositionData() == oldBuffer, "Equal-sized updates must reuse the allocation.");
+		if (count) {
+
+			source[0] = -1.0f;
+			requireTrue("Snapshot value independent", first->getPositionData()[0] == float(count), "Changing the source must not change the snapshot.");
+			second->setPositionData(nullptr);
+			second->setNumberOfPositions(0);
+			second->setNumberOfGeometries(0);
+			requireTrue("Other owner survives clearing", first->getPositionData()[0] == float(count), "Clearing one owner must preserve the other.");
+
+		}
+		else requireTrue("Empty snapshot cleared", first->getPositionData() == nullptr && second->getPositionData() == nullptr, "Empty geometry must clear its buffers.");
+	}
+
+}
+
+template <typename... Nodes>
+constexpr bool noncopyableNodes =
+	((!std::is_copy_constructible_v<Nodes> && !std::is_copy_assignable_v<Nodes>) && ...);
+
+static_assert(noncopyableNodes<ADNAtom, ADNPart, ADNDoubleStrand, ADNSingleStrand,
+	ADNBaseSegment, ADNBackbone, ADNNucleotide, ADNSidechain, PIBindingRegion>,
+	"SDK node identities must be cloned through the graph, not copied.");
+
+void testGeometryBufferNullSourceClearsOwnedData() {
+	SBPointer<SBSphereArray> spheres = new SBSphereArray(0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	const float source[] = { 1.0f, 2.0f, 3.0f };
+	spheres->setPositionData(ADNGeometryBuffer::copyGeometryBuffer<float>(nullptr, 0, source, 3));
+	spheres->setPositionData(ADNGeometryBuffer::copyGeometryBuffer<float>(spheres->getPositionData(), 3, nullptr, 3));
+	requireTrue("Null source clears geometry", spheres->getPositionData() == nullptr,
+		"A missing source must clear even a nonempty destination.");
+	spheres->setPositionData(ADNGeometryBuffer::copyGeometryBuffer<float>(nullptr, 0, source, 3));
+	requireEqual("Repopulate cleared geometry", spheres->getPositionData()[2], 3.0f);
+}
+
+void testGeometryBufferOutlivesComputationArray() {
+	SBPointer<SBSphereArray> spheres = new SBSphereArray(0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	{
+		ADNArray<float> source(3, 2);
+		for (std::size_t row = 0; row < 2; ++row)
+			for (std::size_t column = 0; column < 3; ++column)
+				source(row, column) = float(3 * row + column);
+		spheres->setPositionData(ADNGeometryBuffer::copyGeometryBuffer<float>(nullptr, 0, source.GetArray(), 6));
+		source = ADNArray<float>(3, 10);
+	}
+	for (std::size_t component = 0; component < 6; ++component)
+		requireEqual("Snapshot survives source replacement and destruction",
+			spheres->getPositionData()[component], float(component));
+}
+
+void testCylinderGeometryBuffersCopyAndReuseAllComponents() {
+	SBPointer<SBCylinderArray> cylinders = new SBCylinderArray(0, 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	float positions[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+	unsigned int indices[] = { 0, 1, 1, 2 };
+	unsigned int flags[] = { 0, 2, 4 };
+	SBPointer<ADNAtom> atom = new ADNAtom();
+	SBNode* nodes[] = { atom(), nullptr, atom() };
+	cylinders->setPositionData(ADNGeometryBuffer::copyGeometryBuffer<float>(nullptr, 0, positions, 9));
+	cylinders->setIndexData(ADNGeometryBuffer::copyGeometryBuffer<unsigned int>(nullptr, 0, indices, 4));
+	cylinders->setFlagData(ADNGeometryBuffer::copyGeometryBuffer<unsigned int>(nullptr, 0, flags, 3));
+	cylinders->setNodeData(ADNGeometryBuffer::copyGeometryBuffer<SBNode*>(nullptr, 0, nodes, 3));
+	cylinders->setNumberOfPositions(3);
+	cylinders->setNumberOfGeometries(2);
+	float* previousPositions = cylinders->getPositionData();
+	unsigned int* previousFlags = cylinders->getFlagData();
+	positions[8] = 42.0f;
+	flags[2] = 8;
+	cylinders->setPositionData(ADNGeometryBuffer::copyGeometryBuffer(previousPositions, 9, positions, 9));
+	cylinders->setFlagData(ADNGeometryBuffer::copyGeometryBuffer(previousFlags, 3, flags, 3));
+	requireTrue("Cylinder positions reuse allocation", cylinders->getPositionData() == previousPositions, "Equal-sized updates should reuse storage.");
+	requireTrue("Cylinder flags reuse allocation", cylinders->getFlagData() == previousFlags, "Interaction updates should reuse storage.");
+	for (std::size_t i = 0; i < 9; ++i)
+		requireEqual("Cylinder position components copied", cylinders->getPositionData()[i], positions[i]);
+	for (std::size_t i = 0; i < 4; ++i)
+		requireEqual("Cylinder index components copied", cylinders->getIndexData()[i], indices[i]);
+	requireEqual("Cylinder flags refreshed", cylinders->getFlagData()[2], 8u);
+	requireTrue("Node pointer buffer is independent", cylinders->getNodeData() != nodes, "The pointer array itself must be owned.");
+	requireTrue("Node identity preserved", cylinders->getNodeData()[0] == atom() && cylinders->getNodeData()[1] == nullptr,
+		"Snapshot pointer values must preserve node identities and null entries.");
+}
+
+void testGeometryBufferAllocationFailurePreservesOwner() {
+	SBPointer<SBSphereArray> spheres = new SBSphereArray(0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	const float source[] = { 7, 8, 9 };
+	spheres->setPositionData(ADNGeometryBuffer::copyGeometryBuffer<float>(nullptr, 0, source, 3));
+	float* previous = spheres->getPositionData();
+	bool rejected = false;
+	try {
+		// This exceeds the maximum C++ array object size without consuming memory.
+		spheres->setPositionData(ADNGeometryBuffer::copyGeometryBuffer(previous, 3, source, std::numeric_limits<std::size_t>::max()));
+	}
+	catch (const std::bad_alloc&) {
+		rejected = true;
+	}
+	requireTrue("Impossible geometry allocation rejected", rejected, "Expected bad_alloc or its bad_array_new_length subclass.");
+	requireTrue("Failed replacement retains owner", spheres->getPositionData() == previous, "Allocation failure must leave the previous owner intact.");
+	requireEqual("Failed replacement retains contents", spheres->getPositionData()[2], 9.0f);
+}
+
+void testArrayRejectsColumnsOutsideRow() {
+	ADNArray<int> values(2, 2);
+	values(1, 0) = 17;
+	requireThrowsInt("Mutable array rejects column at width", [&]() { (void)values(0, 2); }, 30);
+	const ADNArray<int>& constantValues = values;
+	requireThrowsInt("Const array rejects column at width", [&]() { (void)constantValues(0, 2); }, 30);
+}
+
+void testVisibilityRefreshesProductionGeometrySnapshots() {
+	auto fixture = createCircularStrandFixture();
+	using Access = AdenitaVisualModelTestAccess;
+	SBPointer<SEAdenitaVisualModel> model = Access::create();
+	Access::initialize(*model, fixture.part);
+	Access::refresh(*model);
+	requireTrue("Initial geometry snapshot is current", !Access::dirty(*model), "Refreshing must consume invalidation.");
+	auto* spheres = Access::spheres(*model);
+	auto* cylinders = Access::cylinders(*model);
+	const auto checkAttributes = [&](float radius, float alpha, unsigned int count) {
+		for (unsigned int i = 0; i < count; ++i) {
+			requireNear("Published sphere radius follows visibility", spheres->getRadiusData()[i], radius, 0.0);
+			requireNear("Published cylinder radius follows visibility", cylinders->getRadiusData()[i], radius, 0.0);
+			requireNear("Published sphere alpha follows visibility", spheres->getColorData()[4 * i + 3], alpha, 0.0);
+			requireNear("Published cylinder alpha follows visibility", cylinders->getColorData()[4 * i + 3], alpha, 0.0);
+		}
+	};
+	for (int repetition = 0; repetition < 3; ++repetition) {
+		Access::setVisibility(*model, fixture.part, 0.0);
+		requireTrue("Hide invalidates the published snapshot", Access::dirty(*model), "Visibility edits must invalidate independent geometry storage.");
+		Access::refresh(*model);
+		checkAttributes(0.0f, 0.0f, 3);
+		Access::refresh(*model);
+		checkAttributes(0.0f, 0.0f, 3);
+		Access::setVisibility(*model, fixture.part, 1.0);
+		Access::refresh(*model);
+		checkAttributes(SEConfig::GetInstance().nucleotide_V_radius, 1.0f, 3);
+	}
+	Access::invalidateLastIndex(*model, fixture.threePrime);
+	Access::setVisibility(*model, fixture.part, 0.0);
+	requireTrue("Partial visibility edit invalidates before returning", Access::dirty(*model), "An invalid trailing index must not hide earlier mutations from geometry consumers.");
+	Access::refresh(*model);
+	checkAttributes(0.0f, 0.0f, 2);
+	Access::initialize(*model, fixture.part);
+	Access::setVisibility(*model, fixture.part, 0.5);
+	Access::refresh(*model);
+	checkAttributes(SEConfig::GetInstance().nucleotide_V_radius, 1.0f, 3);
+	Access::removeMapping(*model, fixture.fivePrime);
+	Access::setVisibility(*model, fixture.part, 0.0);
+	Access::refresh(*model);
+	checkAttributes(SEConfig::GetInstance().nucleotide_V_radius, 1.0f, 3);
+	Access::initialize(*model, fixture.part);
+	Access::omitCylinderAttributes(*model);
+	Access::setVisibility(*model, fixture.part, 0.0);
+	requireTrue("Missing display attributes stop safely", Access::dirty(*model), "Incomplete display buffers must remain invalidated without out-of-bounds access.");
+	Access::initialize(*model, fixture.part);
+	Access::refresh(*model);
+	model->setVisibility(0.25);
+	requireTrue("Public visibility setter invalidates without a document", Access::dirty(*model), "The public boundary must also invalidate an empty update.");
+	requireNear("Public visibility value is retained", model->getVisibility(), 0.25, 0.0);
+	model.deleteReferenceTarget();
+}
+
+void testArrayRejectsWrappedRowIndex() {
+	ADNArray<int> values(2, 2);
+	values(0, 0) = 17;
+	const std::size_t overflowingRow = std::numeric_limits<std::size_t>::max() / 2 + 1;
+	// The current unchecked multiplication wraps to element zero, so this
+	// regression exposes the bad check without dereferencing invalid memory.
+	requireThrowsInt("Mutable array rejects wrapped row", [&]() { (void)values(overflowingRow); }, 30);
+	const ADNArray<int>& constantValues = values;
+	requireThrowsInt("Const array rejects wrapped row", [&]() { (void)constantValues(overflowingRow, 0); }, 30);
+}
+
+void testArrayRejectsOverflowingDimensions() {
+	bool rejected = false;
+	try {
+		ADNArray<int> values(2, std::numeric_limits<std::size_t>::max() / 2 + 1);
+	}
+	catch (const std::length_error&) {
+		rejected = true;
+	}
+	requireTrue("Array rejects overflowing shape", rejected, "The element count must be checked before allocation.");
+}
+
+struct ThrowingArrayElement {
+	inline static int live = 0;
+	inline static bool rejectCopy = false;
+	ThrowingArrayElement() { ++live; }
+	~ThrowingArrayElement() { --live; }
+	ThrowingArrayElement& operator=(const ThrowingArrayElement&) {
+		if (rejectCopy) throw std::runtime_error("Injected element copy failure");
+		return *this;
+	}
+};
+
+void testArrayShapesRowsAndCopyFailures() {
+	ADNArray<int> values(2, 2);
+	for (std::size_t row = 0; row < 2; ++row)
+		for (std::size_t column = 0; column < 2; ++column)
+			values(row, column) = static_cast<int>(row * 10 + column);
+	const auto& constant = values;
+	requireEqual("One-index access selects the first column", constant(1), 10);
+	auto row = constant.GetRow(1);
+	requireEqual("Row extraction preserves last value", row(1), 11);
+	row(0) = 20;
+	values.SetRow(0, row);
+	requireEqual("Row replacement copies values", constant(0, 0), 20);
+	requireEqual("Row replacement preserves other rows", constant(1, 0), 10);
+	requireThrowsInt("GetRow rejects row at height", [&] { (void)constant.GetRow(2); }, 30);
+	requireThrowsInt("SetRow rejects row at height", [&] { values.SetRow(2, row); }, 30);
+	ADNArray<int> wrongRow(3);
+	requireThrowsInt("SetRow rejects incompatible dimensions", [&] { values.SetRow(0, wrongRow); }, 31);
+	ADNArray<int> noColumns(0, 2), emptyRow(0), noRows(2, 0);
+	const auto& constantEmpty = noColumns;
+	noColumns.SetRow(1, emptyRow);
+	requireEqual("Zero-width row can be copied", noColumns.GetRow(1).GetNumElements(), std::size_t(0));
+	requireThrowsInt("Zero-width mutable element rejects access", [&] { (void)noColumns(0); }, 30);
+	requireThrowsInt("Zero-width const element rejects access", [&] { (void)constantEmpty(0, 0); }, 30);
+	requireThrowsInt("Zero-width GetRow still checks height", [&] { (void)noColumns.GetRow(2); }, 30);
+	requireThrowsInt("Zero-width SetRow still checks height", [&] { noColumns.SetRow(2, emptyRow); }, 30);
+	requireThrowsInt("Zero-height array rejects rows", [&] { (void)noRows(0, 0); }, 30);
+	std::unique_ptr<ADNArray<int>> joined(ADNArray<int>::Concatenate(values, values));
+	requireEqual("Concatenation appends all rows", joined->GetNumElements(), std::size_t(4));
+	requireEqual("Concatenation preserves second input", (*joined)(3, 1), 11);
+	requireThrowsInt("Concatenation requires equal widths", [&] { std::unique_ptr<ADNArray<int>> invalid(ADNArray<int>::Concatenate(values, wrongRow)); }, 31);
+	const auto maximum = std::numeric_limits<std::size_t>::max();
+	bool rejected = false;
+	try { ADNArray<int> oversized(1, maximum / sizeof(int) + 1); }
+	catch (const std::length_error&) { rejected = true; }
+	requireTrue("Array rejects byte-size overflow", rejected, "Storage overflow must produce length_error before allocation.");
+	ADNArray<int> manyEmptyRows(0, maximum), oneEmptyRow(0, 1);
+	rejected = false;
+	try { std::unique_ptr<ADNArray<int>> oversized(ADNArray<int>::Concatenate(manyEmptyRows, oneEmptyRow)); }
+	catch (const std::length_error&) { rejected = true; }
+	requireTrue("Concatenation rejects row-count overflow", rejected, "Even zero-width shapes need checked row addition.");
+	std::unique_ptr<ADNArray<int>> zeroWidth(ADNArray<int>::Concatenate(noColumns, oneEmptyRow));
+	requireEqual("Zero-width concatenation preserves height", zeroWidth->GetNumElements(), std::size_t(3));
+	{
+		ADNArray<ThrowingArrayElement> input(2, 2);
+		const int before = ThrowingArrayElement::live;
+		ThrowingArrayElement::rejectCopy = true;
+		requireThrowsRuntimeError("Concatenation propagates element copy failure", [&] {
+			std::unique_ptr<ADNArray<ThrowingArrayElement>> result(ADNArray<ThrowingArrayElement>::Concatenate(input, input));
+		});
+		requireEqual("Failed concatenation releases temporary elements", ThrowingArrayElement::live, before);
+		requireThrowsRuntimeError("Array copy propagates element failure", [&] { ADNArray<ThrowingArrayElement> copy(input); });
+		requireEqual("Failed copy releases temporary elements", ThrowingArrayElement::live, before);
+		ThrowingArrayElement::rejectCopy = false;
+	}
+	requireEqual("Array destruction releases all elements", ThrowingArrayElement::live, 0);
+}
+
+void testArraySelfAssignmentAndEmptyConcatenation() {
+	ADNArray<int> values(2, 1);
+	values(0, 0) = 11;
+	values(0, 1) = 22;
+	values = values;
+	requireEqual("Array self assignment keeps values", values(0, 1), 22);
+	values = std::move(values);
+	requireEqual("Array self move keeps values", values(0, 0), 11);
+	ADNArray<int> empty(2, 0);
+	std::unique_ptr<ADNArray<int>> joined(ADNArray<int>::Concatenate(empty, values));
+	requireEqual("Empty concatenation preserves rows", joined->GetNumElements(), std::size_t(1));
+	requireEqual("Empty concatenation preserves values", (*joined)(0, 1), 22);
+	requireTrue("Concatenation owns independent storage", joined->GetArray() != values.GetArray(), "Concatenation must not share buffers.");
+}
+
+void testPositionableCopiesHaveIndependentCenters() {
+	PositionableSB original;
+	original.SetPosition(positionAngstrom(1, 2, 3));
+	PositionableSB copied(original);
+	PositionableSB assigned;
+	const auto destinationCenter = assigned.GetCenterAtom();
+	assigned = original;
+	requireTrue("Position assignment retains destination identity", assigned.GetCenterAtom() == destinationCenter, "Existing node references must stay attached to the destination.");
+	requirePositionNear("Position copy preserves value", copied.GetPosition(), original.GetPosition(), 0.0);
+	requireTrue("Copied center atom is independent", copied.GetCenterAtom() != original.GetCenterAtom(), "A copied position must not alias the source atom.");
+	requireTrue("Assigned center atom is independent", assigned.GetCenterAtom() != original.GetCenterAtom(), "Assigning position values must not share atom ownership.");
+	copied.SetPosition(positionAngstrom(9, 8, 7));
+	requirePositionNear("Moving a copied position preserves the original", original.GetPosition(), positionAngstrom(1, 2, 3), 1.0e-9);
+	assigned.SetPosition(positionAngstrom(4, 5, 6));
+	assigned = assigned;
+	requirePositionNear("Self assignment preserves position", assigned.GetPosition(), positionAngstrom(4, 5, 6), 0.0);
+	requireTrue("Self assignment preserves center", assigned.GetCenterAtom() == destinationCenter, "Self assignment must preserve node identity.");
+	PositionableSB absent;
+	absent.SetCenterAtom(nullptr);
+	PositionableSB copiedAbsent(absent);
+	requireTrue("Copy of absent center creates storage", copiedAbsent.GetCenterAtom() != nullptr, "Value copying must create an independent center.");
+	requirePositionNear("Absent source copies zero", copiedAbsent.GetPosition(), SBPosition3::zero, 0.0);
+	assigned = absent;
+	requirePositionNear("Absent source assigns zero", assigned.GetPosition(), SBPosition3::zero, 0.0);
+	requireTrue("Absent source does not remove destination center", assigned.GetCenterAtom() == destinationCenter, "Only SetCenterAtom should rebind the center.");
+	absent = original;
+	requireTrue("Assignment restores missing destination storage", absent.GetCenterAtom() != nullptr && absent.GetCenterAtom() != original.GetCenterAtom(), "An absent destination needs fresh storage.");
+	requirePositionNear("Restored destination copies value", absent.GetPosition(), original.GetPosition(), 0.0);
+	absent.SetCenterAtom(original.GetCenterAtom());
+	absent.SetPosition(positionAngstrom(7, 8, 9));
+	requirePositionNear("Explicit center sharing is preserved", original.GetPosition(), absent.GetPosition(), 0.0);
+}
+
+void testPairAssignmentIsIdempotent() {
+	SBPointer<ADNNucleotide> left = new ADNNucleotide();
+	SBPointer<ADNNucleotide> right = new ADNNucleotide();
+	left->SetPair(right);
+	right->SetPair(left);
+	left->SetPair(right);
+	requireTrue("Same pair assignment preserves both links", left->GetPair() == right && right->GetPair() == left,
+		"Reassigning the existing partner must not disconnect the pair.");
+	left->disconnectPair();
+	right->disconnectPair();
+}
+
+void testPairReplacementRetainsNewPartner() {
+	SBPointer<ADNNucleotide> left = new ADNNucleotide();
+	SBPointer<ADNNucleotide> oldPartner = new ADNNucleotide();
+	SBPointer<ADNNucleotide> newPartner = new ADNNucleotide();
+	left->SetPair(oldPartner);
+	oldPartner->SetPair(left);
+	left->SetPair(newPartner);
+	requireTrue("Pair replacement keeps requested partner", left->GetPair() == newPartner, "Disconnecting the old reciprocal link must not erase the new link.");
+	requireTrue("Pair replacement disconnects old partner", oldPartner->GetPair() == nullptr, "The old reciprocal pair must be removed.");
+	left->disconnectPair();
+	oldPartner->disconnectPair();
+	newPartner->disconnectPair();
+}
+
+// Counting destruction makes reference retention observable without a heap profiler.
+class LifetimeNucleotide : public ADNNucleotide {
+public:
+	explicit LifetimeNucleotide(int& destroyed) : destroyed_(destroyed) {}
+	~LifetimeNucleotide() override { ++destroyed_; }
+private:
+	int& destroyed_;
+};
+
+void testPairDisconnectionAndLifetime() {
+	SBPointer<ADNNucleotide> left = new ADNNucleotide();
+	SBPointer<ADNNucleotide> right = new ADNNucleotide();
+	SBPointer<ADNNucleotide> third = new ADNNucleotide();
+	left->SetPair(right);
+	right->SetPair(third);
+	left->disconnectPair(third);
+	requireTrue("Nonmatching disconnect preserves pair", left->GetPair() == right, "Only the specified pairing may be cleared.");
+	left->disconnectPair(right);
+	requireTrue("Asymmetric disconnect preserves unrelated link", left->GetPair() == nullptr && right->GetPair() == third,
+		"Disconnecting a one-sided link must not clear a different partner.");
+	right->disconnectPair();
+	right->disconnectPair();
+	SBPointer<ADNBasePair> pair = new ADNBasePair();
+	pair->AddPair(left, right);
+	pair->PairNucleotides();
+	pair->AddPair(left, right);
+	requireTrue("Repeated base-pair construction preserves reciprocity", left->GetPair() == right && right->GetPair() == left, "Both endpoints must remain paired.");
+	left->SetPair(nullptr);
+	requireTrue("Clearing reciprocal pair clears both endpoints", left->GetPair() == nullptr && right->GetPair() == nullptr, "No reciprocal link may survive clearing.");
+	int destroyed = 0;
+	ADNNucleotide* oldTarget = nullptr;
+	{
+		SBPointer<ADNNucleotide> old = new LifetimeNucleotide(destroyed);
+		oldTarget = old();
+		left->SetPair(old);
+		old->SetPair(left);
+	}
+	left->SetPair(third);
+	// Some host builds retain nodes in their global index after the last local
+	// pointer disappears. Check detached topology and explicitly clean up there.
+	if (destroyed == 0) {
+		SBPointer<ADNNucleotide> cleanup = oldTarget;
+		requireTrue("Detached old partner has no reciprocal link", cleanup->GetPair() == nullptr, "Replacement must release the old reciprocal reference.");
+		cleanup.deleteReferenceTarget();
+	}
+	requireEqual("Detached partner can be destroyed exactly once", destroyed, 1);
+	requireTrue("Replacement survives old partner destruction", left->GetPair() == third, "The replacement must be retained.");
+	left->disconnectPair();
+	{
+		SBPointer<ADNNucleotide> old = new LifetimeNucleotide(destroyed);
+		oldTarget = old();
+		left->SetPair(old); // Also exercise a last-owned, nonreciprocal endpoint.
+	}
+	left->disconnectPair();
+	if (destroyed == 1) {
+		SBPointer<ADNNucleotide> cleanup = oldTarget;
+		cleanup.deleteReferenceTarget();
+	}
+	requireTrue("Clearing last-owned one-sided partner removes link", left->GetPair() == nullptr, "The source must not retain the old target.");
+	requireEqual("One-sided target is destroyed exactly once", destroyed, 2);
+}
+
+void testNeighborsRejectUnknownNucleotide() {
+	const auto fixture = createCircularStrandFixture();
+	ADNNeighbors neighbors;
+	neighbors.SetMaxCutOff(SBQuantity::nanometer(1.0));
+	neighbors.InitializeNeighbors(fixture.part);
+	SBPointer<ADNNucleotide> unknown = new ADNNucleotide();
+	requireTrue("Unknown neighbor lookup returns null", neighbors.GetPINucleotide(unknown) == nullptr, "A missing nucleotide must not resolve to the last indexed entry.");
+	requireTrue("Null neighbor lookup returns null", neighbors.GetPINucleotide(nullptr) == nullptr, "A null query must not resolve to another nucleotide.");
+}
+
+void testNeighborsReinitializationRefreshesDistances() {
+	auto fixture = createCircularStrandFixture();
+	fixture.fivePrime->SetPosition(positionAngstrom(0, 0, 0));
+	fixture.middle->SetPosition(positionAngstrom(1, 0, 0));
+	fixture.threePrime->SetPosition(positionAngstrom(10, 0, 0));
+	ADNNeighbors neighbors;
+	neighbors.SetFromOwnSingleStrand(true);
+	neighbors.SetMaxCutOff(SBQuantity::angstrom(2));
+	neighbors.InitializeNeighbors(fixture.part);
+	auto before = neighbors.GetNeighbors(fixture.fivePrime);
+	requireTrue("Initial neighbor is middle", before.size() == 1 && before[0] == fixture.middle, "Expected exactly the nearby middle nucleotide.");
+	fixture.middle->SetPosition(positionAngstrom(10, 0, 0));
+	fixture.threePrime->SetPosition(positionAngstrom(1, 0, 0));
+	neighbors.InitializeNeighbors(fixture.part);
+	auto after = neighbors.GetNeighbors(fixture.fivePrime);
+	requireTrue("Rebuilt neighbors use current distances", after.size() == 1 && after[0] == fixture.threePrime,
+		"Reinitialization must replace previous adjacency data.");
+}
+
+void testNeighborsReinitializationReplacesPart() {
+	const auto first = createCircularStrandFixture();
+	const auto second = createCircularStrandFixture();
+	ADNNeighbors neighbors;
+	neighbors.SetMaxCutOff(SBQuantity::nanometer(1));
+	neighbors.InitializeNeighbors(first.part);
+	neighbors.InitializeNeighbors(second.part);
+	auto mapped = neighbors.GetPINucleotide(second.fivePrime);
+	requireTrue("Rebuilt index refers to new part", mapped && mapped->GetNucleotide() == second.fivePrime,
+		"Reinitializing with a different part must replace the indexed nucleotide pointers.");
+	SBPointer<ADNPart> empty = new ADNPart();
+	neighbors.InitializeNeighbors(empty);
+	requireTrue("Empty part clears neighbor index", neighbors.GetPINucleotide(first.fivePrime) == nullptr,
+		"An empty rebuild must release the old index.");
+}
+
+void testEmptyPartCenterOfMassIsFinite() {
+	SBPointer<ADNPart> part = new ADNPart();
+	requirePositionNear("Empty part center is zero", ADNBasicOperations::CalculateCenterOfMass(part), SBPosition3::zero, 0.0);
+	requirePositionNear("Null part center is zero", ADNBasicOperations::CalculateCenterOfMass(nullptr), SBPosition3::zero, 0.0);
+	auto fixture = createAtomicGenerationFixture();
+	requireEqual("Coarse fixture has no atomic detail", fixture.part->GetAtoms().size(), 0u);
+	requirePositionNear("Coarse part center is zero", ADNBasicOperations::CalculateCenterOfMass(fixture.part), SBPosition3::zero, 0.0);
+	const auto position = fixture.left->GetPosition();
+	ADNBasicOperations::CenterPart(fixture.part);
+	requirePositionNear("Centering atom-free part preserves geometry", fixture.left->GetPosition(), position, 0.0);
+	SBPointer<ADNAtom> first = new ADNAtom(), second = new ADNAtom();
+	first->setPosition(positionAngstrom(1, 2, 3));
+	second->setPosition(positionAngstrom(5, 8, 11));
+	fixture.part->RegisterAtom(fixture.baseSegment, first);
+	requirePositionNear("Single atom determines arithmetic center", ADNBasicOperations::CalculateCenterOfMass(fixture.part), first->getPosition(), 0.0);
+	fixture.part->RegisterAtom(fixture.baseSegment, second);
+	requirePositionNear("Populated part keeps arithmetic center", ADNBasicOperations::CalculateCenterOfMass(fixture.part), positionAngstrom(3, 5, 7), 1.0e-9);
+}
+
+void testNeighborFiltersQueriesAndOwnership() {
+	static_assert(!std::is_copy_constructible_v<ADNNeighbors> && !std::is_copy_assignable_v<ADNNeighbors>);
+	auto fixture = createCircularStrandFixture();
+	fixture.fivePrime->SetPosition(positionAngstrom(0, 0, 0));
+	fixture.middle->SetPosition(positionAngstrom(1, 0, 0));
+	fixture.threePrime->SetPosition(positionAngstrom(2, 0, 0));
+	ADNNeighbors neighbors;
+	SBPointer<ADNNucleotide> missing = new ADNNucleotide();
+	requireTrue("Empty index accepts null and missing queries", neighbors.GetNeighbors(missing).size() == 0 && neighbors.GetNeighbors(SBPointer<ADNNucleotide>()).size() == 0, "Empty queries must return no neighbors.");
+	neighbors.SetMaxCutOff(SBQuantity::angstrom(2));
+	neighbors.InitializeNeighbors(fixture.part);
+	requireTrue("Same-strand neighbors excluded by default", neighbors.GetNeighbors(fixture.fivePrime).size() == 0, "Preserve default same-strand filtering.");
+	neighbors.SetFromOwnSingleStrand(true);
+	neighbors.InitializeNeighbors(fixture.part);
+	auto found = neighbors.GetNeighbors(fixture.fivePrime);
+	requireTrue("Upper cutoff remains exclusive", found.size() == 1 && found[0] == fixture.middle, "The nucleotide exactly at the cutoff is excluded.");
+	neighbors.SetMinCutOff(SBQuantity::angstrom(1));
+	neighbors.InitializeNeighbors(fixture.part);
+	requireTrue("Lower cutoff remains exclusive", neighbors.GetNeighbors(fixture.fivePrime).size() == 0, "Neither cutoff boundary is included.");
+	neighbors.SetMinCutOff(SBQuantity::angstrom(0));
+	fixture.fivePrime->SetPair(fixture.middle);
+	fixture.middle->SetPair(fixture.fivePrime);
+	neighbors.InitializeNeighbors(fixture.part);
+	requireTrue("Pairs excluded by default", neighbors.GetNeighbors(fixture.fivePrime).size() == 0, "Paired nucleotides must follow the configured filter.");
+	neighbors.SetIncludePairs(true);
+	neighbors.InitializeNeighbors(fixture.part);
+	requireEqual("Pairs can be included", neighbors.GetNeighbors(fixture.fivePrime).size(), 1u);
+	ADNNeighborNt foreign(0, fixture.fivePrime);
+	ADNNeighborNt outOfRange((std::numeric_limits<unsigned int>::max)(), fixture.fivePrime);
+	requireTrue("Foreign wrapper with matching ID rejected", neighbors.GetNeighbors(&foreign).size() == 0, "Wrapper identity belongs to its index.");
+	requireTrue("Out-of-range wrapper rejected", neighbors.GetNeighbors(&outOfRange).size() == 0, "Never index using an unchecked foreign ID.");
+	ADNNeighbors other;
+	other.InitializeNeighbors(fixture.part);
+	requireTrue("Other index wrapper rejected", neighbors.GetNeighbors(other.GetPINucleotide(fixture.fivePrime)).size() == 0, "Equal IDs in another index are not valid queries.");
+	fixture.fivePrime->disconnectPair();
+	neighbors.InitializeNeighbors(nullptr);
+	requireTrue("Null rebuild clears all mappings", neighbors.GetPINucleotide(fixture.fivePrime) == nullptr && neighbors.GetNeighbors(fixture.fivePrime).size() == 0, "Null rebuilds clear all state.");
+	other.InitializeNeighbors(nullptr);
+
+	// The reference target's footprint includes backlink records. Holding the
+	// nucleotide independently avoids making assumptions about host node deletion.
+	const auto footprint = [&]() { return static_cast<const SBCReferenceTarget&>(*fixture.fivePrime()).getMemoryFootprint(); };
+	const auto baseline = footprint();
+	{
+		ADNNeighbors owned;
+		owned.SetMaxCutOff(SBQuantity::angstrom(3));
+		owned.InitializeNeighbors(fixture.part);
+		requireTrue("Index owns a nucleotide reference", footprint() > baseline, "Indexing must add a reference backlink.");
+		for (int i = 0; i < 20; ++i) owned.InitializeNeighbors(fixture.part);
+		owned.InitializeNeighbors(nullptr);
+		requireEqual("Rebuilding releases indexed references", footprint(), baseline);
+		owned.InitializeNeighbors(fixture.part);
+	}
+	requireEqual("Destruction releases indexed references", footprint(), baseline);
+	neighbors.InitializeNeighbors(fixture.part);
+	auto* live = neighbors.GetPINucleotide(fixture.fivePrime);
+	fixture.fivePrime.deleteReferenceTarget();
+	requireTrue("Deleted nucleotide query is empty", neighbors.GetNeighbors(live).size() == 0, "A live wrapper may refer to a deleted node.");
+}
+
+void testBindingRegionSequenceOrderAndMissingEndpoints() {
+	const auto fixture = createCircularStrandFixture();
+	SBPointer<PIBindingRegion> region = new PIBindingRegion();
+	region->SetFirstNt(fixture.fivePrime);
+	region->SetLastNt(fixture.threePrime);
+	auto sequences = region->GetSequences();
+	requireEqual("Binding sequence keeps 5-prime order", sequences.first, std::string("ATG"));
+	requireEqual("Unpaired binding sequence has empty partner", sequences.second, std::string());
+	SBPointer<ADNNucleotide> outsider = new ADNNucleotide();
+	region->SetFirstNt(outsider);
+	sequences = region->GetSequences();
+	requireTrue("Unreachable binding endpoint rejected", sequences.first.empty() && sequences.second.empty(), "A partial traversal must not be accepted as a region.");
+	region->SetFirstNt(nullptr);
+	sequences = region->GetSequences();
+	requireTrue("Null binding endpoint rejected", sequences.first.empty() && sequences.second.empty(), "Both endpoints are required.");
+}
+
+void testOxDNARejectsInvalidNumericFields() {
+	const auto topologyPath = temporaryConfigPath("adenita_audit_numeric.top");
+	const auto configPath = temporaryConfigPath("adenita_audit_numeric.dat");
+	writeBasicOxDNAFiles(topologyPath, configPath);
+	writeTextFile(topologyPath, "2 1\ninvalid A -1 1\n1 T 0 -1\n");
+	try {
+		const auto result = ADNLoader::InputFromOxDNA(topologyPath.string(), configPath.string());
+		requireTrue("Invalid numeric field reported as import error", result.hasError, "Invalid numbers must return a structured error.");
+	}
+	catch (const std::exception& error) {
+		requireTrue("Invalid numeric field must not escape loader", false, error.what());
+	}
+	std::error_code ignored;
+	std::filesystem::remove(topologyPath, ignored);
+	std::filesystem::remove(configPath, ignored);
+}
+
+void testOxDNARejectsTruncatedConfiguration() {
+	const auto topologyPath = temporaryConfigPath("adenita_audit_truncated.top");
+	const auto configPath = temporaryConfigPath("adenita_audit_truncated.dat");
+	writeBasicOxDNAFiles(topologyPath, configPath);
+	writeTextFile(configPath, "t = 0\nb = 0 0 0\nE = 0 0 0\n0 0 0 0 1 0 1 0 0 0 0 0 0 0 0\n");
+	const auto result = ADNLoader::InputFromOxDNA(topologyPath.string(), configPath.string());
+	requireTrue("Truncated configuration rejected", result.hasError, "Every declared nucleotide must have a configuration record.");
+	std::error_code ignored;
+	std::filesystem::remove(topologyPath, ignored);
+	std::filesystem::remove(configPath, ignored);
+}
+
+void testOxDNARejectsDanglingTopologyNeighbors() {
+	const auto topologyPath = temporaryConfigPath("adenita_audit_dangling.top");
+	const auto configPath = temporaryConfigPath("adenita_audit_dangling.dat");
+	writeBasicOxDNAFiles(topologyPath, configPath);
+	writeTextFile(topologyPath, "2 1\n1 A -1 99\n1 T 0 -1\n");
+	const auto result = ADNLoader::InputFromOxDNA(topologyPath.string(), configPath.string());
+	requireTrue("Dangling topology link rejected", result.hasError, "Topology links must refer to existing nucleotide indices.");
+	std::error_code ignored;
+	std::filesystem::remove(topologyPath, ignored);
+	std::filesystem::remove(configPath, ignored);
+}
+
+void testOxDNAPreservesCircularStrandTopology() {
+	const auto topologyPath = temporaryConfigPath("adenita_audit_circular.top");
+	const auto configPath = temporaryConfigPath("adenita_audit_circular.dat");
+	writeBasicOxDNAFiles(topologyPath, configPath);
+	writeTextFile(topologyPath, "2 1\n1 A 1 1\n1 T 0 0\n");
+	const auto result = ADNLoader::InputFromOxDNA(topologyPath.string(), configPath.string());
+	requireTrue("Circular topology imports", result.succeeded(), "Expected valid circular topology.");
+	if (result.succeeded()) {
+		auto strands = result.part->GetSingleStrands();
+		requireTrue("Circular topology retained", strands.size() == 1 && strands[0]->IsCircular(), "Explicit closure links must not become a linear strand.");
+	}
+	std::error_code ignored;
+	std::filesystem::remove(topologyPath, ignored);
+	std::filesystem::remove(configPath, ignored);
+}
+
+ADNLoader::OxDNAImportResult importOxDNAFixture(const std::string& topology, const std::string& configuration,
+	bool legacy = false) {
+	const auto top = temporaryConfigPath("adenita_checked_import.top");
+	const auto conf = temporaryConfigPath("adenita_checked_import.conf");
+	writeTextFile(top, topology);
+	writeTextFile(conf, configuration);
+	ADNLoader::OxDNAImportOptions options;
+	options.olderAdenitaExport = legacy;
+	const auto result = ADNLoader::InputFromOxDNA(top.string(), conf.string(), options);
+	std::filesystem::remove(top);
+	std::filesystem::remove(conf);
+	return result;
+}
+
+std::string oxDNAConfiguration(size_t count, bool legacy = false, bool momenta = false) {
+	std::ostringstream result;
+	result << "t = 0\nb = 10 10 10\nE = 0 0 0\n";
+	for (size_t i = 0; i < count; ++i) {
+		result << i << " 0 0 " << (legacy ? "0 -1 0 -1 0 0" : "0 1 0 0 0 -1");
+		if (momenta) result << " 0 0 0 0 0 0";
+		result << '\n';
+	}
+	return result.str();
+}
+
+void testOxDNAValidationMatrix() {
+	const std::string valid = "2 1\n1 A -1 1\n1 T 0 -1\n";
+	const std::vector<std::string> invalidTopologies = {
+		"", "2 1 5->3\nAT\n", "-1 1\n", "2 0\n", "1 2\n", "2x 1\n",
+		"999999999999999999 1\n", "1 1\n1 A -1 -1\n1 T -1 -1\n",
+		"2 1\n1 A -1 -1\n", "2 2\n1 A -1 1\n1 T 0 -1\n",
+		"2 1\n1 A -1 99\n1 T 0 -1\n", "2 1\n1 A -2 1\n1 T 0 -1\n",
+		"2 1\n1 A -1 1\n1 T -1 -1\n", "2 2\n1 A -1 1\n2 T 0 -1\n",
+		"2 1\n1 A -1 -1\n1 T -1 -1\n", "2 1\n1 A 0 0\n1 T 1 1\n",
+		"2 1\n1 X -1 1\n1 T 0 -1\n", "2 1\n1 12 -1 1\n1 T 0 -1\n",
+		"2 1\n0 A -1 1\n0 T 0 -1\n", "2 1\n1 A -1 1 extra\n1 T 0 -1\n"
+	};
+	for (size_t i = 0; i < invalidTopologies.size(); ++i) {
+		const auto result = importOxDNAFixture(invalidTopologies[i], oxDNAConfiguration(2));
+		requireTrue("Invalid topology " + std::to_string(i), result.hasError && result.part == nullptr && !result.errorMessage.empty(),
+			"Malformed topology must return a diagnostic and no model.");
+	}
+	for (const char* invalid : { "nan", "inf", "-inf", "1e9999", "1e-9999", "1junk", "" }) {
+		for (size_t field = 0; field < 15; ++field) {
+			std::vector<std::string> fields{ "0", "0", "0", "0", "1", "0", "0", "0", "-1", "0", "0", "0", "0", "0", "0" };
+			fields[field] = invalid;
+			std::string configuration = "t = 0\nb = 10 10 10\nE = 0 0 0\n";
+			for (const auto& value : fields) configuration += value + " ";
+			configuration += "\n1 0 0 0 1 0 0 0 -1\n";
+			const auto result = importOxDNAFixture(valid, configuration);
+			requireTrue("Invalid configuration field " + std::to_string(field) + ":" + invalid, result.hasError && result.part == nullptr,
+				"Every numeric field, including momenta, must be validated.");
+		}
+	}
+	for (const std::string& configuration : { std::string(), std::string("t = nan\nb = 1 1 1\nE = 0 0 0\n"),
+		oxDNAConfiguration(1), oxDNAConfiguration(3), std::string("t = 0\nb = 1 1 1\nE = 0 0 0\n0 0 0 0 0 0 0 0 -1\n1 0 0 0 1 0 0 0 -1\n") }) {
+		const auto result = importOxDNAFixture(valid, configuration);
+		requireTrue("Incomplete or degenerate configuration rejected", result.hasError && result.part == nullptr, "No incomplete geometry may be published.");
+	}
+	for (bool momenta : { false, true }) {
+		const auto result = importOxDNAFixture("\n2\t1\n1 A -1 1\n\n1\tT 0 -1\n", oxDNAConfiguration(2, false, momenta));
+		requireTrue("Valid whitespace and optional momenta", result.succeeded(), result.errorMessage);
+	}
+}
+
+void testOxDNAOrderingUnitsAndFrames() {
+	const auto result = importOxDNAFixture("3 1\n1 A -1 2\n1 G 2 -1\n1 T 0 1\n", oxDNAConfiguration(3));
+	requireTrue("Reordered topology imports", result.succeeded(), result.errorMessage);
+	if (!result.succeeded()) return;
+	const auto strand = result.part->GetSingleStrands()[0];
+	requireEqual("Sequence follows neighbor direction", strand->GetSequence(), std::string("GTA"));
+	requirePositionNear("Configuration retains original record index", strand->GetFivePrime()->GetPosition(), positionAngstrom(8.518, 0, 0), 1e-9);
+	requirePositionNear("Three-prime position retains original index", strand->GetThreePrime()->GetPosition(), positionAngstrom(0, 0, 0), 1e-9);
+	const auto frame = ADNFrameAdapters::frameFromOrientable(*strand->GetFivePrime());
+	requireVecNear("oxDNA base direction maps inward", frame.e2, {0, 1, 0}, 1e-12);
+	requireVecNear("oxDNA normal maps opposite Adenita tangent", frame.e3, {0, 0, 1}, 1e-12);
+	requireVecNear("oxDNA frame is right handed", frame.e1, {1, 0, 0}, 1e-12);
+	const auto legacy = importOxDNAFixture("3 1\n1 A -1 1\n1 T 0 2\n1 G 1 -1\n", oxDNAConfiguration(3, true), true);
+	requireTrue("Legacy export imports", legacy.succeeded(), legacy.errorMessage);
+	if (!legacy.succeeded()) return;
+	const auto legacyStrand = legacy.part->GetSingleStrands()[0];
+	requireEqual("Legacy sequence is preserved", legacyStrand->GetSequence(), std::string("ATG"));
+	requirePositionNear("Legacy units remain nanometers", legacyStrand->GetThreePrime()->GetPosition(), positionAngstrom(20, 0, 0), 1e-9);
+	const auto legacyFrame = ADNFrameAdapters::frameFromOrientable(*legacyStrand->GetFivePrime());
+	requireVecNear("Legacy frame reverses old export e1", legacyFrame.e1, {1, 0, 0}, 1e-12);
+	requireVecNear("Legacy frame reverses old export e2", legacyFrame.e2, {0, 1, 0}, 1e-12);
+	const auto multiple = importOxDNAFixture("3 2\n1 A -1 2\n2 C -1 -1\n1 T 0 -1\n", oxDNAConfiguration(3));
+	requireTrue("Interleaved strands import", multiple.succeeded() && multiple.part->GetNumberOfSingleStrands() == 2, multiple.errorMessage);
+}
+
+void testOxDNAExportRoundTripAndCircularEndpoints() {
+	for (const std::string& topology : { std::string("3 1\n1 A -1 1\n1 T 0 2\n1 G 1 -1\n"),
+		std::string("3 1\n1 A 2 1\n1 T 0 2\n1 G 1 0\n"), std::string("1 1\n1 A 0 0\n") }) {
+		const size_t count = topology[0] == '1' ? 1 : 3;
+		const auto original = importOxDNAFixture(topology, oxDNAConfiguration(count));
+		requireTrue("Round-trip source imports", original.succeeded(), original.errorMessage);
+		if (!original.succeeded()) continue;
+		const auto strand = original.part->GetSingleStrands()[0];
+		const auto top = temporaryConfigPath("adenita_export_standard.top");
+		const auto conf = temporaryConfigPath("adenita_export_standard.conf");
+		ADNAuxiliary::OxDNAOptions options;
+		options.boxSizeX_ = options.boxSizeY_ = options.boxSizeZ_ = 8.518;
+		{
+			std::ofstream topOut(top), confOut(conf);
+			ADNLoader::SingleStrandsToOxDNA(original.part->GetSingleStrands(), confOut, topOut, options);
+		}
+		std::ifstream input(conf);
+		std::string line;
+		std::getline(input, line);
+		std::getline(input, line);
+		std::istringstream box(line);
+		std::string label, equals;
+		double x, y, z;
+		box >> label >> equals >> x >> y >> z;
+		requireNear("Export box converts nm to reduced units", x, 10.0, 1e-12);
+		std::getline(input, line);
+		std::getline(input, line);
+		std::istringstream row(line);
+		std::array<double, 9> values{};
+		for (double& value : values) row >> value;
+		requireNear("Export positions begin at three-prime end", values[0], strand->GetThreePrime()->GetPosition()[0].getValue() / 851.8, 1e-12);
+		requireNear("Export base vector points inward", values[4], 1.0, 1e-12);
+		requireNear("Export base normal points three to five", values[8], -1.0, 1e-12);
+		input.close();
+		const auto restored = ADNLoader::InputFromOxDNA(top.string(), conf.string());
+		requireTrue("Exported model imports", restored.succeeded(), restored.errorMessage);
+		if (restored.succeeded()) {
+			const auto actual = restored.part->GetSingleStrands()[0];
+			requireEqual("Round-trip circular flag", actual->IsCircular(), strand->IsCircular());
+			// A circle has no distinguished start; match nucleotide identity by base.
+			for (auto nt : strand->GetNucleotides()) {
+				for (auto copy : actual->GetNucleotides()) if (nt->getNucleotideType() == copy->getNucleotideType()) {
+					requirePositionNear("Round-trip nucleotide position", copy->GetPosition(), nt->GetPosition(), 1e-8);
+					requireEqual("Round-trip three-prime link", copy->GetNext(true) != nullptr ? copy->GetNext(true)->getNucleotideType() : DNABlocks::DI,
+						nt->GetNext(true) != nullptr ? nt->GetNext(true)->getNucleotideType() : DNABlocks::DI);
+				}
+			}
+			if (count == 1) requireTrue("Single-nucleotide circle closes both ends", actual->GetFivePrime()->GetNext(true) == actual->GetFivePrime() && actual->GetFivePrime()->GetPrev(true) == actual->GetFivePrime(), "Both circular endpoints must close.");
+		}
+		std::filesystem::remove(top);
+		std::filesystem::remove(conf);
+	}
+}
+
+void testCheckedNumericConversions() {
+	using namespace ADNNumericParsing;
+	for (const char* text : { "", " ", "1x", "nan", "inf", "1e9999", "1e-9999" }) {
+		double value = 7;
+		requireTrue("Invalid number rejected consistently", !tryDouble(text, value), text);
+		requireEqual("Failed conversion preserves destination", value, 7.0);
+	}
+	int integerValue = 0;
+	requireTrue("Integer minimum accepted", tryInteger(std::to_string((std::numeric_limits<int>::min)()), integerValue), "Integer limit must remain valid.");
+	requireTrue("Integer maximum accepted", tryInteger(std::to_string((std::numeric_limits<int>::max)()), integerValue), "Integer limit must remain valid.");
+	requireTrue("Integer overflow rejected", !tryInteger("2147483648", integerValue), "Identifiers must fit int.");
+	requireTrue("Integer underflow rejected", !tryInteger("-2147483649", integerValue), "Identifiers must fit int.");
+	const std::string nulToken("1\0junk", 6);
+	double numberValue = 0;
+	requireTrue("Embedded null is not a token terminator", !tryDouble(nulToken, numberValue) && !tryInteger(nulToken, integerValue), "Length-aware validation must reject hidden suffixes.");
+	rapidjson::Document doc;
+	doc.Parse("{\"v\":\"1,2,3\\u0000junk\",\"ids\":\"1,2\\u0000junk\"}");
+	requireTrue("JSON vector retains embedded null for validation", !ADNLoader::JsonValidation::isVectorString(doc["v"], 3), "Do not truncate JSON strings before checking.");
+	requireTrue("JSON list retains embedded null for validation", !ADNLoader::JsonValidation::isIntegerListString(doc["ids"]), "Do not truncate JSON strings before checking.");
+	double valid = 0;
+	requireTrue("Signed exponent and whitespace supported", tryDouble(" +1.25e2 ", valid) && valid == 125.0, "Valid numeric representations must remain supported.");
+}
+
+void testJsonLoadRejectsInvalidCoordinatesAndIdentifiers() {
+	const auto fixture = createCircularStrandFixture();
+	rapidjson::StringBuffer buffer;
+	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+	writer.StartObject();
+	ADNLoader::SavePartToJson(fixture.part, writer);
+	writer.EndObject();
+	for (const std::string& bad : { std::string("nan,0,0"), std::string("1e9999,0,0"), std::string("1e-9999,0,0"), std::string("1,2,3\0junk", 10) }) {
+		rapidjson::Document document;
+		document.Parse(buffer.GetString());
+		auto& nt = document["singleStrands"].MemberBegin()->value["nucleotides"].MemberBegin()->value;
+		nt["position"].SetString(bad.data(), static_cast<rapidjson::SizeType>(bad.size()), document.GetAllocator());
+		requireTrue("JSON construction rejects invalid coordinates", ADNLoader::LoadPartFromJson(document, ADNConstants::JSON_FORMAT_VERSION) == nullptr, "Invalid coordinates must not reach node construction.");
+	}
+	for (const std::string& bad : { std::string("2147483648"), std::string("1\0junk", 6) }) {
+		rapidjson::Document document;
+		document.Parse(buffer.GetString());
+		document["singleStrands"].MemberBegin()->value["nucleotides"].MemberBegin()->name.SetString(bad.data(), static_cast<rapidjson::SizeType>(bad.size()), document.GetAllocator());
+		requireTrue("JSON construction rejects invalid identifiers", ADNLoader::LoadPartFromJson(document, ADNConstants::JSON_FORMAT_VERSION) == nullptr, "Identifiers must be validated before numeric conversion.");
+	}
+}
+
+void testJsonNumericValidationRejectsNonFiniteAndOverflow() {
+	using namespace ADNLoader::JsonValidation;
+	requireTrue("Ordinary numeric token accepted", isNumberToken("-1.25e2"), "Finite coordinates should be accepted.");
+	for (const char* token : { "nan", "inf", "-inf", "1e9999" })
+		requireTrue(std::string("Invalid numeric token rejected: ") + token, !isNumberToken(token), "Non-finite or out-of-range coordinates must be rejected.");
+	requireTrue("Out-of-range node identifier rejected",
+		!isIntegerString("99999999999999999999999999999999999"),
+		"A validated identifier must fit the integer conversion used by the loader.");
+}
+
+void testReconstructionTemplateValidationIsTransactional() {
+	const auto directory = temporaryConfigPath("adenita_template_validation");
+	if (!std::filesystem::create_directory(directory)) throw std::runtime_error("Temporary template directory already exists");
+	struct Cleanup {
+		std::filesystem::path directory;
+		~Cleanup() {
+			std::error_code ignored;
+			for (const char* name : {"AT.pdb", "TA.pdb", "CG.pdb", "GC.pdb"}) std::filesystem::remove(directory / name, ignored);
+			std::filesystem::remove(directory, ignored);
+		}
+	} cleanup{directory};
+	const auto bundled = SBCContainerString::pathFromUtf8(ADENITA_TEST_DATA_DIR);
+	const auto restore = [&]() {
+		for (const char* name : {"AT.pdb", "TA.pdb", "CG.pdb", "GC.pdb"}) {
+			std::filesystem::remove(directory / name);
+			std::filesystem::copy_file(bundled / name, directory / name);
+		}
+	};
+	const auto serialize = [](SBPointer<ADNPart> part) {
+		rapidjson::StringBuffer buffer;
+		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+		writer.StartObject();
+		ADNLoader::SavePartToJson(part, writer);
+		writer.EndObject();
+		return std::string(buffer.GetString());
+	};
+	for (int failure = 0; failure < 10; ++failure) {
+		restore();
+		const auto at = directory / "AT.pdb";
+		std::string text = readTextFile(at);
+		if (failure == 0) std::filesystem::remove(directory / "GC.pdb"); // Fail after earlier pairs loaded.
+		else if (failure == 1) writeTextFile(at, "");
+		else if (failure == 2) writeTextFile(at, "ATOM\n");
+		else if (failure == 3) { text.replace(text.find("ATOM  ") + 30, 8, "     nan"); writeTextFile(at, text); }
+		else if (failure == 7) writeTextFile(at, readTextFile(directory / "GC.pdb"));
+		else if (failure == 8) { std::filesystem::remove(at); std::filesystem::create_directory(at); }
+		else {
+			std::istringstream input(text);
+			std::ostringstream output;
+			std::string line, firstResidue;
+			while (std::getline(input, line)) {
+				if (line.compare(0, 6, "ATOM  ") == 0) {
+					if (firstResidue.empty()) firstResidue = line.substr(21, 6);
+					if (failure == 4 && line.substr(21, 6) != firstResidue) continue;
+					if (failure == 5 && line.substr(12, 4).find("C1'") != std::string::npos) continue;
+					if (failure == 6) line.replace(30, 24, "   0.000   0.000   0.000");
+					if (failure == 9) line.replace(6, 5, "    1");
+				}
+				output << line << '\n';
+			}
+			writeTextFile(at, output.str());
+		}
+		DASBackToTheAtom reconstruction(directory.u8string());
+		requireTrue("Invalid template case " + std::to_string(failure), !reconstruction.IsReady() && !reconstruction.GetInitializationError().empty(), "Invalid templates must leave the helper unavailable with a diagnostic.");
+		if (reconstruction.IsReady()) continue;
+		auto fixture = createBaseSegmentFrameFixture();
+		const auto before = serialize(fixture.part);
+		const auto atomCount = fixture.part->GetAtoms().size();
+		reconstruction.SetNucleotidePosition(fixture.baseSegment, true);
+		reconstruction.SetDoubleStrandPositions(fixture.doubleStrand);
+		reconstruction.SetNucleotidesPositions(fixture.part);
+		reconstruction.UntwistNucleotidesPosition(fixture.baseSegment);
+		reconstruction.SetPositionsForNewNucleotides(fixture.part, fixture.part->GetNucleotides(), DASBackToTheAtom::NewNucleotidePlacementMode::ReconstructBaseSegments);
+		reconstruction.GenerateAllAtomModel(fixture.part);
+		requireEqual("Unavailable reconstruction preserves model", serialize(fixture.part), before);
+		requireEqual("Unavailable reconstruction preserves atoms", fixture.part->GetAtoms().size(), atomCount);
+		auto supplied = createAtomicGenerationFixture();
+		const auto suppliedLeft = supplied.left->GetPosition(), suppliedRight = supplied.right->GetPosition();
+		const auto backbone = supplied.left->GetBackbonePosition(), sidechain = supplied.right->GetSidechainPosition();
+		reconstruction.PopulateWithMockAtoms(supplied.part, true);
+		requireTrue("Mock atoms do not require templates", supplied.part->GetAtoms().size() > 0, "Provided coordinates must remain usable without reconstruction templates.");
+		requirePositionNear("Template-free population preserves left coordinates", supplied.left->GetPosition(), suppliedLeft, 0.0);
+		requirePositionNear("Template-free population preserves right coordinates", supplied.right->GetPosition(), suppliedRight, 0.0);
+		requirePositionNear("Template-free population preserves backbone coordinates", supplied.left->GetBackbonePosition(), backbone, 0.0);
+		requirePositionNear("Template-free population preserves sidechain coordinates", supplied.right->GetSidechainPosition(), sidechain, 0.0);
+	}
+	restore();
+#if defined(_WIN32)
+	{
+		// An exclusive handle makes this regular file unreadable without changing permissions or installed data.
+		struct ExclusiveTemplateFile {
+			HANDLE handle;
+			~ExclusiveTemplateFile() { if (handle != INVALID_HANDLE_VALUE) CloseHandle(handle); }
+		} locked{ CreateFileW((directory / "AT.pdb").c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr) };
+		requireTrue("Unreadable-template fixture holds an exclusive file", locked.handle != INVALID_HANDLE_VALUE, "The fixture must deny concurrent reads to a valid regular file.");
+		if (locked.handle != INVALID_HANDLE_VALUE) {
+			DASBackToTheAtom unreadable(directory.u8string());
+			requireTrue("Unreadable regular template rejects initialization", !unreadable.IsReady(), "A failed file open must not publish templates.");
+			requireTrue("Unreadable template diagnostic identifies the file", unreadable.GetInitializationError().find("AT.pdb") != std::string::npos, "Report the file whose access failed.");
+		}
+	}
+#endif
+	DASBackToTheAtom ready(directory.u8string());
+	requireTrue("Complete valid templates initialize", ready.IsReady(), ready.GetInitializationError());
+	if (ready.IsReady()) {
+		auto fixture = createBaseSegmentFrameFixture();
+		ready.SetNucleotidePosition(fixture.baseSegment, true);
+		const auto left = getLeftNucleotide(fixture.baseSegment);
+		requireTrue("Validated templates produce finite geometry", std::isfinite(left->GetBackbonePosition()[0].getValue()), "Placement must remain usable after validation.");
+	}
+}
+
+void testNtthalParserRejectsNonFiniteThermodynamics() {
+	const std::array<std::string, 4> labels{ "dS = ", "dH = ", "dG = ", "t = " };
+	for (std::size_t field = 0; field < labels.size(); ++field) {
+		for (const char* value : { "nan", "inf", "-inf", "1e999", "1e-999", "1oops" }) {
+			std::string output;
+			for (std::size_t i = 0; i < labels.size(); ++i)
+				output += labels[i] + (i == field ? value : "1.25e+1") + " ";
+			const auto result = PIPrimer3::ParseNtthalOutput(output + "\nline2\nline3\nline4\nline5\n");
+			requireTrue("Invalid ntthal field rejected: " + labels[field] + value, !result.isValid, "Every thermodynamic field must contain a complete finite value.");
+			requireTrue("Invalid ntthal result keeps sentinel fields", result.dS_ == FLT_MAX && result.dH_ == FLT_MAX && result.dG_ == FLT_MAX && result.T_ == FLT_MAX, "Failed parsing must not expose partial values.");
+		}
+	}
+	const auto valid = PIPrimer3::ParseNtthalOutput("dS = -1.25e+1 dH = +2.5E2 dG = 0 t = 3.7e1\nline2\nline3\nline4\nline5\n");
+	requireTrue("Finite ntthal exponents remain supported", valid.isValid, "Valid numeric representations must remain supported.");
+	requireNear("ntthal entropy value", valid.dS_, -12.5, 0.0);
+	requireNear("ntthal enthalpy value", valid.dH_, 250.0, 0.0);
+	requireNear("ntthal free energy value", valid.dG_, 0.0, 0.0);
+	requireNear("ntthal temperature value", valid.T_, 37.0, 0.0);
+}
+
+void testLoopConversionRejectsIncompleteAndInconsistentPairs() {
+	ADNBasicOperations::MutateBasePairIntoLoopPair(nullptr);
+	for (int scenario = 0; scenario < 9; ++scenario) {
+		auto fixture = createAtomicGenerationFixture();
+		SBPointer<ADNCell> cell = fixture.baseSegment->GetCell();
+		SBPointer<ADNBasePair> pair = static_cast<ADNBasePair*>(cell());
+		SBPointer<ADNBaseSegment> foreignSegment = new ADNBaseSegment(CellType::BasePair);
+		SBPointer<ADNPart> foreignPart = new ADNPart();
+		SBPointer<ADNNucleotide> foreignPartner = new ADNNucleotide();
+		if (scenario == 0) pair->SetRightNucleotide(nullptr); // Left only.
+		if (scenario == 1) pair->SetLeftNucleotide(nullptr); // Right only.
+		if (scenario == 2) { pair->SetLeftNucleotide(nullptr); pair->SetRightNucleotide(nullptr); }
+		if (scenario == 3) pair->SetRightNucleotide(fixture.left);
+		if (scenario == 4) {
+			fixture.right->SetBaseSegment(foreignSegment);
+			pair->SetRightNucleotide(fixture.right); // Deliberately inconsistent back-reference.
+		}
+		if (scenario == 5) {
+			fixture.part->DeregisterSingleStrand(fixture.rightStrand);
+			foreignPart->RegisterSingleStrand(fixture.rightStrand);
+			requireTrue("Foreign-part fixture has different ownership", fixture.rightStrand->GetPart() == foreignPart, "Detach before reparenting: adding an already attached child does not move it.");
+		}
+		if (scenario == 6) {
+			fixture.baseSegment->removeChild(cell());
+			foreignSegment->SetCell(cell());
+			requireTrue("Foreign-cell fixture has a different parent", cell->getParent() == foreignSegment(), "The deliberately inconsistent cell must actually belong to another segment.");
+		}
+		if (scenario == 7) {
+			fixture.left->SetPair(foreignPartner);
+			foreignPartner->SetPair(fixture.left);
+		}
+		if (scenario == 8) fixture.rightStrand->removeChild(fixture.right());
+		const auto left = pair->GetLeftNucleotide(), right = pair->GetRightNucleotide();
+		const auto leftPartner = fixture.left->GetPair(), rightPartner = fixture.right->GetPair();
+		const auto leftSegment = fixture.left->GetBaseSegment(), rightSegment = fixture.right->GetBaseSegment();
+		const auto leftPosition = fixture.left->GetPosition(), rightPosition = fixture.right->GetPosition();
+		const auto leftStrand = fixture.left->GetStrand(), rightStrand = fixture.right->GetStrand();
+		const auto parent = cell->getParent();
+		ADNBasicOperations::MutateBasePairIntoLoopPair(fixture.baseSegment);
+		requireTrue("Rejected loop conversion preserves cell " + std::to_string(scenario), fixture.baseSegment->GetCell() == cell && cell->getParent() == parent, "Reject before replacing or reparenting the cell.");
+		requireTrue("Rejected loop conversion preserves endpoints", pair->GetLeftNucleotide() == left && pair->GetRightNucleotide() == right, "Partial/invalid endpoints must not be rewritten.");
+		requireTrue("Rejected loop conversion preserves pairing", fixture.left->GetPair() == leftPartner && fixture.right->GetPair() == rightPartner, "Rejection must not disconnect any relationship.");
+		requireTrue("Rejected loop conversion preserves attachment", fixture.left->GetBaseSegment() == leftSegment && fixture.right->GetBaseSegment() == rightSegment, "Back-references must remain unchanged.");
+		requireTrue("Rejected loop conversion preserves strands", fixture.left->GetStrand() == leftStrand && fixture.right->GetStrand() == rightStrand, "Strand topology must remain unchanged.");
+		requirePositionNear("Rejected loop conversion preserves left geometry", fixture.left->GetPosition(), leftPosition, 0.0);
+		requirePositionNear("Rejected loop conversion preserves right geometry", fixture.right->GetPosition(), rightPosition, 0.0);
+	}
+	SBPointer<ADNBaseSegment> noCell = new ADNBaseSegment();
+	noCell->SetCell(nullptr);
+	ADNBasicOperations::MutateBasePairIntoLoopPair(noCell);
+	requireTrue("Cell-free conversion is a no-op", noCell->GetCell() == nullptr, "A missing cell must stay absent.");
+	SBPointer<ADNBaseSegment> unpublished = new ADNBaseSegment(CellType::BasePair);
+	SBPointer<ADNNucleotide> unpublishedLeft = new ADNNucleotide(), unpublishedRight = new ADNNucleotide();
+	unpublishedLeft->SetBaseSegment(unpublished);
+	unpublishedRight->SetBaseSegment(unpublished);
+	static_cast<ADNBasePair*>(unpublished->GetCell()())->AddPair(unpublishedLeft, unpublishedRight);
+	ADNBasicOperations::MutateBasePairIntoLoopPair(unpublished);
+	requireTrue("Complete unpublished pairs remain supported", unpublished->GetCellType() == CellType::LoopPair, "Consistent unpublished geometry must not require a document or part.");
+	for (bool paired : { true, false }) {
+		auto fixture = createAtomicGenerationFixture();
+		if (!paired) fixture.left->disconnectPair();
+		const auto leftPosition = fixture.left->GetPosition(), rightPosition = fixture.right->GetPosition();
+		ADNBasicOperations::MutateBasePairIntoLoopPair(fixture.baseSegment);
+		requireTrue("Complete base pair converts into loop pair", fixture.baseSegment->GetCellType() == CellType::LoopPair, "Both complete paired and unpaired cells must be supported.");
+		if (fixture.baseSegment->GetCellType() != CellType::LoopPair) continue;
+		SBPointer<ADNLoopPair> loops = static_cast<ADNLoopPair*>(fixture.baseSegment->GetCell()());
+		requireTrue("Complete loop conversion clears pairing", fixture.left->GetPair() == nullptr && fixture.right->GetPair() == nullptr, "Loop nucleotides must be unpaired.");
+		requireTrue("Left loop retains its endpoint", loops->GetLeftLoop()->GetStart() == fixture.left && loops->GetLeftLoop()->GetEnd() == fixture.left, "Left loop should contain its original nucleotide.");
+		requireTrue("Right loop retains its endpoint", loops->GetRightLoop()->GetStart() == fixture.right && loops->GetRightLoop()->GetEnd() == fixture.right, "Right loop should contain its original nucleotide.");
+		requireEqual("Each loop contains one nucleotide", loops->GetLeftLoop()->getNumberOfNucleotides() + loops->GetRightLoop()->getNumberOfNucleotides(), 2);
+		requireTrue("Loop conversion retains segment attachment", fixture.left->GetBaseSegment() == fixture.baseSegment && fixture.right->GetBaseSegment() == fixture.baseSegment, "Segment identities must remain intact.");
+		requireTrue("Loop conversion retains strand topology", fixture.left->GetStrand() == fixture.leftStrand && fixture.right->GetStrand() == fixture.rightStrand, "Strand membership must not change.");
+		requirePositionNear("Loop conversion retains left geometry", fixture.left->GetPosition(), leftPosition, 0.0);
+		requirePositionNear("Loop conversion retains right geometry", fixture.right->GetPosition(), rightPosition, 0.0);
+		ADNBasicOperations::MutateBasePairIntoLoopPair(fixture.baseSegment);
+		requireTrue("Repeated conversion preserves the existing loops", fixture.baseSegment->GetCell()() == loops(), "An already converted cell must stay unchanged.");
+	}
+}
+
+void testOxDNAExportValidatesBeforeReplacingFiles() {
+	const auto directory = temporaryConfigPath("adenita_export_validation");
+	if (!std::filesystem::create_directory(directory)) throw std::runtime_error("Could not create isolated export directory");
+	struct Cleanup {
+		std::filesystem::path directory;
+		~Cleanup() {
+			std::error_code error;
+			std::filesystem::remove(directory / "config.conf", error);
+			std::filesystem::remove(directory / "topo.top", error);
+			std::filesystem::remove(directory, error);
+		}
+	} cleanup{ directory };
+	const auto conf = directory / "config.conf", top = directory / "topo.top";
+	for (int scenario = 0; scenario < 9; ++scenario) {
+		auto fixture = createCircularStrandFixture();
+		ADNAuxiliary::OxDNAOptions options;
+		options.boxSizeX_ = options.boxSizeY_ = options.boxSizeZ_ = 8.518;
+		if (scenario == 0) fixture.fivePrime->setNucleotideType(DNABlocks::DI);
+		if (scenario == 1) fixture.fivePrime->SetPosition(SBPosition3(SBQuantity::picometer(std::numeric_limits<double>::quiet_NaN())));
+		if (scenario == 2) fixture.fivePrime->SetPosition(SBPosition3(SBQuantity::picometer(std::numeric_limits<double>::infinity())));
+		if (scenario == 3) options.boxSizeX_ = std::numeric_limits<double>::quiet_NaN();
+		if (scenario == 4) options.boxSizeY_ = std::numeric_limits<double>::infinity();
+		if (scenario == 5) options.boxSizeZ_ = -1.0;
+		if (scenario == 6) options.boxSizeX_ = std::numeric_limits<double>::max();
+		if (scenario == 7) fixture.part = nullptr;
+		if (scenario == 8) fixture.middle->setNucleotideType(DNABlocks::DI);
+		writeTextFile(conf, "previous configuration");
+		writeTextFile(top, "previous topology");
+		bool rejected = false;
+		try {
+			if (scenario == 8) {
+				SBPointerIndexer<ADNPart> parts;
+				parts.addReferenceTarget(createCircularStrandFixture().part());
+				parts.addReferenceTarget(fixture.part());
+				ADNLoader::OutputToOxDNA(parts, directory.u8string(), options);
+			}
+			else ADNLoader::OutputToOxDNA(fixture.part, directory.u8string(), options);
+		}
+		catch (const std::invalid_argument&) { rejected = true; }
+		requireTrue("Invalid oxDNA export rejects input " + std::to_string(scenario), rejected, "Invalid models and dimensions must fail before opening output files.");
+		requireEqual("Rejected export preserves configuration", readTextFile(conf), std::string("previous configuration"));
+		requireEqual("Rejected export preserves topology", readTextFile(top), std::string("previous topology"));
+	}
+	auto fixture = createCircularStrandFixture();
+	ADNAuxiliary::OxDNAOptions options;
+	options.boxSizeX_ = options.boxSizeY_ = options.boxSizeZ_ = 8.518;
+	ADNLoader::OutputToOxDNA(fixture.part, directory.u8string(), options);
+	const auto single = ADNLoader::InputFromOxDNA(top.u8string(), conf.u8string());
+	requireTrue("Valid single-part file export imports", single.succeeded() && single.part->GetNumberOfNucleotides() == 3, single.errorMessage);
+	SBPointerIndexer<ADNPart> parts;
+	parts.addReferenceTarget(fixture.part());
+	parts.addReferenceTarget(createCircularStrandFixture().part());
+	ADNLoader::OutputToOxDNA(parts, directory.u8string(), options);
+	const auto multiple = ADNLoader::InputFromOxDNA(top.u8string(), conf.u8string());
+	requireTrue("Valid multi-part file export imports", multiple.succeeded() && multiple.part->GetNumberOfNucleotides() == 6 && multiple.part->GetNumberOfSingleStrands() == 2, multiple.errorMessage);
+	requireThrowsRuntimeError("Unavailable export directory is reported", [&] { ADNLoader::OutputToOxDNA(fixture.part, (directory / "absent").u8string(), options); });
+	std::ofstream unavailableConfiguration, unavailableTopology;
+	requireThrowsRuntimeError("Unavailable output streams are reported", [&] { ADNLoader::SingleStrandsToOxDNA(fixture.part->GetSingleStrands(), unavailableConfiguration, unavailableTopology, options); });
+}
+
+int reportTestFailures() {
+	for (const auto& failure : failures)
+		std::cerr << "[FAIL] " << failure.file << ":" << failure.line << " in " << failure.function << " - " << failure.name << ": " << failure.message << std::endl;
+	std::cout << "Adenita test failures: " << failures.size() << std::endl;
+	return failures.empty() ? EXIT_SUCCESS : EXIT_FAILURE;
+}
+
+void runEdgeCaseTests() {
+	const std::pair<const char*, void (*)()> tests[] = {
+		{ "testArrayRejectsColumnsOutsideRow", testArrayRejectsColumnsOutsideRow },
+		{ "testArrayRejectsWrappedRowIndex", testArrayRejectsWrappedRowIndex },
+		{ "testArrayRejectsOverflowingDimensions", testArrayRejectsOverflowingDimensions },
+		{ "testArraySelfAssignmentAndEmptyConcatenation", testArraySelfAssignmentAndEmptyConcatenation },
+		{ "testArrayShapesRowsAndCopyFailures", testArrayShapesRowsAndCopyFailures },
+		{ "testVisibilityRefreshesProductionGeometrySnapshots", testVisibilityRefreshesProductionGeometrySnapshots },
+		{ "testPositionableCopiesHaveIndependentCenters", testPositionableCopiesHaveIndependentCenters },
+		{ "testPairAssignmentIsIdempotent", testPairAssignmentIsIdempotent },
+		{ "testPairReplacementRetainsNewPartner", testPairReplacementRetainsNewPartner },
+		{ "testPairDisconnectionAndLifetime", testPairDisconnectionAndLifetime },
+		{ "testNeighborsRejectUnknownNucleotide", testNeighborsRejectUnknownNucleotide },
+		{ "testNeighborsReinitializationRefreshesDistances", testNeighborsReinitializationRefreshesDistances },
+		{ "testNeighborsReinitializationReplacesPart", testNeighborsReinitializationReplacesPart },
+		{ "testNeighborFiltersQueriesAndOwnership", testNeighborFiltersQueriesAndOwnership },
+		{ "testEmptyPartCenterOfMassIsFinite", testEmptyPartCenterOfMassIsFinite },
+		{ "testBindingRegionSequenceOrderAndMissingEndpoints", testBindingRegionSequenceOrderAndMissingEndpoints },
+		{ "testOxDNARejectsInvalidNumericFields", testOxDNARejectsInvalidNumericFields },
+		{ "testOxDNARejectsTruncatedConfiguration", testOxDNARejectsTruncatedConfiguration },
+		{ "testOxDNARejectsDanglingTopologyNeighbors", testOxDNARejectsDanglingTopologyNeighbors },
+		{ "testOxDNAPreservesCircularStrandTopology", testOxDNAPreservesCircularStrandTopology },
+		{ "testOxDNAValidationMatrix", testOxDNAValidationMatrix },
+		{ "testOxDNAOrderingUnitsAndFrames", testOxDNAOrderingUnitsAndFrames },
+		{ "testOxDNAExportRoundTripAndCircularEndpoints", testOxDNAExportRoundTripAndCircularEndpoints },
+		{ "testOxDNAExportValidatesBeforeReplacingFiles", testOxDNAExportValidatesBeforeReplacingFiles },
+		{ "testCheckedNumericConversions", testCheckedNumericConversions },
+		{ "testJsonLoadRejectsInvalidCoordinatesAndIdentifiers", testJsonLoadRejectsInvalidCoordinatesAndIdentifiers },
+		{ "testReconstructionTemplateValidationIsTransactional", testReconstructionTemplateValidationIsTransactional },
+		{ "testJsonNumericValidationRejectsNonFiniteAndOverflow", testJsonNumericValidationRejectsNonFiniteAndOverflow },
+		{ "testNtthalParserRejectsNonFiniteThermodynamics", testNtthalParserRejectsNonFiniteThermodynamics },
+		{ "testLoopConversionRejectsIncompleteAndInconsistentPairs", testLoopConversionRejectsIncompleteAndInconsistentPairs }
+	};
+	for (const auto& test : tests) {
+		std::cerr << "[RUN] " << test.first << std::endl;
+		test.second();
+	}
+}
+
 } // namespace
 
-int main() {
+int main(int argc, char** argv) {
+	std::cerr << "Starting Adenita standalone tests" << std::endl;
+	std::cerr << "[RUN] testGeometryBufferOwnership" << std::endl;
+	testGeometryBufferOwnership();
+	std::cerr << "[RUN] testGeometryBufferNullSourceClearsOwnedData" << std::endl;
+	testGeometryBufferNullSourceClearsOwnedData();
+	std::cerr << "[RUN] testGeometryBufferOutlivesComputationArray" << std::endl;
+	testGeometryBufferOutlivesComputationArray();
+	std::cerr << "[RUN] testCylinderGeometryBuffersCopyAndReuseAllComponents" << std::endl;
+	testCylinderGeometryBuffersCopyAndReuseAllComponents();
+	std::cerr << "[RUN] testGeometryBufferAllocationFailurePreservesOwner" << std::endl;
+	testGeometryBufferAllocationFailurePreservesOwner();
+	if (argc > 1 && std::string(argv[1]) == "--geometry-only") {
+		return reportTestFailures();
+	}
+	runEdgeCaseTests();
+	if (argc > 1 && std::string(argv[1]) == "--edge-cases-only")
+		return reportTestFailures();
 
+	// Reconstruction tests use fixtures from this source checkout, supplied by
+	// CMake, rather than depending on a SAMSON installation or per-user scratch.
+	const auto templateDirectory = SBCContainerString::pathFromUtf8(ADENITA_TEST_DATA_DIR);
+	std::cerr << "Template directory: " << templateDirectory.u8string() << std::endl;
+	for (const char* name : { "AT.pdb", "TA.pdb", "CG.pdb", "GC.pdb" }) {
+		const auto path = templateDirectory / name;
+		std::ifstream input(path, std::ios::binary);
+		if (!input || input.peek() == std::char_traits<char>::eof()) {
+			std::cerr << "Required Adenita template is missing, unreadable or empty: " << path.u8string()
+				<< "\nCheck the Adenita source data directory configured for this test target."
+				<< std::endl;
+			return EXIT_FAILURE;
+		}
+	}
+
+	std::cerr << "[RUN] testConstructionAndAccess" << std::endl;
 	testConstructionAndAccess();
+	std::cerr << "[RUN] testCopyConstructorDeepCopy" << std::endl;
 	testCopyConstructorDeepCopy();
+	std::cerr << "[RUN] testAssignmentCopiesValues" << std::endl;
 	testAssignmentCopiesValues();
+	std::cerr << "[RUN] testAssignmentReleasesPreviousStorage" << std::endl;
 	testAssignmentReleasesPreviousStorage();
+	std::cerr << "[RUN] testMoveSemantics" << std::endl;
 	testMoveSemantics();
+	std::cerr << "[RUN] testRows" << std::endl;
 	testRows();
+	std::cerr << "[RUN] testExceptions" << std::endl;
 	testExceptions();
+	std::cerr << "[RUN] testScaffoldReaderSkipsBlankLinesAndHeaders" << std::endl;
 	testScaffoldReaderSkipsBlankLinesAndHeaders();
+	std::cerr << "[RUN] testScaffoldReaderAcceptsMissingInitialHeader" << std::endl;
 	testScaffoldReaderAcceptsMissingInitialHeader();
+	std::cerr << "[RUN] testConfigJsonStringMemberCopiesAddedValue" << std::endl;
 	testConfigJsonStringMemberCopiesAddedValue();
+	std::cerr << "[RUN] testConfigJsonStringMemberCopiesUpdatedValue" << std::endl;
 	testConfigJsonStringMemberCopiesUpdatedValue();
+	std::cerr << "[RUN] testConfigFileIoClosesWrittenAndReadFiles" << std::endl;
 	testConfigFileIoClosesWrittenAndReadFiles();
+	std::cerr << "[RUN] testConfigFileIoReportsFailuresAndClosesInvalidReads" << std::endl;
 	testConfigFileIoReportsFailuresAndClosesInvalidReads();
+	std::cerr << "[RUN] testConcatenate" << std::endl;
 	testConcatenate();
+	std::cerr << "[RUN] testFrameUtilsRotateFrameAroundZ" << std::endl;
 	testFrameUtilsRotateFrameAroundZ();
+	std::cerr << "[RUN] testFrameUtilsOrthonormalizationRepairsSmallDrift" << std::endl;
 	testFrameUtilsOrthonormalizationRepairsSmallDrift();
+	std::cerr << "[RUN] testFrameUtilsInvalidFrameFallsBack" << std::endl;
 	testFrameUtilsInvalidFrameFallsBack();
+	std::cerr << "[RUN] testFrameUtilsRigidRotationPreservesDistances" << std::endl;
 	testFrameUtilsRigidRotationPreservesDistances();
+	std::cerr << "[RUN] testFrameUtilsDerivesRotatedMockGeometryFrame" << std::endl;
 	testFrameUtilsDerivesRotatedMockGeometryFrame();
+	std::cerr << "[RUN] testFrameAdaptersSanitizeAndRotateOrientable" << std::endl;
 	testFrameAdaptersSanitizeAndRotateOrientable();
+	std::cerr << "[RUN] testDesignedBaseSegmentFrameBuildsValidAxes" << std::endl;
 	testDesignedBaseSegmentFrameBuildsValidAxes();
+	std::cerr << "[RUN] testDesignedBaseSegmentFrameUsesPreferredRadial" << std::endl;
 	testDesignedBaseSegmentFrameUsesPreferredRadial();
+	std::cerr << "[RUN] testDesignedBaseSegmentFrameFallsBackFromParallelRadial" << std::endl;
 	testDesignedBaseSegmentFrameFallsBackFromParallelRadial();
+	std::cerr << "[RUN] testTemplateFramePreparationRoundTripLeftSide" << std::endl;
 	testTemplateFramePreparationRoundTripLeftSide();
+	std::cerr << "[RUN] testTemplateFramePreparationRoundTripRightSide" << std::endl;
 	testTemplateFramePreparationRoundTripRightSide();
+	std::cerr << "[RUN] testTemplateFramePreparationTargetStateIsStable" << std::endl;
 	testTemplateFramePreparationTargetStateIsStable();
+	std::cerr << "[RUN] testTemplateFrameRoundTripsAcrossSidesAndPhases" << std::endl;
 	testTemplateFrameRoundTripsAcrossSidesAndPhases();
+	std::cerr << "[RUN] testTemplateFrameHandednessAcrossPhases" << std::endl;
 	testTemplateFrameHandednessAcrossPhases();
+	std::cerr << "[RUN] testTemplateFrameBasePlaneNormalsStayCoplanar" << std::endl;
 	testTemplateFrameBasePlaneNormalsStayCoplanar();
+	std::cerr << "[RUN] testCanonicalTemplateFrameFromCurrentGeometryTracksBaseSegmentAxis" << std::endl;
 	testCanonicalTemplateFrameFromCurrentGeometryTracksBaseSegmentAxis();
+	std::cerr << "[RUN] testCanonicalTemplateFrameFromCurrentGeometryDoesNotMutateBaseSegment" << std::endl;
 	testCanonicalTemplateFrameFromCurrentGeometryDoesNotMutateBaseSegment();
+	std::cerr << "[RUN] testNucleotideSetPositionTranslatesBackboneAndSidechain" << std::endl;
 	testNucleotideSetPositionTranslatesBackboneAndSidechain();
+	std::cerr << "[RUN] testGeometrySynchronizationDerivesNucleotideFrame" << std::endl;
 	testGeometrySynchronizationDerivesNucleotideFrame();
+	std::cerr << "[RUN] testGeometryValidationRejectsStaleNucleotideFrame" << std::endl;
 	testGeometryValidationRejectsStaleNucleotideFrame();
+	std::cerr << "[RUN] testGeometryValidationRejectsStaleBaseSegmentFrame" << std::endl;
 	testGeometryValidationRejectsStaleBaseSegmentFrame();
+	std::cerr << "[RUN] testGeometryEditBarrierPreservesRotatedNucleotideDirection" << std::endl;
 	testGeometryEditBarrierPreservesRotatedNucleotideDirection();
+	std::cerr << "[RUN] testFrameUtilsRotationAroundAxisMatchesZRotation" << std::endl;
 	testFrameUtilsRotationAroundAxisMatchesZRotation();
+	std::cerr << "[RUN] testRotateDoubleStrandGeometryPreservesDistancesAfterRigidTransform" << std::endl;
 	testRotateDoubleStrandGeometryPreservesDistancesAfterRigidTransform();
+	std::cerr << "[RUN] testRotateDoubleStrandGeometryFullTurnReturnsToStart" << std::endl;
 	testRotateDoubleStrandGeometryFullTurnReturnsToStart();
+	std::cerr << "[RUN] testTwisterTemplateReconstructionIsEquivariantAfterRigidTransform" << std::endl;
 	testTwisterTemplateReconstructionIsEquivariantAfterRigidTransform();
+	std::cerr << "[RUN] testTwisterTemplateReconstructionDoesNotAccumulatePhase" << std::endl;
 	testTwisterTemplateReconstructionDoesNotAccumulatePhase();
+	std::cerr << "[RUN] testDASReconstructionSideFramesRemainRightHanded" << std::endl;
 	testDASReconstructionSideFramesRemainRightHanded();
+	std::cerr << "[RUN] testCreatorSingleStrandInitializesDesignedFrames" << std::endl;
 	testCreatorSingleStrandInitializesDesignedFrames();
+	std::cerr << "[RUN] testCreatorDoubleStrandInitializesDesignedFrames" << std::endl;
 	testCreatorDoubleStrandInitializesDesignedFrames();
+	std::cerr << "[RUN] testReconstructionRepairsE3OnlyCreatorFrame" << std::endl;
 	testReconstructionRepairsE3OnlyCreatorFrame();
+	std::cerr << "[RUN] testPreserveInputGeometryKeepsExplicitSingleStrandPositions" << std::endl;
 	testPreserveInputGeometryKeepsExplicitSingleStrandPositions();
+	std::cerr << "[RUN] testExplicitSingleStrandCreatorPlacesAxisAlignedBackbones" << std::endl;
 	testExplicitSingleStrandCreatorPlacesAxisAlignedBackbones();
+	std::cerr << "[RUN] testExplicitSingleStrandCreatorPlacesDiagonalBackbones" << std::endl;
 	testExplicitSingleStrandCreatorPlacesDiagonalBackbones();
+	std::cerr << "[RUN] testComplementPlacementPreservesExistingNucleotideGeometry" << std::endl;
 	testComplementPlacementPreservesExistingNucleotideGeometry();
+	std::cerr << "[RUN] testComplementPlacementUsesRightAnchorSide" << std::endl;
 	testComplementPlacementUsesRightAnchorSide();
+	std::cerr << "[RUN] testComplementPlacementPrefersLeftAnchorOverStoredFrame" << std::endl;
 	testComplementPlacementPrefersLeftAnchorOverStoredFrame();
+	std::cerr << "[RUN] testComplementPlacementPrefersRightAnchorOverStoredFrame" << std::endl;
 	testComplementPlacementPrefersRightAnchorOverStoredFrame();
+	std::cerr << "[RUN] testComplementPlacementPrefersRotatedAnchorOverStoredFrame" << std::endl;
 	testComplementPlacementPrefersRotatedAnchorOverStoredFrame();
+	std::cerr << "[RUN] testSingleStrandAtomGenerationUsesExistingNucleotideCenter" << std::endl;
 	testSingleStrandAtomGenerationUsesExistingNucleotideCenter();
+	std::cerr << "[RUN] testSingleStrandAtomGenerationMapsBackboneAndSidechainMarkers" << std::endl;
 	testSingleStrandAtomGenerationMapsBackboneAndSidechainMarkers();
+	std::cerr << "[RUN] testRotatedSingleStrandAtomGenerationMapsBackboneAndSidechainMarkers" << std::endl;
 	testRotatedSingleStrandAtomGenerationMapsBackboneAndSidechainMarkers();
+	std::cerr << "[RUN] testSingleStrandAtomGenerationPreservesTemplateStacking" << std::endl;
 	testSingleStrandAtomGenerationPreservesTemplateStacking();
+	std::cerr << "[RUN] testAllAtomGenerationPreservesSynchronizedNucleotideGeometry" << std::endl;
 	testAllAtomGenerationPreservesSynchronizedNucleotideGeometry();
+	std::cerr << "[RUN] testAllAtomGenerationAlignsBasePlanesAndBackboneAfterRigidTransform" << std::endl;
 	testAllAtomGenerationAlignsBasePlanesAndBackboneAfterRigidTransform();
+	std::cerr << "[RUN] testCircularSingleStrandWrapsWithoutChangingSequenceOrder" << std::endl;
 	testCircularSingleStrandWrapsWithoutChangingSequenceOrder();
+	std::cerr << "[RUN] testModernJsonValidation" << std::endl;
 	testModernJsonValidation();
+	std::cerr << "[RUN] testLegacyJsonValidation" << std::endl;
 	testLegacyJsonValidation();
+	std::cerr << "[RUN] testCircularSingleStrandJsonRoundTrip" << std::endl;
 	testCircularSingleStrandJsonRoundTrip();
+	std::cerr << "[RUN] testBuildTopScalesHandlesBrokenNucleotideLinks" << std::endl;
 	testBuildTopScalesHandlesBrokenNucleotideLinks();
+	std::cerr << "[RUN] testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks" << std::endl;
 	testBuildTopScalesParametrizedHandlesBrokenNucleotideLinks();
+	std::cerr << "[RUN] testGenerateSequenceHonorsLengthAlphabetAndMaxGs" << std::endl;
 	testGenerateSequenceHonorsLengthAlphabetAndMaxGs();
+	std::cerr << "[RUN] testDaedalusEdgeSizeQuantizationBoundaries" << std::endl;
 	testDaedalusEdgeSizeQuantizationBoundaries();
+	std::cerr << "[RUN] testLatticeTriangleLengthInterpolation" << std::endl;
 	testLatticeTriangleLengthInterpolation();
+	std::cerr << "[RUN] testBaseSegmentSetCellReplacesChild" << std::endl;
 	testBaseSegmentSetCellReplacesChild();
+	std::cerr << "[RUN] testLoopPairSettersReplaceOnlySelectedChild" << std::endl;
 	testLoopPairSettersReplaceOnlySelectedChild();
+	std::cerr << "[RUN] testSerializedNodeValidation" << std::endl;
 	testSerializedNodeValidation();
+	std::cerr << "[RUN] testPolyhedronRebuildClearsPreviousTopology" << std::endl;
 	testPolyhedronRebuildClearsPreviousTopology();
+	std::cerr << "[RUN] testPolyhedronEdgeLookupDoesNotAllocatePlaceholders" << std::endl;
 	testPolyhedronEdgeLookupDoesNotAllocatePlaceholders();
+	std::cerr << "[RUN] testPolyhedronMetricsAndIndices" << std::endl;
 	testPolyhedronMetricsAndIndices();
+	std::cerr << "[RUN] testCanDoExportWritesBasicSections" << std::endl;
 	testCanDoExportWritesBasicSections();
+	std::cerr << "[RUN] testOxDNAImportResultReportsSuccess" << std::endl;
 	testOxDNAImportResultReportsSuccess();
+	std::cerr << "[RUN] testOxDNAImportResultReportsErrors" << std::endl;
 	testOxDNAImportResultReportsErrors();
+	std::cerr << "[RUN] testNtthalParserAcceptsValidOutput" << std::endl;
 	testNtthalParserAcceptsValidOutput();
+	std::cerr << "[RUN] testNtthalParserRejectsInvalidOutput" << std::endl;
 	testNtthalParserRejectsInvalidOutput();
+	std::cerr << "[RUN] testPlyLoaderWeldsDuplicatedAssimpVertices" << std::endl;
 	testPlyLoaderWeldsDuplicatedAssimpVertices();
+	std::cerr << "[RUN] testCadnanoRejectsMalformedLegacyJson" << std::endl;
 	testCadnanoRejectsMalformedLegacyJson();
+	std::cerr << "[RUN] testCadnanoImportsTerminalTubeAtLastPosition" << std::endl;
 	testCadnanoImportsTerminalTubeAtLastPosition();
+	std::cerr << "[RUN] testDaedalusPlyRegressionDoesNotCrashOnTeardown" << std::endl;
 	testDaedalusPlyRegressionDoesNotCrashOnTeardown();
+	std::cerr << "[RUN] testDaedalusInstanceCanRunTwice" << std::endl;
 	testDaedalusInstanceCanRunTwice();
 
 	if (!failures.empty()) {

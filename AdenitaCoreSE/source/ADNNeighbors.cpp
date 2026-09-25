@@ -1,153 +1,84 @@
 #include "ADNNeighbors.hpp"
 #include "ADNPart.hpp"
 
+#include <limits>
+#include <stdexcept>
+
 ADNNeighbors::ADNNeighbors() {}
 
 ADNNeighborNt* ADNNeighbors::GetPINucleotide(SBPointer<ADNNucleotide> nt) const {
-
-    ADNNeighborNt* piNt = nullptr;
-
-    for (const auto& p : ntIndices_) {
-
-        piNt = p.second;
-        if (piNt->GetNucleotide() == nt) break;
-
-    }
-
-    return piNt;
-
+    if (nt == nullptr) return nullptr;
+    for (const auto& entry : ntIndices_)
+        if (entry.second->GetNucleotide() == nt) return entry.second.get();
+    return nullptr;
 }
 
 std::vector<ADNNeighborNt*> ADNNeighbors::GetNeighbors(ADNNeighborNt* nt) const {
-
     std::vector<ADNNeighborNt*> neighbors;
+    if (nt == nullptr) return neighbors;
 
-    if (nt != nullptr) {
-
-        const unsigned int idx = nt->GetId();
-        const unsigned int pos = headList_[idx];
-        const unsigned int sz = numNeighborsList_[idx];
-
-        for (unsigned int i = 0; i < sz; ++i) {
-
-            unsigned int neighborIdx = neighborList_[pos + i];
-            ADNNeighborNt* nt = ntIndices_.at(neighborIdx);
-            neighbors.push_back(nt);
-
-        }
-
+    // Compare addresses before dereferencing a borrowed pointer: it may belong
+    // to another index, or have been invalidated by rebuilding this one.
+    auto found = ntIndices_.end();
+    for (auto it = ntIndices_.begin(); it != ntIndices_.end(); ++it)
+        if (it->second.get() == nt) { found = it; break; }
+    if (found == ntIndices_.end() || nt->GetNucleotide() == nullptr) return neighbors;
+    const size_t index = found->first;
+    const size_t begin = headList_.at(index);
+    const size_t count = numNeighborsList_.at(index);
+    for (size_t i = 0; i < count; ++i) {
+        auto* neighbor = ntIndices_.at(neighborList_.at(begin + i)).get();
+        if (neighbor->GetNucleotide() != nullptr) neighbors.push_back(neighbor);
     }
-
     return neighbors;
-
 }
 
 SBPointerIndexer<ADNNucleotide> ADNNeighbors::GetNeighbors(SBPointer<ADNNucleotide> nt) const {
-
-    ADNNeighborNt* piNt = GetPINucleotide(nt);
-    // repeat code to avoid an extra loop
     SBPointerIndexer<ADNNucleotide> neighbors;
-
-    const unsigned int idx = piNt->GetId();
-    const unsigned int pos = headList_[idx];
-    const unsigned int sz = numNeighborsList_[idx];
-
-    for (unsigned int i = 0; i < sz; ++i) {
-
-        unsigned int neighborIdx = neighborList_[pos + i];
-        ADNNeighborNt* nt = ntIndices_.at(neighborIdx);
-        neighbors.addReferenceTarget(nt->GetNucleotide()());
-
-    }
-
+    for (auto* neighbor : GetNeighbors(GetPINucleotide(nt)))
+        neighbors.addReferenceTarget(neighbor->GetNucleotide()());
     return neighbors;
-
 }
 
-void ADNNeighbors::SetFromOwnSingleStrand(bool b) {
-    fromOwnSingleStrand_ = b;
-}
-
-void ADNNeighbors::SetIncludePairs(bool b) {
-    includePairs_ = b;
-}
-
-void ADNNeighbors::SetMaxCutOff(SBQuantity::length cutOff) {
-    maxCutOff_ = cutOff;
-}
-
-void ADNNeighbors::SetMinCutOff(SBQuantity::length cutOff) {
-    minCutOff_ = cutOff;
-}
+void ADNNeighbors::SetFromOwnSingleStrand(bool b) { fromOwnSingleStrand_ = b; }
+void ADNNeighbors::SetIncludePairs(bool b) { includePairs_ = b; }
+void ADNNeighbors::SetMaxCutOff(SBQuantity::length cutOff) { maxCutOff_ = cutOff; }
+void ADNNeighbors::SetMinCutOff(SBQuantity::length cutOff) { minCutOff_ = cutOff; }
 
 void ADNNeighbors::InitializeNeighbors(SBPointer<ADNPart> part) {
-
-    if (part == nullptr) return;
-
-    auto nts = part->GetNucleotides();
-    headList_ = std::vector<unsigned int>(nts.size());
-    numNeighborsList_ = std::vector<unsigned int>(nts.size());
-
-    int create_index = true;
-    unsigned int neighborIdx = 0;
-
-    // we iterate like this to ensure looping always in the same order
-    unsigned int sz = nts.size();
-    for (unsigned int i = 0; i < sz; ++i) {
-
-        auto nt1 = nts[i];
-
-        SBPosition3 pos1 = nt1->GetPosition();
-        // store just first nt1
-        if (i == 0) {
-            ADNNeighborNt* piNt1 = new ADNNeighborNt(i, nt1);
-            ntIndices_.insert(std::make_pair(i, piNt1));
+    // Build one coherent replacement. RAII also frees rejected/partial builds,
+    // including their nucleotide references, if an allocation throws.
+    decltype(ntIndices_) indices;
+    decltype(neighborList_) adjacency;
+    decltype(headList_) heads;
+    decltype(numNeighborsList_) counts;
+    if (part != nullptr) {
+        const auto nts = part->GetNucleotides();
+        if (nts.size() > (std::numeric_limits<unsigned int>::max)())
+            throw std::length_error("Too many nucleotides for a neighbor index");
+        const unsigned int size = static_cast<unsigned int>(nts.size());
+        heads.resize(size);
+        counts.resize(size);
+        for (unsigned int i = 0; i < size; ++i)
+            indices.emplace(i, std::make_unique<ADNNeighborNt>(i, nts[i]));
+        for (unsigned int i = 0; i < size; ++i) {
+            heads[i] = adjacency.size();
+            const auto nt1 = nts[i];
+            if (nt1 == nullptr) continue;
+            const auto pos1 = nt1->GetPosition();
+            for (unsigned int j = 0; j < size; ++j) {
+                const auto nt2 = nts[j];
+                if (nt2 == nullptr || nt1 == nt2) continue;
+                if (!fromOwnSingleStrand_ && nt1->GetStrand() == nt2->GetStrand()) continue;
+                if (!includePairs_ && nt2->GetPair() == nt1) continue;
+                const auto distance = (nt2->GetPosition() - pos1).norm();
+                if (distance > minCutOff_ && distance < maxCutOff_) adjacency.push_back(j);
+            }
+            counts[i] = adjacency.size() - heads[i];
         }
-        // update head list with position
-        headList_[i] = neighborIdx;
-
-        unsigned int numNeighbors = 0;
-
-        for (unsigned int j = 0; j < sz; ++j) {
-
-            auto nt2 = nts[j];
-
-            if (nt2 == nt1) {
-                if (i != j) {
-                    std::string msg = "Creating neighbor list: looping over neighbors in different order";
-                    ADNLogger::LogDebug(msg);
-                }
-                continue;
-            }
-
-            // first time of the loop we create the other indices
-            if (create_index) {
-                ADNNeighborNt* piNt2 = new ADNNeighborNt(j, nt2);
-                ntIndices_.insert(std::make_pair(j, piNt2));
-            }
-
-            if (!fromOwnSingleStrand_ && nt2->GetStrand() == nt1->GetStrand()) {
-                continue;
-            }
-
-            if (!includePairs_ && nt2->GetPair() == nt1) {
-                continue;
-            }
-
-            const SBPosition3 pos2 = nt2->GetPosition();
-            auto dist = (pos2 - pos1).norm();
-            if (dist < maxCutOff_ && dist > minCutOff_) {
-                // neighbors
-                neighborList_.push_back(j);
-                ++neighborIdx;
-                ++numNeighbors;
-            }
-
-        }
-
-        numNeighborsList_[i] = numNeighbors;
-        create_index = false;
-
     }
-
+    ntIndices_.swap(indices);
+    neighborList_.swap(adjacency);
+    headList_.swap(heads);
+    numNeighborsList_.swap(counts);
 }

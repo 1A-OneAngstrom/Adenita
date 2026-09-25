@@ -1,4 +1,5 @@
 #include "DASDaedalus.hpp"
+#include "SBString.hpp"
 
 #include <filesystem>
 
@@ -1422,7 +1423,7 @@ int DASDaedalus::CalculateEdgeSize(SBQuantity::length nmLength) {
 template <typename T>
 void DASDaedalus::OutputGraph(T g, const std::string& filename) {
 
-	std::ofstream dotfile(std::filesystem::u8path(filename));
+	std::ofstream dotfile(SBCContainerString::pathFromUtf8(filename));
 	boost::write_graphviz(dotfile, g);
 
 }

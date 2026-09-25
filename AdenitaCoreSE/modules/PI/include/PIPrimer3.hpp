@@ -15,6 +15,9 @@ public:
 	SBPointerIndexer<PIBindingRegion>								GetBindingRegions(SBPointer<ADNPart> p) const;
 	void														Calculate(SBPointer<ADNPart> p, int oligo_conc, int mv, int dv) const;
 	void														DeleteBindingRegions(SBPointer<ADNPart> p);
+	/// \brief Parses a complete ntthal result with finite thermodynamic values.
+	/// \param output Text produced by ntthal.
+	/// \return Parsed values, or an invalid result with FLT_MAX fields on failure.
 	static ThermodynamicParameters								ParseNtthalOutput(const std::string& output);
 
 private:

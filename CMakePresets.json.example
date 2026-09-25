@@ -15,7 +15,7 @@
 				"CMAKE_PRESET_NAME": "win_x64_qt6.10.2",
                 "CMAKE_CXX_FLAGS": "/W3 /EHsc",
                 "CMAKE_COMPILE_WARNING_AS_ERROR": "OFF",
-                "SAMSON_SDK_PATH": "<PATH_TO_SAMSON>/SDK/11.0.1"
+                "SAMSON_SDK_PATH": "<PATH_TO_SAMSON>/SDK/12.0.0"
             },
             "environment": {
                 "PATH": "C:/Qt/6.10.2/msvc2022_64/bin;%PATH%"

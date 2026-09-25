@@ -26,10 +26,11 @@ public:
 	};
 
 	ADNNucleotide() : PositionableSB(), SBResidue(), Orientable() {}
-	ADNNucleotide(const ADNNucleotide& other);
+	/// \brief Disallows copying node identity and reference ownership; use SAMSON graph cloning.
+	ADNNucleotide(const ADNNucleotide&) = delete;
 	~ADNNucleotide() = default;
 
-	ADNNucleotide&												operator=(const ADNNucleotide& other);
+	ADNNucleotide&												operator=(const ADNNucleotide& other) = delete; ///< Node identity cannot be assigned.
 
 	virtual void												serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) const override;		///< Serializes the node
 	virtual void												unserialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber = SB_SDK_VERSION_NUMBER, const SBVersionNumber& classVersionNumber = SBVersionNumber(1, 0, 0)) override;			///< Unserializes the node
@@ -40,6 +41,10 @@ public:
 	[[nodiscard]] std::string									getNucleotideTypeString() const;
 	[[nodiscard]] std::string									getOneLetterNucleotideTypeString() const;
 
+	/// \brief Sets this nucleotide's partner, disconnecting only an old reciprocal link.
+	/// \param nucleotide The new partner, or null to clear the pairing.
+	/// Reassigning the current partner is a no-op. This is a one-sided setter;
+	/// ADNBasePair establishes reciprocal links by setting both endpoints.
 	void														SetPair(SBPointer<ADNNucleotide> nucleotide);
 	[[nodiscard]] SBPointer<ADNNucleotide>						GetPair() const;														///< Return a nucleotide's pair
 	[[nodiscard]] SBNode*										getPair() const;

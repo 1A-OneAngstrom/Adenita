@@ -15,26 +15,6 @@ ADNBaseSegment::ADNBaseSegment(CellType cellType) : PositionableSB(), Orientable
 
 }
 
-ADNBaseSegment::ADNBaseSegment(const ADNBaseSegment& other) : PositionableSB(other), Orientable(other), SBStructuralGroup(other) {
-
-    *this = other;
-
-}
-
-ADNBaseSegment& ADNBaseSegment::operator=(const ADNBaseSegment& other) {
-
-    PositionableSB::operator =(other);
-    Orientable::operator =(other);
-    SBStructuralGroup::operator =(other);
-
-    if (this != &other) {
-        number_ = other.number_;
-        //cell_ = other.GetCell();
-    }
-    return *this;
-
-}
-
 void ADNBaseSegment::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber, const SBVersionNumber& classVersionNumber) const {
 
     SBStructuralGroup::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);

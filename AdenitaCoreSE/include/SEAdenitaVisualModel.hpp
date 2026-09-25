@@ -89,6 +89,8 @@ public:
 	void														setDiscreteDimensionCurrentIndex(const int index);
 	std::string													getDiscreteDimensionItemText(const int index) const;
 
+	/// \brief Changes strand and nucleotide visibility and invalidates geometry snapshots.
+	/// \param layer Visibility threshold applied to the current nucleotide buffers.
 	void														setVisibility(double layer);
 	double														getVisibility() const;
 	bool														hasVisibilityRange() const;
@@ -183,6 +185,21 @@ public:
 	//@}
 
 private:
+
+	// Narrow access for CPU-side production visibility/snapshot regressions.
+	friend struct AdenitaVisualModelTestAccess;
+	enum class Initialization { Application, GeometryOnly };
+	/// \brief Creates geometry storage with optional application integration.
+	/// \param initialization Application for public construction; GeometryOnly for isolated CPU tests.
+	explicit SEAdenitaVisualModel(Initialization initialization);
+	/// \brief Applies visibility to an explicit set of parts using the current computation buffers.
+	/// \param layer Visibility threshold for strands and nucleotides.
+	/// \param parts Parts represented by the current nucleotide buffers.
+	void applyVisibility(double layer, const SBPointerIndexer<ADNPart>& parts);
+
+	void updateGeometryArrays(); ///< Copies changed computation data into independent geometry-owned buffers.
+	bool geometryArraysUpdateRequired{ true }; ///< Invalidates snapshots after computation or interaction changes.
+	bool geometryArraysBreakEditorActive{ false }; ///< Flag policy used by the last snapshot refresh.
 
 	void														init();
 	void														initAtoms(bool createIndex = true);

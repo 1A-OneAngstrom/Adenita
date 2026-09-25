@@ -26,7 +26,7 @@ Please cite the original Adenita publication when appropriate:
 
 Install the development prerequisites:
 
-- [SAMSON and the SAMSON SDK](https://www.samson-connect.net/) v11.0.0 or newer. The current Windows preset points at SDK 11.0.1.
+- [SAMSON and the SAMSON SDK](https://www.samson-connect.net/) v12.0.0 or newer. The current Windows preset points at SDK 12.0.0.
 - Qt 6.10.2 with the modules required by `CMakeLists.txt`.
 - CMake 4.0 or newer.
 - Boost 1.87 or newer.

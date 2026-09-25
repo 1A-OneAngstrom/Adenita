@@ -1,3 +1,4 @@
+#include "ADNNumericParsing.hpp"
 #include "ADNAuxiliary.hpp"	
 
 double ADNAuxiliary::mapRange(double input, double input_start, double input_end, double output_start, double output_end) {
@@ -150,10 +151,11 @@ SBPosition3 ADNAuxiliary::StringToSBPosition(const std::string& position) {
 	}
 	stringArray.push_back(position.substr(pos));
 
+	if (stringArray.size() != 3) throw std::invalid_argument("A position requires three coordinates");
 	SBPosition3 sbPos = SBPosition3();
-	sbPos[0] = SBQuantity::picometer(std::stod(stringArray[0]));
-	sbPos[1] = SBQuantity::picometer(std::stod(stringArray[1]));
-	sbPos[2] = SBQuantity::picometer(std::stod(stringArray[2]));
+	sbPos[0] = SBQuantity::picometer(ADNNumericParsing::number(stringArray[0]));
+	sbPos[1] = SBQuantity::picometer(ADNNumericParsing::number(stringArray[1]));
+	sbPos[2] = SBQuantity::picometer(ADNNumericParsing::number(stringArray[2]));
 	return sbPos;
 }
 
@@ -167,10 +169,11 @@ SBVector3 ADNAuxiliary::StringToSBVector(const std::string& vec) {
 	}
 	stringArray.push_back(vec.substr(pos));
 
+	if (stringArray.size() != 3) throw std::invalid_argument("A vector requires three coordinates");
 	SBVector3 sbVec = SBVector3();
-	sbVec[0] = SBQuantity::dimensionless(std::stod(stringArray[0]));
-	sbVec[1] = SBQuantity::dimensionless(std::stod(stringArray[1]));
-	sbVec[2] = SBQuantity::dimensionless(std::stod(stringArray[2]));
+	sbVec[0] = SBQuantity::dimensionless(ADNNumericParsing::number(stringArray[0]));
+	sbVec[1] = SBQuantity::dimensionless(ADNNumericParsing::number(stringArray[1]));
+	sbVec[2] = SBQuantity::dimensionless(ADNNumericParsing::number(stringArray[2]));
 	return sbVec;
 }
 
@@ -186,7 +189,7 @@ ublas::vector<double> ADNAuxiliary::StringToUblasVector(const std::string& vec) 
 
 	ublas::vector<double> uVec = ublas::vector<double>(stringArray.size());
 	for (size_t i = 0; i < stringArray.size(); ++i) {
-		uVec[i] = std::stod(stringArray[i]);
+		uVec[i] = ADNNumericParsing::number(stringArray[i]);
 	}
 
 	return uVec;
@@ -204,7 +207,7 @@ std::vector<int> ADNAuxiliary::StringToVector(const std::string& vec) {
 
 	std::vector<int> uVec = std::vector<int>(stringArray.size());
 	for (size_t i = 0; i < stringArray.size(); ++i) {
-		uVec[i] = std::stoi(stringArray[i]);
+		uVec[i] = ADNNumericParsing::integer(stringArray[i]);
 	}
 
 	return uVec;

@@ -107,8 +107,14 @@ namespace ADNAuxiliary {
     SB_EXPORT [[nodiscard]] std::string SBVector3ToString(const SBVector3& vec);
 
     SB_EXPORT [[nodiscard]] ublas::vector<double> StringToUblasVector(const std::string& vec);
+    /// \brief Parses three comma-separated finite coordinates in picometers.
+    /// \throws std::invalid_argument for an invalid token, range, or coordinate count.
     SB_EXPORT [[nodiscard]] SBPosition3 StringToSBPosition(const std::string& vec);
+    /// \brief Parses three comma-separated finite dimensionless coordinates.
+    /// \throws std::invalid_argument for an invalid token, range, or coordinate count.
     SB_EXPORT [[nodiscard]] SBVector3 StringToSBVector(const std::string& vec);
+    /// \brief Parses comma-separated integers within the model identifier range.
+    /// \throws std::invalid_argument for an invalid or out-of-range token.
     SB_EXPORT [[nodiscard]] std::vector<int> StringToVector(const std::string& vec);
 
     SB_EXPORT [[nodiscard]] SBPosition3 UblasVectorToSBPosition(const ublas::vector<double>& pos);
