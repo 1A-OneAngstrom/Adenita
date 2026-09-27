@@ -2,21 +2,7 @@
 #include "ADNModel.hpp"
 
 
-ADNAtom::ADNAtom(const ADNAtom& other) : SBAtom(other) {
-
-	*this = other;
-
-}
-
 ADNAtom::ADNAtom(SBElement::Type element, const SBPosition3& position) : SBAtom(element, position) {}
-
-ADNAtom& ADNAtom::operator=(const ADNAtom& other) {
-
-	SBAtom::operator =(other);
-
-	return *this;
-
-}
 
 void ADNAtom::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber, const SBVersionNumber& classVersionNumber) const {
 

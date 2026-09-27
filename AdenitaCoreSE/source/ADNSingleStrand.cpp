@@ -4,25 +4,6 @@
 #include "ADNPart.hpp"
 
 
-ADNSingleStrand::ADNSingleStrand(const ADNSingleStrand& other) {
-
-    *this = other;
-
-}
-
-ADNSingleStrand& ADNSingleStrand::operator=(const ADNSingleStrand& other) {
-
-    SBChain::operator =(other);
-
-    this->scaffoldFlag = other.scaffoldFlag;
-    this->circularFlag = other.circularFlag;
-    this->fivePrimeNucleotide = other.fivePrimeNucleotide;
-    this->threePrimeNucleotide = other.threePrimeNucleotide;
-
-    return *this;
-
-}
-
 void ADNSingleStrand::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber, const SBVersionNumber& classVersionNumber) const {
 
     SBChain::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);

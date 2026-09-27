@@ -10,21 +10,6 @@ ADNBackbone::ADNBackbone() : PositionableSB(), SBBackbone() {
 
 }
 
-ADNBackbone::ADNBackbone(const ADNBackbone& other) {
-
-    *this = other;
-
-}
-
-ADNBackbone& ADNBackbone::operator=(const ADNBackbone& other) {
-
-    PositionableSB::operator =(other);
-    SBBackbone::operator =(other);
-
-    return *this;
-
-}
-
 void ADNBackbone::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber, const SBVersionNumber& classVersionNumber) const {
 
     SBBackbone::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);

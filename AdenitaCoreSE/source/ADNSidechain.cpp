@@ -11,21 +11,6 @@ ADNSidechain::ADNSidechain() : PositionableSB(), SBSideChain() {
 
 }
 
-ADNSidechain::ADNSidechain(const ADNSidechain& other) {
-
-    *this = other;
-
-}
-
-ADNSidechain& ADNSidechain::operator=(const ADNSidechain& other) {
-
-    PositionableSB::operator =(other);
-    SBSideChain::operator =(other);
-
-    return *this;
-
-}
-
 void ADNSidechain::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber, const SBVersionNumber& classVersionNumber) const {
 
     SBSideChain::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);

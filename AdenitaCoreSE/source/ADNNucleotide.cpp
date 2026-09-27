@@ -9,23 +9,6 @@
 #include "ADNModel.hpp"
 #include "ADNNodeValidation.hpp"
 
-ADNNucleotide::ADNNucleotide(const ADNNucleotide& other) : PositionableSB(other), SBResidue(other), Orientable(other) {
-
-	*this = other;
-	pairNucleotide = nullptr;
-
-}
-
-ADNNucleotide& ADNNucleotide::operator=(const ADNNucleotide& other) {
-
-	PositionableSB::operator =(other);
-	Orientable::operator =(other);
-	SBResidue::operator =(other);
-
-	return *this;
-
-}
-
 void ADNNucleotide::serialize(SBCSerializer* serializer, const SBNodeIndexer& nodeIndexer, const SBVersionNumber& sdkVersionNumber, const SBVersionNumber& classVersionNumber) const {
 
 	SBResidue::serialize(serializer, nodeIndexer, sdkVersionNumber, classVersionNumber);
