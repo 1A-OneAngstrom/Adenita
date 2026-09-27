@@ -5,13 +5,6 @@
 
 #include <unordered_set>
 
-PIBindingRegion& PIBindingRegion::operator=(const PIBindingRegion& other) {
-
-    SBNodeGroup::operator =(other);
-    return *this;
-
-}
-
 double PIBindingRegion::getEntropy() const {
     return thermodynamicParameters_.dS_;
 }
