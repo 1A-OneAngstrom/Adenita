@@ -2,6 +2,46 @@
 
 All notable changes to Adenita are documented in this file.
 
+## [0.29.0] - 2026-09-28
+
+### Summary
+
+This release updates Adenita for SAMSON SDK 12 and improves the reliability of DNA import, export, editing, and visualization.
+
+oxDNA files now use standard topology ordering, length units, and orientation conventions. Import validates the complete topology and configuration before creating a model, while an explicit **Older Adenita export** option preserves access to files written by earlier Adenita versions. Visual geometry buffers now have independent ownership, and structure edits handle invalid or incomplete data more safely.
+
+Adenita is distributed as a SAMSON extension source release, not as a standalone executable.
+
+**Full Changelog**: <https://github.com/1A-OneAngstrom/Adenita/compare/v0.28.0...v0.29.0>
+
+### Added
+
+- Added an **Older Adenita export** option to oxDNA import for files using Adenita's previous conventions; standard oxDNA remains the default.
+- Added oxDNA compatibility documentation and expanded standalone regression coverage for import/export, geometry ownership, topology edits, neighbor indexing, and invalid inputs.
+- Added dedicated `GeometryOwnership` and `EdgeCases` CTest selections alongside the full standalone suite.
+
+### Changed
+
+- Updated the extension and its build paths for SAMSON SDK 12, including noncopyable SDK node types and UTF-8 path conversion through the SDK API.
+- Corrected oxDNA export ordering, neighbor links, length units, and orientation frames to match the standard format, including circular strands and multi-part exports.
+- Made visual-model geometry arrays own copies of their data and refresh those copies after geometry, interaction, and visibility changes.
+- Rebuilt nucleotide neighbor indexes as replaceable snapshots, retaining the existing cutoff and strand/pair filters.
+- Temporarily disabled generation progress-bar display because it flickered.
+
+### Fixed
+
+- Rejected malformed or incomplete oxDNA topology and configuration files before adding a model; errors now identify the input location. JSON and numeric parsing also reject invalid identifiers, overflow, and non-finite values.
+- Validated oxDNA export data before opening destination files, so invalid model data no longer truncates an existing export; write failures are reported.
+- Preserved reciprocal nucleotide pair links when reassigning or disconnecting pairs, and rejected incomplete loop conversions before modifying topology.
+- Validated reconstruction templates before atom placement or editor operations. Coordinate imports that already supply positions can still proceed without reconstruction templates.
+- Fixed stale visual attributes after visibility changes and guarded missing geometry mappings and buffers.
+- Hardened array bounds and allocation checks, empty-part center calculations, and parsing of incomplete or non-finite thermodynamic results.
+
+### Notes for developers
+
+- The standalone suite now covers the new ownership and edge-case paths in separate CTest selections; GUI rendering and application workflows still require validation in SAMSON.
+- The progress-bar helper remains in place, but its display is disabled pending a flicker fix.
+
 ## [0.28.0] - 2026-06-03
 
 ### Summary

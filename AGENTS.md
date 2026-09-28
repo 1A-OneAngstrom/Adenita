@@ -65,3 +65,10 @@ This repository is the `./adenita` project in the SAMSON extensions workspace.
 - `CMakePresets.json` contains local path defaults. Update paths only when the task is specifically about build configuration.
 - Do not edit vendored RapidJSON files unless the task is explicitly about that dependency.
 - When changing graph topology, serialization, JSON IO, frame synchronization, DAS algorithms, primer helpers, or editor behavior, run the standalone CTest target when practical and report whether it passed.
+
+## Changelog and Release Notes
+
+- For a new release, compare `HEAD` with the previous substantive release tag (for example, `git log v0.28.0..HEAD` and `git diff --stat v0.28.0..HEAD`). Do not use an intervening hotfix tag as the baseline when the release scope explicitly calls for the earlier version.
+- Read the changed code, tests, and documentation behind commit subjects before describing behavior. Group notable user-facing changes under the existing `CHANGELOG.md` headings; keep build and test details in developer notes.
+- Match the date and distribution wording used by earlier entries, and link `Full Changelog` to the two release tags. Check that the target version is set in `SEAdenitaCoreSEDescriptor.cpp`; the comparison link can point to a tag that will be created when the release is published.
+- Keep historical release entries intact. Verify the final diff with `git diff --check` and avoid claiming a build, runtime check, or published release unless it was actually performed.
